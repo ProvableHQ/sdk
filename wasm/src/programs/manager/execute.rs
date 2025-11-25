@@ -29,12 +29,15 @@ use crate::{
     execute_fee,
     execute_program,
     latest_block_height,
+    latest_stateroot,
     log,
     process_inputs,
     types::native::{
         AuthorizationNative,
         CurrentAleo,
         CurrentNetwork,
+        ExecutionNative,
+        FeeNative,
         IdentifierNative,
         LocatorNative,
         ProcessNative,
@@ -460,6 +463,128 @@ impl ProgramManager {
             None
         };
         Ok(Transaction::from(TransactionNative::from_execution(execution, fee).map_err(|e| e.to_string())?))
+    }
+
+    /// Generate an execution transaction without a proof.
+    /// Intended for use with the Leo devnode tool.
+    ///
+    /// @param private_key The private key of the sender
+    /// @param program The source code of the program being executed
+    /// @param function The name of the function to execute
+    /// @param inputs A javascript array of inputs to the function
+    /// @param priority_fee_credits The optional priority fee to be paid for the transaction
+    /// @param fee_record The record to spend the fee from
+    /// @param url The url of the Aleo network node to send the transaction to
+    /// If this is set to 'true' the keys synthesized (or passed in as optional parameters via the
+    /// `proving_key` and `verifying_key` arguments) will be stored in the ProgramManager's memory
+    /// and used for subsequent transactions. If this is set to 'false' the proving and verifying
+    /// keys will be deallocated from memory after the transaction is executed.
+    /// @param imports (optional) Provide a list of imports to use for the function execution in the
+    /// form of a javascript object where the keys are a string of the program name and the values
+    /// are a string representing the program source code \{ "hello.aleo": "hello.aleo source code" \}
+    /// @param proving_key (optional) Provide a verifying key to use for the function execution
+    /// @param verifying_key (optional) Provide a verifying key to use for the function execution
+    /// @param fee_proving_key (optional) Provide a proving key to use for the fee execution
+    /// @param fee_verifying_key (optional) Provide a verifying key to use for the fee execution
+    /// @param offline_query An offline query object to use if building a transaction without an internet connection.
+    /// @param edition The edition of the program to execute. Defaults to the latest found on the network, or 1 if the program does not exist on the network.
+    /// @returns {Transaction}
+    #[wasm_bindgen(js_name = buildDevnodeExecutionTransaction)]
+    #[allow(clippy::too_many_arguments)]
+    pub async fn devnode_execute(
+        private_key: &PrivateKey,
+        program: &str,
+        function: &str,
+        inputs: Array,
+        priority_fee_credits: f64,
+        fee_record: Option<RecordPlaintext>,
+        url: Option<String>,
+        imports: Option<Object>,
+        edition: Option<u16>,
+    ) -> Result<Transaction, String> {
+        log("Loading the SnarkVM process");
+        let mut process_native = ProcessNative::load_web().map_err(|err| err.to_string())?;
+        let process = &mut process_native;
+        let node_url = url.as_deref().unwrap_or(LOCAL_URL);
+
+        // Initialize the rng.
+        let rng = &mut StdRng::from_entropy();
+
+        log("Check program imports are valid and add them to the process");
+        let program_native = ProgramNative::from_str(program).map_err(|e| e.to_string())?;
+        let program_id = program_native.id().to_string();
+        ProgramManager::resolve_imports(process, &program_native, imports)?;
+        let edition = edition.unwrap_or(1);
+
+        let inputs = process_inputs!(inputs);
+
+        // Add the program to the process.
+        if program_id != "credits.aleo" {
+            if !process.contains_program(program_native.id()) {
+                log("Adding program to the process");
+                process.add_program_with_edition(&program_native, edition).map_err(|e| e.to_string())?;
+            }
+        }
+
+        // Generate the authorization.
+        let authorization = process
+            .authorize::<CurrentAleo, _>(&private_key, &program_id, function, inputs.iter(), rng)
+            .map_err(|e| e.to_string())?;
+
+        // Get the state root.
+        let state_root = latest_stateroot(node_url).await.map_err(|e| e.to_string())?;
+
+        // Get the consensus version.
+        let latest_height = latest_block_height(node_url).await.map_err(|err| err.to_string())?;
+        let consensus_version = CurrentNetwork::CONSENSUS_VERSION(latest_height).map_err(|err| err.to_string())?;
+
+        // Execute without proving.
+        let execution = ExecutionNative::from(authorization.transitions().values().cloned(), state_root, None)
+            .map_err(|e| e.to_string())?;
+
+        // Calculate the cost.
+        let (cost, _) = execution_cost(&process, &execution, consensus_version).map_err(|e| e.to_string())?;
+
+        // Generate the fee authorization.
+        let id = authorization.to_execution_id().map_err(|e| e.to_string())?;
+
+        // Convert the priority fee to microcredits.
+        let priority_fee_microcredits = (priority_fee_credits * 1_000_000.0) as u64;
+
+        let fee_authorization = match fee_record {
+            Some(fee_record) => {
+                log("Authorizing credits.aleo/fee_private");
+                let fee_record_native = RecordPlaintextNative::from_str(&fee_record.to_string())
+                    .map_err(|e| format!("Invalid fee record: {}", e))?;
+                process
+                    .authorize_fee_private::<CurrentAleo, _>(
+                        &private_key,
+                        fee_record_native,
+                        cost,
+                        priority_fee_microcredits,
+                        id,
+                        rng,
+                    )
+                    .map_err(|e| e.to_string())?
+            }
+            None => {
+                log("Authorizing credits.aleo/fee_public");
+                process
+                    .authorize_fee_public::<CurrentAleo, _>(&private_key, cost, priority_fee_microcredits, id, rng)
+                    .map_err(|e| e.to_string())?
+            }
+        };
+
+        // Create a fee transition without a proof.
+        let fee = FeeNative::from(fee_authorization.transitions().into_iter().next().unwrap().1, state_root, None)
+            .map_err(|e| e.to_string())?;
+
+        // Evaluate the process to ensure validity.
+        let _response = process.evaluate::<CurrentAleo>(authorization).map_err(|e| e.to_string())?;
+
+        // Create the transaction.
+        let transaction = TransactionNative::from_execution(execution, Some(fee)).map_err(|e| e.to_string())?;
+        Ok(Transaction::from(transaction))
     }
 
     /// Estimate Fee for Aleo function execution. Note if "cache" is set to true, the proving and

@@ -38,12 +38,12 @@ use snarkvm_console::{
     },
     types::{Boolean, Field, Group, I8, I16, I32, I64, I128, Scalar, U8, U16, U32, U64, U128},
 };
-use snarkvm_ledger_block::{Execution, Input, Output, Transaction, Transition};
+use snarkvm_ledger_block::{Deployment, Execution, Fee, Input, Output, Transaction, Transition};
 use snarkvm_synthesizer::{
     Authorization,
     Process,
     Program,
-    snark::{ProvingKey, VerifyingKey},
+    snark::{Certificate, ProvingKey, VerifyingKey},
 };
 
 mod request;
@@ -78,6 +78,7 @@ pub type BHP256Native = BHP256<CurrentNetwork>;
 pub type BHP512Native = BHP512<CurrentNetwork>;
 pub type BHP768Native = BHP768<CurrentNetwork>;
 pub type BHP1024Native = BHP1024<CurrentNetwork>;
+pub type CertificateNative = Certificate<CurrentNetwork>;
 pub type Pedersen64Native = Pedersen64<CurrentNetwork>;
 pub type Pedersen128Native = Pedersen128<CurrentNetwork>;
 pub type Poseidon2Native = Poseidon2<CurrentNetwork>;
@@ -102,7 +103,9 @@ pub type ResponseNative = Response<CurrentNetwork>;
 pub type ValueNative = Value<CurrentNetwork>;
 
 // Ledger types
+pub type DeploymentNative = Deployment<CurrentNetwork>;
 pub type ExecutionNative = Execution<CurrentNetwork>;
+pub type FeeNative = Fee<CurrentNetwork>;
 pub type InputNative = Input<CurrentNetwork>;
 pub type OutputNative = Output<CurrentNetwork>;
 pub type ProgramOwnerNative = ProgramOwner<CurrentNetwork>;

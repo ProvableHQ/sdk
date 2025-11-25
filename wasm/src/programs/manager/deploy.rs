@@ -26,11 +26,15 @@ use crate::{
     get_program_from_network,
     latest_block_height,
     latest_program_edition,
+    latest_stateroot,
     log,
     types::native::{
         AddressNative,
+        CertificateNative,
         CurrentAleo,
         CurrentNetwork,
+        DeploymentNative,
+        FeeNative,
         PrivateKeyNative,
         ProcessNative,
         ProgramNative,
@@ -305,6 +309,280 @@ impl ProgramManager {
         log("Creating deployment transaction");
         Ok(Transaction::from(
             TransactionNative::from_deployment(owner, deployment, fee).map_err(|err| err.to_string())?,
+        ))
+    }
+
+    /// Deploy an Aleo program without synthesizing keys and generating certificates.
+    /// Intended for use with Leo Devnode.
+    ///
+    /// @param private_key The private key of the sender
+    /// @param program The source code of the program being deployed
+    /// @param imports A javascript object holding the source code of any imported programs in the
+    /// form \{"program_name1": "program_source_code", "program_name2": "program_source_code", ..\}.
+    /// Note that all imported programs must be deployed on chain before the main program in order
+    /// for the deployment to succeed
+    /// @param priority_fee_credits The optional priority fee to be paid for the transaction
+    /// @param fee_record The record to spend the fee from
+    /// @param url The url of the Aleo network node to send the transaction to
+    /// @param imports (optional) Provide a list of imports to use for the program deployment in the
+    /// form of a javascript object where the keys are a string of the program name and the values
+    /// are a string representing the program source code \{ "hello.aleo": "hello.aleo source code" \}
+    /// @param fee_proving_key (optional) Provide a proving key to use for the fee execution
+    /// @param fee_verifying_key (optional) Provide a verifying key to use for the fee execution
+    /// @returns {Transaction}
+    #[wasm_bindgen(js_name = buildDevnodeDeploymentTransaction)]
+    #[allow(clippy::too_many_arguments)]
+    pub async fn devnode_deploy(
+        private_key: &PrivateKey,
+        program: &str,
+        priority_fee_credits: f64,
+        fee_record: Option<RecordPlaintext>,
+        url: Option<String>,
+        imports: Option<Object>,
+    ) -> Result<Transaction, String> {
+        log("Creating deployment transaction");
+        let mut process_native = ProcessNative::load_web().map_err(|err| err.to_string())?;
+        let process = &mut process_native;
+
+        log("Checking program has a valid name");
+        let program = ProgramNative::from_str(program).map_err(|err| err.to_string())?;
+        let program_id = program.id();
+
+        log("Checking program imports are valid and add them to the process");
+        ProgramManager::resolve_imports(process, &program, imports)?;
+        let rng = &mut StdRng::from_entropy();
+
+        log("Creating deployment");
+        let node_url = url.as_deref().unwrap_or(LOCAL_URL);
+
+        // Create deployment without synthesizing keys and generating certificates.
+        if program.functions().is_empty() {
+            log("Program must have at least one function");
+            Err("Program must have at least one function".to_string())?;
+        }
+        let mut verifying_keys = Vec::with_capacity(program.functions().len());
+        for function_name in program.functions().keys() {
+            let (verifying_key, certificate) = {
+                // Sample a dummy verifying key for each function.
+                let verifying_key =
+                    VerifyingKeyNative::from_str(DEVNODE_VERIFIER_KEY).map_err(|err| err.to_string())?;
+
+                // Sample a dummy certificate.
+                let certificate = CertificateNative::from_str(DEVNODE_CERTIFICATE).map_err(|err| err.to_string())?;
+                (verifying_key, certificate)
+            };
+            verifying_keys.push((*function_name, (verifying_key, certificate)));
+        }
+
+        let edition_response = latest_program_edition(node_url, &program_id.to_string()).await;
+        let edition = match edition_response {
+            Ok(edition) => edition + 1,
+            Err(_) => 0,
+        };
+
+        let mut deployment = DeploymentNative::new(edition, program.clone(), verifying_keys, None, None)
+            .map_err(|err| err.to_string())?;
+
+        let latest_height = latest_block_height(node_url).await.map_err(|err| err.to_string())?;
+        let consensus_version = CurrentNetwork::CONSENSUS_VERSION(latest_height).map_err(|err| err.to_string())?;
+
+        let private_key_native = PrivateKeyNative::from(private_key);
+        if consensus_version < ConsensusVersion::V9 {
+            deployment.set_program_checksum_raw(None);
+            deployment.set_program_owner_raw(None)
+        } else {
+            deployment.set_program_checksum_raw(Some(deployment.program().to_checksum()));
+            deployment
+                .set_program_owner_raw(Some(AddressNative::try_from(private_key_native).map_err(|e| e.to_string())?));
+        }
+
+        let deployment_id = deployment.to_deployment_id().map_err(|e| e.to_string())?;
+
+        let owner = ProgramOwnerNative::new(private_key, deployment_id, rng).map_err(|err| err.to_string())?;
+
+        // Construct the fee authorization for the deployment
+        let (minimum_deployment_cost, _) = deployment_cost::<CurrentNetwork>(process, &deployment, consensus_version)
+            .map_err(|err| err.to_string())?;
+
+        // Check to see if the fee record has enough microcredits to pay for the deployment.
+        let priority_fee_microcredits = (priority_fee_credits * 1_000_000.0) as u64;
+        Self::validate_fee_record(&fee_record, minimum_deployment_cost, priority_fee_microcredits)
+            .map_err(|e| e.to_string())?;
+
+        let fee_authorization = match fee_record {
+            Some(record) => process
+                .authorize_fee_private::<CurrentAleo, _>(
+                    &private_key,
+                    record.into(),
+                    minimum_deployment_cost,
+                    priority_fee_microcredits,
+                    deployment_id,
+                    rng,
+                )
+                .map_err(|e| e.to_string())?,
+            None => process
+                .authorize_fee_public::<CurrentAleo, _>(
+                    &private_key,
+                    minimum_deployment_cost,
+                    priority_fee_microcredits,
+                    deployment_id,
+                    rng,
+                )
+                .map_err(|e| e.to_string())?,
+        };
+
+        // Get the state root.
+        let state_root = latest_stateroot(node_url).await.map_err(|e| e.to_string()).map_err(|e| e.to_string())?;
+
+        let fee = FeeNative::from(fee_authorization.transitions().into_iter().next().unwrap().1, state_root, None)
+            .map_err(|err| err.to_string())?;
+
+        log("Creating deployment transaction");
+        Ok(Transaction::from(
+            TransactionNative::from_deployment(owner, deployment, fee)
+                .map_err(|err| err.to_string())
+                .map_err(|e| e.to_string())?,
+        ))
+    }
+
+    /// Upgrade a deployed Aleo program without synthesizing keys and generating certificates.
+    /// Intended for use with Leo Devnode.
+    ///
+    /// @param private_key The private key of the sender
+    /// @param program The source code of the upgraded program
+    /// @param imports A javascript object holding the source code of any imported programs in the
+    /// form \{"program_name1": "program_source_code", "program_name2": "program_source_code", ..\}.
+    /// Note that all imported programs must be deployed on chain before the main program in order
+    /// for the deployment to succeed
+    /// @param priority_fee_credits The optional priority fee to be paid for the transaction
+    /// @param fee_record The record to spend the fee from
+    /// @param url The url of the Aleo network node to send the transaction to
+    /// @param imports (optional) Provide a list of imports to use for the program deployment in the
+    /// form of a javascript object where the keys are a string of the program name and the values
+    /// are a string representing the program source code \{ "hello.aleo": "hello.aleo source code" \}
+    /// @param fee_proving_key (optional) Provide a proving key to use for the fee execution
+    /// @param fee_verifying_key (optional) Provide a verifying key to use for the fee execution
+    /// @returns {Transaction}
+    #[wasm_bindgen(js_name = buildDevnodeUpgradeTransaction)]
+    #[allow(clippy::too_many_arguments)]
+    pub async fn devnode_upgrade(
+        private_key: &PrivateKey,
+        program: &str,
+        priority_fee_credits: f64,
+        fee_record: Option<RecordPlaintext>,
+        url: Option<String>,
+        imports: Option<Object>,
+    ) -> Result<Transaction, String> {
+        log("Creating deployment transaction");
+        let mut process_native = ProcessNative::load_web().map_err(|err| err.to_string())?;
+        let process = &mut process_native;
+
+        log("Checking program imports are valid and add them to the process");
+        let program = ProgramNative::from_str(&program).map_err(|err| err.to_string())?;
+        ProgramManager::resolve_imports(process, &program, imports)?;
+        let rng = &mut StdRng::from_entropy();
+
+        log("Creating deployment");
+        let node_url = url.as_deref().unwrap_or(LOCAL_URL);
+
+        log("Checking if the program is deployed on the network");
+        let program_id = program.id().to_string();
+        let program_string = get_program_from_network(node_url, &program_id).await.map_err(|err| err.to_string())?;
+        let deployed_program = ProgramNative::from_str(&program_string).map_err(|err| err.to_string())?;
+        let deployed_program_edition =
+            latest_program_edition(node_url, &program.id().to_string()).await.map_err(|err| err.to_string())?;
+
+        // Load the deployed program into the process
+        log("Adding deployed program to the process");
+        process.add_program_with_edition(&deployed_program, deployed_program_edition).map_err(|err| err.to_string())?;
+
+        // Create deployment without synthesizing keys and generating certificates.
+        if program.functions().is_empty() {
+            log("Program must have at least one function");
+            Err("Program must have at least one function".to_string())?;
+        }
+        let mut verifying_keys = Vec::with_capacity(program.functions().len());
+        for function_name in program.functions().keys() {
+            let (verifying_key, certificate) = {
+                // Sample a dummy verifying key for each function.
+                let verifying_key =
+                    VerifyingKeyNative::from_str(DEVNODE_VERIFIER_KEY).map_err(|err| err.to_string())?;
+
+                // Sample a dummy certificate.
+                let certificate = CertificateNative::from_str(DEVNODE_CERTIFICATE).map_err(|err| err.to_string())?;
+                (verifying_key, certificate)
+            };
+            verifying_keys.push((*function_name, (verifying_key, certificate)));
+        }
+
+        let edition_response = latest_program_edition(node_url, &program_id.to_string()).await;
+        let edition = match edition_response {
+            Ok(edition) => edition + 1,
+            Err(_) => 0,
+        };
+
+        let mut deployment = DeploymentNative::new(edition, program.clone(), verifying_keys, None, None)
+            .map_err(|err| err.to_string())?;
+
+        let latest_height = latest_block_height(node_url).await.map_err(|err| err.to_string())?;
+        let consensus_version = CurrentNetwork::CONSENSUS_VERSION(latest_height).map_err(|err| err.to_string())?;
+
+        let private_key_native = PrivateKeyNative::from(private_key);
+        if consensus_version < ConsensusVersion::V9 {
+            deployment.set_program_checksum_raw(None);
+            deployment.set_program_owner_raw(None)
+        } else {
+            deployment.set_program_checksum_raw(Some(deployment.program().to_checksum()));
+            deployment
+                .set_program_owner_raw(Some(AddressNative::try_from(private_key_native).map_err(|e| e.to_string())?));
+        }
+
+        let deployment_id = deployment.to_deployment_id().map_err(|e| e.to_string())?;
+
+        let owner = ProgramOwnerNative::new(private_key, deployment_id, rng).map_err(|err| err.to_string())?;
+
+        // Construct the fee authorization for the deployment
+        let (minimum_deployment_cost, _) = deployment_cost::<CurrentNetwork>(process, &deployment, consensus_version)
+            .map_err(|err| err.to_string())?;
+
+        // Check to see if the fee record has enough microcredits to pay for the deployment.
+        let priority_fee_microcredits = (priority_fee_credits * 1_000_000.0) as u64;
+        Self::validate_fee_record(&fee_record, minimum_deployment_cost, priority_fee_microcredits)
+            .map_err(|e| e.to_string())?;
+
+        let fee_authorization = match fee_record {
+            Some(record) => process
+                .authorize_fee_private::<CurrentAleo, _>(
+                    &private_key,
+                    record.into(),
+                    minimum_deployment_cost,
+                    priority_fee_microcredits,
+                    deployment_id,
+                    rng,
+                )
+                .map_err(|e| e.to_string())?,
+            None => process
+                .authorize_fee_public::<CurrentAleo, _>(
+                    &private_key,
+                    minimum_deployment_cost,
+                    priority_fee_microcredits,
+                    deployment_id,
+                    rng,
+                )
+                .map_err(|e| e.to_string())?,
+        };
+
+        // Get the state root.
+        let state_root = latest_stateroot(node_url).await.map_err(|e| e.to_string()).map_err(|e| e.to_string())?;
+
+        let fee = FeeNative::from(fee_authorization.transitions().into_iter().next().unwrap().1, state_root, None)
+            .map_err(|err| err.to_string())?;
+
+        log("Creating deployment transaction");
+        Ok(Transaction::from(
+            TransactionNative::from_deployment(owner, deployment, fee)
+                .map_err(|err| err.to_string())
+                .map_err(|e| e.to_string())?,
         ))
     }
 }

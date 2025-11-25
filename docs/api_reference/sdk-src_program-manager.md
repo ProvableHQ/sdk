@@ -238,7 +238,7 @@ programManager.setAccount(Account);
 const priorityFee = 0.0;
 
 // Create the deployment transaction.
-const tx = await programManager.buildDeploymentTransaction({program: program, priorityFee: fee, privateFee: false});
+const tx = await programManager.buildUpgradeTransaction({program: program, priorityFee: fee, privateFee: false});
 await programManager.networkClient.submitTransaction(tx);
 
 // Verify the transaction was successful
@@ -1536,6 +1536,146 @@ const baseFeeCredits = Number(baseFeeMicrocredits)/1000000;
 
 ---
 
+### `buildDevnodeExecutionTransaction(options) ► Promise.<Transaction>`
+
+![modifier: public](images/badges/modifier-public.svg)
+
+Builds an execution transaction for submission to the a local devnode.
+This method skips proof generation and is not meant for use with the mainnet or testnet Aleo networks.
+Note: getOrInitConsensusVersionTestHeights must be called prior to using this method for this method to work properly.
+
+Parameters | Type | Description
+--- | --- | ---
+__options__ | `ExecuteOptions` | *The options for the execution transaction.*
+__*return*__ | `Promise.<Transaction>` | *- A promise that resolves to the transaction or an error.*
+
+#### Examples
+
+```javascript
+/// Import the mainnet version of the sdk.
+import { AleoKeyProvider, getOrInitConsensusVersionTestHeights, ProgramManager, NetworkRecordProvider } from "@provablehq/sdk/mainnet.js";
+
+// Initialize the development consensus heights in order to work with devnode.
+getOrInitConsensusVersionTestHeights("0,1,2,3,4,5,6,7,8,9,10,11");
+
+// Create a new NetworkClient and RecordProvider.
+const recordProvider = new NetworkRecordProvider(account, networkClient);
+keyProvider.useCache(true);
+
+// Initialize a program manager.
+const programManager = new ProgramManager("http://localhost:3030", recordProvider);
+
+// Build and execute the transaction.
+const tx = await programManager.buildDevnodeExecutionTransaction({
+  programName: "hello_hello.aleo",
+  functionName: "hello_hello",
+  priorityFee: 0.0,
+  privateFee: false,
+  inputs: ["5u32", "5u32"],
+});
+
+// Submit the transaction to the network
+await programManager.networkClient.submitTransaction(tx.toString());
+
+// Verify the transaction was successful
+setTimeout(async () => {
+ const transaction = await programManager.networkClient.getTransaction(tx.id());
+ assert(transaction.id() === tx.id());
+}, 10000);
+```
+
+---
+
+### `buildDevnodeDeploymentTransaction(options) ► string`
+
+![modifier: public](images/badges/modifier-public.svg)
+
+Builds a deployment transaction with placeholder certificates and verifying keys for each function in the program.
+Intended for use with a local devnode.
+&#x60;getOrInitConsensusVersionTestHeights&#x60; must be called with development heights prior to invoking this method for it to work properly.
+
+Parameters | Type | Description
+--- | --- | ---
+__options__ | `DeployOptions` | *The options for the deployment transaction.*
+__*return*__ | `string` | *The transaction id of the deployed program or a failure message from the network*
+
+#### Examples
+
+```javascript
+/// Import the mainnet version of the sdk.
+import { ProgramManager, NetworkRecordProvider, getOrInitConsensusVersionTestHeights } from "@provablehq/sdk/mainnet.js";
+
+// Initialize the development consensus heights in order to work with a local devnode.
+getOrInitConsensusVersionTestHeights("0,1,2,3,4,5,6,7,8,9,10,11");
+
+// Create a new NetworkClient, and RecordProvider
+const recordProvider = new NetworkRecordProvider(account, networkClient);
+keyProvider.useCache(true);
+
+// Initialize a program manager with the key provider to automatically fetch keys for deployments
+const program = "program hello_hello.aleo;\n\nfunction hello:\n    input r0 as u32.public;\n    input r1 as u32.private;\n    add r0 r1 into r2;\n    output r2 as u32.private;\n";
+const programManager = new ProgramManager("http://localhost:3030", recordProvider);
+programManager.setAccount(Account);
+
+// Define a fee in credits
+const priorityFee = 0.0;
+
+// Create the deployment transaction.
+const tx = await programManager.buildDevnodeDeploymentTransaction({program: program, fee: priorityFee, privateFee: false});
+await programManager.networkClient.submitTransaction(tx);
+
+// Verify the transaction was successful
+setTimeout(async () => {
+ const transaction = await programManager.networkClient.getTransaction(tx.id());
+ assert(transaction.id() === tx.id());
+}, 20000);
+```
+
+---
+
+### `buildDevnodeUpgradeTransaction(options) ► string`
+
+![modifier: public](images/badges/modifier-public.svg)
+
+Builds an upgrade transaction on a local devnodewith placeholder certificates and verifying keys for each function in the program.
+This method is only intended for use with a local devnode.
+
+Parameters | Type | Description
+--- | --- | ---
+__options__ | `DeployOptions` | *The options for the deployment transaction.*
+__*return*__ | `string` | *The transaction id of the deployed program or a failure message from the network*
+
+#### Examples
+
+```javascript
+/// Import the mainnet version of the sdk.
+import { ProgramManager, NetworkRecordProvider } from "@provablehq/sdk/mainnet.js";
+
+// Create a new NetworkClient, and RecordProvider
+const recordProvider = new NetworkRecordProvider(account, networkClient);
+keyProvider.useCache(true);
+
+// Initialize a program manager with the key provider to automatically fetch keys for deployments
+const program = "program hello_hello.aleo;\n\nfunction hello:\n    input r0 as u32.public;\n    input r1 as u32.private;\n    add r0 r1 into r2;\n    output r2 as u32.private;\n";
+const programManager = new ProgramManager("http://localhost:3030", recordProvider);
+programManager.setAccount(Account);
+
+// Define a fee in credits
+const priorityFee = 0.0;
+
+// Create the deployment transaction.
+const tx = await programManager.buildDevnodeUpgradeTransaction({program: program, fee: priorityFee, privateFee: false});
+await programManager.networkClient.submitTransaction(tx);
+
+// Verify the transaction was successful
+setTimeout(async () => {
+ const transaction = await programManager.networkClient.getTransaction(tx.id());
+ assert(transaction.id() === tx.id());
+}, 20000);
+```
+
+---
+
 ### `checkFee(address, feeAmount)`
 
 ![modifier: public](images/badges/modifier-public.svg)
@@ -1753,7 +1893,7 @@ programManager.setAccount(Account);
 const priorityFee = 0.0;
 
 // Create the deployment transaction.
-const tx = await programManager.buildDeploymentTransaction({program: program, priorityFee: fee, privateFee: false});
+const tx = await programManager.buildUpgradeTransaction({program: program, priorityFee: fee, privateFee: false});
 await programManager.networkClient.submitTransaction(tx);
 
 // Verify the transaction was successful
@@ -3049,6 +3189,146 @@ const baseFeeMicrocredits = await programManager.estimateFeeForAuthorization({
      functionName: "transfer_public",
 });
 const baseFeeCredits = Number(baseFeeMicrocredits)/1000000;
+```
+
+---
+
+### `buildDevnodeExecutionTransaction(options) ► Promise.<Transaction>`
+
+![modifier: public](images/badges/modifier-public.svg)
+
+Builds an execution transaction for submission to the a local devnode.
+This method skips proof generation and is not meant for use with the mainnet or testnet Aleo networks.
+Note: getOrInitConsensusVersionTestHeights must be called prior to using this method for this method to work properly.
+
+Parameters | Type | Description
+--- | --- | ---
+__options__ | `ExecuteOptions` | *The options for the execution transaction.*
+__*return*__ | `Promise.<Transaction>` | *- A promise that resolves to the transaction or an error.*
+
+#### Examples
+
+```javascript
+/// Import the mainnet version of the sdk.
+import { AleoKeyProvider, getOrInitConsensusVersionTestHeights, ProgramManager, NetworkRecordProvider } from "@provablehq/sdk/mainnet.js";
+
+// Initialize the development consensus heights in order to work with devnode.
+getOrInitConsensusVersionTestHeights("0,1,2,3,4,5,6,7,8,9,10,11");
+
+// Create a new NetworkClient and RecordProvider.
+const recordProvider = new NetworkRecordProvider(account, networkClient);
+keyProvider.useCache(true);
+
+// Initialize a program manager.
+const programManager = new ProgramManager("http://localhost:3030", recordProvider);
+
+// Build and execute the transaction.
+const tx = await programManager.buildDevnodeExecutionTransaction({
+  programName: "hello_hello.aleo",
+  functionName: "hello_hello",
+  priorityFee: 0.0,
+  privateFee: false,
+  inputs: ["5u32", "5u32"],
+});
+
+// Submit the transaction to the network
+await programManager.networkClient.submitTransaction(tx.toString());
+
+// Verify the transaction was successful
+setTimeout(async () => {
+ const transaction = await programManager.networkClient.getTransaction(tx.id());
+ assert(transaction.id() === tx.id());
+}, 10000);
+```
+
+---
+
+### `buildDevnodeDeploymentTransaction(options) ► string`
+
+![modifier: public](images/badges/modifier-public.svg)
+
+Builds a deployment transaction with placeholder certificates and verifying keys for each function in the program.
+Intended for use with a local devnode.
+&#x60;getOrInitConsensusVersionTestHeights&#x60; must be called with development heights prior to invoking this method for it to work properly.
+
+Parameters | Type | Description
+--- | --- | ---
+__options__ | `DeployOptions` | *The options for the deployment transaction.*
+__*return*__ | `string` | *The transaction id of the deployed program or a failure message from the network*
+
+#### Examples
+
+```javascript
+/// Import the mainnet version of the sdk.
+import { ProgramManager, NetworkRecordProvider, getOrInitConsensusVersionTestHeights } from "@provablehq/sdk/mainnet.js";
+
+// Initialize the development consensus heights in order to work with a local devnode.
+getOrInitConsensusVersionTestHeights("0,1,2,3,4,5,6,7,8,9,10,11");
+
+// Create a new NetworkClient, and RecordProvider
+const recordProvider = new NetworkRecordProvider(account, networkClient);
+keyProvider.useCache(true);
+
+// Initialize a program manager with the key provider to automatically fetch keys for deployments
+const program = "program hello_hello.aleo;\n\nfunction hello:\n    input r0 as u32.public;\n    input r1 as u32.private;\n    add r0 r1 into r2;\n    output r2 as u32.private;\n";
+const programManager = new ProgramManager("http://localhost:3030", recordProvider);
+programManager.setAccount(Account);
+
+// Define a fee in credits
+const priorityFee = 0.0;
+
+// Create the deployment transaction.
+const tx = await programManager.buildDevnodeDeploymentTransaction({program: program, fee: priorityFee, privateFee: false});
+await programManager.networkClient.submitTransaction(tx);
+
+// Verify the transaction was successful
+setTimeout(async () => {
+ const transaction = await programManager.networkClient.getTransaction(tx.id());
+ assert(transaction.id() === tx.id());
+}, 20000);
+```
+
+---
+
+### `buildDevnodeUpgradeTransaction(options) ► string`
+
+![modifier: public](images/badges/modifier-public.svg)
+
+Builds an upgrade transaction on a local devnodewith placeholder certificates and verifying keys for each function in the program.
+This method is only intended for use with a local devnode.
+
+Parameters | Type | Description
+--- | --- | ---
+__options__ | `DeployOptions` | *The options for the deployment transaction.*
+__*return*__ | `string` | *The transaction id of the deployed program or a failure message from the network*
+
+#### Examples
+
+```javascript
+/// Import the mainnet version of the sdk.
+import { ProgramManager, NetworkRecordProvider } from "@provablehq/sdk/mainnet.js";
+
+// Create a new NetworkClient, and RecordProvider
+const recordProvider = new NetworkRecordProvider(account, networkClient);
+keyProvider.useCache(true);
+
+// Initialize a program manager with the key provider to automatically fetch keys for deployments
+const program = "program hello_hello.aleo;\n\nfunction hello:\n    input r0 as u32.public;\n    input r1 as u32.private;\n    add r0 r1 into r2;\n    output r2 as u32.private;\n";
+const programManager = new ProgramManager("http://localhost:3030", recordProvider);
+programManager.setAccount(Account);
+
+// Define a fee in credits
+const priorityFee = 0.0;
+
+// Create the deployment transaction.
+const tx = await programManager.buildDevnodeUpgradeTransaction({program: program, fee: priorityFee, privateFee: false});
+await programManager.networkClient.submitTransaction(tx);
+
+// Verify the transaction was successful
+setTimeout(async () => {
+ const transaction = await programManager.networkClient.getTransaction(tx.id());
+ assert(transaction.id() === tx.id());
+}, 20000);
 ```
 
 ---
