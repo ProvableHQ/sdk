@@ -1,0 +1,12 @@
+{
+  "name": "devnode-starter",
+  "private": true,
+  "version": "0.0.0",
+  "type": "module",
+  "scripts": {
+    "dev": "node index.js"
+  },
+  "dependencies": {
+    "@provablehq/sdk": "^0.9.12"
+  }
+}
