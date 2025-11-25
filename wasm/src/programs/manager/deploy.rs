@@ -357,7 +357,7 @@ impl ProgramManager {
 
         // Create deployment without synthesizing keys and generating certificates.
         if program.functions().is_empty() {
-            log!("Program must have at least one function");
+            log("Program must have at least one function");
             Err("Program must have at least one function".to_string())?;
         }
         let mut verifying_keys = Vec::with_capacity(program.functions().len());
@@ -498,7 +498,7 @@ impl ProgramManager {
 
         // Create deployment without synthesizing keys and generating certificates.
         if program.functions().is_empty() {
-            log!("Program must have at least one function");
+            log("Program must have at least one function");
             Err("Program must have at least one function".to_string())?;
         }
         let mut verifying_keys = Vec::with_capacity(program.functions().len());
