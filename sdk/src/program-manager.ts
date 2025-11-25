@@ -3252,13 +3252,17 @@ class ProgramManager {
     /**
      * Builds an execution transaction for submission to the a local devnode.
      * This method skips proof generation and is not meant for use with the mainnet or testnet Aleo networks.
+     * Note: getOrInitConsensusVersionTestHeights must be called prior to using this method for this method to work properly.
      *
      * @param {ExecuteOptions} options - The options for the execution transaction.
      * @returns {Promise<Transaction>} - A promise that resolves to the transaction or an error.
      *
      * @example
      * /// Import the mainnet version of the sdk.
-     * import { AleoKeyProvider, ProgramManager, NetworkRecordProvider } from "@provablehq/sdk/mainnet.js";
+     * import { AleoKeyProvider, getOrInitConsensusVersionTestHeights, ProgramManager, NetworkRecordProvider } from "@provablehq/sdk/mainnet.js";
+     * 
+     * // Initialize the development consensus heights in order to work with devnode.
+     * getOrInitConsensusVersionTestHeights("0,1,2,3,4,5,6,7,8,9,10,11");
      *
      * // Create a new NetworkClient and RecordProvider.
      * const recordProvider = new NetworkRecordProvider(account, networkClient);
@@ -3267,7 +3271,7 @@ class ProgramManager {
      * // Initialize a program manager.
      * const programManager = new ProgramManager("http://localhost:3030", recordProvider);
      *
-     * // Build and execute the transaction
+     * // Build and execute the transaction.
      * const tx = await programManager.buildDevnodeExecutionTransaction({
      *   programName: "hello_hello.aleo",
      *   functionName: "hello_hello",
@@ -3344,7 +3348,7 @@ class ProgramManager {
             }
         }
 
-        // Get the private key from the account if it is not provided in the parameters
+        // Get the private key from the account if it is not provided in the parameters.
         let executionPrivateKey = privateKey;
         if (
             typeof privateKey === "undefined" &&
@@ -3357,7 +3361,7 @@ class ProgramManager {
             throw "No private key provided and no private key set in the ProgramManager";
         }
 
-        // Get the fee record from the account if it is not provided in the parameters
+        // Get the fee record from the account if it is not provided in the parameters.
         try {
             if (privateFee) {
                 let fee = priorityFee;
@@ -3387,7 +3391,7 @@ class ProgramManager {
             );
         }
 
-        // Resolve the program imports if they exist
+        // Resolve the program imports if they exist.
         const numberOfImports = programObject.getImports().length;
         if (numberOfImports > 0 && !imports) {
             try {
@@ -3416,15 +3420,19 @@ class ProgramManager {
     }
     
     /**
-     * Builds a deployment transaction with dummy certificates and verifier keys.
+     * Builds a deployment transaction with placeholder certificates and verifying keys for each function in the program.
      * Intended for use with a local devnode.
+     * `getOrInitConsensusVersionTestHeights` must be called with development heights prior to invoking this method for it to work properly.
      *
      * @param {DeployOptions} options - The options for the deployment transaction.
      * @returns {string} The transaction id of the deployed program or a failure message from the network
      *
      * @example
      * /// Import the mainnet version of the sdk.
-     * import { ProgramManager, NetworkRecordProvider } from "@provablehq/sdk/mainnet.js";
+     * import { ProgramManager, NetworkRecordProvider, getOrInitConsensusVersionTestHeights } from "@provablehq/sdk/mainnet.js";
+     * 
+     * // Initialize the development consensus heights in order to work with a local devnode.
+     * getOrInitConsensusVersionTestHeights("0,1,2,3,4,5,6,7,8,9,10,11");
      *
      * // Create a new NetworkClient, and RecordProvider
      * const recordProvider = new NetworkRecordProvider(account, networkClient);
@@ -3549,7 +3557,7 @@ class ProgramManager {
     }
 
     /**
-     * Builds a deployment transaction with dummy certificates and verifier keys for upgrading programs deployed on a local devnode.
+     * Builds an upgrade transaction on a local devnodewith placeholder certificates and verifying keys for each function in the program.
      * This method is only intended for use with a local devnode.
      *
      * @param {DeployOptions} options - The options for the deployment transaction.
