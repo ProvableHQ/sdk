@@ -185,7 +185,7 @@ impl Address {
 
         // Initialize the Poseidon4 hasher.
         let hasher = Poseidon4::new();
-        
+
         // Compute the group element corresponding to the program address.
         let group = hasher.hash_to_group(fields_array).map_err(|e| e.to_string())?;
 
