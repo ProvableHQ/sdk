@@ -41,7 +41,7 @@ jobs:
 
   test-sdk:
     name: test sdk
-    runs-on: ubuntu-latest-m
+    runs-on: ubuntu-latest
     needs: build
     steps:
       - uses: actions/checkout@v4
@@ -162,7 +162,7 @@ jobs:
 
   website:
     name: website
-    runs-on: ubuntu-latest-m
+    runs-on: ubuntu-latest
     needs: build
 
     steps:
