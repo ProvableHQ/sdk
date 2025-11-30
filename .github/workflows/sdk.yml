@@ -9,7 +9,7 @@ env:
 jobs:
   build:
     name: build
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-latest-m
     steps:
       - uses: actions/checkout@v4
       - uses: ./.github/actions/setup-yarn
@@ -41,7 +41,7 @@ jobs:
 
   test-sdk:
     name: test sdk
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-latest-m
     needs: build
     steps:
       - uses: actions/checkout@v4
@@ -54,7 +54,7 @@ jobs:
 
   e2e:
     name: "e2e"
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-latest-m
     needs: build
     strategy:
       fail-fast: false
@@ -112,7 +112,7 @@ jobs:
 
   create-leo-app-run:
     name: "create-leo-app run"
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-latest-m
     needs: build
     strategy:
       fail-fast: false
@@ -162,7 +162,7 @@ jobs:
 
   website:
     name: website
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-latest-m
     needs: build
 
     steps:
