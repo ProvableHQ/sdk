@@ -22,8 +22,6 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: build
-          include-hidden-files: true
-          overwrite: true
           path: |
             sdk/dist/
             wasm/dist/
