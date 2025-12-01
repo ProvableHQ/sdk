@@ -180,14 +180,9 @@ impl Address {
         let name_field = program_id_native.name().to_field().map_err(|e| e.to_string())?;
         let network_field = program_id_native.network().to_field().map_err(|e| e.to_string())?;
 
-        // Create a JS array of the fields.
-        let fields_array = js_array_from_fields!(&[name_field, network_field]);
-
-        // Initialize the Poseidon4 hasher.
-        let hasher = Poseidon4::new();
-
         // Compute the group element corresponding to the program address.
-        let group = hasher.hash_to_group(fields_array).map_err(|e| e.to_string())?;
+        let group = <CurrentNetwork as Network>::hash_to_group_psd4(&[name_field, network_field])?;
+        Ok(Address::from(AddressNative::from(group)))
 
         Ok(Address::from(group))
     }
