@@ -180,7 +180,8 @@ impl Address {
         let network_field = program_id_native.network().to_field().map_err(|e| e.to_string())?;
 
         // Compute the group element corresponding to the program address.
-        let group = <CurrentNetwork as Network>::hash_to_group_psd4(&[name_field, network_field]).map_err(|e| e.to_string())?;
+        let group =
+            <CurrentNetwork as Network>::hash_to_group_psd4(&[name_field, network_field]).map_err(|e| e.to_string())?;
 
         Ok(Address::from(group))
     }
@@ -277,5 +278,12 @@ mod tests {
             let view_key = private_key.to_view_key();
             assert_eq!(expected, Address::from_view_key(&view_key));
         }
+    }
+
+    #[wasm_bindgen_test]
+    pub fn test_from_program_id() {
+        let expected_address = "aleo1lqmly7ez2k48ajf5hs92ulphaqr05qm4n8qwzj8v0yprmasgpqgsez59gg".to_string();
+        let credits_address = Address::from_program_id("credits.aleo").unwrap();
+        assert_eq!(credits_address.to_string(), expected_address);
     }
 }

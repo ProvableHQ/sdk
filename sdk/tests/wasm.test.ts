@@ -531,7 +531,7 @@ describe('WASM Objects', () => {
     });
     describe("ProgramID", () => {
         let connection = new AleoNetworkClient("https://api.explorer.provable.com/v2");
-        it("can be created from string and converted back to string", () => {
+        it("Can can successfully get the correct address from a ProgramID string.", () => {
             const programIDString = "credits.aleo";
             if (connection.network === "mainnet") {
                 const programAddress = Address.fromProgramId(programIDString);
