@@ -19,15 +19,14 @@ use crate::{
     Group,
     Plaintext,
     account::{PrivateKey, Signature, ViewKey, compute_key::ComputeKey},
-    algorithms::Poseidon4,
     from_js_typed_array,
     from_wasm_object_array,
     js_array_from_fields,
-    native::{FieldNative, LiteralNative},
+    native::{CurrentNetwork, FieldNative, LiteralNative},
     to_bits_array_le,
     types::native::{AddressNative, ProgramIDNative},
 };
-use snarkvm_console::prelude::{FromBits, FromBytes, FromFields, ToBits, ToBytes, ToField, ToFields};
+use snarkvm_console::prelude::{FromBits, FromBytes, FromFields, Network, ToBits, ToBytes, ToField, ToFields};
 
 use core::{convert::TryFrom, fmt, ops::Deref, str::FromStr};
 use js_sys::{Array, Uint8Array};
@@ -181,8 +180,7 @@ impl Address {
         let network_field = program_id_native.network().to_field().map_err(|e| e.to_string())?;
 
         // Compute the group element corresponding to the program address.
-        let group = <CurrentNetwork as Network>::hash_to_group_psd4(&[name_field, network_field])?;
-        Ok(Address::from(AddressNative::from(group)))
+        let group = <CurrentNetwork as Network>::hash_to_group_psd4(&[name_field, network_field]).map_err(|e| e.to_string())?;
 
         Ok(Address::from(group))
     }
