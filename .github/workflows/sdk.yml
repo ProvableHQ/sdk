@@ -1,0 +1,193 @@
+name: SDK
+on: [pull_request]
+
+env:
+  CARGO_TERM_COLOR: always
+  PUZZLE_PK: ${{ secrets.PUZZLE_PK }}
+
+
+jobs:
+  build:
+    name: build
+    runs-on: ubuntu-latest-m
+    steps:
+      - uses: actions/checkout@v4
+      - uses: ./.github/actions/setup-yarn
+      - uses: ./.github/actions/setup-rust
+
+      - run: |
+          yarn build:all
+
+      - name: Upload build artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: build
+          path: |
+            sdk/dist/
+            wasm/dist/
+            create-leo-app/dist/
+
+
+  test-wasm:
+    name: test wasm
+    runs-on: ubuntu-latest-m
+    steps:
+      - uses: actions/checkout@v4
+      - uses: ./.github/actions/setup-yarn
+
+      - run: |
+          yarn test:wasm
+
+
+  test-sdk:
+    name: test sdk
+    runs-on: ubuntu-latest
+    needs: build
+    steps:
+      - uses: actions/checkout@v4
+      - uses: ./.github/actions/setup-yarn
+      - uses: ./.github/actions/use-build
+
+      - run: |
+          yarn test:sdk
+
+
+  e2e:
+    name: "e2e"
+    runs-on: ubuntu-latest-m
+    needs: build
+    strategy:
+      fail-fast: false
+      matrix:
+        network: [testnet, mainnet, dynamic]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: ./.github/actions/setup-yarn
+      - uses: ./.github/actions/use-build
+
+      - working-directory: e2e/${{ matrix.network }}
+        run: |
+          yarn start
+
+
+  create-leo-app-cli:
+    name: "create-leo-app CLI"
+    runs-on: ubuntu-latest-m
+    needs: build
+    steps:
+      - uses: actions/checkout@v4
+      - uses: ./.github/actions/setup-yarn
+      - uses: ./.github/actions/use-build
+
+      - working-directory: create-leo-app
+        run: |
+          npm i -D tsx
+          npx tsx src/index.ts test-app --template react-leo
+
+
+  create-leo-app-build:
+    name: "create-leo-app build"
+    runs-on: ubuntu-latest-m
+    needs: build
+    strategy:
+      fail-fast: false
+      matrix:
+        template:
+          - extension
+          - nextjs-ts
+          - offline-public-transaction-ts
+          - react-leo
+          #- react-managed-worker
+          - react-ts
+          - vanilla
+    steps:
+      - uses: actions/checkout@v4
+      - uses: ./.github/actions/setup-yarn
+      - uses: ./.github/actions/use-build
+
+      - working-directory: create-leo-app/template-${{ matrix.template }}
+        run: |
+          yarn build
+
+
+  create-leo-app-run:
+    name: "create-leo-app run"
+    runs-on: ubuntu-latest-m
+    needs: build
+    strategy:
+      fail-fast: false
+      matrix:
+        template:
+          - node
+          - node-ts
+    steps:
+      - uses: actions/checkout@v4
+      - uses: ./.github/actions/setup-yarn
+      - uses: ./.github/actions/use-build
+
+      - working-directory: create-leo-app/template-${{ matrix.template }}
+        run: |
+          yarn start
+
+
+  clippy:
+    name: "clippy"
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        network: [testnet, mainnet]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: ./.github/actions/setup-rust
+
+      - name: "cargo clippy"
+        working-directory: wasm
+        run: |
+          cargo clippy --features ${{ matrix.network }}
+
+
+  rustfmt:
+    name: "rustfmt"
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: ./.github/actions/setup-rust
+
+      - name: "cargo fmt"
+        working-directory: wasm
+        run: |
+          cargo fmt --all --check
+
+
+  website:
+    name: website
+    runs-on: ubuntu-latest
+    needs: build
+
+    steps:
+      - uses: actions/checkout@v4
+      - uses: ./.github/actions/setup-yarn
+      - uses: ./.github/actions/use-build
+
+      - name: Build Website
+        working-directory: website
+        run: |
+          yarn build
+
+      - name: Test Deploy
+        id: unmodified
+        uses: JamesIves/github-pages-deploy-action@v4
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          branch: gh-pages
+          folder: website/dist
+          clean-exclude: '["dev"]'
+          dry-run: true
+
+      - name: Check step output
+        run: |
+          [[ \
+          ${{steps.unmodified.outputs.deployment-status}} = skipped || \
+          ${{steps.unmodified.outputs.deployment-status}} = success \
+          ]]

@@ -13,7 +13,7 @@
   ],
   "type": "module",
   "scripts": {
-    "build:wasm": "cd wasm && yarn build",
+    "build:wasm": "rustup show active-toolchain && cd wasm && yarn build",
     "build:sdk": "cd sdk && yarn build",
     "build:sdk-docs": "sh scripts/jsdoc.sh",
     "build:create-leo-app": "cd create-leo-app && yarn build",

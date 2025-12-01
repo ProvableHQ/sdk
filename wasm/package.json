@@ -43,8 +43,8 @@
   },
   "devDependencies": {
     "@rollup/plugin-virtual": "^3.0.2",
-    "@wasm-tool/rollup-plugin-rust": "^3.0.5",
-    "binaryen": "^124.0.0",
+    "@wasm-tool/rollup-plugin-rust": "^3.1.4",
+    "binaryen": "^120.0.0",
     "rimraf": "^6.0.1",
     "rollup": "^4.32.0"
   }
