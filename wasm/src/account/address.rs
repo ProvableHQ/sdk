@@ -22,11 +22,11 @@ use crate::{
     from_js_typed_array,
     from_wasm_object_array,
     js_array_from_fields,
-    native::{FieldNative, LiteralNative},
+    native::{CurrentNetwork, FieldNative, LiteralNative},
     to_bits_array_le,
-    types::native::AddressNative,
+    types::native::{AddressNative, ProgramIDNative},
 };
-use snarkvm_console::prelude::{FromBits, FromBytes, FromFields, ToBits, ToBytes, ToFields};
+use snarkvm_console::prelude::{FromBits, FromBytes, FromFields, Network, ToBits, ToBytes, ToField, ToFields};
 
 use core::{convert::TryFrom, fmt, ops::Deref, str::FromStr};
 use js_sys::{Array, Uint8Array};
@@ -165,6 +165,26 @@ impl Address {
     pub fn verify(&self, message: &[u8], signature: &Signature) -> bool {
         signature.verify(self, message)
     }
+
+    /// Get the address of a program based on the program ID.
+    ///
+    /// @param {string} program_id The program ID string.
+    /// @returns {Address} The address corresponding to the program ID.
+    #[wasm_bindgen(js_name = "fromProgramId")]
+    pub fn from_program_id(program_id: &str) -> Result<Self, String> {
+        // Convert the program ID string to a programId native type.
+        let program_id_native = ProgramIDNative::from_str(program_id).map_err(|e| e.to_string())?;
+
+        // Extracting the fields from the program name and network.
+        let name_field = program_id_native.name().to_field().map_err(|e| e.to_string())?;
+        let network_field = program_id_native.network().to_field().map_err(|e| e.to_string())?;
+
+        // Compute the group element corresponding to the program address.
+        let group =
+            <CurrentNetwork as Network>::hash_to_group_psd4(&[name_field, network_field]).map_err(|e| e.to_string())?;
+
+        Ok(Address::from(group))
+    }
 }
 
 impl Deref for Address {
@@ -258,5 +278,12 @@ mod tests {
             let view_key = private_key.to_view_key();
             assert_eq!(expected, Address::from_view_key(&view_key));
         }
+    }
+
+    #[wasm_bindgen_test]
+    pub fn test_from_program_id() {
+        let expected_address = "aleo1lqmly7ez2k48ajf5hs92ulphaqr05qm4n8qwzj8v0yprmasgpqgsez59gg".to_string();
+        let credits_address = Address::from_program_id("credits.aleo").unwrap();
+        assert_eq!(credits_address.to_string(), expected_address);
     }
 }

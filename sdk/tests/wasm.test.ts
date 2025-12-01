@@ -529,5 +529,19 @@ describe('WASM Objects', () => {
             }
         });
     });
+    describe("ProgramID", () => {
+        let connection = new AleoNetworkClient("https://api.explorer.provable.com/v2");
+        it("Can can successfully get the correct address from a ProgramID string.", () => {
+            const programIDString = "credits.aleo";
+            if (connection.network === "mainnet") {
+                const programAddress = Address.fromProgramId(programIDString);
+                expect(programAddress.to_string()).to.equal("aleo1lqmly7ez2k48ajf5hs92ulphaqr05qm4n8qwzj8v0yprmasgpqgsez59gg");
+            }
+            if (connection.network === "testnet") {
+                const programAddress = Address.fromProgramId(programIDString);
+                expect(programAddress.to_string()).to.equal("aleo1lqmly7ez2k48ajf5hs92ulphaqr05qm4n8qwzj8v0yprmasgpqgsez59gg");
+            }
+        }); 
+    })
 });
 
