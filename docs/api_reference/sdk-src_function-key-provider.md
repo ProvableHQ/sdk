@@ -4,7 +4,7 @@
 
 
 
-[Source file](../../sdk/src/function-key-provider.ts)
+[Source file](../../sdk/src/keys/function-key-provider.ts)
 
 # Class `AleoKeyProviderParams`
 
