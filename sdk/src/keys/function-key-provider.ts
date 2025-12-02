@@ -7,17 +7,20 @@ import {
     PUBLIC_TRANSFER,
     PUBLIC_TO_PRIVATE_TRANSFER,
     PUBLIC_TRANSFER_AS_SIGNER,
-} from "./constants.js";
+} from "../constants";
+
+import {
+    CachedKeyPair,
+    FunctionKeyPair
+} from "../models/keyPair";
 
 import {
     ProvingKey,
     VerifyingKey,
-} from "./wasm.js";
+} from "../wasm";
 
-import { get } from "./utils.js";
+import { get } from "../utils";
 
-type FunctionKeyPair = [ProvingKey, VerifyingKey];
-type CachedKeyPair = [Uint8Array, Uint8Array];
 type AleoKeyProviderInitParams = {
     proverUri?: string;
     verifierUri?: string;
@@ -636,4 +639,4 @@ class AleoKeyProvider implements FunctionKeyProvider {
     }
 }
 
-export {AleoKeyProvider, AleoKeyProviderParams, AleoKeyProviderInitParams, CachedKeyPair, FunctionKeyPair, FunctionKeyProvider, KeySearchParams}
+export {AleoKeyProvider, AleoKeyProviderParams, AleoKeyProviderInitParams, FunctionKeyProvider, KeySearchParams}

@@ -3,12 +3,12 @@ import {
     FunctionKeyPair,
     FunctionKeyProvider,
     KeySearchParams,
-} from "./function-key-provider.js";
+} from "./function-key-provider";
 
 import {
     ProvingKey,
     VerifyingKey,
-} from "./wasm.js";
+} from "../wasm";
 
 import {
     CREDITS_PROGRAM_KEYS,
@@ -17,7 +17,7 @@ import {
     PUBLIC_TRANSFER,
     PUBLIC_TO_PRIVATE_TRANSFER,
     PUBLIC_TRANSFER_AS_SIGNER,
-} from "./constants.js";
+} from "../constants";
 
 /**
  * Search parameters for the offline key provider. This class implements the KeySearchParams interface and includes

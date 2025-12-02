@@ -4,7 +4,7 @@
 
 
 
-[Source file](../../sdk/src/offline-key-provider.ts)
+[Source file](../../sdk/src/keys/offline-key-provider.ts)
 
 # Class `OfflineSearchParams`
 

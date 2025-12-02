@@ -11,7 +11,7 @@ import {
     FunctionKeyPair,
     FunctionKeyProvider,
     KeySearchParams,
-} from "./function-key-provider.js";
+} from "./keys/function-key-provider";
 
 import {
     Address,
