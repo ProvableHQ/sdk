@@ -3,6 +3,7 @@ import "./polyfill/shared.js";
 import { Account } from "./account.js";
 import { AleoNetworkClient, ProgramImports } from "./network-client.js";
 import { BlockJSON, Header, Metadata } from "./models/blockJSON.js";
+import { CachedKeyPair, FunctionKeyPair } from "./models/keyPair";
 import { ConfirmedTransactionJSON } from "./models/confirmed_transaction.js";
 import { DeploymentJSON, VerifyingKeys } from "./models/deployment/deploymentJSON.js";
 import { DeploymentObject } from "./models/deployment/deploymentObject.js";
@@ -39,15 +40,13 @@ import {
     AleoKeyProvider,
     AleoKeyProviderParams,
     AleoKeyProviderInitParams,
-    CachedKeyPair,
-    FunctionKeyPair,
     FunctionKeyProvider,
     KeySearchParams,
-} from "./function-key-provider.js";
+} from "./keys/function-key-provider";
 import {
     OfflineKeyProvider,
     OfflineSearchParams
-} from "./offline-key-provider.js";
+} from "./keys/offline-key-provider";
 import {
     BlockHeightSearch,
     NetworkRecordProvider,

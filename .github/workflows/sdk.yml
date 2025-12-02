@@ -1,6 +1,9 @@
-name: SDK
-on: [pull_request]
-
+on:
+  pull_request:
+  push:
+    branches:
+      - mainnet
+      - testnet
 env:
   CARGO_TERM_COLOR: always
   PUZZLE_PK: ${{ secrets.PUZZLE_PK }}
