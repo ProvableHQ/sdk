@@ -1,17 +1,19 @@
 import { Account } from "./account.js";
 import { AleoNetworkClient, AleoNetworkClientOptions, ProgramImports } from "./network-client.js";
 import { ImportedPrograms, ImportedVerifyingKeys } from "./models/imports.js";
-import { FunctionInput } from "./models/functionInput";
 import { RecordProvider } from "./record-provider.js";
 import { RecordSearchParams } from "./models/record-provider/recordSearchParams.js";
 
 import {
     AleoKeyProvider,
     AleoKeyProviderParams,
-    FunctionKeyPair,
     FunctionKeyProvider,
     KeySearchParams,
-} from "./keys/function-key-provider";
+} from "./keys/provider/function-key-provider";
+
+import {
+    FunctionKeyPair
+} from "./models/keyPair";
 
 import {
     Address,
