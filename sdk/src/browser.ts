@@ -42,11 +42,17 @@ import {
     AleoKeyProviderInitParams,
     FunctionKeyProvider,
     KeySearchParams,
-} from "./keys/function-key-provider";
+} from "./keys/provider/function-key-provider";
+import {
+    KeyStore
+} from "./keys/keystore/keystore";
+import {
+    promoteMapToKeyStore
+} from "./keys/keystore/memory";
 import {
     OfflineKeyProvider,
     OfflineSearchParams
-} from "./keys/offline-key-provider";
+} from "./keys/provider/offline-key-provider";
 import {
     BlockHeightSearch,
     NetworkRecordProvider,
@@ -160,6 +166,7 @@ export {
     ImportedVerifyingKeys,
     InputJSON,
     InputObject,
+    KeyStore,
     KeySearchParams,
     Metadata,
     NetworkRecordProvider,
@@ -176,6 +183,7 @@ export {
     PlaintextObject,
     PlaintextStruct,
     ProgramImports,
+    promoteMapToKeyStore,
     ProvingRequestJSON,
     ProvingResponse,
     RatificationJSON,
