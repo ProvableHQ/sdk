@@ -101,7 +101,7 @@ self.addEventListener("message", (ev) => {
             try {
                 const privateKeyObject = aleo.PrivateKey.from_string(privateKey)
                 // Ensure the program is valid and that it contains the function specified
-                const program = await programManager.networkClient.getProgramObject(remoteProgram);
+                const program = await programManager.createProgramFromSource(remoteProgram);
                 const program_id = program.id();
                 if (!program.hasFunction(aleoFunction)) {
                     throw new Error(`Program ${program_id} does not contain function ${aleoFunction}`);
