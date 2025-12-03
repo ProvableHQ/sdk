@@ -126,6 +126,19 @@ __*return*__ | [Address](sdk-src_wasm.md) | *Address corresponding to the view k
 
 ---
 
+### `fromProgramId(program_id) ► Address`
+
+![modifier: public](images/badges/modifier-public.svg) ![modifier: static](images/badges/modifier-static.svg)
+
+Get the address of a program based on the program ID.
+
+Parameters | Type | Description
+--- | --- | ---
+__program_id__ | `string` | *The program ID string.*
+__*return*__ | [Address](sdk-src_wasm.md) | *The address corresponding to the program ID.*
+
+---
+
 ### `from_compute_key(compute_key) ► Address`
 
 ![modifier: public](images/badges/modifier-public.svg) ![modifier: static](images/badges/modifier-static.svg)
