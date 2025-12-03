@@ -26,12 +26,14 @@ interface AleoNetworkClientOptions {
  *
  * @property provingRequest {ProvingRequest | string} The proving request being submitted to the network.
  * @property url {string} The URL of the delegated proving service.
- * @property jwt {string} The JWT used for authentication.
+ * @property apiKey {string} The API key used for generating a JWT.
+ * @property consumerId {string} The consumer ID associated with the API key.
  */
 interface DelegatedProvingParams {
     provingRequest: ProvingRequest | string;
     url?: string;
-    jwt?: string;
+    apiKey?: string;
+    consumerId?: string;
 }
 
 /**
@@ -1627,6 +1629,32 @@ class AleoNetworkClient {
     }
 
     /**
+     * Refreshes the JWT by making a POST request to /jwts/{consumer_id}
+     * @returns {Promise<string>} The JWT token
+     */
+    private async refreshJwt(apiKey: string, consumerId: string): Promise<string> {
+        if (!apiKey || !consumerId) {
+            throw new Error('API key and consumer ID are required to refresh JWT');
+        }
+
+        const response = await post(
+            `https://api.provable.com/jwts/${consumerId}`,
+            {
+            headers: {
+                'X-Provable-API-Key': apiKey
+                }
+            }
+        );
+
+        const authHeader = response.headers.get('authorization');
+        if (!authHeader) {
+            throw new Error('No authorization header in JWT refresh response');
+        }
+
+        return authHeader;
+    }
+
+    /**
      * Submit a `ProvingRequest` to a remote proving service for delegated proving. If the broadcast flag of the `ProvingRequest` is set to `true` the remote service will attempt to broadcast the result `Transaction` on behalf of the requestor.
      *
      * @param {DelegatedProvingParams} options - The optional parameters required to submit a proving request.
@@ -1638,6 +1666,9 @@ class AleoNetworkClient {
             ? options.provingRequest.toString()
             : options.provingRequest;
 
+        const apiKey = options.apiKey;
+        const consumerId = options.consumerId;
+
         // Build headers with proper auth fallback
         const headers: Record<string, string> = {
           ...this.headers,
@@ -1645,10 +1676,16 @@ class AleoNetworkClient {
           "Content-Type": "application/json"
         };
 
-        // Add auth header based on what's available
-        if (options.jwt) {
-          headers["Authorization"] = `Bearer ${options.jwt}`;
+        // Refresh JWT if apiKey and consumerId are provided
+        if (apiKey && consumerId) {
+          try {
+            const jwt = await this.refreshJwt(apiKey, consumerId);
+            headers["Authorization"] = `${jwt}`;
+          } catch (error) {
+            throw new Error(`Failed to refresh JWT: ${error instanceof Error ? error.message : 'Unknown error'}`);
+          }
         }
+        console.log("Headers are:", headers);
 
         try {
             const response = await retryWithBackoff(() =>
