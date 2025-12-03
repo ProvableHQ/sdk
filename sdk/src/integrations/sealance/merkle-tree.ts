@@ -21,6 +21,7 @@ import { ZERO_ADDRESS } from "../../constants.js";
  * const proof_left = sealance.getSiblingPath(tree, leftIdx, 15);
  * const proof_right = sealance.getSiblingPath(tree, rightIdx, 15);
  * const exclusion_proof = [proof_left, proof_right];
+ * const formatted_proof = sealance.formatMerkleProof(exclusion_proof);
  * ```
  */
 class SealanceMerkleTree {
@@ -39,8 +40,9 @@ class SealanceMerkleTree {
     *
     * @example
     * ```typescript
+    * const sealance = new SealanceMerkleTree();
     * const address = "aleo1rhgdu77hgyqd3xjj8ucu3jj9r2krwz6mnzyd80gncr5fxcwlh5rsvzp9px";
-    * const fieldValue = convertAddressToField(address);
+    * const fieldValue = sealance.convertAddressToField(address);
     * console.log(fieldValue); // 123456789...n
     * ```
     */
@@ -84,8 +86,9 @@ class SealanceMerkleTree {
     *
     * @example
     * ```typescript
+    * const sealance = new SealanceMerkleTree();
     * const leaves = ["0field", "1field", "2field", "3field"];
-    * const tree = buildTree(leaves);
+    * const tree = sealance.buildTree(leaves);
     * const root = tree[tree.length - 1]; // Get the Merkle root
     * ```
     */
@@ -116,10 +119,23 @@ class SealanceMerkleTree {
         return tree.map(element => BigInt(element.slice(0, element.length - "field".length)));
     }
 
-    /** Converts an array of decimal string representations of U256 numbers to an array of BigInts.
+    /** 
+    * Converts an array of decimal string representations of U256 numbers to an array of BigInts.
     *
     * @param tree - Array of decimal string representations of U256 numbers.
     * @returns Array of BigInts.
+    * 
+    * @example
+    * ```typescript
+    * const treeStrings = ["0","4328470178059738374782465505490977516512210899136548187530607227309847251692","1741259420362056497457198439964202806733137875365061915996980524089960046336"];
+    * const sealance = new SealanceMerkleTree();
+    * const treeBigInts = sealance.convertTreeToBigInt(treeStrings);
+    * console.log(treeBigInts); // [
+    *   0, 
+    *   4328470178059738374782465505490977516512210899136548187530607227309847251692, 
+    *   1741259420362056497457198439964202806733137875365061915996980524089960046336
+    *  ]
+    * ```
     */
     convertTreeToBigInt(tree: string[]): bigint[] {
         return tree.map((element) => {
@@ -143,11 +159,18 @@ class SealanceMerkleTree {
     * @example
     * ```typescript
     * const addresses = [
-    *   "aleo1...",
-    *   "aleo1..."
-    * ];
-    * const leaves = generateLeaves(addresses, 15);
-    * const tree = buildTree(leaves);
+ *      "aleo1rhgdu77hgyqd3xjj8ucu3jj9r2krwz6mnzyd80gncr5fxcwlh5rsvzp9px",
+ *      "aleo1s3ws5tra87fjycnjrwsjcrnw2qxr8jfqqdugnf0xzqqw29q9m5pqem2u4t",
+ *      "aleo1s3ws5tra87fjycnjrwsjcrnw2qxr8jfqqdugnf0xzqqw29q9m5pqem2u4t",
+ *    ];
+    * const sealance = new SealanceMerkleTree();
+    * const leaves = sealance.generateLeaves(addresses, 15);
+    * console.log(leaves); // [
+    *   "0field", 
+    *   "1295133970529764960316948294624974168921228814652993007266766481909235735940field", 
+    *   "1295133970529764960316948294624974168921228814652993007266766481909235735940field", 
+    *   "3501665755452795161867664882580888971213780722176652848275908626939553697821field"
+    *  ]
     * ```
     */
     generateLeaves(addresses: string[], maxTreeDepth: number = 15): string[] {
@@ -195,8 +218,15 @@ class SealanceMerkleTree {
     *
     * @example
     * ```typescript
-    * const tree = buildTree(leaves);
-    * const [leftIdx, rightIdx] = getLeafIndices(tree, "aleo1...");
+    * const addresses = [
+ *      "aleo1rhgdu77hgyqd3xjj8ucu3jj9r2krwz6mnzyd80gncr5fxcwlh5rsvzp9px",
+ *      "aleo1s3ws5tra87fjycnjrwsjcrnw2qxr8jfqqdugnf0xzqqw29q9m5pqem2u4t",
+ *      "aleo1s3ws5tra87fjycnjrwsjcrnw2qxr8jfqqdugnf0xzqqw29q9m5pqem2u4t",
+ *    ];
+    * const sealance = new SealanceMerkleTree();
+    * const leaves = sealance.generateLeaves(addresses);
+    * const tree = sealance.buildTree(leaves);
+    * const [leftIdx, rightIdx] = sealance.getLeafIndices(tree, "aleo1...");
     * ```
     */
     getLeafIndices(merkleTree: bigint[], address: string): [number, number] {
@@ -225,9 +255,17 @@ class SealanceMerkleTree {
     *
     * @example
     * ```typescript
-    * const tree = buildTree(leaves);
-    * const proof = getSiblingPath(tree, 0, 15);
-    * // proof = { siblings: [0n, 1n, ...], leaf_index: 0 }
+    * const addresses = [
+    *    "aleo1rhgdu77hgyqd3xjj8ucu3jj9r2krwz6mnzyd80gncr5fxcwlh5rsvzp9px",
+    *    "aleo1s3ws5tra87fjycnjrwsjcrnw2qxr8jfqqdugnf0xzqqw29q9m5pqem2u4t",
+    *    "aleo1s3ws5tra87fjycnjrwsjcrnw2qxr8jfqqdugnf0xzqqw29q9m5pqem2u4t",
+    *  ];
+    * const sealance = new SealanceMerkleTree();
+    * const leaves = sealance.generateLeaves(addresses);
+    * const tree = sealance.buildTree(leaves);
+    * const [leftIdx, rightIdx] = sealance.getLeafIndices(tree, "aleo1...");
+    * const proof = sealance.getSiblingPath(tree, leftIdx, 15);
+    * // proof = { siblings: [0n, 1n, ...], leaf_index: leftIdx }
     * ```
     */
     getSiblingPath(
@@ -267,10 +305,18 @@ class SealanceMerkleTree {
     *
     * @example
     * ```typescript
-    * const tree = buildTree(leaves);
-    * const proof = getSiblingPath(tree, 0, 15);
-    * const proof2 = getSiblingPath(tree, 1, 15);
-    * const formattedProof = formatMerkleProof([proof, proof2]);
+    * const addresses = [
+    *    "aleo1rhgdu77hgyqd3xjj8ucu3jj9r2krwz6mnzyd80gncr5fxcwlh5rsvzp9px",
+    *    "aleo1s3ws5tra87fjycnjrwsjcrnw2qxr8jfqqdugnf0xzqqw29q9m5pqem2u4t",
+    *    "aleo1s3ws5tra87fjycnjrwsjcrnw2qxr8jfqqdugnf0xzqqw29q9m5pqem2u4t",
+    *  ];
+    * const sealance = new SealanceMerkleTree();
+    * const leaves = sealance.generateLeaves(addresses);
+    * const tree = sealance.buildTree(leaves);
+    * const [leftIdx, rightIdx] = sealance.getLeafIndices(tree, "aleo1...");
+    * const proof1 = getSiblingPath(tree, leftIdx, 15);
+    * const proof2 = getSiblingPath(tree, rightIdx, 15);
+    * const formattedProof = formatMerkleProof([proof1, proof2]);
     * // formattedProof = "[{ siblings: [0field, 1field, ...], leaf_index: 0u32 }, { siblings: [0field, 2field, ...], leaf_index: 1u32 }]"
     * ```
     */
