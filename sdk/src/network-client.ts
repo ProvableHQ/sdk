@@ -1652,7 +1652,7 @@ class AleoNetworkClient {
 
         try {
             const response = await retryWithBackoff(() =>
-                post(`${proverUri}/prove`, {
+                post(`${proverUri}`, {
                 body: provingRequestString,
                  headers
                 })
