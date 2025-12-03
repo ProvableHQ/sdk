@@ -1630,6 +1630,9 @@ class AleoNetworkClient {
 
     /**
      * Refreshes the JWT by making a POST request to /jwts/{consumer_id}
+     * 
+     * @param {string} apiKey - The API key for authentication.
+     * @param {string} consumerId - The consumer ID associated with the API key.
      * @returns {Promise<string>} The JWT token
      */
     private async refreshJwt(apiKey: string, consumerId: string): Promise<string> {
