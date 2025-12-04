@@ -1040,7 +1040,7 @@ __*return*__ | `Promise.<string>` | *The solution id of the submitted solution o
 
 ---
 
-### `refreshJwt(apiKey, consumerId) ► Promise.<string>`
+### `refreshJwt(apiKey, consumerId) ► Promise.<JwtData>`
 
 ![modifier: public](images/badges/modifier-public.svg)
 
@@ -1050,7 +1050,7 @@ Parameters | Type | Description
 --- | --- | ---
 __apiKey__ | `string` | *The API key for authentication.*
 __consumerId__ | `string` | *The consumer ID associated with the API key.*
-__*return*__ | `Promise.<string>` | *The JWT token*
+__*return*__ | `Promise.<JwtData>` | *The JWT token and expiration time*
 
 ---
 
@@ -2204,7 +2204,7 @@ __*return*__ | `undefined` | *The Response object from the POST request.*
 
 ---
 
-### `refreshJwt(apiKey, consumerId) ► Promise.<string>`
+### `refreshJwt(apiKey, consumerId) ► Promise.<JwtData>`
 
 ![modifier: private](images/badges/modifier-private.svg)
 
@@ -2214,6 +2214,6 @@ Parameters | Type | Description
 --- | --- | ---
 __apiKey__ | `string` | *The API key for authentication.*
 __consumerId__ | `string` | *The consumer ID associated with the API key.*
-__*return*__ | `Promise.<string>` | *The JWT token*
+__*return*__ | `Promise.<JwtData>` | *The JWT token and expiration time*
 
 ---
