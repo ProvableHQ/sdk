@@ -22,18 +22,31 @@ interface AleoNetworkClientOptions {
 }
 
 /**
+ * Interface for the JWT data.
+ * 
+ * @property jwt {string} The JWT token string.
+ * @property expiration {number} The expiration time of the JWT token in UNIX timestamp format.
+ */
+interface JWTData {
+    jwt: string;
+    expiration: number;
+}
+
+/**
  * Options for submitting a proving request.
  *
  * @property provingRequest {ProvingRequest | string} The proving request being submitted to the network.
  * @property url {string} The URL of the delegated proving service.
  * @property apiKey {string} The API key used for generating a JWT.
  * @property consumerId {string} The consumer ID associated with the API key.
+ * @property jwt {string} An optional JWT token used for authenticating with the proving service.
  */
 interface DelegatedProvingParams {
-    provingRequest: ProvingRequest | string;
-    url?: string;
-    apiKey?: string;
-    consumerId?: string;
+  provingRequest: ProvingRequest | string;
+  url?: string;
+  apiKey?: string;
+  consumerId?: string;
+  jwtData?: JWTData;
 }
 
 /**
@@ -1633,28 +1646,30 @@ class AleoNetworkClient {
      * 
      * @param {string} apiKey - The API key for authentication.
      * @param {string} consumerId - The consumer ID associated with the API key.
-     * @returns {Promise<string>} The JWT token
+     * @returns {Promise<JwtData>} The JWT token and expiration time
      */
-    private async refreshJwt(apiKey: string, consumerId: string): Promise<string> {
+    private async refreshJwt(apiKey: string, consumerId: string): Promise<JWTData> {
         if (!apiKey || !consumerId) {
             throw new Error('API key and consumer ID are required to refresh JWT');
         }
-
         const response = await post(
             `https://api.provable.com/jwts/${consumerId}`,
             {
-            headers: {
-                'X-Provable-API-Key': apiKey
+                headers: {
+                    'X-Provable-API-Key': apiKey
                 }
             }
         );
-
         const authHeader = response.headers.get('authorization');
         if (!authHeader) {
             throw new Error('No authorization header in JWT refresh response');
         }
-
-        return authHeader;
+        const body = await response.json();
+        
+        return {
+            jwt: authHeader,
+            expiration: body.exp * 1000 // Convert to milliseconds
+        };
     }
 
     /**
@@ -1669,33 +1684,39 @@ class AleoNetworkClient {
             ? options.provingRequest.toString()
             : options.provingRequest;
 
-        const apiKey = options.apiKey;
-        const consumerId = options.consumerId;
+        let jwtData = options.jwtData;
 
-        // Build headers with proper auth fallback
-        const headers: Record<string, string> = {
-          ...this.headers,
-          "X-ALEO-METHOD": "submitProvingRequest",
-          "Content-Type": "application/json"
-        };
-
-        // Refresh JWT if apiKey and consumerId are provided
-        if (apiKey && consumerId) {
-          try {
-            const jwt = await this.refreshJwt(apiKey, consumerId);
-            headers["Authorization"] = `${jwt}`;
-          } catch (error) {
-            throw new Error(`Failed to refresh JWT: ${error instanceof Error ? error.message : 'Unknown error'}`);
-          }
+        // Check if JWT is expired or missing
+        if (jwtData) {
+            if (Date.now() >= jwtData.expiration) {
+            jwtData = await this.refreshJwt(options.apiKey!, options.consumerId!);
+            options.jwtData = jwtData;
+            }
+        } else {
+            // If no JWT provided, get one
+            if (options.apiKey && options.consumerId) {
+            jwtData = await this.refreshJwt(options.apiKey, options.consumerId);
+            options.jwtData = jwtData;
+            } else {
+            throw new Error('JWT or both apiKey and consumerId are required');
+            }
         }
-        console.log("Headers are:", headers);
+
+        const headers: Record<string, string> = {
+            ...this.headers,
+            "X-ALEO-METHOD": "submitProvingRequest",
+            "Content-Type": "application/json",
+        };
+        if (jwtData?.jwt) {
+            headers["Authorization"] = jwtData.jwt;
+        }
 
         try {
             const response = await retryWithBackoff(() =>
-                post(`${proverUri}`, {
+            post(`${proverUri}`, {
                 body: provingRequestString,
-                 headers
-                })
+                headers
+            })
             );
             const responseText = await response.text();
             return parseJSON(responseText);
