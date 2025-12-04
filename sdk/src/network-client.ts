@@ -1687,18 +1687,19 @@ class AleoNetworkClient {
         let jwtData = options.jwtData;
 
         // Check if JWT is expired or missing
+        const bufferTime = 5 * 60 * 1000; // 5 minutes buffer
         if (jwtData) {
-            if (Date.now() >= jwtData.expiration) {
-            jwtData = await this.refreshJwt(options.apiKey!, options.consumerId!);
-            options.jwtData = jwtData;
+            if (Date.now() >= jwtData.expiration - bufferTime) {
+                jwtData = await this.refreshJwt(options.apiKey!, options.consumerId!);
+                options.jwtData = jwtData;
             }
         } else {
             // If no JWT provided, get one
             if (options.apiKey && options.consumerId) {
-            jwtData = await this.refreshJwt(options.apiKey, options.consumerId);
-            options.jwtData = jwtData;
+                jwtData = await this.refreshJwt(options.apiKey, options.consumerId);
+                options.jwtData = jwtData;
             } else {
-            throw new Error('JWT or both apiKey and consumerId are required');
+                throw new Error('JWT or both apiKey and consumerId are required');
             }
         }
 
