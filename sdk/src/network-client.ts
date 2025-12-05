@@ -69,6 +69,7 @@ class AleoNetworkClient {
     ctx: { [key: string]: string };
     verboseErrors: boolean;
     readonly network: string;
+    jwtData?: JWTData;
 
     constructor(host: string, options?: AleoNetworkClientOptions) {
         this.host = host + "/%%NETWORK%%";
@@ -1684,24 +1685,24 @@ class AleoNetworkClient {
             ? options.provingRequest.toString()
             : options.provingRequest;
 
-        let jwtData = options.jwtData;
+        let jwtData = options.jwtData ?? this.jwtData
 
         // Check if JWT is expired or missing
         const bufferTime = 5 * 60 * 1000; // 5 minutes buffer
-        if (jwtData) {
-            if (Date.now() >= jwtData.expiration - bufferTime) {
-                jwtData = await this.refreshJwt(options.apiKey!, options.consumerId!);
-                options.jwtData = jwtData;
-            }
-        } else {
-            // If no JWT provided, get one
+        const isExpired = jwtData && Date.now() >= jwtData.expiration - bufferTime;
+        if (!jwtData || isExpired) {
             if (options.apiKey && options.consumerId) {
-                jwtData = await this.refreshJwt(options.apiKey, options.consumerId);
+                jwtData = await this.refreshJwt(options.apiKey!, options.consumerId!);
+                // Update both the class and the options with the new JWT
+                this.jwtData = jwtData;
                 options.jwtData = jwtData;
-            } else {
+            
+        } else {
                 throw new Error('JWT or both apiKey and consumerId are required');
-            }
         }
+    }
+        
+
 
         const headers: Record<string, string> = {
             ...this.headers,
