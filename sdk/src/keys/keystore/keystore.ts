@@ -24,7 +24,7 @@ export interface KeyStore {
      *
      * @param {string} locator The unique locator for the desired `ProvingKey`.
      *
-     * @returns {Promise<CachedKeyPair | null>} Returns the `ProvingKey` for the given locator if it exists or null if they do not.
+     * @returns {Promise<ProvingKey | null>} Returns the `ProvingKey` for the given locator if it exists or null if it does not.
      */
     getProvingKey(locator:string): Promise<ProvingKey | null>
 
