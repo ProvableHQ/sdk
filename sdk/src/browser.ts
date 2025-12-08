@@ -3,7 +3,7 @@ import "./polyfill/shared.js";
 import { Account } from "./account.js";
 import { AleoNetworkClient, ProgramImports } from "./network-client.js";
 import { BlockJSON, Header, Metadata } from "./models/blockJSON.js";
-import { CachedKeyPair, FunctionKeyPair } from "./models/keyPair";
+import { CachedKeyPair, FunctionKeyPair } from "./models/keyPair.js";
 import { ConfirmedTransactionJSON } from "./models/confirmed_transaction.js";
 import { CryptoBoxPubKey } from "./models/cryptoBoxPubkey.js";
 import { DeploymentJSON, VerifyingKeys } from "./models/deployment/deploymentJSON.js";

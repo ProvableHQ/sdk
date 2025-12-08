@@ -3,7 +3,7 @@ import * as path from "path";
 
 import { CachedKeyPair, FunctionKeyPair } from "../../models/keyPair.js";
 import { KeyStore } from "./keystore.js";
-import { ProvingKey, VerifyingKey } from "../../wasm";
+import { ProvingKey, VerifyingKey } from "../../wasm.js";
 
 export class LocalFileKeyStore implements KeyStore {
 
@@ -13,7 +13,9 @@ export class LocalFileKeyStore implements KeyStore {
         this.directory = directory ?? path.join(process.cwd(), "keystore");
 
         // Ensure directory exists
-        fs.mkdir(this.directory, { recursive: true }).catch(() => {});
+        fs.mkdir(this.directory, { recursive: true }).catch((err) => {
+            console.error("Failed to create keystore directory:", err);
+        });
     }
 
     private proverPath(locator: string): string {
