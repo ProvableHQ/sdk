@@ -1,5 +1,6 @@
 import { get, post, parseJSON, logAndThrow, retryWithBackoff, environment } from "./utils.js";
 import { Account } from "./account.js";
+import { FIVE_MINUTES } from "./constants.js";
 import { BlockJSON } from "./models/blockJSON.js";
 import { TransactionJSON } from "./models/transaction/transactionJSON.js";
 import {
@@ -60,6 +61,8 @@ interface DelegatedProvingParams {
  *
  * // Connection to a public beacon node
  * const account = Account.fromCiphertext(process.env.ciphertext, process.env.password);
+ * const apiKey = process.env.apiKey;
+ * const consumerId = process.env.consumerId;
  * const publicNetworkClient = new AleoNetworkClient("http://api.explorer.provable.com/v1", undefined, account);
  */
 class AleoNetworkClient {
@@ -1692,7 +1695,7 @@ class AleoNetworkClient {
         let jwtData = options.jwtData ?? this.jwtData
 
         // Check if JWT is expired or missing
-        const bufferTime = 5 * 60 * 1000; // 5 minutes buffer
+        const bufferTime = FIVE_MINUTES; // 5 minutes buffer
         const isExpired = jwtData && Date.now() >= jwtData.expiration - bufferTime;
         if (!jwtData || isExpired) {
             if (options.apiKey && options.consumerId) {
@@ -1700,13 +1703,10 @@ class AleoNetworkClient {
                 // Update both the class and the options with the new JWT
                 this.jwtData = jwtData;
                 options.jwtData = jwtData;
-            
-        } else {
+            } else {
                 throw new Error('JWT or both apiKey and consumerId are required');
+            }
         }
-    }
-        
-
 
         const headers: Record<string, string> = {
             ...this.headers,
