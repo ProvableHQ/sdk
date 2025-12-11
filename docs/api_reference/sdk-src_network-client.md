@@ -1040,6 +1040,20 @@ __*return*__ | `Promise.<string>` | *The solution id of the submitted solution o
 
 ---
 
+### `refreshJwt(apiKey, consumerId) ► Promise.<JwtData>`
+
+![modifier: public](images/badges/modifier-public.svg)
+
+Refreshes the JWT by making a POST request to /jwts/{consumer_id}
+
+Parameters | Type | Description
+--- | --- | ---
+__apiKey__ | `string` | *The API key for authentication.*
+__consumerId__ | `string` | *The consumer ID associated with the API key.*
+__*return*__ | `Promise.<JwtData>` | *The JWT token and expiration time*
+
+---
+
 ### `submitProvingRequest(options) ► Promise.<ProvingResponse>`
 
 ![modifier: public](images/badges/modifier-public.svg)
@@ -2187,5 +2201,19 @@ Parameters | Type | Description
 __url__ | `undefined` | *The URL to POST to.*
 __options__ | `undefined` | *The RequestInit options for the POST request.*
 __*return*__ | `undefined` | *The Response object from the POST request.*
+
+---
+
+### `refreshJwt(apiKey, consumerId) ► Promise.<JwtData>`
+
+![modifier: private](images/badges/modifier-private.svg)
+
+Refreshes the JWT by making a POST request to /jwts/{consumer_id}
+
+Parameters | Type | Description
+--- | --- | ---
+__apiKey__ | `string` | *The API key for authentication.*
+__consumerId__ | `string` | *The consumer ID associated with the API key.*
+__*return*__ | `Promise.<JwtData>` | *The JWT token and expiration time*
 
 ---

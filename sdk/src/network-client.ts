@@ -1,5 +1,6 @@
 import { get, post, parseJSON, logAndThrow, retryWithBackoff, environment } from "./utils.js";
 import { Account } from "./account.js";
+import { FIVE_MINUTES } from "./constants.js";
 import { BlockJSON } from "./models/blockJSON.js";
 import { TransactionJSON } from "./models/transaction/transactionJSON.js";
 import {
@@ -22,16 +23,31 @@ interface AleoNetworkClientOptions {
 }
 
 /**
+ * Interface for the JWT data.
+ * 
+ * @property jwt {string} The JWT token string.
+ * @property expiration {number} The expiration time of the JWT token in UNIX timestamp format.
+ */
+interface JWTData {
+    jwt: string;
+    expiration: number;
+}
+
+/**
  * Options for submitting a proving request.
  *
  * @property provingRequest {ProvingRequest | string} The proving request being submitted to the network.
  * @property url {string} The URL of the delegated proving service.
- * @property apiKey {string} The API key to use for authentication.
+ * @property apiKey {string} The API key used for generating a JWT.
+ * @property consumerId {string} The consumer ID associated with the API key.
+ * @property jwt {string} An optional JWT token used for authenticating with the proving service.
  */
 interface DelegatedProvingParams {
-    provingRequest: ProvingRequest | string;
-    url?: string;
-    apiKey?: string;
+  provingRequest: ProvingRequest | string;
+  url?: string;
+  apiKey?: string;
+  consumerId?: string;
+  jwtData?: JWTData;
 }
 
 /**
@@ -45,6 +61,8 @@ interface DelegatedProvingParams {
  *
  * // Connection to a public beacon node
  * const account = Account.fromCiphertext(process.env.ciphertext, process.env.password);
+ * const apiKey = process.env.apiKey;
+ * const consumerId = process.env.consumerId;
  * const publicNetworkClient = new AleoNetworkClient("http://api.explorer.provable.com/v1", undefined, account);
  */
 class AleoNetworkClient {
@@ -54,6 +72,9 @@ class AleoNetworkClient {
     ctx: { [key: string]: string };
     verboseErrors: boolean;
     readonly network: string;
+    apiKey?: string;
+    consumerId?: string;
+    jwtData?: JWTData;
 
     constructor(host: string, options?: AleoNetworkClientOptions) {
         this.host = host + "/%%NETWORK%%";
@@ -1627,6 +1648,37 @@ class AleoNetworkClient {
     }
 
     /**
+     * Refreshes the JWT by making a POST request to /jwts/{consumer_id}
+     * 
+     * @param {string} apiKey - The API key for authentication.
+     * @param {string} consumerId - The consumer ID associated with the API key.
+     * @returns {Promise<JwtData>} The JWT token and expiration time
+     */
+    private async refreshJwt(apiKey: string, consumerId: string): Promise<JWTData> {
+        if (!apiKey || !consumerId) {
+            throw new Error('API key and consumer ID are required to refresh JWT');
+        }
+        const response = await post(
+            `https://api.provable.com/jwts/${consumerId}`,
+            {
+                headers: {
+                    'X-Provable-API-Key': apiKey
+                }
+            }
+        );
+        const authHeader = response.headers.get('authorization');
+        if (!authHeader) {
+            throw new Error('No authorization header in JWT refresh response');
+        }
+        const body = await response.json();
+        
+        return {
+            jwt: authHeader,
+            expiration: body.exp * 1000 // Convert to milliseconds
+        };
+    }
+
+    /**
      * Submit a `ProvingRequest` to a remote proving service for delegated proving. If the broadcast flag of the `ProvingRequest` is set to `true` the remote service will attempt to broadcast the result `Transaction` on behalf of the requestor.
      *
      * @param {DelegatedProvingParams} options - The optional parameters required to submit a proving request.
@@ -1638,24 +1690,39 @@ class AleoNetworkClient {
             ? options.provingRequest.toString()
             : options.provingRequest;
 
-        // Build headers with proper auth fallback
-        const headers: Record<string, string> = {
-          ...this.headers,
-          "X-ALEO-METHOD": "submitProvingRequest",
-          "Content-Type": "application/json"
-        };
+        const apiKey = options.apiKey ?? this.apiKey;
+        const consumerId = options.consumerId ?? this.consumerId;    
+        let jwtData = options.jwtData ?? this.jwtData
 
-        // Add auth header based on what's available
-        if (options.apiKey) {
-          headers["X-Provable-API-Key"] = options.apiKey;
+        // Check if JWT is expired or missing
+        const bufferTime = FIVE_MINUTES; // 5 minutes buffer
+        const isExpired = jwtData && Date.now() >= jwtData.expiration - bufferTime;
+        if (!jwtData || isExpired) {
+            if (options.apiKey && options.consumerId) {
+                jwtData = await this.refreshJwt(apiKey!, consumerId!);
+                // Update both the class and the options with the new JWT
+                this.jwtData = jwtData;
+                options.jwtData = jwtData;
+            } else {
+                throw new Error('JWT or both apiKey and consumerId are required');
+            }
+        }
+
+        const headers: Record<string, string> = {
+            ...this.headers,
+            "X-ALEO-METHOD": "submitProvingRequest",
+            "Content-Type": "application/json",
+        };
+        if (jwtData?.jwt) {
+            headers["Authorization"] = jwtData.jwt;
         }
 
         try {
             const response = await retryWithBackoff(() =>
-                post(`${proverUri}/prove`, {
+            post(`${proverUri}`, {
                 body: provingRequestString,
-                 headers
-                })
+                headers
+            })
             );
             const responseText = await response.text();
             return parseJSON(responseText);
