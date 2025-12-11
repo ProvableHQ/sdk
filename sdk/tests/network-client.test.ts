@@ -732,8 +732,8 @@ describe("NodeConnection", () => {
     });
 
     describe("getProgramImports", () => {
-        // Skip on mainnet - amm_orcl_intrfc_v.aleo only exists on testnet
-        const testFn = connection.network === "mainnet" ? it.skip : it;
+        // Only run on testnet - amm_orcl_intrfc_v.aleo only exists on testnet
+        const testFn = connection.network === "testnet" ? it : it.skip;
         
         testFn("should not fetch the same program multiple times with overlapping imports", async () => {
             // Track all calls to getProgram to detect duplicates
