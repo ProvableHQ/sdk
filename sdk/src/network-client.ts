@@ -1079,27 +1079,10 @@ class AleoNetworkClient {
      * programImports = await networkClient.getProgramImports(double_test);
      * assert.deepStrictEqual(programImports, expectedImports);
      */
-    async getProgramImports(inputProgram: Program | string): Promise<ProgramImports> {
-            try {
-                this.ctx = { "X-ALEO-METHOD": "getProgramImports" };
-                const imports: ProgramImports = {};
-                const visited = new Set<string>();
-                
-                await this._getProgramImportsRecursive(inputProgram, imports, visited);
-                
-                return imports;
-            } catch (error: any) {
-                logAndThrow("Error fetching program imports: " + error.message);
-            } finally {
-                this.ctx = {};
-            }
-        }
+    async getProgramImports(inputProgram: Program | string, imports: ProgramImports = {}): Promise<ProgramImports> {
+        try {
+            this.ctx = { "X-ALEO-METHOD": "getProgramImports" };
 
-        private async _getProgramImportsRecursive(
-            inputProgram: Program | string,
-            imports: ProgramImports,
-            visited: Set<string>
-        ): Promise<void> {
             // Normalize input to a Program object
             let program: Program;
             let programId: string;
@@ -1124,10 +1107,9 @@ class AleoNetworkClient {
             }
 
             // Skip if already processed (prevents infinite recursion on circular dependencies)
-            if (visited.has(programId)) {
-                return;
+            if (imports.hasOwnProperty(programId)) {
+                return imports;
             }
-            visited.add(programId);
 
             // Get the list of programs that the program imports
             const importList = program.getImports();
@@ -1139,11 +1121,17 @@ class AleoNetworkClient {
                     const programSource = <string>await this.getProgram(import_id);
                     imports[import_id] = programSource;
                     
-                    // Recursively process nested imports with shared visited set
-                    // Pass the program source to avoid re-fetching
-                    await this._getProgramImportsRecursive(programSource, imports, visited);
+                    // Recursively process nested imports, passing the shared imports object
+                    await this.getProgramImports(programSource, imports);
                 }
             }
+
+            return imports;
+        } catch (error: any) {
+            logAndThrow("Error fetching program imports: " + error.message);
+        } finally {
+            this.ctx = {};
+        }
     }
 
 
