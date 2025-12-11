@@ -1059,19 +1059,40 @@ class AleoNetworkClient {
      * assert.deepStrictEqual(programImports, expectedImports);
      */
     async getProgramImports(inputProgram: Program | string): Promise<ProgramImports> {
-        try {
-            this.ctx = { "X-ALEO-METHOD": "getProgramImports" };
-            const imports: ProgramImports = {};
+            try {
+                this.ctx = { "X-ALEO-METHOD": "getProgramImports" };
+                const imports: ProgramImports = {};
+                const visited = new Set<string>();
+                
+                await this._getProgramImportsRecursive(inputProgram, imports, visited);
+                
+                return imports;
+            } catch (error: any) {
+                logAndThrow("Error fetching program imports: " + error.message);
+            } finally {
+                this.ctx = {};
+            }
+        }
 
+        private async _getProgramImportsRecursive(
+            inputProgram: Program | string,
+            imports: ProgramImports,
+            visited: Set<string>
+        ): Promise<void> {
             // Normalize input to a Program object
             let program: Program;
+            let programId: string;
+            
             if (inputProgram instanceof Program) {
                 program = inputProgram;
+                programId = program.id();
             } else {
                 try {
                     program = Program.fromString(inputProgram);
+                    programId = program.id();
                 } catch {
                     try {
+                        programId = inputProgram;
                         program = await this.getProgramObject(inputProgram);
                     } catch (error2) {
                         throw new Error(
@@ -1081,6 +1102,12 @@ class AleoNetworkClient {
                 }
             }
 
+            // Skip if already processed (prevents infinite recursion on circular dependencies)
+            if (visited.has(programId)) {
+                return;
+            }
+            visited.add(programId);
+
             // Get the list of programs that the program imports
             const importList = program.getImports();
 
@@ -1089,24 +1116,13 @@ class AleoNetworkClient {
                 const import_id = importList[i];
                 if (!imports.hasOwnProperty(import_id)) {
                     const programSource = <string>await this.getProgram(import_id);
-                    const nestedImports = <ProgramImports>await this.getProgramImports(import_id);
-
-                    for (const key in nestedImports) {
-                        if (!imports.hasOwnProperty(key)) {
-                            imports[key] = nestedImports[key];
-                        }
-                    }
-
                     imports[import_id] = programSource;
+                    
+                    // Recursively process nested imports with shared visited set
+                    // Pass the program source to avoid re-fetching
+                    await this._getProgramImportsRecursive(programSource, imports, visited);
                 }
             }
-
-            return imports;
-        } catch (error: any) {
-            logAndThrow("Error fetching program imports: " + error.message);
-        } finally {
-            this.ctx = {};
-        }
     }
 
 
