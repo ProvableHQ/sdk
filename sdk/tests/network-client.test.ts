@@ -732,7 +732,10 @@ describe("NodeConnection", () => {
     });
 
     describe("getProgramImports", () => {
-        it("should not fetch the same program multiple times with overlapping imports", async () => {
+        // Skip on mainnet - amm_orcl_intrfc_v.aleo only exists on testnet
+        const testFn = connection.network === "mainnet" ? it.skip : it;
+        
+        testFn("should not fetch the same program multiple times with overlapping imports", async () => {
             // Track all calls to getProgram to detect duplicates
             const fetchedPrograms = new Map<string, number>();
             const originalGetProgram = connection.getProgram.bind(connection);
