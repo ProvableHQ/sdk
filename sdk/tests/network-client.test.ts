@@ -730,4 +730,38 @@ describe("NodeConnection", () => {
             }
         });
     });
+
+    describe("getProgramImports", () => {
+        it("should not fetch the same program multiple times with overlapping imports", async () => {
+            // Track all calls to getProgram to detect duplicates
+            const fetchedPrograms = new Map<string, number>();
+            const originalGetProgram = connection.getProgram.bind(connection);
+            
+            connection.getProgram = async function(programId: string) {
+                const count = (fetchedPrograms.get(programId) || 0) + 1;
+                fetchedPrograms.set(programId, count);
+                return originalGetProgram(programId);
+            };
+
+            // Test with amm_orcl_intrfc_v.aleo which has 23 imports with heavy overlap
+            // This program previously caused exponentially recursive API calls resulting in rate limiting.
+            const imports = await connection.getProgramImports("amm_orcl_intrfc_v.aleo");
+            
+            // Verify we got all the imports
+            expect(Object.keys(imports).length).to.be.greaterThan(0);
+            
+            // Verify each program was fetched exactly once (no duplicates)
+            const duplicates = Array.from(fetchedPrograms.entries())
+                .filter(([_, count]) => count > 1);
+            
+            if (duplicates.length > 0) {
+                const duplicateNames = duplicates.map(([name, count]) => `${name} (${count}x)`).join(', ');
+                throw new Error(`Programs fetched multiple times: ${duplicateNames}`);
+            }
+            
+            // Verify total API calls equals number of unique imports
+            const totalCalls = Array.from(fetchedPrograms.values()).reduce((a, b) => a + b, 0);
+            expect(totalCalls).to.equal(fetchedPrograms.size);
+        });
+    });
 });
