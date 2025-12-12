@@ -1079,10 +1079,9 @@ class AleoNetworkClient {
      * programImports = await networkClient.getProgramImports(double_test);
      * assert.deepStrictEqual(programImports, expectedImports);
      */
-    async getProgramImports(inputProgram: Program | string): Promise<ProgramImports> {
+    async getProgramImports(inputProgram: Program | string, imports: ProgramImports = {}): Promise<ProgramImports> {
         try {
             this.ctx = { "X-ALEO-METHOD": "getProgramImports" };
-            const imports: ProgramImports = {};
 
             // Normalize input to a Program object
             let program: Program;
@@ -1110,7 +1109,7 @@ class AleoNetworkClient {
                 const import_id = importList[i];
                 if (!imports.hasOwnProperty(import_id)) {
                     const programSource = <string>await this.getProgram(import_id);
-                    const nestedImports = <ProgramImports>await this.getProgramImports(import_id);
+                    const nestedImports = <ProgramImports>await this.getProgramImports(programSource, imports);
 
                     for (const key in nestedImports) {
                         if (!imports.hasOwnProperty(key)) {
