@@ -1085,18 +1085,13 @@ class AleoNetworkClient {
 
             // Normalize input to a Program object
             let program: Program;
-            let programId: string;
-            
             if (inputProgram instanceof Program) {
                 program = inputProgram;
-                programId = program.id();
             } else {
                 try {
                     program = Program.fromString(inputProgram);
-                    programId = program.id();
                 } catch {
                     try {
-                        programId = inputProgram;
                         program = await this.getProgramObject(inputProgram);
                     } catch (error2) {
                         throw new Error(
@@ -1104,11 +1099,6 @@ class AleoNetworkClient {
                         );
                     }
                 }
-            }
-
-            // Skip if already processed (prevents infinite recursion on circular dependencies)
-            if (imports.hasOwnProperty(programId)) {
-                return imports;
             }
 
             // Get the list of programs that the program imports
@@ -1119,10 +1109,15 @@ class AleoNetworkClient {
                 const import_id = importList[i];
                 if (!imports.hasOwnProperty(import_id)) {
                     const programSource = <string>await this.getProgram(import_id);
+                    const nestedImports = <ProgramImports>await this.getProgramImports(programSource, imports);
+
+                    for (const key in nestedImports) {
+                        if (!imports.hasOwnProperty(key)) {
+                            imports[key] = nestedImports[key];
+                        }
+                    }
+
                     imports[import_id] = programSource;
-                    
-                    // Recursively process nested imports, passing the shared imports object
-                    await this.getProgramImports(programSource, imports);
                 }
             }
 
