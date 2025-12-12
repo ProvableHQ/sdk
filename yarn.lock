@@ -2388,10 +2388,10 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@next/env@npm:15.4.8":
-  version: 15.4.8
-  resolution: "@next/env@npm:15.4.8"
-  checksum: 6e77946eeb18f8dc31471a3b2c74875be519a1295c3d905f5e47a49ea97e4e6e89d9d2dcc8816a2415a5fc354a8a288b8883f11747d7faabee16add5a39a205e
+"@next/env@npm:15.4.9":
+  version: 15.4.9
+  resolution: "@next/env@npm:15.4.9"
+  checksum: 457bd44fdf0e7efac56a8bb69e1447d287b4b833359a701c9c34426a598ab10e62ced90c5e54130ff3e51ed7fe55e5be519493fc39d0825b09976ba9aa89e940
   languageName: node
   linkType: hard
 
@@ -9790,11 +9790,11 @@ __metadata:
   languageName: node
   linkType: hard
 
-"next@npm:15.4.8":
-  version: 15.4.8
-  resolution: "next@npm:15.4.8"
+"next@npm:15.4.9":
+  version: 15.4.9
+  resolution: "next@npm:15.4.9"
   dependencies:
-    "@next/env": 15.4.8
+    "@next/env": 15.4.9
     "@next/swc-darwin-arm64": 15.4.8
     "@next/swc-darwin-x64": 15.4.8
     "@next/swc-linux-arm64-gnu": 15.4.8
@@ -9845,7 +9845,7 @@ __metadata:
       optional: true
   bin:
     next: dist/bin/next
-  checksum: 9e0acac942310a9fbc8dd76aa05a30d457c0c3521683d6285e581bcecb53ee9efdef1a7a1df694d71fd0653b5397138745cd095265da3963de6115d2358a99fa
+  checksum: 715eb7348d6e3ec419c542ca0807fa5ee3794cf2e02bde7151e639b775cc5bd393e8ca85147a0c928be074423005413daa502b604728593032d6f2967be1ab0d
   languageName: node
   linkType: hard
 
@@ -13325,7 +13325,7 @@ __metadata:
     "@types/node": ^22.12.0
     "@types/react": ^19.0.8
     "@types/react-dom": ^19.0.3
-    next: 15.4.8
+    next: 15.4.9
     react: ^19.0.0
     react-dom: ^19.0.0
     terser-webpack-plugin: ^5.3.11
