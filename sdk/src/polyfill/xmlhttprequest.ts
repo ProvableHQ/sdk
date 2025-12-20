@@ -5,5 +5,5 @@ if (globalThis.XMLHttpRequest == null) {
     function XMLHttpRequest(opts?: any) {
         return new $xmlhttprequest.XMLHttpRequest({syncPolicy: "enabled", ...opts});
     }
-    (globalThis as any).XMLHttpRequest = XMLHttpRequest
+    (globalThis as any).XMLHttpRequest = XMLHttpRequest;
 }
