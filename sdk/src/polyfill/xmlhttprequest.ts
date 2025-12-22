@@ -2,8 +2,9 @@
 import $xmlhttprequest from "xmlhttprequest-ssl";
 
 if (globalThis.XMLHttpRequest == null) {
-    function XMLHttpRequest(opts?: any) {
-        return new $xmlhttprequest.XMLHttpRequest({syncPolicy: "enabled", ...opts});
-    }
-    (globalThis as any).XMLHttpRequest = XMLHttpRequest;
+    (globalThis as any).XMLHttpRequest = class extends $xmlhttprequest.XMLHttpRequest {
+        constructor(opts?: any) {
+            super({ syncPolicy: "enabled", ...opts });
+        }
+    };
 }
