@@ -17,7 +17,7 @@
 pub use super::networks::*;
 use snarkvm_console::{
     account::{Address, ComputeKey, GraphKey, PrivateKey, Signature, ViewKey},
-    algorithms::{BHP256, BHP512, BHP768, BHP1024, Pedersen64, Pedersen128, Poseidon2, Poseidon4, Poseidon8},
+    algorithms::{BHP256, BHP512, BHP768, BHP1024, ECDSASignature, Pedersen64, Pedersen128, Poseidon2, Poseidon4, Poseidon8},
     program::{
         Argument,
         Ciphertext,
@@ -79,6 +79,7 @@ pub type BHP512Native = BHP512<CurrentNetwork>;
 pub type BHP768Native = BHP768<CurrentNetwork>;
 pub type BHP1024Native = BHP1024<CurrentNetwork>;
 pub type CertificateNative = Certificate<CurrentNetwork>;
+pub type ECDSASignatureNative = ECDSASignature<CurrentNetwork>;
 pub type Pedersen64Native = Pedersen64<CurrentNetwork>;
 pub type Pedersen128Native = Pedersen128<CurrentNetwork>;
 pub type Poseidon2Native = Poseidon2<CurrentNetwork>;
