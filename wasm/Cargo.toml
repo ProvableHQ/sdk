@@ -23,16 +23,16 @@ doctest = false
 
 [dependencies.snarkvm-algorithms]
 git = "https://github.com/ProvableHQ/snarkVM.git"
-rev = "4e3855d69"
+rev = "008e1c087"
 
 [dependencies.snarkvm-circuit-network]
 git = "https://github.com/ProvableHQ/snarkVM.git"
-rev = "4e3855d69"
+rev = "008e1c087"
 features = ["wasm"]
 
 [dependencies.snarkvm-console]
 git = "https://github.com/ProvableHQ/snarkVM.git"
-rev = "4e3855d69"
+rev = "008e1c087"
 default-features = false
 features = [
     "account",
@@ -46,37 +46,37 @@ features = [
 
 [dependencies.snarkvm-ledger-block]
 git = "https://github.com/ProvableHQ/snarkVM.git"
-rev = "4e3855d69"
+rev = "008e1c087"
 features = ["wasm"]
 
 [dependencies.snarkvm-ledger-query]
 git = "https://github.com/ProvableHQ/snarkVM.git"
-rev = "4e3855d69"
+rev = "008e1c087"
 features = ["async", "wasm"]
 
 [dependencies.snarkvm-ledger-store]
 git = "https://github.com/ProvableHQ/snarkVM.git"
-rev = "4e3855d69"
+rev = "008e1c087"
 
 [dependencies.snarkvm-parameters]
 git = "https://github.com/ProvableHQ/snarkVM.git"
-rev = "4e3855d69"
+rev = "008e1c087"
 default-features = false
 features = ["wasm"]
 
 [dependencies.snarkvm-synthesizer-program]
-rev = "4e3855d69"
+rev = "008e1c087"
 git = "https://github.com/ProvableHQ/snarkVM.git"
 features = ["wasm"]
 
 [dependencies.snarkvm-synthesizer]
 git = "https://github.com/ProvableHQ/snarkVM.git"
-rev = "4e3855d69"
+rev = "008e1c087"
 features = ["async", "wasm"]
 
 [dependencies.snarkvm-wasm]
 git = "https://github.com/ProvableHQ/snarkVM.git"
-rev = "4e3855d69"
+rev = "008e1c087"
 features = ["fields", "utilities"]
 
 
