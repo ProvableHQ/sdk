@@ -140,12 +140,12 @@ impl ProgramManager {
                     .as_string()
                 {
                     if &program_id != "credits.aleo" {
-                        log(&format!("Importing program: {program_id}"));
                         let import = ProgramNative::from_str(&import_string).map_err(|err| err.to_string())?;
-                        // If the program has imports, add them.
-                        Self::resolve_imports(process, &import, Some(imports.clone()))?;
-                        // If the process does not already contain the program, add it.
+                        // Only process if the program is not already in the process
                         if !process.contains_program(import.id()) {
+                            log(&format!("Importing program: {program_id}"));
+                            // If the program has imports, add them first (depth-first).
+                            Self::resolve_imports(process, &import, Some(imports.clone()))?;
                             log(&format!("Adding {program_id} to the process"));
                             process.add_program_with_edition(&import, 1).map_err(|err| err.to_string())?;
                         }
