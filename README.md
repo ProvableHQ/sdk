@@ -19,6 +19,7 @@ several TypeScript & JavaScript libraries which provide the following functional
 
 All of this functionality is demonstrated on [Provable.tools](https://provable.tools).
 
+You will need `Node` version `22` or higher.
 
 The Provable SDK is divided into three TypeScript/JavaScript packages:
 
