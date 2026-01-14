@@ -223,7 +223,7 @@ mod tests {
     }
 
     #[wasm_bindgen_test]
-    async fn test_proving_key_checksum() {
+    async fn test_proving_key_metadata_checksum() {
         const DELAY: u32 = 100;
 
         let prover_uri = Metadata::bond_public().prover;
@@ -239,6 +239,13 @@ mod tests {
         let prover = ProvingKey::from_bytes(&proving_key_bytes).unwrap();
         assert!(prover.is_claim_unbond_public_prover());
         assert!(!prover.is_fee_private_prover());
+
+        sleep(DELAY).await;
+
+        let prover_uri = Metadata::inclusion().prover;
+        let proving_key_bytes = reqwest::get(prover_uri).await.unwrap().bytes().await.unwrap().to_vec();
+        let prover = ProvingKey::from_bytes(&proving_key_bytes).unwrap();
+        assert!(prover.is_inclusion_prover());
 
         sleep(DELAY).await;
 

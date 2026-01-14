@@ -1,4 +1,4 @@
-import {Account, initThreadPool, ProgramManager, AleoKeyProvider} from "@provablehq/sdk/testnet.js";
+import {Account, initThreadPool, ProgramManager, AleoKeyProvider} from "@provablehq/sdk/mainnet.js";
 import { CREDITS_PROGRAM_KEYS } from "@provablehq/sdk/mainnet.js";
 
 // Initialize the threadpool to speed up proving.
@@ -25,7 +25,7 @@ keyProvider.useCache(true);
 // Initialize the keyProvider cache with all necessary keys.
 await Promise.all([keyProvider.transferKeys("private"), keyProvider.feePrivateKeys()]);
 programManager.setKeyProvider(keyProvider);
-programManager.setInclusionProver();
+await programManager.setInclusionProver();
 
 const start = Date.now();
 console.log("Starting transfer_private execution");

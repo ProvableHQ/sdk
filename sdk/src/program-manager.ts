@@ -337,12 +337,17 @@ class ProgramManager {
                 WasmProgramManager.loadInclusionProver(provingKey)
                 this.inclusionKeysLoaded = true;
             } else {
-                const inclusionKeys = await this.keyProvider.inclusionKeys();
-                WasmProgramManager.loadInclusionProver(inclusionKeys[0])
+                console.log(CREDITS_PROGRAM_KEYS.inclusion.prover);
+                const inclusionBytes = await this.networkClient.fetchBytes(CREDITS_PROGRAM_KEYS.inclusion.prover);
+                const inclusionKey = ProvingKey.fromBytes(inclusionBytes);
+                console.log(`Checking if it's the inclusion prover, checksum`);
+                console.log(inclusionKey.isTransferPublicProver());
+                console.log("Done checking it's the inclusion prover");
                 this.inclusionKeysLoaded = true;
             }
             return;
-        } catch {
+        } catch (e) {
+            console.log(e);
             console.log("Setting the inclusion prover requires either a key provider to be configured for the ProgramManager OR to pass the inclusion prover directly");
         }
     }

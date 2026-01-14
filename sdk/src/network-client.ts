@@ -177,6 +177,23 @@ class AleoNetworkClient {
     }
 
     /**
+     * Fetches byte data from a given URL and returns it as a Uint8Array.
+     *
+     * @param url The URL to fetch data from.
+     */
+    async fetchBytes(
+        url = "/",
+    ): Promise<Uint8Array> {
+        try {
+            const response = await get(url);
+            const data = await response.arrayBuffer();
+            return new Uint8Array(data);
+        } catch (error: any) {
+            throw new Error("Error fetching data." + error.message);
+        }
+    }
+
+    /**
      * Fetches data from the Aleo network and returns it as a JSON object.
      *
      * @param url The URL to fetch data from.

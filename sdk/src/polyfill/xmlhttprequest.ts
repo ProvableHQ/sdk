@@ -26,6 +26,8 @@ if (globalThis.XMLHttpRequest == null) {
             (this as any).open = function (method: string, url: string, async: boolean, user?: string, password?: string) {
                 // Special behavior for synchronous requests
                 if (method === "GET" && !async && !user && !password) {
+                    console.log("XMLHttpRequest: GET request with no user/password:");
+                    console.log(url);
                     _async = false;
                     _url = url;
 
@@ -54,7 +56,7 @@ if (globalThis.XMLHttpRequest == null) {
 
                     (this as any).status = 200;
                     (this as any).response = (this as any).responseText = responseText;
-
+                    console.log(responseText.length + " bytes received from " + _url);
                     reset();
                 }
             };
