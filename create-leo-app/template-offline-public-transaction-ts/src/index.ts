@@ -16,7 +16,7 @@ import { getLocalKey, preDownloadBondingKeys, preDownloadTransferKeys } from "./
 await initThreadPool();
 
 /// Build transfer public transaction without connection to the internet
-async function buildTransferPublicTxOffline(recipientAddress: Address, amount: number, latestStateRoot: string, keyPaths: {}): Promise<Transaction>  {
+async function buildTransferPublicTxOffline(recipientAddress: Address, amount: number, latestStateRoot: string, keyPaths: any): Promise<Transaction>  {
     // Create an offline program manager
     const programManager = new ProgramManager();
 
@@ -34,7 +34,7 @@ async function buildTransferPublicTxOffline(recipientAddress: Address, amount: n
     const inclusionKey = ProvingKey.fromBytes(
         await getLocalKey(<string>keyPaths[CREDITS_PROGRAM_KEYS.inclusion.locator])
     );
-    
+
     // Create an offline key provider
     console.log("Creating offline key provider");
     const offlineKeyProvider = new OfflineKeyProvider();
@@ -53,7 +53,7 @@ async function buildTransferPublicTxOffline(recipientAddress: Address, amount: n
     }
 
     // Create an offline query to complete the inclusion proof
-    let offlineQuery: OfflineQuery;
+    let offlineQuery: OfflineQuery | undefined;
     const blockHeight = 9233665;
     // TODO this is a placeholder block height for now, which offlineQuery now requires
     try {
@@ -79,11 +79,11 @@ async function buildTransferPublicTxOffline(recipientAddress: Address, amount: n
 
 /// Build bonding and unbonding transactions without connection to the internet
 async function buildBondingTxOffline(
-    validatorAddress: Address, 
-    withdrawalAddress: Address, 
-    amount: number, 
-    latestStateRoot: string, 
-    keyPaths: {}
+    validatorAddress: Address,
+    withdrawalAddress: Address,
+    amount: number,
+    latestStateRoot: string,
+    keyPaths: any,
 ): Promise<Transaction[]> {
     // Create an offline program manager
     const programManager = new ProgramManager();
@@ -193,7 +193,7 @@ async function main() {
         console.log(`\n---------------transfer_public transaction---------------\n${transferTx}`);
         console.log(`---------------------------------------------------------`);
 
-        function sleep(ms) {
+        function sleep(ms: number) {
             return new Promise(resolve => setTimeout(resolve, ms));
         }
         await sleep(15000);

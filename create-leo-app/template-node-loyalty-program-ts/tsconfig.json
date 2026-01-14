@@ -2,6 +2,8 @@
     "compilerOptions": {
         "target": "es2017",
         "module": "esnext",
+        "types": ["node"],
+        "rootDir": "./src",
         "moduleResolution": "bundler",
         "customConditions": ["node"],
         "esModuleInterop": true,

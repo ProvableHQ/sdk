@@ -3,9 +3,11 @@
     /* Basic Options */
     "target": "es2017",
     "module": "esnext",
+    "rootDir": "./src",
+    "types": ["node"],
 
     /* Module Resolution Options */
-    "moduleResolution": "node",
+    "moduleResolution": "bundler",
     "esModuleInterop": true,
 
     /* Advanced Options */

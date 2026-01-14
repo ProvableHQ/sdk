@@ -33,10 +33,10 @@
     "pretty": "prettier . --write"
   },
   "optionalDependencies": {
-    "glob": "^11.0.1"
+    "glob": "^11.1.0"
   },
   "devDependencies": {
-    "prettier": "3.4.2",
-    "wasm-pack": "^0.13.1"
+    "prettier": "3.8.3",
+    "wasm-pack": "^0.14.0"
   }
 }

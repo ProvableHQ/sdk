@@ -3,6 +3,7 @@
     /* Basic Options */
     "target": "es2017",
     "module": "esnext",
+    "rootDir": "./src",
 
     /* Module Resolution Options */
     "moduleResolution": "bundler",

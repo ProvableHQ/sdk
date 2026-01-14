@@ -7,7 +7,7 @@ $fs.writeFileSync("package.json", file.replace(/"type": "module",/g, ""));
 
 try {
     ["testnet", "mainnet"].forEach((network) => {
-        $child.execSync(`wasm-pack test --node --features ${network} -- --nocapture`, {
+        $child.execSync(`wasm-pack test --release --node --no-default-features --features browser,${network} -- --nocapture`, {
             stdio: "inherit",
         });
     });

@@ -1,6 +1,6 @@
 import * as fs from "node:fs/promises";
 import * as fsSync from "node:fs";
-import * as path from "path";
+import * as path from "node:path";
 
 import { FunctionKeyPair } from "../../models/keyPair.js";
 import { KeyFingerprint } from "../verifier/interface.js";

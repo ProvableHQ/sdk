@@ -2,6 +2,8 @@
     "compilerOptions": {
         "target": "es2020",
         "module": "esnext",
+        "rootDir": "./src",
+        "types": ["node"],
         "moduleResolution": "bundler",
         "customConditions": ["node"],
         "esModuleInterop": true,

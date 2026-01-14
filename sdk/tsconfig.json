@@ -7,6 +7,7 @@
     "target": "es2022",
     "module": "esnext",
     "lib": ["dom", "esnext", "webworker"],
+    "types": ["node"],
     "importHelpers": true,
     // output .d.ts declaration files for consumers
     "declaration": true,

@@ -15,7 +15,7 @@ import {
     sha256Hex,
 } from "../src/node.js";
 import * as $fs from "node:fs/promises";
-import * as path from "path";
+import * as path from "node:path";
 import { provingKeyLocator, verifyingKeyLocator, translationKeyLocator } from "../src/keys/keystore/interface.js";
 import type { KeyLocator, ProvingKeyLocator, VerifyingKeyLocator } from "../src/keys/keystore/interface.js";
 

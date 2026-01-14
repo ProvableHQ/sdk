@@ -19,6 +19,7 @@ const sharedExternal = (network) => [
     "node:worker_threads",
     "node:os",
     "node:fs",
+    "node:fs/promises",
     "node:crypto",
     "node:path",
     "node:url",
@@ -28,6 +29,8 @@ const sharedExternal = (network) => [
 
     // Used by the SDK
     "comlink",
+    "@serenity-kit/noble-sodium",
+    "@scure/base",
     `@provablehq/wasm/${network}.js`,
     "core-js/proposals/json-parse-with-source.js",
 ];

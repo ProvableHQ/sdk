@@ -32,17 +32,24 @@ export default networks.map((network) => {
             "node:worker_threads",
             "node:os",
             "node:fs",
+            "node:fs/promises",
             "node:crypto",
+            "node:path",
             "mime/lite",
             "sync-request",
             "xmlhttprequest-ssl",
 
             // Used by the SDK
             "comlink",
+            "@serenity-kit/noble-sodium",
+            "@scure/base",
             `@provablehq/wasm/${network}.js`,
+            `@provablehq/sdk/${network}.js`,
             "core-js/proposals/json-parse-with-source.js",
 
             // Used by tests
+            "node:process",
+            "libsodium-wrappers",
             "chai",
             "sinon",
         ],
