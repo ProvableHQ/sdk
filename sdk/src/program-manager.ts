@@ -341,7 +341,7 @@ class ProgramManager {
                 const inclusionBytes = await this.networkClient.fetchBytes(CREDITS_PROGRAM_KEYS.inclusion.prover);
                 const inclusionKey = ProvingKey.fromBytes(inclusionBytes);
                 console.log(`Checking if it's the inclusion prover, checksum`);
-                console.log(inclusionKey.isTransferPublicProver());
+                console.log(inclusionKey.isInclusionProver());
                 console.log("Done checking it's the inclusion prover");
                 this.inclusionKeysLoaded = true;
             }
