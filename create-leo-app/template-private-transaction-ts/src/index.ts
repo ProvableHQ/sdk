@@ -22,10 +22,15 @@ programManager.setAccount(account);
 const keyProvider = new AleoKeyProvider();
 keyProvider.useCache(true);
 
-// Initialize the keyProvider cache with all necessary keys.
+// ----- Uncomment these line for faster proving! -------
+// This line set fetches the required keys for proving and stores them in the key provider.
 // await Promise.all([keyProvider.transferKeys("private"), keyProvider.feePrivateKeys()]);
-programManager.setKeyProvider(keyProvider);
+// This line sets the inclusion prover which is required for transactions that use records in order to prove their
+// inclusion in aleo history.
 // await programManager.setInclusionProver();
+
+// Initialize the keyProvider cache with all necessary keys.
+programManager.setKeyProvider(keyProvider);
 
 const start = Date.now();
 console.log("Starting transfer_private execution");
