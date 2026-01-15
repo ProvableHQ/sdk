@@ -126,6 +126,7 @@ jobs:
         template:
           - node
           - node-ts
+          - private-transaction-ts
     steps:
       - uses: actions/checkout@v4
       - uses: ./.github/actions/setup-yarn
