@@ -49,6 +49,7 @@ import {
 import {
     promoteMapToKeyStore
 } from "./keys/keystore/memory";
+import { IndexedDbKeyStore } from "./keys/keystore/indexeddb";
 import {
     OfflineKeyProvider,
     OfflineSearchParams
@@ -166,6 +167,7 @@ export {
     ImportedVerifyingKeys,
     InputJSON,
     InputObject,
+    IndexedDbKeyStore,
     KeyStore,
     KeySearchParams,
     Metadata,
