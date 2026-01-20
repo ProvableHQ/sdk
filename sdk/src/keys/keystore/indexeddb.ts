@@ -2,12 +2,13 @@ import { CachedKeyPair, FunctionKeyPair } from "../../models/keyPair.js";
 import { ProvingKey, VerifyingKey } from "../../wasm.js";
 import { KeyStore } from "./keystore.js";
 
-const DEFAULT_DB_NAME = "aleo-keystore";
+const NETWORK = "%%NETWORK%%";
+const DEFAULT_DB_NAME = `aleo-keystore-${NETWORK}`;
 const DEFAULT_STORE_NAME = "keys";
 const DEFAULT_VERSION = 1;
 
 export interface IndexedDBKeyStoreConfig {
-    /** The name of the IndexedDB database. Defaults to "aleo-keystore". */
+    /** The name of the IndexedDB database. Defaults to "aleo-keystore-<network>". */
     dbName?: string;
     /** The name of the object store. Defaults to "keys". */
     storeName?: string;
@@ -112,10 +113,10 @@ export class IndexedDBKeyStore implements KeyStore {
     }
 
     private toArrayBuffer(bytes: Uint8Array): ArrayBuffer {
-        return bytes.buffer.slice(
-            bytes.byteOffset,
-            bytes.byteOffset + bytes.byteLength,
-        );
+        const buffer = new ArrayBuffer(bytes.byteLength);
+        const copy = new Uint8Array(buffer);
+        copy.set(bytes);
+        return buffer;
     }
 
     private toUint8Array(
