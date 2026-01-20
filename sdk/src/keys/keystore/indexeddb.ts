@@ -2,11 +2,18 @@ import { CachedKeyPair, FunctionKeyPair } from "../../models/keyPair.js";
 import { ProvingKey, VerifyingKey } from "../../wasm.js";
 import { KeyStore } from "./keystore.js";
 
-type IndexedDbKeyStoreOptions = {
+const DEFAULT_DB_NAME = "aleo-keystore";
+const DEFAULT_STORE_NAME = "keys";
+const DEFAULT_VERSION = 1;
+
+export interface IndexedDBKeyStoreConfig {
+    /** The name of the IndexedDB database. Defaults to "aleo-keystore". */
     dbName?: string;
+    /** The name of the object store. Defaults to "keys". */
     storeName?: string;
+    /** IndexedDB schema version. Defaults to 1. */
     version?: number;
-};
+}
 
 type KeyRecord = {
     locator: string;
@@ -14,17 +21,28 @@ type KeyRecord = {
     verifier: ArrayBuffer;
 };
 
-export class IndexedDbKeyStore implements KeyStore {
+/**
+ * A KeyStore implementation backed by IndexedDB for browser environments.
+ * Provides persistent storage for proving and verifying keys.
+ *
+ * @example
+ * ```typescript
+ * const keyStore = new IndexedDBKeyStore();
+ * await keyStore.setKeys("credits.aleo/transfer_public", [provingKey, verifyingKey]);
+ * const keys = await keyStore.getKeys("credits.aleo/transfer_public");
+ * ```
+ */
+export class IndexedDBKeyStore implements KeyStore {
     private dbName: string;
     private storeName: string;
     private version: number;
     private db?: IDBDatabase;
     private dbPromise?: Promise<IDBDatabase>;
 
-    constructor(options?: IndexedDbKeyStoreOptions) {
-        this.dbName = options?.dbName ?? "aleo-keystore";
-        this.storeName = options?.storeName ?? "keys";
-        this.version = options?.version ?? 1;
+    constructor(config: IndexedDBKeyStoreConfig = {}) {
+        this.dbName = config.dbName ?? DEFAULT_DB_NAME;
+        this.storeName = config.storeName ?? DEFAULT_STORE_NAME;
+        this.version = config.version ?? DEFAULT_VERSION;
     }
 
     private async openDb(): Promise<IDBDatabase> {
@@ -32,6 +50,12 @@ export class IndexedDbKeyStore implements KeyStore {
         if (this.dbPromise) return this.dbPromise;
 
         this.dbPromise = new Promise<IDBDatabase>((resolve, reject) => {
+            if (typeof indexedDB === "undefined") {
+                reject(
+                    new Error("IndexedDB is not available in this environment"),
+                );
+                return;
+            }
             const request = indexedDB.open(this.dbName, this.version);
 
             request.onupgradeneeded = () => {
@@ -103,7 +127,9 @@ export class IndexedDbKeyStore implements KeyStore {
         if (value instanceof ArrayBuffer) {
             return new Uint8Array(value);
         }
-        return new Uint8Array(value.buffer.slice(0));
+        return new Uint8Array(
+            value.buffer.slice(value.byteOffset, value.byteOffset + value.byteLength),
+        );
     }
 
     async getKeys(locator: string): Promise<FunctionKeyPair | null> {
