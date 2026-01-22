@@ -263,9 +263,9 @@ impl Program {
                 let inputs = self.get_struct_members(struct_name)?;
                 Reflect::set(&input, &"members".into(), &inputs.into()).map_err(|_| "Failed to set property")?;
             }
-            PlaintextType::ExternalStruct(struct_locator) => {
-                /// An external struct type contains its locator.
-                /// The format of the type is `<program_id>/<identifier>`.
+            PlaintextType::ExternalStruct(_struct_locator) => {
+                // An external struct type contains its locator.
+                // The format of the type is `<program_id>/<identifier>`.
                 todo!()
             }
         }
