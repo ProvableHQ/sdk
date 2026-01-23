@@ -263,6 +263,15 @@ impl Program {
                 let inputs = self.get_struct_members(struct_name)?;
                 Reflect::set(&input, &"members".into(), &inputs.into()).map_err(|_| "Failed to set property")?;
             }
+            PlaintextType::ExternalStruct(locator) => {
+                if let Some(name) = name {
+                    Reflect::set(&input, &"name".into(), &name.into()).map_err(|_| "Failed to set property")?;
+                }
+                Reflect::set(&input, &"type".into(), &"external_struct".into()).map_err(|_| "Failed to set property")?;
+                let locator = locator.to_string();
+                Reflect::set(&input, &"locator".into(), &locator.as_str().into())
+                    .map_err(|_| "Failed to set property")?;
+            }
         }
         if let Some(visibility) = visibility {
             Reflect::set(&input, &"visibility".into(), &visibility.into()).map_err(|_| "Failed to set property")?;
