@@ -8,6 +8,7 @@ import {
     ProvingKey,
     VerifyingKey,
     LocalFileKeyStore,
+    NodeKeyProvider,
     promoteMapToKeyStore,
 } from "../src/node.js";
 import * as $fs from "node:fs/promises";
@@ -153,6 +154,115 @@ describe('KeyProvider', () => {
     });
 });
 
+describe.only('NodeKeyProvider', () => {
+    it('returns cached keys for cache hit without reading disk', async () => {
+        const tempDir = `${process.cwd()}/.keystore-test-${Date.now()}-${Math.floor(Math.random()*1e6)}`;
+        const locator = "program.aleo/node_provider_hit";
+        const kp = new NodeKeyProvider(tempDir);
+        try {
+            // Create a real key pair to cache
+            const aleo = new AleoKeyProvider();
+            const [prov, ver] = <FunctionKeyPair>await aleo.feePublicKeys();
+
+            // Cache under locator
+            kp.cacheKeys(locator, [prov, ver]);
+            kp.useCache(true);
+
+            // Remove any disk files to ensure we don't rely on disk
+            const fileStore = new LocalFileKeyStore(tempDir);
+            await fileStore.delete(locator).catch(() => {});
+
+            const keys = await kp.functionKeys({ cacheKey: locator });
+            expect(keys[0].checksum()).equal(prov.checksum());
+            expect(keys[1].checksum()).equal(ver.checksum());
+        } finally {
+            await $fs.rm(tempDir, { recursive: true, force: true }).catch(() => {});
+        }
+    });
+
+    it('falls back to disk on cache miss and caches the result', async () => {
+        const tempDir = `${process.cwd()}/.keystore-test-${Date.now()}-${Math.floor(Math.random()*1e6)}`;
+        const locator = "program.aleo/node_provider_miss";
+        const kp = new NodeKeyProvider(tempDir);
+        try {
+            // Write a known pair to disk
+            const aleo = new AleoKeyProvider();
+            const [prov, ver] = <FunctionKeyPair>await aleo.feePublicKeys();
+            const fileStore = new LocalFileKeyStore(tempDir);
+            await fileStore.setKeys(locator, [prov, ver]);
+
+            // Ensure not in cache
+            expect(kp.containsKeys(locator)).equal(false);
+
+            const keys = await kp.functionKeys({ cacheKey: locator });
+            expect(keys[0].checksum()).equal(prov.checksum());
+            expect(keys[1].checksum()).equal(ver.checksum());
+
+            // Now should be cached
+            expect(kp.containsKeys(locator)).equal(true);
+            const cached = kp.getKeys(locator);
+            expect(cached[0].checksum()).equal(prov.checksum());
+            expect(cached[1].checksum()).equal(ver.checksum());
+        } finally {
+            await $fs.rm(tempDir, { recursive: true, force: true }).catch(() => {});
+        }
+    });
+
+    it('supports credits name lookup via functionKeys({ name })', async () => {
+        const tempDir = `${process.cwd()}/.keystore-test-${Date.now()}-${Math.floor(Math.random()*1e6)}`;
+        const kp = new NodeKeyProvider(tempDir);
+        try {
+            // Put fee_public keys on disk under official locator
+            const aleo = new AleoKeyProvider();
+            const [prov, ver] = <FunctionKeyPair>await aleo.feePublicKeys();
+            const fileStore = new LocalFileKeyStore(tempDir);
+            // Official locator in constants
+            const locator = "credits.aleo/fee_public";
+            await fileStore.setKeys(locator, [prov, ver]);
+
+            // Lookup by name using constants mapping
+            const keys = await kp.functionKeys({ name: "fee_public" });
+            expect(keys[0].checksum()).equal(prov.checksum());
+            expect(keys[1].checksum()).equal(ver.checksum());
+        } finally {
+            await $fs.rm(tempDir, { recursive: true, force: true }).catch(() => {});
+        }
+    });
+
+    it('transferKeys(\"public\") resolves from disk when not cached', async () => {
+        const tempDir = `${process.cwd()}/.keystore-test-${Date.now()}-${Math.floor(Math.random()*1e6)}`;
+        const kp = new NodeKeyProvider(tempDir);
+        try {
+            const aleo = new AleoKeyProvider();
+            const [prov, ver] = <FunctionKeyPair>await aleo.transferKeys("public");
+            const fileStore = new LocalFileKeyStore(tempDir);
+            // Official locator for transfer_public
+            await fileStore.setKeys("credits.aleo/transfer_public", [prov, ver]);
+
+            const keys = await kp.transferKeys("public");
+            expect(keys[0].checksum()).equal(prov.checksum());
+            expect(keys[1].checksum()).equal(ver.checksum());
+        } finally {
+            await $fs.rm(tempDir, { recursive: true, force: true }).catch(() => {});
+        }
+    });
+
+    it('throws for missing cacheKey when neither cache nor disk has it', async () => {
+        const tempDir = `${process.cwd()}/.keystore-test-${Date.now()}-${Math.floor(Math.random()*1e6)}`;
+        const kp = new NodeKeyProvider(tempDir);
+        try {
+            let threw = false;
+            try {
+                await kp.functionKeys({ cacheKey: "does/not/exist" });
+            } catch {
+                threw = true;
+            }
+            expect(threw).equal(true);
+        } finally {
+            await $fs.rm(tempDir, { recursive: true, force: true }).catch(() => {});
+        }
+    });
+});
 describe.only('KeyStore (memory)', () => {
     it('should set, get, has, delete, and clear using raw bytes', async () => {
         const map = new Map<string, CachedKeyPair>();
