@@ -63,7 +63,7 @@ impl ProgramManager {
         unchecked: bool,
         edition: Option<u16>,
     ) -> Result<ProvingRequest, String> {
-        log(&format!("Creating proving request for {program}:{function_name}"));
+        log(&format!("Creating proving request for {function_name}"));
         let mut process_native = ProcessNative::load_web().map_err(|err| err.to_string())?;
         let process = &mut process_native;
 
