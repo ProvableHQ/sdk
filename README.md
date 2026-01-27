@@ -53,16 +53,13 @@ When compiled with `wasm-pack`, JavaScript bindings are generated for the WebAss
 readme provides instructions for compiling this crate and using it in web projects for those interested in building from
 source.
 
-❗ Currently, program execution is only available in web browsers. However, account, program, and data management within
-NodeJS is functional.
-
 Source: [Aleo Wasm](https://www.npmjs.com/package/@provablehq/wasm)
 
 ## 📚 Documentation
 
-#### [API Documentation](https://docs.leo-lang.org/sdk/typescript/overview)
-API Documentation, tutorials for the Provable SDK, and documentation on how to build Leo and Aleo Instructions programs can
-be found on the [Leo Developer Docs](https://docs.leo-lang.org/sdk/typescript/overview) page.
+#### [API Documentation](https://developer.aleo.org/sdk/overview)
+API Documentation and tutorials for the Provable SDK can be found on the [SDK Developer Docs](https://developer.aleo.org/sdk/overview) page.
+Documentation on how to build Leo and Aleo Instructions programs can be found on the [Leo Developer Docs](https://docs.leo-lang.org/leo) page.
 
 #### [SDK Readme](https://github.com/ProvableHQ/sdk/tree/mainnet/sdk#readme)
 The SDK readme provides concepts core to executing zero-knowledge programs in the web and several detailed examples of
