@@ -48,13 +48,13 @@ export function promoteMapToKeyStore(
         map.set(locator, raw);
     };
 
-    ks.has = async (locator) => map.has(locator);
+    ks.has = async (locator) => Map.prototype.has.call(map, locator);
 
     ks.delete = async (locator) => {
-        map.delete(locator);
+        Map.prototype.delete.call(map, locator);
     };
 
-    ks.clear = async () => map.clear();
+    ks.clear = async () => Map.prototype.clear.call(map);
 
     return ks;
 }
