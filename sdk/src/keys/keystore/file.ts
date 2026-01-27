@@ -37,8 +37,38 @@ export class LocalFileKeyStore implements KeyStore {
     }
 
     private async writeFileAtomic(filepath: string, data: Uint8Array): Promise<void> {
-        await fs.mkdir(this.directory, { recursive: true });
+        // Ensure parent directories for nested locators exist
+        await fs.mkdir(path.dirname(filepath), { recursive: true });
         await fs.writeFile(filepath, data);
+    }
+
+    private async clearRecursive(dir: string): Promise<void> {
+        let entries: string[];
+        try {
+            entries = await fs.readdir(dir);
+        } catch (err: any) {
+            if (err.code === "ENOENT") {
+                return;
+            }
+            throw err;
+        }
+
+        await Promise.all(entries.map(async (name) => {
+            const full = path.join(dir, name);
+            let isDirectory = false;
+            try {
+                const stat = await fs.stat(full);
+                isDirectory = stat.isDirectory();
+            } catch {
+                return;
+            }
+
+            if (isDirectory) {
+                await this.clearRecursive(full);
+            } else if (name.endsWith(".prover") || name.endsWith(".verifier")) {
+                await fs.unlink(full).catch(() => {});
+            }
+        }));
     }
 
     // -------------------------------------------------------
@@ -112,11 +142,6 @@ export class LocalFileKeyStore implements KeyStore {
     }
 
     async clear(): Promise<void> {
-        const files = await fs.readdir(this.directory);
-        await Promise.all(
-            files
-                .filter(f => f.endsWith(".prover") || f.endsWith(".verifier"))
-                .map(f => fs.unlink(path.join(this.directory, f)))
-        );
+        await this.clearRecursive(this.directory);
     }
 }
