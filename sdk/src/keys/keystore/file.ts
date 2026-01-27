@@ -52,28 +52,28 @@ export class LocalFileKeyStore implements KeyStore {
         return [prover, verifier];
     }
 
-    async getKeysRaw(locator: string): Promise<CachedKeyPair | null> {
-        const prover = await this.getProvingKeyRaw(locator);
-        const verifier = await this.getVerifyingKeyRaw(locator);
+    async getKeyBytes(locator: string): Promise<CachedKeyPair | null> {
+        const prover = await this.getProvingKeyBytes(locator);
+        const verifier = await this.getVerifyingKeyBytes(locator);
         if (!prover || !verifier) return null;
         return [prover, verifier];
     }
 
     async getProvingKey(locator: string): Promise<ProvingKey | null> {
-        const bytes = await this.getProvingKeyRaw(locator);
+        const bytes = await this.getProvingKeyBytes(locator);
         return bytes ? ProvingKey.fromBytes(bytes) : null;
     }
 
-    async getProvingKeyRaw(locator: string): Promise<Uint8Array | null> {
+    async getProvingKeyBytes(locator: string): Promise<Uint8Array | null> {
         return this.readFileOptional(this.proverPath(locator));
     }
 
     async getVerifyingKey(locator: string): Promise<VerifyingKey | null> {
-        const bytes = await this.getVerifyingKeyRaw(locator);
+        const bytes = await this.getVerifyingKeyBytes(locator);
         return bytes ? VerifyingKey.fromBytes(bytes) : null;
     }
 
-    async getVerifyingKeyRaw(locator: string): Promise<Uint8Array | null> {
+    async getVerifyingKeyBytes(locator: string): Promise<Uint8Array | null> {
         return this.readFileOptional(this.verifierPath(locator));
     }
 
@@ -83,7 +83,7 @@ export class LocalFileKeyStore implements KeyStore {
         await this.writeFileAtomic(this.verifierPath(locator), v.toBytes());
     }
 
-    async setKeysRaw(locator: string, keys: CachedKeyPair): Promise<void> {
+    async setKeyBytes(locator: string, keys: CachedKeyPair): Promise<void> {
         const [proverBytes, verifierBytes] = keys;
         await this.writeFileAtomic(this.proverPath(locator), proverBytes);
         await this.writeFileAtomic(this.verifierPath(locator), verifierBytes);

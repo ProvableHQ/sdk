@@ -17,7 +17,7 @@ export interface KeyStore {
      * @param {string} locator The unique locator for the desired keypair.
      *
      * @returns {Promise<CachedKeyPair | null>} Returns the proving and verifying keys for the given locator as raw bytes if they exist or null if they do not.     */
-    getKeysRaw(locator: string): Promise<CachedKeyPair | null>;
+    getKeyBytes(locator: string): Promise<CachedKeyPair | null>;
 
     /**
      * Returns the `ProvingKey` for a given locator.
@@ -35,7 +35,7 @@ export interface KeyStore {
      *
      * @returns {Promise<Uint8Array | null>} Returns the raw bytes of a `ProvingKey` for the given locator if it exists or null if it does not exist.
      */
-    getProvingKeyRaw(locator: string): Promise<Uint8Array | null>;
+    getProvingKeyBytes(locator: string): Promise<Uint8Array | null>;
 
     /**
      * Returns the `VerifyingKey` for a given locator.
@@ -53,7 +53,7 @@ export interface KeyStore {
      *
      * @returns {Promise<Uint8Array | null>} Returns the raw bytes of a `VerifyingKey` for the given locator if it exists or null if it does not exist.
      */
-    getVerifyingKeyRaw(locator: string): Promise<Uint8Array | null>;
+    getVerifyingKeyBytes(locator: string): Promise<Uint8Array | null>;
 
     /**
      * Stores proving and verifying keys in key storage.
@@ -69,7 +69,7 @@ export interface KeyStore {
      * @param {string} locator The unique locator for the desired keypair.
      * @param {CachedKeyPair} keys The raw proving and verifying key bytes.
      */
-    setKeysRaw(locator: string, keys: CachedKeyPair): Promise<void>;
+    setKeyBytes(locator: string, keys: CachedKeyPair): Promise<void>;
 
     /**
      * Determines if a given keypair exists or not.

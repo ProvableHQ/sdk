@@ -22,14 +22,14 @@ export function promoteMapToKeyStore(
         ];
     };
 
-    ks.getKeysRaw = async (locator) => map.get(locator) ?? null;
+    ks.getKeyBytes = async (locator) => map.get(locator) ?? null;
 
     ks.getProvingKey = async (locator) => {
         const raw = map.get(locator);
         return raw ? ProvingKey.fromBytes(raw[0]) : null;
     };
 
-    ks.getProvingKeyRaw = async (locator) =>
+    ks.getProvingKeyBytes = async (locator) =>
         map.get(locator)?.[0] ?? null;
 
     ks.getVerifyingKey = async (locator) => {
@@ -37,14 +37,14 @@ export function promoteMapToKeyStore(
         return raw ? VerifyingKey.fromBytes(raw[1]) : null;
     };
 
-    ks.getVerifyingKeyRaw = async (locator) =>
+    ks.getVerifyingKeyBytes = async (locator) =>
         map.get(locator)?.[1] ?? null;
 
     ks.setKeys = async (locator, [pk, vk]) => {
         map.set(locator, [pk.toBytes(), vk.toBytes()]);
     };
 
-    ks.setKeysRaw = async (locator, raw) => {
+    ks.setKeyBytes = async (locator, raw) => {
         map.set(locator, raw);
     };
 
