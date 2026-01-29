@@ -30,11 +30,11 @@ impl ToBytes for ProvingRequestNative {
         // Write the optional fee_authorization.
         match &self.fee_authorization {
             Some(auth) => {
-                1u8.write_le(&mut writer)?; // flag for Some
+                true.write_le(&mut writer)?; // flag for Some
                 auth.write_le(&mut writer)?;
             }
             None => {
-                0u8.write_le(&mut writer)?; // flag for None
+                false.write_le(&mut writer)?; // flag for None
             }
         }
 
@@ -51,10 +51,10 @@ impl FromBytes for ProvingRequestNative {
         let authorization = AuthorizationNative::read_le(&mut reader)?;
 
         // Read the option flag and then the fee_authorization if present.
-        let has_fee_auth = u8::read_le(&mut reader)?;
+        let has_fee_auth = bool::read_le(&mut reader)?;
         let fee_authorization = match has_fee_auth {
-            0 => None,
-            1 => Some(AuthorizationNative::read_le(&mut reader)?),
+            false => None,
+            true => Some(AuthorizationNative::read_le(&mut reader)?),
             _ => return Err(error("Invalid Option flag for fee_authorization")),
         };
 

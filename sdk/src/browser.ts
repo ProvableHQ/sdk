@@ -4,8 +4,10 @@ import { Account } from "./account.js";
 import { AleoNetworkClient, ProgramImports } from "./network-client.js";
 import { BlockJSON, Header, Metadata } from "./models/blockJSON.js";
 import { ConfirmedTransactionJSON } from "./models/confirmed_transaction.js";
+import { CryptoBoxPubKey } from "./models/cryptoBoxPubkey.js";
 import { DeploymentJSON, VerifyingKeys } from "./models/deployment/deploymentJSON.js";
 import { DeploymentObject } from "./models/deployment/deploymentObject.js";
+import { EncryptedProvingRequest } from "./models/encryptedProvingRequest.js";
 import { EncryptedRecord } from "./models/record-provider/encryptedRecord.js";
 import { ExecutionJSON, FeeExecutionJSON } from "./models/execution/executionJSON.js";
 import { ExecutionObject, FeeExecutionObject } from "./models/execution/executionObject.js";
@@ -144,8 +146,10 @@ export {
     BlockHeightSearch,
     CachedKeyPair,
     ConfirmedTransactionJSON,
+    CryptoBoxPubKey,
     DeploymentJSON,
     DeploymentObject,
+    EncryptedProvingRequest,
     EncryptedRecord,
     ExecutionJSON,
     ExecutionObject,
@@ -194,3 +198,5 @@ export {
     TransitionObject,
     VerifyingKeys,
 };
+
+export { encryptAuthorization, encryptProvingRequest, encryptViewKey} from "./security.js";

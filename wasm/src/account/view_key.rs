@@ -16,7 +16,7 @@
 
 use crate::{Address, Field, PrivateKey, RecordCiphertext, Scalar, types::native::ViewKeyNative};
 use core::{convert::TryFrom, fmt, ops::Deref, str::FromStr};
-use snarkvm_console::prelude::ToField;
+use snarkvm_console::prelude::{FromBytes, ToBytes, ToField};
 use wasm_bindgen::prelude::*;
 
 #[wasm_bindgen]
@@ -47,6 +47,25 @@ impl ViewKey {
     #[allow(clippy::inherent_to_string_shadow_display)]
     pub fn to_string(&self) -> String {
         self.0.to_string()
+    }
+
+    /// Get the underlying bytes of a view key.
+    ///
+    /// @returns {Uint8Array} Left endian byte array representation of the view key.
+    #[wasm_bindgen(js_name = toBytesLe)]
+    pub fn to_bytes_le(&self) -> Result<Vec<u8>, String> {
+        self.0.to_bytes_le().map_err(|e| e.to_string())
+    }
+
+    /// Get a ViewKey from a series of bytes.
+    ///
+    /// @param {Uint8Array} bytes A left endian byte array representing the view key.
+    ///
+    /// @returns {ViewKey} The view key object.
+    #[wasm_bindgen(js_name = "fromBytesLe")]
+    pub fn from_bytes_le(bytes: Vec<u8>) -> Result<Self, String> {
+        let view_key = ViewKeyNative::read_le(&bytes[..]).map_err(|e| e.to_string())?;
+        Ok(Self(view_key))
     }
 
     /// Get the address corresponding to a view key
@@ -166,5 +185,13 @@ mod tests {
         let incorrect_view_key = ViewKey::from_string(NON_OWNER_VIEW_KEY);
         let plaintext = ciphertext.decrypt(&incorrect_view_key);
         assert!(plaintext.is_err());
+    }
+
+    #[wasm_bindgen_test]
+    pub fn test_byte_serialization_roundtrip() {
+        let vk = ViewKey::from_string(OWNER_VIEW_KEY);
+        let bytes = vk.to_bytes_le().unwrap();
+        let vk_from_bytes = ViewKey::from_bytes_le(bytes).unwrap();
+        assert_eq!(vk, vk_from_bytes);
     }
 }
