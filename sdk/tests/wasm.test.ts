@@ -95,7 +95,7 @@ describe('WASM Objects', () => {
 
         it('validates correct address bytes with isValid', () => {
             const address = Address.from_string(addressString);
-            const bytes = address.to_bytes_le();
+            const bytes = address.toBytesLe();
             expect(Address.isValid(bytes)).equal(true);
         });
 
