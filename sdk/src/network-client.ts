@@ -1788,27 +1788,31 @@ class AleoNetworkClient {
         // If private DPS is enabled, send an encrypted payload.
         if (options.dpsPrivacy) {
             try {
-                // First, get the service pubkey.
-                const pubKeyResponse = await retryWithBackoff(() =>
-                    get(proverUri + '/pubkey', {
+                // One pubkey per request is required, so the entire flow is wrapped in a retry.
+                const response = await retryWithBackoff(async () => {
+                    // First, get the service pubkey.
+                    const pubKeyResponse = await get(proverUri + '/pubkey', {
+                        headers
+                    });
+                    // Parse the pubkey.
+                    const pubkey: CryptoBoxPubKey = parseJSON(await pubKeyResponse.text());
+
+                    // Encrypt the proving request against the service pubkey.
+                    const ciphertext = encryptProvingRequest(pubkey.public_key, ProvingRequest.fromString(provingRequestString));
+
+                    // Create the encrypted proving request payload.
+                    const payload: EncryptedProvingRequest = { "key_id": pubkey.key_id, "ciphertext": ciphertext };
+
+                    // Stringify the key and post it.
+                    const encryptedProvingRequestString = JSON.stringify(payload);
+                    return await post(`${proverUri + '/prove/encrypted'}`, {
+                        body: encryptedProvingRequestString,
                         headers
                     })
-                );
-                const pubkey: CryptoBoxPubKey = parseJSON(await pubKeyResponse.text());
+                });
 
-                // Encrypt the proving request against the service pubkey.
-                const ciphertext = await encryptProvingRequest(pubkey.public_key, ProvingRequest.fromString(provingRequestString));
-
-                // Create the encrypted proving request payload.
-                const payload: EncryptedProvingRequest = { "key_id": pubkey.key_id, "ciphertext": ciphertext };
-                const encryptedProvingRequestString = JSON.stringify(payload);
-                const provingResponse = await post(`${proverUri + '/prove/encrypted'}`, {
-                    body: encryptedProvingRequestString,
-                    headers
-                })
-
-                // Return the result.
-                return parseJSON(await provingResponse.text());
+                // Return the result as JSON.
+                return parseJSON(await response.text());
             } catch (error) {
                 throw new Error(`Error sending encrypted proving request: ${error}`);
             }

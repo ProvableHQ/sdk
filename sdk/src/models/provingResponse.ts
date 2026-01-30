@@ -1,6 +1,11 @@
 import { TransactionJSON } from "./transaction/transactionJSON";
 
+export interface BroadcastResult {
+    status_code: bigint,
+    status?: string
+}
+
 export interface ProvingResponse {
     transaction: TransactionJSON,
-    broadcast?: boolean,
+    broadcast_result: BroadcastResult,
 }

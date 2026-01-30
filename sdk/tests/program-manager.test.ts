@@ -176,7 +176,7 @@ describe('Program Manager', async () => {
                     priorityFee: 0.0,
                     privateFee: false,
                     inputs: ["1u32", "1u32"],
-                    broadcast: true,
+                    broadcast: false,
                     privateKey: pk
                 });
 
@@ -187,7 +187,6 @@ describe('Program Manager', async () => {
                 const plaintextBytes = sodium.crypto_box_seal_open(sodium.from_base64(ciphertext, sodium.base64_variants.ORIGINAL), keyPair.publicKey, keyPair.privateKey);
                 const deserializedProvingRequest = ProvingRequest.fromBytesLe(plaintextBytes);
                 expect(deserializedProvingRequest.broadcast).equals(provingRequest.broadcast);
-                console.log(`Deserialized proving request: ${deserializedProvingRequest.toBytesLe()}`);
 
                 // Submit the proving request.
                 const provingResponse = <ProvingResponse>await programManager.networkClient.submitProvingRequest({
@@ -195,8 +194,8 @@ describe('Program Manager', async () => {
                     dpsPrivacy: true
                 });
 
-                console.log(`Proving response: ${provingResponse.transaction}`)
-                expect(provingResponse.broadcast).equal(true);
+                console.log("Proving response", provingResponse.broadcast_result);
+                expect(provingResponse.broadcast_result.status).equal("Skipped");
             }
         });
     });
