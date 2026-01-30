@@ -81,6 +81,28 @@ describe('WASM Objects', () => {
             // Ensure the signature failed to verify
             expect(result).equal(false);
         });
+
+        it('validates a correct address string with isValid', () => {
+            const result = Address.isValid(addressString);
+            expect(result).equal(true);
+        });
+
+        it('returns false for an invalid address string with isValid', () => {
+            expect(Address.isValid('invalid_address')).equal(false);
+            expect(Address.isValid('aleo1xyz')).equal(false);
+            expect(Address.isValid('')).equal(false);
+        });
+
+        it('validates correct address bytes with isValid', () => {
+            const address = Address.from_string(addressString);
+            const bytes = address.to_bytes_le();
+            expect(Address.isValid(bytes)).equal(true);
+        });
+
+        it('returns false for invalid address bytes with isValid', () => {
+            expect(Address.isValid(new Uint8Array([1, 2, 3]))).equal(false);
+            expect(Address.isValid(new Uint8Array([]))).equal(false);
+        });
     });
 
     describe('PrivateKey', () => {
