@@ -89,6 +89,24 @@ export class Account {
   }
 
   /**
+   * Validates whether the given input is a valid Aleo address.
+   * @param {string | Uint8Array} address The address to validate, either as a string or bytes
+   * @returns {boolean} True if the address is valid, false otherwise
+   *
+   * @example
+   * import { Account } from "@provablehq/sdk/testnet.js";
+   *
+   * const isValid = Account.isValidAddress("aleo1rhgdu77hgyqd3xjj8ucu3jj9r2krwz6mnzyd80gncr5fxcwlh5rsvzp9px");
+   * console.log(isValid); // true
+   *
+   * const isInvalid = Account.isValidAddress("invalid_address");
+   * console.log(isInvalid); // false
+   */
+  public static isValidAddress(address: string | Uint8Array): boolean {
+    return Address.isValid(address);
+  }
+
+  /**
    * Creates a PrivateKey from the provided parameters.
    * @param {AccountParam} params The parameters containing either a private key string or a seed
    * @returns {PrivateKey} A PrivateKey instance derived from the provided parameters

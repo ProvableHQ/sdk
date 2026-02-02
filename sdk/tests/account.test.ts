@@ -105,6 +105,29 @@ describe('Account', () => {
         });
     });
 
+    describe('isValidAddress', () => {
+        it('returns true for a valid address string', () => {
+            expect(Account.isValidAddress(beaconAddressString)).equal(true);
+        });
+
+        it('returns false for invalid address strings', () => {
+            expect(Account.isValidAddress('invalid_address')).equal(false);
+            expect(Account.isValidAddress('aleo1xyz')).equal(false);
+            expect(Account.isValidAddress('')).equal(false);
+        });
+
+        it('returns true for valid address bytes', () => {
+            const address = Address.from_string(beaconAddressString);
+            const bytes = address.toBytesLe();
+            expect(Account.isValidAddress(bytes)).equal(true);
+        });
+
+        it('returns false for invalid address bytes', () => {
+            expect(Account.isValidAddress(new Uint8Array([1, 2, 3]))).equal(false);
+            expect(Account.isValidAddress(new Uint8Array([]))).equal(false);
+        });
+    });
+
     describe('View Key Record Decryption', () => {
         it('decrypts a record in ciphertext form', () => {
             const account = new Account({privateKey: "APrivateKey1zkpJkyYRGYtkeHDaFfwsKtUJzia7csiWhfBWPXWhXJzy9Ls"});
