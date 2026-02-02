@@ -30,7 +30,7 @@ use snarkvm_console::prelude::{FromBits, FromBytes, FromFields, Network, ToBits,
 
 use core::{convert::TryFrom, fmt, ops::Deref, str::FromStr};
 use js_sys::{Array, Uint8Array};
-use wasm_bindgen::{convert::TryFromJsValue, prelude::*};
+use wasm_bindgen::{JsCast, convert::TryFromJsValue, prelude::*};
 
 /// Public address of an Aleo account
 #[wasm_bindgen]
@@ -185,6 +185,28 @@ impl Address {
 
         Ok(Address::from(group))
     }
+
+    /// Check if the input is a valid Aleo address.
+    ///
+    /// @param {string | Uint8Array} address - Either a string representation of an address
+    ///        or a Uint8Array of bytes in little-endian format.
+    /// @returns {boolean} True if the input is a valid address, false otherwise.
+    #[wasm_bindgen(js_name = "isValid")]
+    pub fn is_valid(address: JsValue) -> bool {
+        // Try parsing as string first
+        if let Some(address_str) = address.as_string() {
+            return AddressNative::from_str(&address_str).is_ok();
+        }
+
+        // Try parsing as Uint8Array
+        if let Some(bytes) = address.dyn_ref::<Uint8Array>() {
+            let rust_bytes = bytes.to_vec();
+            return AddressNative::from_bytes_le(rust_bytes.as_slice()).is_ok();
+        }
+
+        // Neither string nor Uint8Array
+        false
+    }
 }
 
 impl Deref for Address {
@@ -262,6 +284,8 @@ impl FromStr for Address {
 mod tests {
     use super::*;
     use crate::account::PrivateKey;
+    use js_sys::Uint8Array;
+    use wasm_bindgen::JsValue;
 
     use wasm_bindgen_test::*;
 
@@ -285,5 +309,34 @@ mod tests {
         let expected_address = "aleo1lqmly7ez2k48ajf5hs92ulphaqr05qm4n8qwzj8v0yprmasgpqgsez59gg".to_string();
         let credits_address = Address::from_program_id("credits.aleo").unwrap();
         assert_eq!(credits_address.to_string(), expected_address);
+    }
+
+    #[wasm_bindgen_test]
+    pub fn test_is_valid() {
+        // Test valid string address
+        let valid_address = "aleo1rhgdu77hgyqd3xjj8ucu3jj9r2krwz6mnzyd80gncr5fxcwlh5rsvzp9px";
+        assert!(Address::is_valid(JsValue::from_str(valid_address)));
+
+        // Test invalid string addresses
+        assert!(!Address::is_valid(JsValue::from_str("invalid_address")));
+        assert!(!Address::is_valid(JsValue::from_str("aleo1xyz")));
+        assert!(!Address::is_valid(JsValue::from_str("")));
+
+        // Test valid bytes
+        let address = Address::from_string(valid_address);
+        let bytes = address.to_bytes_le().unwrap();
+        assert!(Address::is_valid(JsValue::from(bytes)));
+
+        // Test invalid bytes
+        let invalid_bytes = Uint8Array::new_with_length(3);
+        invalid_bytes.copy_from(&[1, 2, 3]);
+        assert!(!Address::is_valid(JsValue::from(invalid_bytes)));
+
+        // Test empty bytes
+        let empty_bytes = Uint8Array::new_with_length(0);
+        assert!(!Address::is_valid(JsValue::from(empty_bytes)));
+
+        // Test wrong type (number)
+        assert!(!Address::is_valid(JsValue::from_f64(42.0)));
     }
 }
