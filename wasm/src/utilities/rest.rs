@@ -21,13 +21,20 @@ use crate::{
 
 use anyhow::{Result, bail};
 use gloo_timers::future::TimeoutFuture;
+use reqwest::StatusCode;
 use snarkvm_console::network::Network;
 
+/// Default number of retries for REST methods in the SDK.
 pub const DEFAULT_RETRIES: usize = 3;
+/// Default base timeout for exponential backoff in milliseconds.
 pub const DEFAULT_TIMEOUT_MS: u32 = 200;
 
-async fn sleep(ms: u32) {
-    TimeoutFuture::new(ms).await;
+// Exponential backoff helper.
+async fn backoff(attempt: u32, status: Option<StatusCode>, error: reqwest::Error, url: &str) {
+    let retry_interval = DEFAULT_TIMEOUT_MS * 2u32.pow(attempt);
+    let status = status.map(|code| format!("{code} ")).unwrap_or("".to_string());
+    log(&format!("Error - {status}response from {url}: {error}, retrying in {retry_interval}ms"));
+    TimeoutFuture::new(retry_interval).await;
 }
 
 /// Get the current network name.
@@ -91,25 +98,18 @@ where
         let request = client.get(url).send().await;
         match request {
             Ok(res) => {
-                let status = res.status().as_u16();
+                let status = res.status();
                 match res.json::<T>().await {
                     Ok(data) => return Ok(data),
                     Err(e) => {
                         // Log the error and retry.
-                        let retry_interval = DEFAULT_TIMEOUT_MS * 2u32.pow(i as u32);
-                        log(&format!(
-                            "Failed to get response from {url} with {status} code, error: {e}. retrying in {retry_interval}ms"
-                        ));
-                        sleep(retry_interval).await;
+                        backoff(i as u32, Some(status), e, url).await;
                     }
                 }
             }
             Err(e) => {
                 // Log the error and retry.
-                let retry_interval = DEFAULT_TIMEOUT_MS * 2u32.pow(i as u32);
-                log(&format!("Failed to get response from {url}: {e}, retrying in {retry_interval}ms"));
-                sleep(retry_interval).await;
-                continue;
+                backoff(i as u32, e.status(), e, url).await;
             }
         }
     }
