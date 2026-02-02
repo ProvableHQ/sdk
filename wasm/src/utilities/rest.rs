@@ -19,8 +19,16 @@ use crate::{
     types::native::{CurrentNetwork, FieldNative, StatePathNative},
 };
 
-use anyhow::Result;
+use anyhow::{Result, bail};
+use gloo_timers::future::TimeoutFuture;
 use snarkvm_console::network::Network;
+
+pub const DEFAULT_RETRIES: usize = 3;
+pub const DEFAULT_TIMEOUT_MS: u32 = 200;
+
+async fn sleep(ms: u32) {
+    TimeoutFuture::new(ms).await;
+}
 
 /// Get the current network name.
 pub fn get_network() -> &'static str {
@@ -79,8 +87,33 @@ where
     T: serde::de::DeserializeOwned,
 {
     let client = reqwest::Client::new();
-    let res = client.get(url).send().await?.json().await?;
-    Ok(res)
+    for i in 0..DEFAULT_RETRIES {
+        let request = client.get(url).send().await;
+        match request {
+            Ok(res) => {
+                let status = res.status().as_u16();
+                match res.json::<T>().await {
+                    Ok(data) => return Ok(data),
+                    Err(e) => {
+                        // Log the error and retry.
+                        let retry_interval = DEFAULT_TIMEOUT_MS * 2u32.pow(i as u32);
+                        log(&format!(
+                            "Failed to get response from {url} with {status} code, error: {e}. retrying in {retry_interval}ms"
+                        ));
+                        sleep(retry_interval).await;
+                    }
+                }
+            }
+            Err(e) => {
+                // Log the error and retry.
+                let retry_interval = DEFAULT_TIMEOUT_MS * 2u32.pow(i as u32);
+                log(&format!("Failed to get response from {url}: {e}, retrying in {retry_interval}ms"));
+                sleep(retry_interval).await;
+                continue;
+            }
+        }
+    }
+    bail!("Failed to get response from {url} after {DEFAULT_RETRIES} retries");
 }
 
 #[cfg(test)]
@@ -117,8 +150,7 @@ mod tests {
                 )
                 .unwrap(),
             ];
-            let state_paths =
-                get_statepaths_for_commitments("https://api.explorer.provable.com/v1", &commitments).await.unwrap();
+            let state_paths = get_statepaths_for_commitments(PROVABLE_API, &commitments).await.unwrap();
             assert_eq!(state_paths.len(), 2);
             assert_eq!(state_paths[0].global_state_root(), state_paths[1].global_state_root());
         }
