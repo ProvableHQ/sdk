@@ -4,7 +4,6 @@ import {
     AleoKeyProviderParams,
     ConfirmedTransactionJSON,
     initThreadPool,
-    Program,
     ProgramManager,
     Transaction,
 } from "@provablehq/sdk/testnet.js";
