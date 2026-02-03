@@ -12,7 +12,7 @@ import {
 // Initialize the thread pool in order to prove faster.
 await initThreadPool();
 
-function generateHelloHelloSource(programName) {
+function generateHelloHelloSource(programName: string) {
     const hello_hello_program =`
 program ${programName};
 
@@ -39,8 +39,8 @@ const keyProvider = new AleoKeyProvider();
 keyProvider.useCache(true);
 programManager.setKeyProvider(keyProvider);
 
-async function localProgramExecution(program, programName, aleoFunction, inputs) {
-    // Pre-synthesize the program keys and then cache them in memory using key provider
+async function localProgramExecution(program: string, programName: string, aleoFunction: string, inputs: string[]) {
+    // Pre-synthesize the program keys and then cache them in memory using the key provider.
     try {
         const keyPair = await programManager.synthesizeKeys(program, aleoFunction, inputs);
 
@@ -76,17 +76,19 @@ async function localProgramExecution(program, programName, aleoFunction, inputs)
 
 // Run a deployment and both online and offline executions.
 async function run(online: boolean = false) {
-    // Generate the hello_hello.aleo program source code.
+    // Generate the hello_hello.aleo program source code and inputs.
     let programName = `hello_hello.aleo`;
     let hello_hello_program = generateHelloHelloSource(programName);
+    const functionName = "hello";
+    const inputs = ["5u32", "5u32"];
 
     console.log("");
     console.log("// --- STEP 1: Execute the program offline to test it gives the expected results. --- //");
     // Execute the program locally.
     console.log(`Executing ${programName}/hello offline`);
     let start = Date.now();
-    const result = await localProgramExecution(hello_hello_program, programName, "hello", ["5u32", "5u32"]);
-    console.log(`✅ Local execute finished in ${Date.now() - start}s`);
+    const result = await localProgramExecution(hello_hello_program, programName, functionName, inputs);
+    console.log(`✅ Local execute finished in ${(Date.now() - start)/1000}s`);
 
     console.log("");
     console.log("// --- STEP 2: Build the deployment transaction. --- //");
@@ -98,16 +100,18 @@ async function run(online: boolean = false) {
         0,
         false,
     )
-    console.log(`✅ Deployment transaction built in ${Date.now() - start}s`);
+    console.log(`✅ Deployment transaction built in ${(Date.now() - start)/1000}s`);
 
     // If the deployment flag is set to true, deploy the program on testnet (requires aleo credits).
-    let programDeployed = false;
     if (online) {
         const txId: string = await programManager.networkClient.submitTransaction(deploymentTx);
         const confirmedTx: ConfirmedTransactionJSON = await programManager.networkClient.waitForTransactionConfirmation(txId);
-        if (txId == confirmedTx.transaction.id) {
+        if (txId === confirmedTx.transaction.id) {
             console.log(`Program ${programName} deployed to Aleo Testnet successfully!`);
         }
+    } else {
+        programName = `hello_hello.aleo`;
+        hello_hello_program = generateHelloHelloSource(programName);
     }
 
     console.log("");
@@ -115,26 +119,28 @@ async function run(online: boolean = false) {
 
     // If the program was actually deployed, execute it online. Otherwise, execute an equivalent
     // program with the same logic.
-    const deployedProgramName = programDeployed ? programName : "hello_hello.aleo";
-    console.log(`Executing ${deployedProgramName}/hello online on the aleo network`);
+    console.log(`Executing ${programName}/hello online on the aleo network`);
     start = Date.now();
+    const keySearchParams = new AleoKeyProviderParams({cacheKey: `${programName}:${functionName}`});
     const executionTx: Transaction = await programManager.buildExecutionTransaction(
         {
-            programName: deployedProgramName,
-            functionName: "hello",
+            programName,
+            functionName,
             priorityFee: 0,
             privateFee: false,
-            inputs: ["5u32", "5u32"]
+            inputs: inputs,
+            keySearchParams,
+            program: hello_hello_program
         }
     )
-    console.log(`✅ Online execution of ${deployedProgramName} built in ${Date.now() - start}s`);
+    console.log(`✅ Online execution of ${programName} built in ${(Date.now() - start)/1000}s`);
 
     // If the online option is specified, submit the transaction to the network.
     if (online) {
         const txId: string = await programManager.networkClient.submitTransaction(executionTx);
         const confirmedTx: ConfirmedTransactionJSON = await programManager.networkClient.waitForTransactionConfirmation(txId);
-        if (txId == confirmedTx.transaction.id) {
-            console.log(`Program ${deployedProgramName}/hello executed successfully!`);
+        if (txId === confirmedTx.transaction.id) {
+            console.log(`Program ${programName}/hello executed successfully!`);
         }
     }
 }
