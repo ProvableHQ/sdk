@@ -164,7 +164,7 @@ describe('Program Manager', async () => {
             }
         });
 
-        it.only('Should execute an encrypted proving request', async function() {
+        it('Should execute an encrypted proving request', async function() {
             this.retries(3);
 
             if (network === "testnet") {

@@ -15,7 +15,7 @@
 // along with the Provable SDK library. If not, see <https://www.gnu.org/licenses/>.
 
 use crate::types::native::{AuthorizationNative, ProvingRequestNative};
-use snarkvm_wasm::utilities::{FromBytes, ToBytes, error};
+use snarkvm_wasm::utilities::{FromBytes, ToBytes};
 
 use std::{
     io,
@@ -55,7 +55,6 @@ impl FromBytes for ProvingRequestNative {
         let fee_authorization = match has_fee_auth {
             false => None,
             true => Some(AuthorizationNative::read_le(&mut reader)?),
-            _ => return Err(error("Invalid Option flag for fee_authorization")),
         };
 
         // Read broadcast flag.

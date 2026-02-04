@@ -199,4 +199,4 @@ export {
     VerifyingKeys,
 };
 
-export { encryptAuthorization, encryptProvingRequest, encryptViewKey} from "./security.js";
+export { encryptAuthorization, encryptProvingRequest, encryptViewKey, encryptRegistrationRequest } from "./security.js";

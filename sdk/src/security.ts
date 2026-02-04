@@ -30,7 +30,7 @@ export function encryptProvingRequest(publicKey: string, provingRequest: Proving
 /**
  * Encrypt a view key with a libsodium cryptobox public key.
  *
- * @param {Uint8Array} publicKey The cryptobox X25519 public key to encrypt with (encoded in RFC 4648 standard Base64).
+ * @param {string} publicKey The cryptobox X25519 public key to encrypt with (encoded in RFC 4648 standard Base64).
  * @param {ViewKey} viewKey the view key to encrypt.
  *
  * @returns {string} the encrypted view key in RFC 4648 standard Base64.
@@ -42,7 +42,7 @@ export function encryptViewKey(publicKey: string, viewKey: ViewKey): string {
 /**
  * Encrypt a record scanner registration request.
  *
- * @param {Uint8Array} publicKey The cryptobox X25519 public key to encrypt with (encoded in RFC 4648 standard Base64).
+ * @param {string} publicKey The cryptobox X25519 public key to encrypt with (encoded in RFC 4648 standard Base64).
  * @param {ViewKey} viewKey the view key to encrypt.
  * @param {number} start the start height of the registration request.
  *
