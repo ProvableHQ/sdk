@@ -69,6 +69,7 @@ const FRAMEWORKS: Framework[] = [
         name: 'node',
         display: 'Node.js',
         color: green,
+        customCommand: 'start',
       },
     ],
   },
@@ -94,6 +95,7 @@ async function init() {
 
   let selectedFramework: Framework | undefined;
   let selectedVariant: string | undefined;
+  let selectedVariantObj: FrameworkVariant | undefined;
 
   if (argTemplate && TEMPLATES.includes(argTemplate)) {
     for (const framework of FRAMEWORKS) {
@@ -101,6 +103,7 @@ async function init() {
       if (match) {
         selectedFramework = framework;
         selectedVariant = match.name;
+        selectedVariantObj = match;
         break;
       }
     }
@@ -197,6 +200,11 @@ async function init() {
 
   const root = path.join(cwd, targetDir);
 
+  // Find the selected variant object to get customCommand
+  if (!selectedVariantObj && framework) {
+    selectedVariantObj = framework.variants.find((v: FrameworkVariant) => v.name === variant);
+  }
+
   if (overwrite) {
     emptyDir(root);
   } else if (!fs.existsSync(root)) {
@@ -248,10 +256,11 @@ async function init() {
       }`,
     );
   }
+  const runCommand = selectedVariantObj?.customCommand || 'dev';
   switch (pkgManager) {
     default:
       console.log(`  ${pkgManager} install`);
-      console.log(`  ${pkgManager} run dev`);
+      console.log(`  ${pkgManager} ${runCommand === 'dev' ? 'run dev' : runCommand}`);
       break;
   }
   console.log();
