@@ -1747,7 +1747,7 @@ class AleoNetworkClient {
      * @returns {Promise<ProvingResponse>} The ProvingResponse containing the transaction result and the result of the broadcast if the `broadcast` flag was set to `true`.
      */
     async submitProvingRequest(options: DelegatedProvingParams): Promise<ProvingResponse> {
-        const proverUri = options.url ?? this.proverUri;
+        const proverUri = (options.url ?? this.proverUri) ?? this.host;
 
         // If no prover URI is provided, throw an error.
         if (!proverUri) {
