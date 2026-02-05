@@ -36,7 +36,7 @@ import {
     PUZZLE_SPINNER_V002_INPUT_2
 } from "./data/proving.js";
 import * as process from "node:process";
-import { ProvingResponse } from "../src/models/provingResponse";
+import { BroadcastResponse, ProvingResponse } from "../src/models/provingResponse";
 import { encryptProvingRequest } from "../src/browser";
 import sodium from "libsodium-wrappers";
 
@@ -46,7 +46,7 @@ describe('Program Manager', async () => {
     const programManager = new ProgramManager("https://api.explorer.provable.com/v1", keyProvider);
     programManager.setAccount(new Account({ privateKey: statePathv0RecordOwnerPrivateKey }));
     const network = programManager.networkClient.network;
-    programManager.networkClient.setProverUri("https://accelerate-sandbox.provable.com");
+    programManager.networkClient.setProverUri("https://accelerate.provable.com");
     describe('Instantiate with AleoNetworkClientOptions', () => {
         it('should have the specified headers when instantiated', async () => {
             const newProgramManager = new ProgramManager("https://api.explorer.provable.com/v1", undefined, undefined, { headers: { 'X-Test-Header': 'programManager' } });
@@ -164,7 +164,7 @@ describe('Program Manager', async () => {
             }
         });
 
-        it('Should execute an encrypted proving request', async function() {
+        it.only('Should execute an encrypted proving request', async function() {
             this.retries(3);
 
             if (network === "testnet") {
@@ -195,7 +195,7 @@ describe('Program Manager', async () => {
                 });
 
                 console.log("Proving response", provingResponse.broadcast_result);
-                expect(provingResponse.broadcast_result.status).equal("Skipped");
+                expect((<BroadcastResponse>provingResponse.broadcast_result).status).equal("Skipped");
             }
         });
     });
