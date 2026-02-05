@@ -81,7 +81,7 @@ impl ProgramManager {
             program,
             function_id,
             inputs,
-            false,
+            true,
             true,
             imports,
             None,
