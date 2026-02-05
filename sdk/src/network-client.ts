@@ -1749,11 +1749,6 @@ class AleoNetworkClient {
     async submitProvingRequest(options: DelegatedProvingParams): Promise<ProvingResponse> {
         const proverUri = (options.url ?? this.proverUri) ?? this.host;
 
-        // If no prover URI is provided, throw an error.
-        if (!proverUri) {
-            logAndThrow("A prover uri must be either passed in via the `url` parameter or configured on the AleoNetworkClient instance.");
-        }
-
         const provingRequestString = options.provingRequest instanceof ProvingRequest
             ? options.provingRequest.toString()
             : options.provingRequest;
