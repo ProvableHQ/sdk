@@ -36,7 +36,7 @@ import {
     PUZZLE_SPINNER_V002_INPUT_2
 } from "./data/proving.js";
 import * as process from "node:process";
-import { BroadcastResponse, ProvingResponse } from "../src/models/provingResponse";
+import { ProvingResponse } from "../src/models/provingResponse.js";
 import { encryptProvingRequest } from "../src/browser";
 import sodium from "libsodium-wrappers";
 
@@ -189,13 +189,12 @@ describe('Program Manager', async () => {
                 expect(deserializedProvingRequest.broadcast).equals(provingRequest.broadcast);
 
                 // Submit the proving request.
-                const provingResponse = <ProvingResponse>await programManager.networkClient.submitProvingRequest({
+                const provingResponse = await programManager.networkClient.submitProvingRequest({
                     provingRequest,
                     dpsPrivacy: true
                 });
 
-                console.log("Proving response", provingResponse.broadcast_result);
-                expect((<BroadcastResponse>provingResponse.broadcast_result).status).equal("Skipped");
+                expect(provingResponse.broadcast_result.status).equal("Skipped");
             }
         });
     });

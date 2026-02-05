@@ -27,7 +27,7 @@ import { PlaintextLiteral} from "./models/plaintext/literal.js";
 import { PlaintextObject } from "./models/plaintext/plaintext.js";
 import { PlaintextStruct} from "./models/plaintext/struct.js";
 import { ProvingRequestJSON } from "./models/provingRequest.js";
-import { ProvingResponse } from "./models/provingResponse.js";
+import { ProvingResponse, BroadcastResponse, BroadcastResult, ProvingResult, ProvingFailure, ProvingSuccess, ProveApiErrorBody, ProvingRequestError, isProvingResponse, isProveApiErrorBody } from "./models/provingResponse.js";
 import { RatificationJSON } from "./models/ratification.js";
 import { RecordsFilter } from "./models/record-scanner/recordsFilter.js";
 import { RecordsResponseFilter } from "./models/record-scanner/recordsResponseFilter.js";
@@ -144,6 +144,8 @@ export {
     AleoNetworkClient,
     BlockJSON,
     BlockHeightSearch,
+    BroadcastResponse,
+    BroadcastResult,
     CachedKeyPair,
     ConfirmedTransactionJSON,
     CryptoBoxPubKey,
@@ -161,6 +163,8 @@ export {
     FunctionKeyPair,
     FunctionKeyProvider,
     Header,
+    isProvingResponse,
+    isProveApiErrorBody,
     ImportedPrograms,
     ImportedVerifyingKeys,
     InputJSON,
@@ -181,7 +185,12 @@ export {
     PlaintextObject,
     PlaintextStruct,
     ProgramImports,
+    ProveApiErrorBody,
+    ProvingFailure,
+    ProvingRequestError,
     ProvingRequestJSON,
+    ProvingResult,
+    ProvingSuccess,
     ProvingResponse,
     RatificationJSON,
     RecordsFilter,
