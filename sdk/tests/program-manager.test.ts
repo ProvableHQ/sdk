@@ -164,37 +164,81 @@ describe('Program Manager', async () => {
             }
         });
 
-        it('Should execute an encrypted proving request', async function() {
+        it.only('Should execute an encrypted proving request', async function() {
             this.retries(3);
 
             if (network === "testnet") {
-                const pk = PrivateKey.from_string(<string>process.env["PUZZLE_PK"]);
+                const pk = PrivateKey.from_string(
+                    <string>process.env["PUZZLE_PK"],
+                );
 
-                const provingRequest = <ProvingRequest>await programManager.provingRequest({
-                    programName: "hello_hello.aleo",
-                    functionName: "hello",
-                    priorityFee: 0.0,
-                    privateFee: false,
-                    inputs: ["1u32", "1u32"],
-                    broadcast: false,
-                    privateKey: pk
-                });
+                const provingRequest = <ProvingRequest>(
+                    await programManager.provingRequest({
+                        programName: "hello_hello.aleo",
+                        functionName: "hello",
+                        priorityFee: 0.0,
+                        privateFee: false,
+                        inputs: ["1u32", "1u32"],
+                        broadcast: false,
+                        privateKey: pk,
+                    })
+                );
 
                 // Ensure an encryption roundtrip works locally.
                 await sodium.ready;
                 const keyPair = sodium.crypto_box_keypair();
-                const ciphertext = await encryptProvingRequest(sodium.to_base64(keyPair.publicKey, sodium.base64_variants.ORIGINAL), provingRequest);
-                const plaintextBytes = sodium.crypto_box_seal_open(sodium.from_base64(ciphertext, sodium.base64_variants.ORIGINAL), keyPair.publicKey, keyPair.privateKey);
-                const deserializedProvingRequest = ProvingRequest.fromBytesLe(plaintextBytes);
-                expect(deserializedProvingRequest.broadcast).equals(provingRequest.broadcast);
-
-                // Submit the proving request.
-                const provingResponse = await programManager.networkClient.submitProvingRequest({
+                const ciphertext = await encryptProvingRequest(
+                    sodium.to_base64(
+                        keyPair.publicKey,
+                        sodium.base64_variants.ORIGINAL,
+                    ),
                     provingRequest,
-                    dpsPrivacy: true
-                });
+                );
+                const plaintextBytes = sodium.crypto_box_seal_open(
+                    sodium.from_base64(
+                        ciphertext,
+                        sodium.base64_variants.ORIGINAL,
+                    ),
+                    keyPair.publicKey,
+                    keyPair.privateKey,
+                );
+                const deserializedProvingRequest =
+                    ProvingRequest.fromBytesLe(plaintextBytes);
+                expect(deserializedProvingRequest.broadcast).equals(
+                    provingRequest.broadcast,
+                );
 
-                expect(provingResponse.broadcast_result.status).equal("Skipped");
+                // Submit the proving request using the safe method.
+                const safeResult =
+                    await programManager.networkClient.submitProvingRequestSafe(
+                        {
+                            provingRequest,
+                            dpsPrivacy: true,
+                        },
+                    );
+
+                expect(safeResult.ok).to.equal(true);
+                if (safeResult.ok) {
+                    expect(safeResult.data).to.have.property("transaction");
+                    expect(safeResult.data.transaction).to.have.property("id");
+                    expect(safeResult.data).to.have.property("broadcast_result");
+                    expect(safeResult.data.broadcast_result.status).to.equal(
+                        "Skipped",
+                    );
+                }
+
+                // Submit the proving request using the regular method.
+                const result =
+                    await programManager.networkClient.submitProvingRequest(
+                        {
+                            provingRequest,
+                            dpsPrivacy: true,
+                        },
+                    );
+
+                expect(result).to.have.property("transaction");
+                expect(result).to.have.property("broadcast_result");
+                expect(result.broadcast_result.status).to.equal("Skipped");
             }
         });
     });
