@@ -2,14 +2,14 @@ import { TransactionJSON } from "./transaction/transactionJSON.js";
 
 /** HTTP status and optional message from snarkOS broadcast (Accepted/Rejected variants). */
 export interface BroadcastResponse {
-    status_code: bigint;
+    status_code: bigint | number;
     message?: string;
 }
 
 /** Result of the optional broadcast step. Discriminated by `status`. */
 export type BroadcastResult =
-    | { status: "Accepted"; status_code: number; message?: string }
-    | { status: "Rejected"; status_code: number; message?: string }
+    | { status: "Accepted"; status_code: bigint | number; message?: string }
+    | { status: "Rejected"; status_code: bigint | number; message?: string }
     | { status: "Failed"; message: string }
     | { status: "Skipped" };
 
@@ -26,7 +26,7 @@ export interface ProveApiErrorBody {
 
 /** Error thrown on prove API failure; `status` is set for retry logic (e.g. retryWithBackoff checks error.status >= 500). */
 export interface ProvingRequestError extends Error {
-    status?: number;
+    status?: bigint | number;
 }
 
 /** Success variant of a proving request result. */
@@ -38,11 +38,11 @@ export interface ProvingSuccess {
 /** Failure variant of a proving request result (HTTP 400, 500, 503). */
 export interface ProvingFailure {
     ok: false;
-    status: number;
+    status: bigint | number;
     error: ProveApiErrorBody;
 }
 
-/** Result of a proving request. Use this when you want to handle status yourself instead of throwing. */
+/** Result of a proving request. Type used to give callers the ability to self-handle errors. */
 export type ProvingResult = ProvingSuccess | ProvingFailure;
 
 /** Type guard: value is a ProvingResponse. */
