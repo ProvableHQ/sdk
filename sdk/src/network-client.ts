@@ -1,6 +1,5 @@
 import { get, post, parseJSON, logAndThrow, retryWithBackoff, environment } from "./utils.js";
 import { Account } from "./account.js";
-import { FIVE_MINUTES } from "./constants.js";
 import { BlockJSON } from "./models/blockJSON.js";
 import { TransactionJSON } from "./models/transaction/transactionJSON.js";
 import {
@@ -14,12 +13,25 @@ import {
     Transaction,
 } from "./wasm.js";
 import { ConfirmedTransactionJSON } from "./models/confirmed_transaction.js";
-import { ProvingResponse } from "./models/provingResponse.js";
+import {
+    ProveApiErrorBody,
+    ProvingResponse,
+    ProvingResult,
+    ProvingRequestError,
+    isProvingResponse,
+    isProveApiErrorBody,
+} from "./models/provingResponse.js";
+import { CryptoBoxPubKey } from "./models/cryptoBoxPubkey.js";
+import { EncryptedProvingRequest } from "./models/encryptedProvingRequest.js";
+import { encryptProvingRequest } from "./security.js"
+import { FIVE_MINUTES } from "./constants";
 
 type ProgramImports = { [key: string]: string | Program };
 
 interface AleoNetworkClientOptions {
     headers?: { [key: string]: string };
+    proverUri?: string;
+    recordScannerUri?: string;
 }
 
 /**
@@ -48,6 +60,7 @@ interface DelegatedProvingParams {
   apiKey?: string;
   consumerId?: string;
   jwtData?: JWTData;
+  dpsPrivacy?: boolean;
 }
 
 /**
@@ -75,6 +88,8 @@ class AleoNetworkClient {
     apiKey?: string;
     consumerId?: string;
     jwtData?: JWTData;
+    proverUri?: string;
+    recordScannerUri?: string;
 
     constructor(host: string, options?: AleoNetworkClientOptions) {
         this.host = host + "/%%NETWORK%%";
@@ -82,13 +97,31 @@ class AleoNetworkClient {
         this.ctx = {};
         this.verboseErrors = true;
 
-        if (options && options.headers) {
-            this.headers = options.headers;
+        if (options) {
+            if (options.headers) {
+                this.headers = options.headers;
+            } else {
+                this.headers = {
+                    // This is replaced by the actual version by a Rollup plugin
+                    "X-Aleo-SDK-Version": "%%VERSION%%",
+                    "X-Aleo-environment": environment(),
+                };
+            }
+
+            // If a prover uri was specified, set the prover uri.
+            if (options.proverUri) {
+                this.proverUri = options.proverUri + "/%%NETWORK%%";
+            }
+
+            // If a record scanner uri was specified, set the record scanner uri.
+            if (options.recordScannerUri) {
+                this.recordScannerUri = options.recordScannerUri + "/%%NETWORK%%";
+            }
         } else {
             this.headers = {
                 // This is replaced by the actual version by a Rollup plugin
                 "X-Aleo-SDK-Version": "%%VERSION%%",
-                "X-Aleo-environment" : environment(),
+                "X-Aleo-environment": environment(),
             };
         }
     }
@@ -134,6 +167,42 @@ class AleoNetworkClient {
      */
     setHost(host: string) {
         this.host = host + "/%%NETWORK%%";
+    }
+
+    /**
+     * Set a new uri for a remote prover.
+     *
+     * @param {string} proverUri The uri of the remote prover.
+     *
+     * @example
+     * import { AleoNetworkClient } from "@provablehq/sdk/mainnet.js";
+     *
+     * // Create a networkClient that connects to the provable explorer api.
+     * const networkClient = new AleoNetworkClient("http://api.explorer.provable.com/v1", undefined);
+     *
+     * // Set the prover uri.
+     * networkClient.setProverUri("https://prover.provable.prove");
+     */
+    setProverUri(proverUri: string) {
+        this.proverUri = proverUri + "/%%NETWORK%%";
+    }
+
+    /**
+     * Set a new uri for a remote record scanner.
+     *
+     * @param {string} recordScannerUri The uri of the remote record scanner.
+     *
+     * @example
+     * import { AleoNetworkClient } from "@provablehq/sdk/mainnet.js";
+     *
+     * // Create a networkClient that connects to the provable explorer api.
+     * const networkClient = new AleoNetworkClient("http://api.explorer.provable.com/v1", undefined);
+     *
+     * // Set the record scanner uri.
+     * networkClient.setRecordScannerUri("https://scanner.provable.scan");
+     */
+    setRecordScannerUri(recordScannerUri: string) {
+        this.recordScannerUri = recordScannerUri + "/%%NETWORK%%";
     }
 
     /**
@@ -1677,36 +1746,95 @@ class AleoNetworkClient {
         };
     }
 
+
     /**
-     * Submit a `ProvingRequest` to a remote proving service for delegated proving. If the broadcast flag of the `ProvingRequest` is set to `true` the remote service will attempt to broadcast the result `Transaction` on behalf of the requestor.
+     * Parses a /prove or /prove/encrypted response. Returns a result object (never throws for 200/400/500/503).
+     */
+    private async handleProvingResponse(response: Response): Promise<ProvingResult> {
+        // Get the proving response text.
+        const text = await response.text();
+        let body: unknown;
+
+        // Parse the body.
+        try {
+            body = parseJSON(text);
+        } catch {
+            body = {};
+        }
+
+        // If the status is 200, attempt to parse the Proving Request along its expected structure.
+        if (response.status === 200) {
+            if (isProvingResponse(body)) {
+                return { ok: true, data: body };
+            }
+            return {
+                ok: false,
+                status: response.status,
+                error: { message: "Invalid response from proving service" },
+            };
+        }
+
+        // If the response is non 200, return the information back to the caller so it can be handled.
+        if (response.status === 400 || response.status === 500 || response.status === 503) {
+            const error: ProveApiErrorBody = isProveApiErrorBody(body)
+                ? body
+                : { message: text || `${response.status} error` };
+            return { ok: false, status: response.status, error };
+        }
+        return {
+            ok: false,
+            status: response.status,
+            error: { message: text || `${response.status} error` },
+        };
+    }
+
+    /**
+     * Submit a `ProvingRequest` to a remote proving service for delegated proving. If the broadcast flag of the `ProvingRequest` is set to `true` the remote service will attempt to broadcast the result `Transaction` on behalf of the requestor. Throws on HTTP 400, 500, 503 (and retries on 500/503). Callers should {@link submitProvingRequestSafe} to handle proving request failures without throwing.
      *
      * @param {DelegatedProvingParams} options - The optional parameters required to submit a proving request.
      * @returns {Promise<ProvingResponse>} The ProvingResponse containing the transaction result and the result of the broadcast if the `broadcast` flag was set to `true`.
      */
     async submitProvingRequest(options: DelegatedProvingParams): Promise<ProvingResponse> {
-        const proverUri = options.url ?? this.host;
+        const result = await this.submitProvingRequestSafe(options);
+        if (result.ok) {
+            return result.data;
+        }
+        const err = new Error(result.error.message) as ProvingRequestError;
+        err.status = result.status;
+        throw err;
+    }
+
+    /**
+     * Submit a proving request and return a result object instead of throwing. This method is usable when callers want to handle HTTP status (400, 500, 503) yourself. Retries on 500/503 and returns on 200 or 400.
+     *
+     * @param {DelegatedProvingParams} options - The optional parameters required to submit a proving request.
+     * @returns {Promise<ProvingResult>} `{ ok: true, data }` on success (200), or `{ ok: false, status, error }` on 400/500/503. Check `result.ok` and then either `result.data` or `result.status` / `result.error.message`.
+     */
+    async submitProvingRequestSafe(options: DelegatedProvingParams): Promise<ProvingResult> {
+        // Attempt to get the Prover URI first from the options, then from any configured globally, or third try the main configured host.
+        const proverUri = (options.url ?? this.proverUri) ?? this.host;
         const provingRequestString = options.provingRequest instanceof ProvingRequest
             ? options.provingRequest.toString()
             : options.provingRequest;
 
+        // Try to get JWT data to access the Provable API.
         const apiKey = options.apiKey ?? this.apiKey;
-        const consumerId = options.consumerId ?? this.consumerId;    
-        let jwtData = options.jwtData ?? this.jwtData
+        const consumerId = options.consumerId ?? this.consumerId;
+        let jwtData = options.jwtData ?? this.jwtData;
 
-        // Check if JWT is expired or missing
-        const bufferTime = FIVE_MINUTES; // 5 minutes buffer
-        const isExpired = jwtData && Date.now() >= jwtData.expiration - bufferTime;
+        // Check to see if the JWT needs refreshing.
+        const isExpired = jwtData && Date.now() >= jwtData.expiration - FIVE_MINUTES;
         if (!jwtData || isExpired) {
             if (options.apiKey && options.consumerId) {
                 jwtData = await this.refreshJwt(apiKey!, consumerId!);
-                // Update both the class and the options with the new JWT
                 this.jwtData = jwtData;
                 options.jwtData = jwtData;
             } else {
-                throw new Error('JWT or both apiKey and consumerId are required');
+                console.warn('JWT or both apiKey and consumerId are required when using the Provable API');
             }
         }
 
+        // Create the necessary headers to hit the provable api.
         const headers: Record<string, string> = {
             ...this.headers,
             "X-ALEO-METHOD": "submitProvingRequest",
@@ -1716,18 +1844,78 @@ class AleoNetworkClient {
             headers["Authorization"] = jwtData.jwt;
         }
 
-        try {
-            const response = await retryWithBackoff(() =>
-            post(`${proverUri}`, {
+        // Encapsulate the requests in a locally scoped function that can be run with a retry closure.
+        const runRequest = async (): Promise<ProvingResult> => {
+            // If DPS privacy is set, call invoke the encrypted flow.
+            if (options.dpsPrivacy) {
+                // Get an ephemeral public key from a DPS service.
+                const pubKeyResponse = await get(proverUri + "/pubkey", {
+                    headers,
+                });
+
+                // Encrypt the provingRequest.
+                const pubkey: CryptoBoxPubKey = parseJSON(
+                    await pubKeyResponse.text(),
+                );
+                const ciphertext = encryptProvingRequest(
+                    pubkey.public_key,
+                    ProvingRequest.fromString(provingRequestString),
+                );
+
+                // Form the expected query a DPS service expects (including the key_id).
+                const payload: EncryptedProvingRequest = {
+                    key_id: pubkey.key_id,
+                    ciphertext: ciphertext,
+                };
+                const res = await fetch(`${proverUri}/prove/encrypted`, {
+                    method: "POST",
+                    body: JSON.stringify(payload),
+                    headers,
+                });
+
+                // Properly handle the proving response.
+                return this.handleProvingResponse(res);
+            }
+
+            // If encrypted usage is not specified use the unencrypted endpoint.
+            const proveEndpoint = (<string>proverUri).endsWith("/prove")
+                ? proverUri
+                : proverUri + "/prove";
+            const res = await fetch(proveEndpoint, {
+                method: "POST",
                 body: provingRequestString,
-                headers
-            })
-            );
-            const responseText = await response.text();
-            return parseJSON(responseText);
-        } catch (error) {
-            const errorMessage = error instanceof Error ? error.message : 'Unknown error';
-            throw new Error(`Failed to submit proving request: ${errorMessage}`);
+                headers,
+            });
+
+            // Properly handle the proving response.
+            return this.handleProvingResponse(res);
+        };
+
+        try {
+            // Run the request with retries.
+            return await retryWithBackoff(async () => {
+                // Run the encrypted or non-encrypted flow as specified by the flags.
+                const result = await runRequest();
+                if (result.ok) {
+                    return result;
+                }
+
+                // If 500s are hit responses are returned, attempt retries.
+                if (result.status === 500 || result.status === 503) {
+                    const err = new Error(result.error.message) as ProvingRequestError;
+                    err.status = result.status;
+                    throw err;
+                }
+                return result;
+            });
+        } catch (err) {
+            // If an error is returned, provide usable information to the caller.
+            const e = err as ProvingRequestError;
+            return {
+                ok: false,
+                status: e.status ?? 500,
+                error: { message: e.message },
+            };
         }
     }
 

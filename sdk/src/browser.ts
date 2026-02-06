@@ -4,8 +4,10 @@ import { Account } from "./account.js";
 import { AleoNetworkClient, ProgramImports } from "./network-client.js";
 import { BlockJSON, Header, Metadata } from "./models/blockJSON.js";
 import { ConfirmedTransactionJSON } from "./models/confirmed_transaction.js";
+import { CryptoBoxPubKey } from "./models/cryptoBoxPubkey.js";
 import { DeploymentJSON, VerifyingKeys } from "./models/deployment/deploymentJSON.js";
 import { DeploymentObject } from "./models/deployment/deploymentObject.js";
+import { EncryptedProvingRequest } from "./models/encryptedProvingRequest.js";
 import { EncryptedRecord } from "./models/record-provider/encryptedRecord.js";
 import { ExecutionJSON, FeeExecutionJSON } from "./models/execution/executionJSON.js";
 import { ExecutionObject, FeeExecutionObject } from "./models/execution/executionObject.js";
@@ -25,7 +27,7 @@ import { PlaintextLiteral} from "./models/plaintext/literal.js";
 import { PlaintextObject } from "./models/plaintext/plaintext.js";
 import { PlaintextStruct} from "./models/plaintext/struct.js";
 import { ProvingRequestJSON } from "./models/provingRequest.js";
-import { ProvingResponse } from "./models/provingResponse.js";
+import { ProvingResponse, BroadcastResponse, BroadcastResult, ProvingResult, ProvingFailure, ProvingSuccess, ProveApiErrorBody, ProvingRequestError, isProvingResponse, isProveApiErrorBody } from "./models/provingResponse.js";
 import { RatificationJSON } from "./models/ratification.js";
 import { RecordsFilter } from "./models/record-scanner/recordsFilter.js";
 import { RecordsResponseFilter } from "./models/record-scanner/recordsResponseFilter.js";
@@ -142,10 +144,14 @@ export {
     AleoNetworkClient,
     BlockJSON,
     BlockHeightSearch,
+    BroadcastResponse,
+    BroadcastResult,
     CachedKeyPair,
     ConfirmedTransactionJSON,
+    CryptoBoxPubKey,
     DeploymentJSON,
     DeploymentObject,
+    EncryptedProvingRequest,
     EncryptedRecord,
     ExecutionJSON,
     ExecutionObject,
@@ -157,6 +163,8 @@ export {
     FunctionKeyPair,
     FunctionKeyProvider,
     Header,
+    isProvingResponse,
+    isProveApiErrorBody,
     ImportedPrograms,
     ImportedVerifyingKeys,
     InputJSON,
@@ -177,7 +185,12 @@ export {
     PlaintextObject,
     PlaintextStruct,
     ProgramImports,
+    ProveApiErrorBody,
+    ProvingFailure,
+    ProvingRequestError,
     ProvingRequestJSON,
+    ProvingResult,
+    ProvingSuccess,
     ProvingResponse,
     RatificationJSON,
     RecordsFilter,
@@ -194,3 +207,5 @@ export {
     TransitionObject,
     VerifyingKeys,
 };
+
+export { encryptAuthorization, encryptProvingRequest, encryptViewKey, encryptRegistrationRequest } from "./security.js";
