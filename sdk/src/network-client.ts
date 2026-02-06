@@ -1751,13 +1751,18 @@ class AleoNetworkClient {
      * Parses a /prove or /prove/encrypted response. Returns a result object (never throws for 200/400/500/503).
      */
     private async handleProvingResponse(response: Response): Promise<ProvingResult> {
+        // Get the proving response text.
         const text = await response.text();
         let body: unknown;
+
+        // Parse the body.
         try {
             body = parseJSON(text);
         } catch {
             body = {};
         }
+
+        // If the status is 200, attempt to parse the Proving Request along its expected structure.
         if (response.status === 200) {
             if (isProvingResponse(body)) {
                 return { ok: true, data: body };
@@ -1768,6 +1773,8 @@ class AleoNetworkClient {
                 error: { message: "Invalid response from proving service" },
             };
         }
+
+        // If the response is non 200, return the information back to the caller so it can be handled.
         if (response.status === 400 || response.status === 500 || response.status === 503) {
             const error: ProveApiErrorBody = isProveApiErrorBody(body)
                 ? body
@@ -1804,16 +1811,18 @@ class AleoNetworkClient {
      * @returns {Promise<ProvingResult>} `{ ok: true, data }` on success (200), or `{ ok: false, status, error }` on 400/500/503. Check `result.ok` and then either `result.data` or `result.status` / `result.error.message`.
      */
     async submitProvingRequestSafe(options: DelegatedProvingParams): Promise<ProvingResult> {
+        // Attempt to get the Prover URI first from the options, then from any configured globally, or third try the main configured host.
         const proverUri = (options.url ?? this.proverUri) ?? this.host;
-
         const provingRequestString = options.provingRequest instanceof ProvingRequest
             ? options.provingRequest.toString()
             : options.provingRequest;
 
+        // Try to get JWT data to access the Provable API.
         const apiKey = options.apiKey ?? this.apiKey;
         const consumerId = options.consumerId ?? this.consumerId;
         let jwtData = options.jwtData ?? this.jwtData;
 
+        // Check to see if the JWT needs refreshing.
         const isExpired = jwtData && Date.now() >= jwtData.expiration - FIVE_MINUTES;
         if (!jwtData || isExpired) {
             if (options.apiKey && options.consumerId) {
@@ -1825,6 +1834,7 @@ class AleoNetworkClient {
             }
         }
 
+        // Create the necessary headers to hit the provable api.
         const headers: Record<string, string> = {
             ...this.headers,
             "X-ALEO-METHOD": "submitProvingRequest",
@@ -1834,38 +1844,63 @@ class AleoNetworkClient {
             headers["Authorization"] = jwtData.jwt;
         }
 
+        // Encapsulate the requests in a locally scoped function that can be run with a retry closure.
         const runRequest = async (): Promise<ProvingResult> => {
             // If DPS privacy is set, call invoke the encrypted flow.
             if (options.dpsPrivacy) {
                 // Get an ephemeral public key from a DPS service.
-                const pubKeyResponse = await get(proverUri + '/pubkey', { headers });
+                const pubKeyResponse = await get(proverUri + "/pubkey", {
+                    headers,
+                });
 
                 // Encrypt the provingRequest.
-                const pubkey: CryptoBoxPubKey = parseJSON(await pubKeyResponse.text());
-                const ciphertext = encryptProvingRequest(pubkey.public_key, ProvingRequest.fromString(provingRequestString));
-                const payload: EncryptedProvingRequest = { "key_id": pubkey.key_id, "ciphertext": ciphertext };
+                const pubkey: CryptoBoxPubKey = parseJSON(
+                    await pubKeyResponse.text(),
+                );
+                const ciphertext = encryptProvingRequest(
+                    pubkey.public_key,
+                    ProvingRequest.fromString(provingRequestString),
+                );
+
+                // Form the expected query a DPS service expects (including the key_id).
+                const payload: EncryptedProvingRequest = {
+                    key_id: pubkey.key_id,
+                    ciphertext: ciphertext,
+                };
                 const res = await fetch(`${proverUri}/prove/encrypted`, {
                     method: "POST",
                     body: JSON.stringify(payload),
                     headers,
                 });
+
+                // Properly handle the proving response.
                 return this.handleProvingResponse(res);
             }
-            const proveEndpoint = (<string>proverUri).endsWith("/prove") ? proverUri : proverUri + '/prove';
+
+            // If encrypted usage is not specified use the unencrypted endpoint.
+            const proveEndpoint = (<string>proverUri).endsWith("/prove")
+                ? proverUri
+                : proverUri + "/prove";
             const res = await fetch(proveEndpoint, {
                 method: "POST",
                 body: provingRequestString,
                 headers,
             });
+
+            // Properly handle the proving response.
             return this.handleProvingResponse(res);
         };
 
         try {
+            // Run the request with retries.
             return await retryWithBackoff(async () => {
+                // Run the encrypted or non-encrypted flow as specified by the flags.
                 const result = await runRequest();
                 if (result.ok) {
                     return result;
                 }
+
+                // If 500s are hit responses are returned, attempt retries.
                 if (result.status === 500 || result.status === 503) {
                     const err = new Error(result.error.message) as ProvingRequestError;
                     err.status = result.status;
@@ -1874,6 +1909,7 @@ class AleoNetworkClient {
                 return result;
             });
         } catch (err) {
+            // If an error is returned, provide usable information to the caller.
             const e = err as ProvingRequestError;
             return {
                 ok: false,
