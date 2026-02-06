@@ -65,8 +65,6 @@ export function encryptRegistrationRequest(publicKey: string, viewKey: ViewKey, 
     return encryptMessage(publicKey, bytes);
 }
 
-
-
 /**
  * Encrypt arbitrary bytes with a libsodium cryptobox public key.
  *
