@@ -7,6 +7,10 @@ import { OwnedRecord } from "./models/record-provider/ownedRecord";
 import { RecordProvider } from "./record-provider";
 import { Field, Poseidon4, RecordPlaintext, ViewKey } from "./wasm";
 import { RecordsFilter } from "./models/record-scanner/recordsFilter";
+import {
+    RecordScannerRequestError,
+    RegisterResult,
+} from "./models/record-scanner/registrationResult.js";
 import { RegistrationRequest } from "./models/record-scanner/registrationRequest";
 import { RegistrationResponse } from "./models/record-scanner/registrationResponse";
 import { StatusResponse } from "./models/record-scanner/statusResponse";
@@ -39,7 +43,8 @@ type RecordScannerOptions = {
  * const recordScanner = new RecordScanner({ url: "https://record-scanner.aleo.org" });
  * recordScanner.setAccount(account);
  * recordScanner.setApiKey("your-api-key");
- * const uuid = await recordScanner.register(0);
+ * const result = await recordScanner.register(viewKey, 0);
+ * if (result.ok) { const uuid = result.data.uuid; }
  * 
  * const filter = {
  *     uuid,
@@ -173,32 +178,38 @@ class RecordScanner implements RecordProvider {
     }
 
     /**
-     * Register the account with the record scanner service.
-     * 
+     * Register the account with the record scanner service (unencrypted POST /register). Does not throw if a valid error response from the record scanner is received; returns a result object instead.
+     *
+     * @param {ViewKey} viewKey The view key to register.
      * @param {number} startBlock The block height to start scanning from.
-     * @returns {Promise<RegistrationResponse>} The response from the record scanner service.
+     * @returns {Promise<RegisterResult>} `{ ok: true, data }` on success, or `{ ok: false, status, error }` on failure.
      */
-    async register(viewKey: ViewKey, startBlock: number): Promise<RegistrationResponse> {
+    async register(viewKey: ViewKey, startBlock: number): Promise<RegisterResult> {
         try {
-            let request: RegistrationRequest = {
+            const request: RegistrationRequest = {
                 view_key: viewKey.to_string(),
                 start: startBlock,
             };
-
             const response = await this.request(
                 new Request(`${this.url}/register`, {
                     method: "POST",
                     headers: { "Content-Type": "application/json" },
                     body: JSON.stringify(request),
-                })
+                }),
             );
-
             const data = await response.json();
             this.uuid = data.uuid;
-            return data;
-        } catch (error) {
-            console.error(`Failed to register view key: ${error}`);
-            throw error;
+            return { ok: true, data };
+        } catch (err) {
+            if (err instanceof RecordScannerRequestError) {
+                return {
+                    ok: false,
+                    status: err.status,
+                    error: { message: err.message },
+                };
+            }
+            console.error(`Failed to register view key: ${err}`);
+            throw err;
         }
     }
 
@@ -216,31 +227,43 @@ class RecordScanner implements RecordProvider {
     }
 
     /**
-     * Registers the account with the record scanner service using the encrypted flow:
-     * fetches an ephemeral public key from /pubkey, encrypts the registration request (view key + start block),
-     * and POSTs to /register/encrypted. Use this when the record scanner requires encrypted registration (e.g. for privacy).
+     * Registers the account with the record scanner service using the encrypted flow: 1. fetches an ephemeral public key from /pubkey - 2. encrypts the registration request (view key + start block) - 3. POSTs to /register/encrypted. Does not HTTP error on a proper error response from the record scanner; returns a result object instead.
      *
      * @param {ViewKey} viewKey The view key to register.
      * @param {number} startBlock The block height to start scanning from.
-     * @returns {Promise<RegistrationResponse>} The response from the record scanner service.
+     * @returns {Promise<RegisterResult>} `{ ok: true, data }` on success, or `{ ok: false, status, error }` on failure.
      */
-    async registerEncrypted(viewKey: ViewKey, startBlock: number): Promise<RegistrationResponse> {
-        const pubkey = await this.getPubkey();
-        const ciphertext = encryptRegistrationRequest(pubkey.public_key, viewKey, startBlock);
-        const payload: EncryptedRegistrationRequest = {
-            key_id: pubkey.key_id,
-            ciphertext,
-        };
-        const response = await this.request(
-            new Request(`${this.url}/register/encrypted`, {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify(payload),
-            })
-        );
-        const data = await response.json();
-        this.uuid = data.uuid;
-        return data;
+    async registerEncrypted(
+        viewKey: ViewKey,
+        startBlock: number,
+    ): Promise<RegisterResult> {
+        try {
+            const pubkey = await this.getPubkey();
+            const ciphertext = encryptRegistrationRequest(pubkey.public_key, viewKey, startBlock);
+            const payload: EncryptedRegistrationRequest = {
+                key_id: pubkey.key_id,
+                ciphertext,
+            };
+            const response = await this.request(
+                new Request(`${this.url}/register/encrypted`, {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify(payload),
+                }),
+            );
+            const data = await response.json();
+            this.uuid = data.uuid;
+            return { ok: true, data };
+        } catch (err) {
+            if (err instanceof RecordScannerRequestError) {
+                return {
+                    ok: false,
+                    status: err.status,
+                    error: { message: err.message },
+                };
+            }
+            throw err;
+        }
     }
 
     /**
@@ -472,7 +495,11 @@ class RecordScanner implements RecordProvider {
             const response = await fetch(req);
 
             if (!response.ok) {
-                throw new Error(await response.text() ?? `Request to ${req.url} failed with status ${response.status}`);
+                const text = await response.text();
+                throw new RecordScannerRequestError(
+                    text || `Request to ${req.url} failed with status ${response.status}`,
+                    response.status,
+                );
             }
 
             return response;

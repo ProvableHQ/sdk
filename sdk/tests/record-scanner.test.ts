@@ -4,6 +4,7 @@ import { expect } from "chai";
 import sodium from "libsodium-wrappers";
 import { OwnedFilter } from "../src/models/record-scanner/ownedFilter";
 import { OwnedRecordsResponseFilter } from "../src/models/record-scanner/ownedRecordsResponseFilter";
+import { RecordScannerRequestError } from "../src/models/record-scanner/registrationResult";
 import { RecordScanner } from "../src/record-scanner";
 import { RecordsFilter } from "../src/models/record-scanner/recordsFilter";
 import { RecordsResponseFilter } from "../src/models/record-scanner/recordsResponseFilter";
@@ -11,12 +12,12 @@ import { ViewKey } from "../src/node";
 import { encryptRegistrationRequest } from "../src/security";
 import sinon from "sinon";
 
-const SCANNER_URL = process.env.RECORD_SCANNER_URL ?? "";
-
 describe("RecordScanner", () => {
     const defaultAccount = new Account({ privateKey: "APrivateKey1zkp8CZNn3yeCseEtxuVPbDCwSyhGW6yZKUYKfgXmcpoGPWH" });
     let recordScanner: RecordScanner;
     let fetchStub: sinon.SinonStub;
+    const baseUrl = "https://record-scanner.aleo.org";
+    const network = "/%%NETWORK%%";
 
     beforeEach(() => {
         fetchStub = sinon.stub(globalThis, 'fetch');
@@ -27,12 +28,12 @@ describe("RecordScanner", () => {
     });
 
     it("should intialize with the correct url", async () => {
-        recordScanner = new RecordScanner({ url: "https://record-scanner.aleo.org" });
-        expect(recordScanner.url).equal("https://record-scanner.aleo.org");
+        recordScanner = new RecordScanner({ url: baseUrl });
+        expect(recordScanner.url).to.equal(baseUrl + network);
     });
 
     it("should intialize with the correct api key as a string", async () => {
-        recordScanner = new RecordScanner({ url: "https://record-scanner.aleo.org", apiKey: "1234567890" });
+        recordScanner = new RecordScanner({ url: baseUrl, apiKey: "1234567890" });
         
         const mockResponse = {
             ok: true,
@@ -49,7 +50,7 @@ describe("RecordScanner", () => {
     });
 
     it("should intialize with the correct api key as an object", async () => {
-        recordScanner = new RecordScanner({ url: "https://record-scanner.aleo.org", apiKey: { header: "Some-API-Key", value: "1234567890" } });
+        recordScanner = new RecordScanner({ url: baseUrl, apiKey: { header: "Some-API-Key", value: "1234567890" } });
         
         const mockResponse = {
             ok: true,
@@ -65,8 +66,8 @@ describe("RecordScanner", () => {
         expect(request.headers.get("Some-API-Key")).to.equal("1234567890");
     });
 
-    it("should return RegistrationResponse after successfully registering the account", async () => {
-        recordScanner = new RecordScanner({ url: "https://record-scanner.aleo.org" });
+    it("should return RegisterResult with data after successfully registering the account", async () => {
+        recordScanner = new RecordScanner({ url: baseUrl });
         
         const mockResponse = {
             ok: true,
@@ -76,11 +77,11 @@ describe("RecordScanner", () => {
         };
         
         fetchStub.resolves(mockResponse);
-        const registrationResponse = await recordScanner.register(defaultAccount.viewKey(), 0);
+        const result = await recordScanner.register(defaultAccount.viewKey(), 0);
         
         expect(fetchStub.calledOnce).to.be.true;
         const request = fetchStub.firstCall.args[0] as Request;
-        expect(request.url).to.equal("https://record-scanner.aleo.org/register");
+        expect(request.url).to.equal(recordScanner.url + "/register");
         expect(request.method).to.equal("POST");
         expect(request.headers.get("Content-Type")).to.equal("application/json");
         
@@ -88,11 +89,12 @@ describe("RecordScanner", () => {
         const expectedBody = JSON.stringify({ view_key: defaultAccount.viewKey().to_string(), start: 0 });
         expect(body).to.equal(expectedBody);
         
-        expect(registrationResponse.uuid).equal("test-uuid");
+        expect(result.ok).to.equal(true);
+        if (result.ok) expect(result.data.uuid).equal("test-uuid");
     });
 
     it("should return the optional fields of RegistrationResponse if present after successfully registering the account", async () => {
-        recordScanner = new RecordScanner({ url: "https://record-scanner.aleo.org" });
+        recordScanner = new RecordScanner({ url: baseUrl });
         
         const mockResponse = {
             ok: true,
@@ -102,11 +104,11 @@ describe("RecordScanner", () => {
         };
         
         fetchStub.resolves(mockResponse);
-        const registrationResponse = await recordScanner.register(defaultAccount.viewKey(), 0);
+        const result = await recordScanner.register(defaultAccount.viewKey(), 0);
 
         expect(fetchStub.calledOnce).to.be.true;
         const request = fetchStub.firstCall.args[0] as Request;
-        expect(request.url).to.equal("https://record-scanner.aleo.org/register");
+        expect(request.url).to.equal(recordScanner.url + "/register");
         expect(request.method).to.equal("POST");
         expect(request.headers.get("Content-Type")).to.equal("application/json");
         
@@ -114,14 +116,17 @@ describe("RecordScanner", () => {
         const expectedBody = JSON.stringify({ view_key: defaultAccount.viewKey().to_string(), start: 0 });
         expect(body).to.equal(expectedBody);
         
-        expect(registrationResponse.uuid).equal("test-uuid");
-        expect(registrationResponse.job_id).equal("test-job-id");
-        expect(registrationResponse.status).equal("pending");
+        expect(result.ok).to.equal(true);
+        if (result.ok) {
+            expect(result.data.uuid).equal("test-uuid");
+            expect(result.data.job_id).equal("test-job-id");
+            expect(result.data.status).equal("pending");
+        }
     });
 
     
     it("should return EncryptedRecord[] after successfully getting encrypted records", async () => {
-        recordScanner = new RecordScanner({ url: "https://record-scanner.aleo.org" });
+        recordScanner = new RecordScanner({ url: baseUrl });
         const mockResponse = {
             ok: true,
             status: 200,
@@ -159,13 +164,13 @@ describe("RecordScanner", () => {
         const body = await request.text();
         const expectedBody = JSON.stringify(filter);
         expect(body).to.equal(expectedBody);
-        expect(request.url).to.equal("https://record-scanner.aleo.org/records/encrypted");
+        expect(request.url).to.equal(recordScanner.url + "/records/encrypted");
         expect(request.method).to.equal("POST");
         expect(request.headers.get("Content-Type")).to.equal("application/json");
     });
 
     it("should return OwnedRecord[] after successfully getting owned records", async () => {
-        recordScanner = new RecordScanner({ url: "https://record-scanner.aleo.org" });
+        recordScanner = new RecordScanner({ url: baseUrl });
         recordScanner.setUuid(defaultAccount.viewKey());
 
         const mockResponse = {
@@ -207,13 +212,13 @@ describe("RecordScanner", () => {
         const body = await request.text();
         const expectedBody = JSON.stringify(filter);
         expect(body).to.equal(expectedBody);
-        expect(request.url).to.equal("https://record-scanner.aleo.org/records/owned");
+        expect(request.url).to.equal(recordScanner.url + "/records/owned");
         expect(request.method).to.equal("POST");
         expect(request.headers.get("Content-Type")).to.equal("application/json");
     });
 
     it("should return OwnedRecord after successfully getting owned record", async () => {
-        recordScanner = new RecordScanner({ url: "https://record-scanner.aleo.org" });
+        recordScanner = new RecordScanner({ url: baseUrl });
         recordScanner.setUuid(defaultAccount.viewKey());
 
         const mockResponse = {
@@ -234,13 +239,13 @@ describe("RecordScanner", () => {
             uuid: "7884164224800444110633570141944665301008802280502652120359195870264061098703field",
         });
         expect(body).to.equal(expectedBody);
-        expect(request.url).to.equal("https://record-scanner.aleo.org/records/owned");
+        expect(request.url).to.equal(recordScanner.url + "/records/owned");
         expect(request.method).to.equal("POST");
         expect(request.headers.get("Content-Type")).to.equal("application/json");
     });
 
     it("should throw an error if the uuid is not registered", async () => {
-        recordScanner = new RecordScanner({ url: "https://record-scanner.aleo.org" });
+        recordScanner = new RecordScanner({ url: baseUrl });
         let failed = false;
         try {
             await recordScanner.findRecords({
@@ -266,7 +271,7 @@ describe("RecordScanner", () => {
     });
 
     it("should return record of string->boolean after successfully checking serial numbers", async () => {
-        recordScanner = new RecordScanner({ url: "https://record-scanner.aleo.org" });
+        recordScanner = new RecordScanner({ url: baseUrl });
         const mockResponse = {
             ok: true,
             status: 200,
@@ -287,13 +292,13 @@ describe("RecordScanner", () => {
             "5684626152578699086223993752521225507576791345254401210560771329591763880242field",
         ]);
         expect(body).to.equal(expectedBody);
-        expect(request.url).to.equal("https://record-scanner.aleo.org/records/sns");
+        expect(request.url).to.equal(recordScanner.url + "/records/sns");
         expect(request.method).to.equal("POST");
         expect(request.headers.get("Content-Type")).to.equal("application/json");
     });
 
     it("should return record of string->boolean after successfully checking tags", async () => {
-        recordScanner = new RecordScanner({ url: "https://record-scanner.aleo.org" });
+        recordScanner = new RecordScanner({ url: baseUrl });
         const mockResponse = {
             ok: true,
             status: 200,
@@ -316,13 +321,13 @@ describe("RecordScanner", () => {
             "5941252181432651644402279701137165256963073258332916685063623109173576520831field",
         ]);
         expect(body).to.equal(expectedBody);
-        expect(request.url).to.equal("https://record-scanner.aleo.org/records/tags");
+        expect(request.url).to.equal(recordScanner.url + "/records/tags");
         expect(request.method).to.equal("POST");
         expect(request.headers.get("Content-Type")).to.equal("application/json");
     });
 
     it("should return StatusResponse after successfully checking status", async () => {
-        recordScanner = new RecordScanner({ url: "https://record-scanner.aleo.org" });
+        recordScanner = new RecordScanner({ url: baseUrl });
         const mockResponse = {
             ok: true,
             status: 200,
@@ -338,13 +343,13 @@ describe("RecordScanner", () => {
         const body = await request.text();
         const expectedBody = JSON.stringify(recordScanner.computeUUID(defaultAccount.viewKey()).toString());
         expect(body).to.equal(expectedBody);
-        expect(request.url).to.equal("https://record-scanner.aleo.org/status");
+        expect(request.url).to.equal(recordScanner.url + "/status");
         expect(request.method).to.equal("POST");
         expect(request.headers.get("Content-Type")).to.equal("application/json");
     });
 
     it("should handle HTTP errors", async () => {
-        recordScanner = new RecordScanner({ url: "https://record-scanner.aleo.org" });
+        recordScanner = new RecordScanner({ url: baseUrl });
         let mockResponse = {
             ok: false,
             status: 500,
@@ -352,15 +357,12 @@ describe("RecordScanner", () => {
         };
 
         fetchStub.resolves(mockResponse);
-        let failed = false;
-        try {
-            await recordScanner.register(defaultAccount.viewKey(), 0);
-        } catch (err: any) {
-            expect(err).to.be.instanceOf(Error);
-            expect(err.message).to.equal('{"error": "Internal server error"}');
-            failed = true;
+        let result = await recordScanner.register(defaultAccount.viewKey(), 0);
+        expect(result.ok).to.equal(false);
+        if (!result.ok) {
+            expect(result.status).to.equal(500);
+            expect(result.error.message).to.equal('{"error": "Internal server error"}');
         }
-        expect(failed).to.be.true;
 
         mockResponse = {
             ok: false,
@@ -369,18 +371,15 @@ describe("RecordScanner", () => {
         };
 
         fetchStub.resolves(mockResponse);
-        failed = false;
-        try {
-            await recordScanner.register(defaultAccount.viewKey(), 0);
-        } catch (err: any) {
-            expect(err).to.be.instanceOf(Error);
-            expect(err.message).to.equal('{"error": "Invalid view key"}');
-            failed = true;
+        result = await recordScanner.register(defaultAccount.viewKey(), 0);
+        expect(result.ok).to.equal(false);
+        if (!result.ok) {
+            expect(result.status).to.equal(422);
+            expect(result.error.message).to.equal('{"error": "Invalid view key"}');
         }
-        expect(failed).to.be.true;
 
         fetchStub.rejects(new Error("Unknown error"));
-        failed = false;
+        let failed = false;
         try {
             await recordScanner.register(defaultAccount.viewKey(), 0);
         } catch (err: any) {
@@ -390,14 +389,73 @@ describe("RecordScanner", () => {
         }
         expect(failed).to.be.true;
     });
+
+    describe("registerEncrypted error handling", () => {
+        it("registerEncrypted returns ok: false with status 422 when server returns 422", async () => {
+            await sodium.ready;
+            const keyPair = sodium.crypto_box_keypair();
+            const pubKeyB64 = sodium.to_base64(keyPair.publicKey, sodium.base64_variants.ORIGINAL);
+            recordScanner = new RecordScanner({ url: baseUrl });
+            fetchStub.onCall(0).resolves({
+                ok: true,
+                text: () =>
+                    Promise.resolve(
+                        JSON.stringify({ key_id: "test-key-id", public_key: pubKeyB64 }),
+                    ),
+            });
+            fetchStub.onCall(1).resolves({
+                ok: false,
+                status: 422,
+                text: () =>
+                    Promise.resolve(
+                        "Something went wrong: Encrypted registration failed",
+                    ),
+            });
+            const viewKey = defaultAccount.viewKey();
+            const result = await recordScanner.registerEncrypted(viewKey, 0);
+            expect(result.ok).to.equal(false);
+            if (!result.ok) {
+                expect(result.status).to.equal(422);
+                expect(result.error.message).to.include("Encrypted registration failed");
+            }
+        });
+
+        it("registerEncrypted returns ok: false with status 500 when server returns 500", async () => {
+            await sodium.ready;
+            const keyPair = sodium.crypto_box_keypair();
+            const pubKeyB64 = sodium.to_base64(keyPair.publicKey, sodium.base64_variants.ORIGINAL);
+            recordScanner = new RecordScanner({ url: baseUrl });
+            fetchStub.onCall(0).resolves({
+                ok: true,
+                text: () =>
+                    Promise.resolve(
+                        JSON.stringify({ key_id: "test-key-id", public_key: pubKeyB64 }),
+                    ),
+            });
+            fetchStub.onCall(1).resolves({
+                ok: false,
+                status: 500,
+                text: () =>
+                    Promise.resolve("Something went wrong: Unable to register view key."),
+            });
+            const viewKey = defaultAccount.viewKey();
+            const result = await recordScanner.registerEncrypted(viewKey, 0);
+            expect(result.ok).to.equal(false);
+            if (!result.ok) {
+                expect(result.status).to.equal(500);
+                expect(result.error.message).to.include("Unable to register view key");
+            }
+        });
+
+    });
 });
 
 describe("Record scanner encrypted registration", function () {
-    const sandboxUrl = SCANNER_URL;
+    const sandboxUrl = process.env.RECORD_SCANNER_URL ?? "";
     const apiKey = process.env.KONG_API_KEY as string;
     const consumerId = process.env.CONSUMER_ID as string | undefined;
 
-    it.only("should fetch ephemeral public key from /pubkey", async function () {
+    it("should fetch ephemeral public key from /pubkey", async function () {
         this.retries(3);
         const recordScanner = new RecordScanner({
             url: sandboxUrl,
@@ -411,7 +469,7 @@ describe("Record scanner encrypted registration", function () {
         expect(pubkey.public_key).to.be.a("string");
     });
 
-    it.only("should execute encrypted registration (/register/encrypted)", async function () {
+    it("should execute encrypted registration (/register/encrypted)", async function () {
         this.retries(3);
         const startBlock = 0;
 
@@ -440,12 +498,15 @@ describe("Record scanner encrypted registration", function () {
             ...(apiKey && { apiKey }),
             ...(consumerId && { consumerId }),
         });
-        const response = await recordScanner.registerEncrypted(viewKey, startBlock);
-        expect(response).to.have.property("uuid");
-        expect(response.uuid).to.equal(recordScanner.computeUUID(viewKey).toString());
+        const result = await recordScanner.registerEncrypted(viewKey, startBlock);
+        expect(result.ok).to.equal(true);
+        if (result.ok) {
+            expect(result.data).to.have.property("uuid");
+            expect(result.data.uuid).to.equal(recordScanner.computeUUID(viewKey).toString());
+        }
     });
 
-    it.only("should execute unencrypted registration (/register)", async function () {
+    it("should execute unencrypted registration (/register)", async function () {
         this.retries(3);
         const startBlock = 0;
 
@@ -457,13 +518,13 @@ describe("Record scanner encrypted registration", function () {
             ...(apiKey && { apiKey }),
             ...(consumerId && { consumerId }),
         });
-        const response = await recordScanner.register(
-            viewKey,
-            startBlock,
-        );
-        expect(response).to.have.property("uuid");
-        expect(response.uuid).to.equal(
-            recordScanner.computeUUID(viewKey).toString(),
-        );
+        const result = await recordScanner.register(viewKey, startBlock);
+        expect(result.ok).to.equal(true);
+        if (result.ok) {
+            expect(result.data).to.have.property("uuid");
+            expect(result.data.uuid).to.equal(
+                recordScanner.computeUUID(viewKey).toString(),
+            );
+        }
     });
 });
