@@ -10,6 +10,7 @@ on:
 env:
   CARGO_TERM_COLOR: always
   PUZZLE_PK: ${{ secrets.PUZZLE_PK }}
+  RECORD_SCANNER_URL: ${{ secrets.RECORD_SCANNER_URL }}
 
 
 jobs:
