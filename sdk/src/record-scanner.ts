@@ -1,4 +1,7 @@
+import { parseJSON, post } from "./utils.js";
 import { EncryptedRecord } from "./models/record-provider/encryptedRecord";
+import { CryptoBoxPubKey } from "./models/cryptoBoxPubkey.js";
+import { EncryptedRegistrationRequest } from "./models/record-scanner/encryptedRegistrationRequest.js";
 import { OwnedFilter } from "./models/record-scanner/ownedFilter";
 import { OwnedRecord } from "./models/record-provider/ownedRecord";
 import { RecordProvider } from "./record-provider";
@@ -7,11 +10,24 @@ import { RecordsFilter } from "./models/record-scanner/recordsFilter";
 import { RegistrationRequest } from "./models/record-scanner/registrationRequest";
 import { RegistrationResponse } from "./models/record-scanner/registrationResponse";
 import { StatusResponse } from "./models/record-scanner/statusResponse";
-import { RECORD_DOMAIN } from "./constants";
+import { RECORD_DOMAIN, FIVE_MINUTES } from "./constants.js";
+import { encryptRegistrationRequest } from "./security.js";
+
+/**
+ * JWT data for optional authentication with the record scanning service (e.g. Provable API).
+ */
+export interface RecordScannerJWTData {
+    jwt: string;
+    expiration: number;
+}
 
 type RecordScannerOptions = {
     url: string;
     apiKey?: string | { header: string, value: string };
+    /** Required for JWT refresh when using authenticated record scanner (e.g. Provable API). */
+    consumerId?: string;
+    /** Optional JWT for auth. If omitted and apiKey + consumerId are set, JWT is refreshed when needed. */
+    jwtData?: RecordScannerJWTData;
 }
 
 /**
@@ -59,10 +75,25 @@ class RecordScanner implements RecordProvider {
     readonly url: string;
     private apiKey?: { header: string, value: string };
     private uuid?: Field;
+    private consumerId?: string;
+    private jwtData?: RecordScannerJWTData;
 
     constructor(options: RecordScannerOptions) {
-        this.url = options.url;
+        // Set the network by detecting which version of the SDK is being used.
+        const network = "/%%NETWORK%%";
+
+        // If the user has configured a network in their uri, throw
+        if (options.url.endsWith("/mainnet") || options.url.endsWith("/testnet")) {
+            throw new Error("The record scanning url should not include the specific network, this is automatically configured by the Provable SDK.");
+        }
+
+        // Configure the url to use the network the SDK is using.
+        this.url = options.url + network;
+
+        // Configure authentication options/
         this.apiKey = typeof options.apiKey === "string" ? { header: "X-Provable-API-Key", value: options.apiKey } : options.apiKey;
+        this.consumerId = options.consumerId;
+        this.jwtData = options.jwtData;
     }
 
     /**
@@ -72,6 +103,64 @@ class RecordScanner implements RecordProvider {
      */
     async setApiKey(apiKey: string | { header: string, value: string }): Promise<void> {
         this.apiKey = typeof apiKey === "string" ? { header: "X-Provable-API-Key", value: apiKey } : apiKey;
+    }
+
+    /**
+     * Set the consumer ID used for JWT refresh when using authenticated record scanner (e.g. Provable API).
+     */
+    async setConsumerId(consumerId: string): Promise<void> {
+        this.consumerId = consumerId;
+    }
+
+    /**
+     * Set JWT data for authentication. Optional; when not set, JWT can be refreshed from apiKey + consumerId if provided.
+     */
+    async setJwtData(jwtData: RecordScannerJWTData | undefined): Promise<void> {
+        this.jwtData = jwtData;
+    }
+
+    /**
+     * Refreshes the JWT by making a POST request to /jwts/{consumer_id}. Used when authentication is required.
+     */
+    private async refreshJwt(apiKey: string, consumerId: string): Promise<RecordScannerJWTData> {
+        const response = await post(
+            `https://api.provable.com/jwts/${consumerId}`,
+            {
+                headers: {
+                    "X-Provable-API-Key": apiKey,
+                },
+            }
+        );
+        const authHeader = response.headers.get("authorization");
+        if (!authHeader) {
+            throw new Error("No authorization header in JWT refresh response");
+        }
+        const body = await response.json();
+        return {
+            jwt: authHeader,
+            expiration: body.exp * 1000, // Convert to milliseconds
+        };
+    }
+
+    /**
+     * Returns auth headers (e.g. Authorization with JWT). Refreshes JWT if expired and apiKey + consumerId are set. Empty when auth is not configured.
+     */
+    private async getAuthHeaders(): Promise<Record<string, string>> {
+        let jwtData = this.jwtData;
+        const isExpired = jwtData && Date.now() >= jwtData.expiration - FIVE_MINUTES;
+        if (!jwtData || isExpired) {
+            const apiKey = this.apiKey?.value;
+            if (apiKey && this.consumerId) {
+                jwtData = await this.refreshJwt(apiKey, this.consumerId);
+                this.jwtData = jwtData;
+            } else if (jwtData?.jwt) {
+                // Use existing JWT even if expired when we can't refresh
+                return { Authorization: jwtData.jwt };
+            } else {
+                return {};
+            }
+        }
+        return jwtData?.jwt ? { Authorization: jwtData.jwt } : {};
     }
 
     /**
@@ -111,6 +200,47 @@ class RecordScanner implements RecordProvider {
             console.error(`Failed to register view key: ${error}`);
             throw error;
         }
+    }
+
+    /**
+     * Fetches an ephemeral public key from the record scanner service for use with registerEncrypted.
+     * Follows the same pattern as the delegated proving service /pubkey endpoint.
+     *
+     * @returns {Promise<CryptoBoxPubKey>} The service's ephemeral public key and key_id.
+     */
+    async getPubkey(): Promise<CryptoBoxPubKey> {
+        const response = await this.request(
+            new Request(`${this.url}/pubkey`, { method: "GET" })
+        );
+        return parseJSON(await response.text()) as CryptoBoxPubKey;
+    }
+
+    /**
+     * Registers the account with the record scanner service using the encrypted flow:
+     * fetches an ephemeral public key from /pubkey, encrypts the registration request (view key + start block),
+     * and POSTs to /register/encrypted. Use this when the record scanner requires encrypted registration (e.g. for privacy).
+     *
+     * @param {ViewKey} viewKey The view key to register.
+     * @param {number} startBlock The block height to start scanning from.
+     * @returns {Promise<RegistrationResponse>} The response from the record scanner service.
+     */
+    async registerEncrypted(viewKey: ViewKey, startBlock: number): Promise<RegistrationResponse> {
+        const pubkey = await this.getPubkey();
+        const ciphertext = encryptRegistrationRequest(pubkey.public_key, viewKey, startBlock);
+        const payload: EncryptedRegistrationRequest = {
+            key_id: pubkey.key_id,
+            ciphertext,
+        };
+        const response = await this.request(
+            new Request(`${this.url}/register/encrypted`, {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify(payload),
+            })
+        );
+        const data = await response.json();
+        this.uuid = data.uuid;
+        return data;
     }
 
     /**
@@ -325,17 +455,22 @@ class RecordScanner implements RecordProvider {
 
     /**
      * Wrapper function to make a request to the record scanner service and handle any errors.
-     * 
+     * Optionally adds JWT Authorization header when consumerId/jwtData (or apiKey+consumerId) are configured.
+     *
      * @param {Request} req The request to make.
      * @returns {Promise<Response>} The response.
      */
     private async request(req: Request): Promise<Response> {
         try {
+            const authHeaders = await this.getAuthHeaders();
+            for (const [key, value] of Object.entries(authHeaders)) {
+                req.headers.set(key, value);
+            }
             if (this.apiKey) {
                 req.headers.set(this.apiKey.header, this.apiKey.value);
             }
             const response = await fetch(req);
-    
+
             if (!response.ok) {
                 throw new Error(await response.text() ?? `Request to ${req.url} failed with status ${response.status}`);
             }

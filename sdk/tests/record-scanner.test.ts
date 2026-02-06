@@ -1,12 +1,17 @@
 import { Account } from "../src/account";
 import { CHECK_SNS_RESPONSE, CHECK_TAGS_RESPONSE, ENCRYPTED_RECORDS, OWNED_RECORDS } from "./data/records";
 import { expect } from "chai";
+import sodium from "libsodium-wrappers";
 import { OwnedFilter } from "../src/models/record-scanner/ownedFilter";
 import { OwnedRecordsResponseFilter } from "../src/models/record-scanner/ownedRecordsResponseFilter";
 import { RecordScanner } from "../src/record-scanner";
 import { RecordsFilter } from "../src/models/record-scanner/recordsFilter";
 import { RecordsResponseFilter } from "../src/models/record-scanner/recordsResponseFilter";
+import { ViewKey } from "../src/node";
+import { encryptRegistrationRequest } from "../src/security";
 import sinon from "sinon";
+
+const SCANNER_URL = process.env.RECORD_SCANNER_URL ?? "";
 
 describe("RecordScanner", () => {
     const defaultAccount = new Account({ privateKey: "APrivateKey1zkp8CZNn3yeCseEtxuVPbDCwSyhGW6yZKUYKfgXmcpoGPWH" });
@@ -384,5 +389,81 @@ describe("RecordScanner", () => {
             failed = true;
         }
         expect(failed).to.be.true;
+    });
+});
+
+describe("Record scanner encrypted registration", function () {
+    const sandboxUrl = SCANNER_URL;
+    const apiKey = process.env.KONG_API_KEY as string;
+    const consumerId = process.env.CONSUMER_ID as string | undefined;
+
+    it.only("should fetch ephemeral public key from /pubkey", async function () {
+        this.retries(3);
+        const recordScanner = new RecordScanner({
+            url: sandboxUrl,
+            ...(apiKey && { apiKey }),
+            ...(consumerId && { consumerId }),
+        });
+        const pubkey = await recordScanner.getPubkey();
+        expect(pubkey).to.have.property("key_id");
+        expect(pubkey).to.have.property("public_key");
+        expect(pubkey.key_id).to.be.a("string");
+        expect(pubkey.public_key).to.be.a("string");
+    });
+
+    it.only("should execute encrypted registration (/register/encrypted)", async function () {
+        this.retries(3);
+        const startBlock = 0;
+
+        // Ensure encryption roundtrip works locally (same pattern as program-manager encrypted proving test).
+        await sodium.ready;
+        const keyPair = sodium.crypto_box_keypair();
+        const viewKey = new Account().viewKey();
+        const ciphertext = encryptRegistrationRequest(
+            sodium.to_base64(keyPair.publicKey, sodium.base64_variants.ORIGINAL),
+            viewKey,
+            startBlock,
+        );
+        const plaintextBytes = sodium.crypto_box_seal_open(
+            sodium.from_base64(ciphertext, sodium.base64_variants.ORIGINAL),
+            keyPair.publicKey,
+            keyPair.privateKey,
+        );
+        const vkBytes = viewKey.toBytesLe();
+        expect(plaintextBytes.length).to.equal(vkBytes.length + 4);
+        const decodedStart = new DataView(plaintextBytes.buffer).getUint32(plaintextBytes.length - 4, true);
+        expect(decodedStart).to.equal(startBlock);
+
+        // Register via encrypted flow against sandbox.
+        const recordScanner = new RecordScanner({
+            url: sandboxUrl,
+            ...(apiKey && { apiKey }),
+            ...(consumerId && { consumerId }),
+        });
+        const response = await recordScanner.registerEncrypted(viewKey, startBlock);
+        expect(response).to.have.property("uuid");
+        expect(response.uuid).to.equal(recordScanner.computeUUID(viewKey).toString());
+    });
+
+    it.only("should execute unencrypted registration (/register)", async function () {
+        this.retries(3);
+        const startBlock = 0;
+
+        const viewKey = new Account().viewKey();
+
+        // Register via encrypted flow against sandbox.
+        const recordScanner = new RecordScanner({
+            url: sandboxUrl,
+            ...(apiKey && { apiKey }),
+            ...(consumerId && { consumerId }),
+        });
+        const response = await recordScanner.register(
+            viewKey,
+            startBlock,
+        );
+        expect(response).to.have.property("uuid");
+        expect(response.uuid).to.equal(
+            recordScanner.computeUUID(viewKey).toString(),
+        );
     });
 });
