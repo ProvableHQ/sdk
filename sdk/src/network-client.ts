@@ -24,6 +24,7 @@ import {
 import { CryptoBoxPubKey } from "./models/cryptoBoxPubkey.js";
 import { EncryptedProvingRequest } from "./models/encryptedProvingRequest.js";
 import { encryptProvingRequest } from "./security.js"
+import { FIVE_MINUTES } from "./constants";
 
 type ProgramImports = { [key: string]: string | Program };
 
@@ -1813,7 +1814,7 @@ class AleoNetworkClient {
         const consumerId = options.consumerId ?? this.consumerId;
         let jwtData = options.jwtData ?? this.jwtData;
 
-        const isExpired = jwtData && Date.now() >= jwtData.expiration;
+        const isExpired = jwtData && Date.now() >= jwtData.expiration - FIVE_MINUTES;
         if (!jwtData || isExpired) {
             if (options.apiKey && options.consumerId) {
                 jwtData = await this.refreshJwt(apiKey!, consumerId!);
