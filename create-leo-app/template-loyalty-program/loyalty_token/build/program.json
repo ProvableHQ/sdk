@@ -1,0 +1,6 @@
+{
+    "program": "loyalty_token.aleo",
+    "version": "0.0.0",
+    "description": "Loyalty token program with record minting and points management",
+    "license": "MIT"
+}
