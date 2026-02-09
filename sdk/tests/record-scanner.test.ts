@@ -4,7 +4,7 @@ import { expect } from "chai";
 import sodium from "libsodium-wrappers";
 import { OwnedFilter } from "../src/models/record-scanner/ownedFilter";
 import { OwnedRecordsResponseFilter } from "../src/models/record-scanner/ownedRecordsResponseFilter";
-import { RecordScannerRequestError } from "../src/models/record-scanner/registrationResult";
+import { RecordScannerRequestError } from "../src/models/record-scanner/error";
 import { RecordScanner } from "../src/record-scanner";
 import { RecordsFilter } from "../src/models/record-scanner/recordsFilter";
 import { RecordsResponseFilter } from "../src/models/record-scanner/recordsResponseFilter";

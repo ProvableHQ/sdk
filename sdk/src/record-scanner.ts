@@ -7,10 +7,8 @@ import { OwnedRecord } from "./models/record-provider/ownedRecord";
 import { RecordProvider } from "./record-provider";
 import { Field, Poseidon4, RecordPlaintext, ViewKey } from "./wasm";
 import { RecordsFilter } from "./models/record-scanner/recordsFilter";
-import {
-    RecordScannerRequestError,
-    RegisterResult,
-} from "./models/record-scanner/registrationResult.js";
+import { RegisterResult } from "./models/record-scanner/registrationResult.js";
+import { RecordScannerRequestError } from "./models/record-scanner/error.js";
 import { RegistrationRequest } from "./models/record-scanner/registrationRequest";
 import { RegistrationResponse } from "./models/record-scanner/registrationResponse";
 import { StatusResponse } from "./models/record-scanner/statusResponse";
@@ -205,7 +203,7 @@ class RecordScanner implements RecordProvider {
                 return {
                     ok: false,
                     status: err.status,
-                    error: { message: err.message },
+                    error: { message: err.message, status: err.status },
                 };
             }
             console.error(`Failed to register view key: ${err}`);
@@ -259,7 +257,7 @@ class RecordScanner implements RecordProvider {
                 return {
                     ok: false,
                     status: err.status,
-                    error: { message: err.message },
+                    error: { message: err.message, status: err.status },
                 };
             }
             throw err;
