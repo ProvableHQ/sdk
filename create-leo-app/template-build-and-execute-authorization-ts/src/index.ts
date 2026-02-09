@@ -7,7 +7,7 @@ const keyProvider = new AleoKeyProvider();
 keyProvider.useCache(true);
 
 // Initialize a program manager with the key provider to automatically fetch keys for executions.
-const programManager = new ProgramManager("https://api.explorer.provable.com/v1", keyProvider);
+const programManager = new ProgramManager("https://api.provable.com/v2", keyProvider);
 
 // Build the `Authorization`.
 const privateKey = new PrivateKey(); // Change this to a private key that has an aleo credit balance.
