@@ -164,7 +164,7 @@ describe('Program Manager', async () => {
             }
         });
 
-        it('Should execute an encrypted proving request', async function() {
+        it.only('Should execute an encrypted proving request', async function() {
             this.retries(3);
 
             if (network === "testnet") {
@@ -217,6 +217,9 @@ describe('Program Manager', async () => {
                         },
                     );
 
+                if (!safeResult.ok) {
+                    console.log(safeResult);
+                }
                 expect(safeResult.ok).to.equal(true);
                 if (safeResult.ok) {
                     expect(safeResult.data).to.have.property("transaction");
