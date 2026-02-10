@@ -262,9 +262,9 @@ class NetworkRecordProvider implements RecordProvider {
         const recordsPts = await this.networkClient.findRecords(startHeight, endHeight, searchParameters.unspent, ["credits.aleo"], microcredits, maxAmount, searchParameters.nonces, this.account.privateKey());
         return recordsPts.map((record) => ({
                 owner: record.owner().toString(),
-                programName: 'credits.aleo',
-                recordName: 'credits',
-                recordPlaintext: record.toString(),
+                program_name: 'credits.aleo',
+                record_name: 'credits',
+                record_plaintext: record.toString(),
         }));
     }
 
