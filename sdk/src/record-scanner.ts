@@ -16,6 +16,7 @@ import { TagsResult } from "./models/record-scanner/tagsResult.js";
 import { SerialNumbersResult } from "./models/record-scanner/serialNumbersResult.js";
 import { StatusResult } from "./models/record-scanner/statusResult.js";
 import { OwnedRecordsResult } from "./models/record-scanner/ownedRecordsResult.js";
+import { EncryptedRecordsResult } from "./models/record-scanner/encryptedRecordsResult.js";
 import { RECORD_DOMAIN, FIVE_MINUTES } from "./constants.js";
 import { encryptRegistrationRequest } from "./security.js";
 import { Account } from "./account.js";
@@ -361,12 +362,13 @@ class RecordScanner implements RecordProvider {
     }
 
     /**
-     * Get encrypted records from the record scanning service.
-     * 
+     * Get encrypted records from the record scanning service. This is a safe variant of /records/encrypted that returns
+     * a result instead of throwing on HTTP error.
+     *
      * @param {RecordsFilter} recordsFilter The filter to use to find the records and filter the response.
-     * @returns {Promise<EncryptedRecord[]>} The encrypted records.
+     * @returns {Promise<EncryptedRecordsResult>} The encrypted records or an error if the request failed.
      */
-    async encryptedRecords(recordsFilter: RecordsFilter): Promise<EncryptedRecord[]> {
+    async encrypted(recordsFilter: RecordsFilter): Promise<EncryptedRecordsResult> {
         try {
             const response = await this.request(
                 new Request(`${this.url}/records/encrypted`, {
@@ -375,12 +377,30 @@ class RecordScanner implements RecordProvider {
                     body: JSON.stringify(recordsFilter),
                 }),
             );
-
-            return await response.json();
-        } catch (error) {
-            console.error(`Failed to get encrypted records: ${error}`);
-            throw error;
+            const data = await response.json();
+            return { ok: true, data };
+        } catch (err) {
+            if (err instanceof RecordScannerRequestError) {
+                return {
+                    ok: false,
+                    status: err.status,
+                    error: { message: err.message, status: err.status },
+                };
+            }
+            throw err;
         }
+    }
+
+    /**
+     * Get encrypted records from the record scanning service.
+     *
+     * @param {RecordsFilter} recordsFilter The filter to use to find the records and filter the response.
+     * @returns {Promise<EncryptedRecord[]>} The encrypted records.
+     */
+    async encryptedRecords(recordsFilter: RecordsFilter): Promise<EncryptedRecord[]> {
+        const result = await this.encrypted(recordsFilter);
+        if (result.ok) return result.data;
+        throw new RecordScannerRequestError(result.error.message, result.status);
     }
 
     /**
