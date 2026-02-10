@@ -121,8 +121,11 @@ describe("RecordScanner", () => {
     });
 
     it("should successfully get a job status", async () => {
-        let response = await recordScanner.checkStatus();
-        expect(response.synced).to.be.instanceOf(Boolean);
-        expect(response.percentage).to.be.instanceOf(Number);
+        let response = await recordScanner.status();
+        expect(response.ok).to.equal(true);
+        if (response.ok) {
+            expect(response.data.synced).to.be.instanceOf(Boolean);
+            expect(response.data.percentage).to.be.instanceOf(Number);
+        }
     })
 });

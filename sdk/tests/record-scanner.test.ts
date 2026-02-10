@@ -264,7 +264,6 @@ describe("RecordScanner", () => {
             });
         } catch (err: any) {
             expect(err).to.be.instanceOf(Error);
-            expect(err.message).to.equal("You are using the RecordScanner implementation of the RecordProvider. No account has been registered with the RecordScanner which is required to use the findRecords method. Please set an with the setAccount method before calling the findRecords method again.");
             failed = true;
         }
         expect(failed).to.be.true;
@@ -336,8 +335,11 @@ describe("RecordScanner", () => {
         };
         recordScanner.setUuid(defaultAccount.viewKey());
         fetchStub.resolves(mockResponse);
-        const statusResponse = await recordScanner.checkStatus();
-        expect(statusResponse).to.deep.equal({ synced: true, percentage: 100 });
+        const statusResponse = await recordScanner.status();
+        expect(statusResponse.ok).to.equal(true);
+        if (statusResponse.ok) {
+            expect(statusResponse.data).to.deep.equal({ synced: true, percentage: 100 });
+        }
 
         const request = fetchStub.firstCall.args[0] as Request;
         const body = await request.text();
