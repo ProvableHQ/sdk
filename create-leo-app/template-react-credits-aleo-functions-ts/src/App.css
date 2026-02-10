@@ -1,0 +1,277 @@
+.app {
+    max-width: 900px;
+    margin: 0 auto;
+    padding: 2rem;
+}
+
+/* Header */
+.header {
+    text-align: center;
+    margin-bottom: 2rem;
+}
+
+.logos {
+    display: flex;
+    justify-content: center;
+    gap: 1rem;
+    margin-bottom: 1rem;
+}
+
+.logo {
+    height: 5em;
+    padding: 1em;
+    will-change: filter;
+    transition: filter 300ms;
+}
+
+.logo:hover {
+    filter: drop-shadow(0 0 2em #646cffaa);
+}
+
+.logo.react:hover {
+    filter: drop-shadow(0 0 2em #61dafbaa);
+}
+
+@keyframes logo-spin {
+    from {
+        transform: rotate(0deg);
+    }
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+@media (prefers-reduced-motion: no-preference) {
+    a:nth-of-type(2) .logo {
+        animation: logo-spin infinite 20s linear;
+    }
+}
+
+.header h1 {
+    margin: 0.5rem 0;
+    color: #fff;
+}
+
+.subtitle {
+    color: #888;
+    margin: 0;
+}
+
+/* Tabs */
+.tabs {
+    display: flex;
+    justify-content: center;
+    gap: 0.5rem;
+    margin-bottom: 2rem;
+    border-bottom: 2px solid #333;
+    padding-bottom: 0;
+}
+
+.tabs button {
+    background: transparent;
+    border: none;
+    padding: 0.75rem 1.5rem;
+    cursor: pointer;
+    border-radius: 8px 8px 0 0;
+    transition: all 0.2s;
+    color: #888;
+    font-size: 1rem;
+    margin-bottom: -2px;
+    border-bottom: 2px solid transparent;
+}
+
+.tabs button:hover {
+    color: #fff;
+    background: rgba(255, 255, 255, 0.05);
+}
+
+.tabs button.active {
+    color: #00c0f9;
+    border-bottom-color: #00c0f9;
+    background: rgba(0, 192, 249, 0.1);
+}
+
+/* Main content */
+.main {
+    min-height: 400px;
+}
+
+.tab-content {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+}
+
+/* Function cards */
+.function-card {
+    background: #1a1a1a;
+    border-radius: 12px;
+    padding: 1.5rem;
+    text-align: left;
+}
+
+.function-card h3 {
+    color: #00c0f9;
+    margin: 0 0 0.5rem 0;
+    font-family: monospace;
+    font-size: 1.2rem;
+}
+
+.description {
+    color: #888;
+    font-size: 0.9rem;
+    margin: 0 0 1rem 0;
+}
+
+/* Form inputs */
+.inputs {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+    margin-bottom: 1rem;
+}
+
+.input-group {
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+}
+
+.input-group label {
+    font-size: 0.85rem;
+    color: #aaa;
+}
+
+.input-group input,
+.input-group textarea {
+    background: #0a0a0a;
+    border: 1px solid #333;
+    border-radius: 6px;
+    padding: 0.75rem;
+    color: white;
+    font-family: monospace;
+    font-size: 0.9rem;
+    transition: border-color 0.2s;
+}
+
+.input-group input:focus,
+.input-group textarea:focus {
+    outline: none;
+    border-color: #00c0f9;
+}
+
+.input-group textarea {
+    min-height: 120px;
+    resize: vertical;
+}
+
+/* Execute button */
+.execute-button {
+    background: #00c0f9;
+    color: #000;
+    border: none;
+    padding: 0.75rem 1.5rem;
+    border-radius: 6px;
+    font-size: 1rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.execute-button:hover:not(:disabled) {
+    background: #00d4ff;
+    transform: translateY(-1px);
+}
+
+.execute-button:disabled {
+    background: #333;
+    color: #666;
+    cursor: not-allowed;
+}
+
+/* Output display */
+.output {
+    margin-top: 1rem;
+    padding: 1rem;
+    border-radius: 8px;
+    font-family: monospace;
+    font-size: 0.85rem;
+    overflow-x: auto;
+}
+
+.output h4 {
+    margin: 0 0 0.5rem 0;
+    font-size: 0.9rem;
+}
+
+.output.success {
+    background: rgba(0, 192, 249, 0.1);
+    border: 1px solid rgba(0, 192, 249, 0.3);
+}
+
+.output.success h4 {
+    color: #00c0f9;
+}
+
+.output.error {
+    background: rgba(255, 100, 100, 0.1);
+    border: 1px solid rgba(255, 100, 100, 0.3);
+}
+
+.output.error h4 {
+    color: #ff6464;
+}
+
+.output pre {
+    margin: 0;
+    white-space: pre-wrap;
+    word-break: break-all;
+    color: #ccc;
+}
+
+/* Output list for multiple outputs */
+.output-list {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+
+.output-item {
+    background: rgba(0, 0, 0, 0.3);
+    border-radius: 6px;
+    padding: 0.75rem;
+}
+
+.output-label {
+    display: inline-block;
+    font-size: 0.7rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    padding: 0.2rem 0.5rem;
+    border-radius: 4px;
+    margin-bottom: 0.5rem;
+}
+
+.output-label.record {
+    background: rgba(76, 175, 80, 0.2);
+    color: #4caf50;
+}
+
+.output-label.future {
+    background: rgba(156, 39, 176, 0.2);
+    color: #ce93d8;
+}
+
+/* Footer */
+.footer {
+    text-align: center;
+    margin-top: 2rem;
+    padding-top: 1rem;
+    border-top: 1px solid #333;
+}
+
+.footer p {
+    color: #666;
+    font-size: 0.85rem;
+    margin: 0;
+}

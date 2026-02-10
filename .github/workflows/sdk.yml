@@ -103,6 +103,7 @@ jobs:
           - extension
           - nextjs-ts
           - offline-public-transaction-ts
+          - react-credits-aleo-functions-ts
           - react-leo
           #- react-managed-worker
           - react-ts
@@ -126,8 +127,8 @@ jobs:
       matrix:
         template:
           - node
+          - node-credits-aleo-functions-ts
           - node-ts
-          - private-transaction-ts
     steps:
       - uses: actions/checkout@v4
       - uses: ./.github/actions/setup-yarn
