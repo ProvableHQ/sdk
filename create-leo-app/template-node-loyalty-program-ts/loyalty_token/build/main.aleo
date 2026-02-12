@@ -23,6 +23,21 @@ mapping total_points_issued:
     key as field.public;
     value as u64.public;
 
+mapping approved_upgrades:
+    key as field.public;
+    value as boolean.public;
+
+function approve_upgrade:
+    input r0 as [u8; 32u32].private;
+    assert.eq self.caller aleo1ntkc8z9ea8gjp7pkudlh5xqj0xw8k86lc64yh7yd06708ye9gv9s6j8l45;
+    hash.bhp256 r0 into r1 as field;
+    async approve_upgrade r1 into r2;
+    output r2 as loyalty_token.aleo/approve_upgrade.future;
+
+finalize approve_upgrade:
+    input r0 as field.public;
+    set true into approved_upgrades[r0];
+
 function mint_card:
     input r0 as address.private;
     input r1 as u64.private;
@@ -135,3 +150,13 @@ function spend_points:
     ternary r4 2u8 r6 into r7;
     cast r0.owner r0.card_id r3 r7 into r8 as LoyaltyCard.record;
     output r8 as LoyaltyCard.record;
+
+constructor:
+    gt edition 0u16 into r0;
+    branch.eq r0 false to end_then_0_0;
+    hash.bhp256 checksum into r1 as field;
+    get approved_upgrades[r1] into r2;
+    assert.eq r2 true;
+    branch.eq true true to end_otherwise_0_1;
+    position end_then_0_0;
+    position end_otherwise_0_1;

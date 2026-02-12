@@ -3,6 +3,9 @@
 import loyalty_token.aleo;
 
 program loyalty_rewards.aleo {
+    // Admin address for upgrade authorization
+    const ADMIN: address = aleo1ntkc8z9ea8gjp7pkudlh5xqj0xw8k86lc64yh7yd06708ye9gv9s6j8l45;
+
     struct VoucherInput {
         card_id: field,
         reward_type: u8,
@@ -19,6 +22,29 @@ program loyalty_rewards.aleo {
     mapping voucher_exists: field => bool;
     mapping voucher_used: field => bool;
     mapping redemptions_by_type: field => u64;
+    mapping approved_upgrades: field => bool;
+
+    // Constructor runs on deployment and upgrades
+    // First deployment (edition 0) has no restrictions
+    // Upgrades require admin to pre-approve the new checksum
+    @custom
+    async constructor() {
+        if self.edition > 0u16 {
+            let checksum_hash: field = BHP256::hash_to_field(self.checksum);
+            let approved: bool = approved_upgrades.get(checksum_hash);
+            assert(approved);
+        }
+    }
+
+    // Admin calls this before deploying a new version
+    async transition approve_upgrade(checksum: [u8; 32]) -> Future {
+        assert_eq(self.caller, ADMIN);
+        return finalize_approve_upgrade(BHP256::hash_to_field(checksum));
+    }
+
+    async function finalize_approve_upgrade(checksum_hash: field) {
+        approved_upgrades.set(checksum_hash, true);
+    }
 
     async transition redeem_points_for_voucher(
         card: loyalty_token.aleo/LoyaltyCard,
