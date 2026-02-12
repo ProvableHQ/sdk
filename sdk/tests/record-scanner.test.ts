@@ -109,8 +109,8 @@ describe("RecordScanner", () => {
         const mockResponse = {
             ok: true,
             status: 201,
-            text: () => Promise.resolve('{"uuid": "test-uuid", "job_id": "test-job-id", "status": "pending"}'),
-            json: () => Promise.resolve({ uuid: "test-uuid", job_id: "test-job-id", status: "pending" })
+            text: () => Promise.resolve('{"uuid": "test-uuid", "status": "pending"}'),
+            json: () => Promise.resolve({ uuid: "test-uuid", status: "pending" })
         };
         
         fetchStub.resolves(mockResponse);
@@ -129,7 +129,6 @@ describe("RecordScanner", () => {
         expect(result.ok).to.equal(true);
         if (result.ok) {
             expect(result.data.uuid).equal("test-uuid");
-            expect(result.data.job_id).equal("test-job-id");
             expect(result.data.status).equal("pending");
         }
     });
