@@ -118,5 +118,5 @@ export const RECORD_DOMAIN = "RecordScannerV0";
  * Zero address on Aleo blockchain that corresponds to field element 0. Used as padding in Merkle trees and as a sentinel value.
  */
 export const ZERO_ADDRESS = "aleo1qqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqq3ljyzc";
-
 export const FIVE_MINUTES = 5 * 60 * 1000; // 5 minutes in milliseconds
+

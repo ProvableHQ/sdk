@@ -109,13 +109,13 @@ import { Account, ProgramManager, AleoKeyProvider, NetworkRecordProvider, AleoNe
 
 // Create a new NetworkClient, KeyProvider, and RecordProvider
 const account = Account.from_string({privateKey: process.env.PRIVATE_KEY});
-const networkClient = new AleoNetworkClient("https://api.explorer.provable.com/v1");
+const networkClient = new AleoNetworkClient("https://api.provable.com/v2");
 const keyProvider = new AleoKeyProvider();
 const recordProvider = new NetworkRecordProvider(account, networkClient);
 
 // Initialize a program manager with the key provider to automatically fetch keys for executions
 const RECIPIENT_ADDRESS = "aleo1address...";
-const programManager = new ProgramManager("https://api.explorer.provable.com/v1", keyProvider, recordProvider);
+const programManager = new ProgramManager("https://api.provable.com/v2", keyProvider, recordProvider);
 programManager.setAccount(account);
 
 // Update or initialize a public balance
@@ -131,7 +131,7 @@ The `NetworkClient` class provides the `getProgramMappingNames` method to read t
 ```typescript
 import { AleoNetworkClient } from '@provablehq/sdk';
 
-const networkClient = new AleoNetworkClient("https://api.explorer.provable.com/v1");
+const networkClient = new AleoNetworkClient("https://api.provable.com/v2");
 const creditsMappings = networkClient.getProgramMappingNames("credits.aleo");
 assert(creditsMappings === ["committee", "delegated", "metadata", "bonded", "unbonding", "account", "withdraw"]);
 
@@ -146,7 +146,7 @@ returns the value associated with the specified key within the mapping or an `Er
 ```typescript
 import { AleoNetworkClient } from '@provablehq/sdk';
 
-const networkClient = new AleoNetworkClient("https://api.explorer.provable.com/v1");
+const networkClient = new AleoNetworkClient("https://api.provable.com/v2");
 const publicCredits = networkClient.getProgramMappingValue("credits.aleo", "aleo1address...");
 assert(publicCredits === "437059431396u64");
 ```

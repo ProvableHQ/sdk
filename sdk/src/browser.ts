@@ -4,8 +4,10 @@ import { Account } from "./account.js";
 import { AleoNetworkClient, ProgramImports } from "./network-client.js";
 import { BlockJSON, Header, Metadata } from "./models/blockJSON.js";
 import { ConfirmedTransactionJSON } from "./models/confirmed_transaction.js";
+import { CryptoBoxPubKey } from "./models/cryptoBoxPubkey.js";
 import { DeploymentJSON, VerifyingKeys } from "./models/deployment/deploymentJSON.js";
 import { DeploymentObject } from "./models/deployment/deploymentObject.js";
+import { EncryptedProvingRequest } from "./models/encryptedProvingRequest.js";
 import { EncryptedRecord } from "./models/record-provider/encryptedRecord.js";
 import { ExecutionJSON, FeeExecutionJSON } from "./models/execution/executionJSON.js";
 import { ExecutionObject, FeeExecutionObject } from "./models/execution/executionObject.js";
@@ -25,10 +27,30 @@ import { PlaintextLiteral} from "./models/plaintext/literal.js";
 import { PlaintextObject } from "./models/plaintext/plaintext.js";
 import { PlaintextStruct} from "./models/plaintext/struct.js";
 import { ProvingRequestJSON } from "./models/provingRequest.js";
-import { ProvingResponse } from "./models/provingResponse.js";
+import { ProvingResponse, BroadcastResponse, BroadcastResult, ProvingResult, ProvingFailure, ProvingSuccess, ProveApiErrorBody, ProvingRequestError, isProvingResponse, isProveApiErrorBody } from "./models/provingResponse.js";
 import { RatificationJSON } from "./models/ratification.js";
+import { EncryptedRegistrationRequest } from "./models/record-scanner/encryptedRegistrationRequest.js";
+import { EncryptedRecordsResult, EncryptedRecordsSuccess } from "./models/record-scanner/encryptedRecordsResult.js";
+import {
+    DecryptionNotEnabledError,
+    RecordNotFoundError,
+    RecordScannerErrorBody,
+    RecordScannerFailure,
+    RecordScannerRequestError,
+    UUIDError,
+    ViewKeyNotStoredError,
+} from "./models/record-scanner/error.js";
+import { OwnedRecordsResult, OwnedRecordsSuccess } from "./models/record-scanner/ownedRecordsResult.js";
+import { OwnedRecordsResponseFilter } from "./models/record-scanner/ownedRecordsResponseFilter.js";
+import { RegisterResult, RegisterSuccess } from "./models/record-scanner/registrationResult.js";
+import { RegistrationRequest } from "./models/record-scanner/registrationRequest.js";
+import { RegistrationResponse } from "./models/record-scanner/registrationResponse.js";
 import { RecordsFilter } from "./models/record-scanner/recordsFilter.js";
 import { RecordsResponseFilter } from "./models/record-scanner/recordsResponseFilter.js";
+import { SerialNumbersResult, SerialNumbersSuccess } from "./models/record-scanner/serialNumbersResult.js";
+import { StatusResponse } from "./models/record-scanner/statusResponse.js";
+import { StatusResult, StatusSuccess } from "./models/record-scanner/statusResult.js";
+import { TagsResult, TagsSuccess } from "./models/record-scanner/tagsResult.js";
 import { RecordSearchParams } from "./models/record-provider/recordSearchParams.js";
 import { SolutionsJSON, SolutionJSON, PartialSolutionJSON } from "./models/solution.js";
 import { TransactionJSON } from "./models/transaction/transactionJSON.js";
@@ -53,7 +75,7 @@ import {
     NetworkRecordProvider,
     RecordProvider,
 } from "./record-provider.js";
-import { RecordScanner } from "./record-scanner.js";
+import { RecordScanner, RecordScannerJWTData, RecordScannerOptions } from "./record-scanner.js";
 import { SealanceMerkleTree } from "./integrations/sealance/merkle-tree.js";
 
 // @TODO: This function is no longer needed, remove it.
@@ -142,11 +164,18 @@ export {
     AleoNetworkClient,
     BlockJSON,
     BlockHeightSearch,
+    BroadcastResponse,
+    BroadcastResult,
     CachedKeyPair,
     ConfirmedTransactionJSON,
+    CryptoBoxPubKey,
     DeploymentJSON,
     DeploymentObject,
+    EncryptedProvingRequest,
     EncryptedRecord,
+    EncryptedRegistrationRequest,
+    EncryptedRecordsResult,
+    EncryptedRecordsSuccess,
     ExecutionJSON,
     ExecutionObject,
     FeeExecutionJSON,
@@ -157,6 +186,8 @@ export {
     FunctionKeyPair,
     FunctionKeyProvider,
     Header,
+    isProvingResponse,
+    isProveApiErrorBody,
     ImportedPrograms,
     ImportedVerifyingKeys,
     InputJSON,
@@ -170,6 +201,9 @@ export {
     OutputObject,
     OwnedFilter,
     OwnedRecord,
+    OwnedRecordsResult,
+    OwnedRecordsResponseFilter,
+    OwnedRecordsSuccess,
     OwnerJSON,
     PartialSolutionJSON,
     PlaintextArray,
@@ -177,20 +211,47 @@ export {
     PlaintextObject,
     PlaintextStruct,
     ProgramImports,
+    ProveApiErrorBody,
+    ProvingFailure,
+    ProvingRequestError,
     ProvingRequestJSON,
+    ProvingResult,
+    ProvingSuccess,
     ProvingResponse,
     RatificationJSON,
     RecordsFilter,
     RecordsResponseFilter,
     RecordProvider,
     RecordScanner,
+    RecordScannerErrorBody,
+    RecordScannerFailure,
+    RecordScannerJWTData,
+    RecordScannerOptions,
+    DecryptionNotEnabledError,
+    RecordNotFoundError,
+    RecordScannerRequestError,
+    ViewKeyNotStoredError,
     RecordSearchParams,
+    RegisterResult,
+    RegisterSuccess,
+    RegistrationRequest,
+    RegistrationResponse,
     SealanceMerkleTree,
+    SerialNumbersResult,
+    SerialNumbersSuccess,
     SolutionJSON,
     SolutionsJSON,
+    StatusResponse,
+    StatusResult,
+    StatusSuccess,
+    TagsResult,
+    TagsSuccess,
     TransactionJSON,
     TransactionObject,
     TransitionJSON,
     TransitionObject,
+    UUIDError,
     VerifyingKeys,
 };
+
+export { encryptAuthorization, encryptProvingRequest, encryptViewKey, encryptRegistrationRequest } from "./security.js";
