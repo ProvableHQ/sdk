@@ -10,7 +10,7 @@
   },
   "dependencies": {
     "@provablehq/sdk": "^0.9.15",
-    "next": "15.4.8",
+    "next": "15.5.10",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
     "terser-webpack-plugin": "^5.3.11"
