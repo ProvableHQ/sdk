@@ -62,6 +62,7 @@ impl ProgramManager {
         broadcast: bool,
         unchecked: bool,
         edition: Option<u16>,
+        use_fee_master: bool,
     ) -> Result<ProvingRequest, String> {
         log(&format!("Creating proving request for {function_name}"));
         let mut process_native = ProcessNative::load_web().map_err(|err| err.to_string())?;
@@ -81,7 +82,7 @@ impl ProgramManager {
         let authorization =
             authorize!(process, process_inputs!(inputs), program, function_name, private_key, rng, unchecked, edition);
 
-        // Add
+        // Add base fee to the authorization.
         let base_fee_microcredits = ProgramManager::estimate_fee_for_authorization(
             &crate::Authorization::from(&authorization),
             program,
@@ -91,11 +92,12 @@ impl ProgramManager {
 
         // Authorize the fee.
         let execution_id = authorization.to_execution_id().map_err(|e| e.to_string())?;
-        let fee_authorization = if program_native.id().to_string().as_str() == "credits.aleo"
+        let fee_authorization = if (program_native.id().to_string().as_str() == "credits.aleo")
             && (function_name == "split"
                 || function_name == "upgrade"
                 || function_name == "fee_public"
                 || function_name == "fee_private")
+            || use_fee_master
         {
             None
         } else {
@@ -141,6 +143,7 @@ mod tests {
             false,
             false,
             Some(1),
+            false, // use_fee_master: expect fee authorization
         )
         .await
         .unwrap();
@@ -171,5 +174,43 @@ mod tests {
         // Assert there is only one transition.
         assert_eq!(fee_authorization.transitions().length(), 1);
         assert!(fee_authorization.is_fee_public());
+    }
+
+    /// When use_fee_master is true, the ProvingRequest is built without a fee authorization
+    /// (fee_authorization is None). The fee will be paid by the fee master instead.
+    #[wasm_bindgen_test]
+    async fn test_proving_request_with_use_fee_master_has_no_fee_authorization() {
+        let private_key = PrivateKey::from_string(&get_env("PUZZLE_PK")).unwrap();
+        let function_name = "spin";
+        let inputs = generate_puzzle_inputs();
+        let imports = Some(generate_puzzle_imports());
+
+        let proving_request = ProgramManager::proving_request(
+            &private_key,
+            PUZZLE_SPINNER_V002,
+            function_name,
+            inputs,
+            0.0,
+            0.0,
+            None,
+            imports,
+            false,
+            false,
+            Some(1),
+            true, // use_fee_master: no fee authorization
+        )
+        .await
+        .unwrap();
+
+        // With use_fee_master, fee is paid by fee master; proving request must have no fee authorization.
+        assert!(
+            proving_request.fee_authorization().is_none(),
+            "use_fee_master=true should produce a ProvingRequest without fee_authorization"
+        );
+
+        // Main authorization is still present.
+        let authorization = proving_request.authorization();
+        assert_eq!(authorization.len(), 3);
+        assert_eq!(authorization.transitions().length(), 3);
     }
 }
