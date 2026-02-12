@@ -163,7 +163,8 @@ interface ExecuteAuthorizationOptions {
  *
  * @property {string} programName - The name of the program containing the function to be executed.
  * @property {string} functionName - The name of the function to execute within the program.
- * @property {number} baseFee - The base fee to be paid for the transaction.
+ * @property {number} [baseFee] - The base fee to be paid for the transaction.
+ * @deprecated Base fee is now estimated automatically; this option is ignored and will be removed in a future version.
  * @property {number} priorityFee - The optional priority fee to be paid for the transaction.
  * @property {boolean} privateFee - If true, uses a private record to pay the fee; otherwise, uses the account's public credit balance.
  * @property {string[]} inputs - The inputs to the function being executed.

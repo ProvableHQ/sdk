@@ -281,7 +281,29 @@ describe('Program Manager', async () => {
             // Ensure the authorizations have the correct number of transitions.
             expect(authorization.transitions().length).equal(3);
             expect(feeAuthorization.transitions().length).equal(1);
-        })
+        });
+
+        it('Should build proving request without fee authorization when useFeeMaster is set', async () => {
+            const provingRequest = await programManager.provingRequest({
+                programName: PUZZLE_SPINNER_PROGRAM_ID,
+                functionName: "spin",
+                priorityFee: 0,
+                privateFee: false,
+                inputs: [
+                    PUZZLE_SPINNER_V002_INPUT_0,
+                    PUZZLE_SPINNER_V002_INPUT_1,
+                    PUZZLE_SPINNER_V002_INPUT_2,
+                ],
+                broadcast: false,
+                useFeeMaster: true,
+                privateKey: PrivateKey.from_string(<string>process.env["PUZZLE_PK"])
+            });
+
+            expect(provingRequest.feeAuthorization()).equal(undefined);
+
+            const authorization = provingRequest.authorization();
+            expect(authorization.transitions().length).equal(3);
+        });
 
         it('Should build correct authorizations', async () => {
             // Build an authorization for the spin function of "puzzle_spinner_v002.aleo".
