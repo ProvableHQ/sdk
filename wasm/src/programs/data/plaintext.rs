@@ -43,7 +43,7 @@ use wasm_bindgen::{JsValue, convert::TryFromJsValue, prelude::wasm_bindgen};
 ///
 /// @example
 /// // Get the bond state of an existing address.
-/// const bondState = await fetch(https://api.explorer.provable.com/v1/mainnet/program/credits.aleo/mapping/bond_state/aleo12zlythl7htjdtjjjz3ahdj4vl6wk3zuzm37s80l86qpx8fyx95fqnxcn2f);
+/// const bondState = await fetch(https://api.provable.com/v2/mainnet/program/credits.aleo/mapping/bond_state/aleo12zlythl7htjdtjjjz3ahdj4vl6wk3zuzm37s80l86qpx8fyx95fqnxcn2f);
 /// // Convert the bond state to a Plaintext object.
 /// const bondStatePlaintext = Plaintext.fromString(bond_state);
 /// // Convert the Plaintext object to a JS object.

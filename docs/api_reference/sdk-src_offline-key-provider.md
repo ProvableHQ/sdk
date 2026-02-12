@@ -390,7 +390,7 @@ const offlineSearchParams = new OfflineSearchParams("hello_hello.aleo/hello");
 const offlineExecuteTx = <Transaction>await this.buildExecutionTransaction("hello_hello.aleo", "hello", 1, false, ["5u32", "5u32"], undefined, offlineSearchParams, undefined, undefined, undefined, undefined, offlineQuery, program);
 
 // Broadcast the transaction later on a machine with internet access
-const networkClient = new AleoNetworkClient("https://api.explorer.provable.com/v1");
+const networkClient = new AleoNetworkClient("https://api.provable.com/v2");
 const txId = await networkClient.broadcastTransaction(offlineExecuteTx);
 ```
 

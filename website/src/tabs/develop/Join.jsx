@@ -6,7 +6,7 @@ export const Join = () => {
     const [joinFeeRecord, setJoinFeeRecord] = useState(null);
     const [recordOne, setRecordOne] = useState(null);
     const [recordTwo, setRecordTwo] = useState(null);
-    const [joinUrl, setJoinUrl] = useState("https://api.explorer.provable.com/v1");
+    const [joinUrl, setJoinUrl] = useState("https://api.provable.com/v2");
     const [privateFee, setPrivateFee] = useState(false);
     const [loading, setLoading] = useState(false);
     const [privateKey, setPrivateKey] = useState(null);
