@@ -1,6 +1,5 @@
 <p align="center">
     <a href="https://docs.leo-lang.org"> <img alt="Website" src="https://img.shields.io/badge/Developer_Docs-online-blue"></a>
-    <a href="https://circleci.com/gh/ProvableHQ/sdk"><img src="https://circleci.com/gh/ProvableHQ/sdk.svg?style=svg"></a>
     <a href="https://discord.com/invite/aleo"><img src="https://img.shields.io/discord/700454073459015690?logo=discord"/></a>
     <a href="https://github.com/ProvableHQ/sdk#%EF%B8%8F-contributors"><img src="https://img.shields.io/badge/contributors-23-ee8449"/></a>
 </p>
