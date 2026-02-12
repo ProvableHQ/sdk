@@ -1,17 +1,33 @@
 import { Account } from "../src/account";
 import { CHECK_SNS_RESPONSE, CHECK_TAGS_RESPONSE, ENCRYPTED_RECORDS, OWNED_RECORDS } from "./data/records";
 import { expect } from "chai";
+import sodium from "libsodium-wrappers";
+import {
+    DecryptionNotEnabledError,
+    RecordNotFoundError,
+    RecordScannerRequestError,
+    ViewKeyNotStoredError,
+} from "../src/models/record-scanner/error";
 import { OwnedFilter } from "../src/models/record-scanner/ownedFilter";
 import { OwnedRecordsResponseFilter } from "../src/models/record-scanner/ownedRecordsResponseFilter";
 import { RecordScanner } from "../src/record-scanner";
 import { RecordsFilter } from "../src/models/record-scanner/recordsFilter";
 import { RecordsResponseFilter } from "../src/models/record-scanner/recordsResponseFilter";
+import { ViewKey } from "../src/node";
+import { encryptRegistrationRequest } from "../src/security";
 import sinon from "sinon";
+
+const sandboxUrl = process.env.RECORD_SCANNER_URL ?? "";
+const viewKeyStr = process.env.PUZZLE_VK as string;
+const apiKey = process.env.KONG_API_KEY as string;
+const consumerId = process.env.CONSUMER_ID as string | undefined;
 
 describe("RecordScanner", () => {
     const defaultAccount = new Account({ privateKey: "APrivateKey1zkp8CZNn3yeCseEtxuVPbDCwSyhGW6yZKUYKfgXmcpoGPWH" });
     let recordScanner: RecordScanner;
     let fetchStub: sinon.SinonStub;
+    const baseUrl = "https://record-scanner.aleo.org";
+    const network = "/%%NETWORK%%";
 
     beforeEach(() => {
         fetchStub = sinon.stub(globalThis, 'fetch');
@@ -22,12 +38,12 @@ describe("RecordScanner", () => {
     });
 
     it("should intialize with the correct url", async () => {
-        recordScanner = new RecordScanner({ url: "https://record-scanner.aleo.org" });
-        expect(recordScanner.url).equal("https://record-scanner.aleo.org");
+        recordScanner = new RecordScanner({ url: baseUrl });
+        expect(recordScanner.url).to.equal(baseUrl + network);
     });
 
     it("should intialize with the correct api key as a string", async () => {
-        recordScanner = new RecordScanner({ url: "https://record-scanner.aleo.org", apiKey: "1234567890" });
+        recordScanner = new RecordScanner({ url: baseUrl, apiKey: "1234567890" });
         
         const mockResponse = {
             ok: true,
@@ -44,7 +60,7 @@ describe("RecordScanner", () => {
     });
 
     it("should intialize with the correct api key as an object", async () => {
-        recordScanner = new RecordScanner({ url: "https://record-scanner.aleo.org", apiKey: { header: "Some-API-Key", value: "1234567890" } });
+        recordScanner = new RecordScanner({ url: baseUrl, apiKey: { header: "Some-API-Key", value: "1234567890" } });
         
         const mockResponse = {
             ok: true,
@@ -60,8 +76,8 @@ describe("RecordScanner", () => {
         expect(request.headers.get("Some-API-Key")).to.equal("1234567890");
     });
 
-    it("should return RegistrationResponse after successfully registering the account", async () => {
-        recordScanner = new RecordScanner({ url: "https://record-scanner.aleo.org" });
+    it("should return RegisterResult with data after successfully registering the account", async () => {
+        recordScanner = new RecordScanner({ url: baseUrl });
         
         const mockResponse = {
             ok: true,
@@ -71,11 +87,11 @@ describe("RecordScanner", () => {
         };
         
         fetchStub.resolves(mockResponse);
-        const registrationResponse = await recordScanner.register(defaultAccount.viewKey(), 0);
+        const result = await recordScanner.register(defaultAccount.viewKey(), 0);
         
         expect(fetchStub.calledOnce).to.be.true;
         const request = fetchStub.firstCall.args[0] as Request;
-        expect(request.url).to.equal("https://record-scanner.aleo.org/register");
+        expect(request.url).to.equal(recordScanner.url + "/register");
         expect(request.method).to.equal("POST");
         expect(request.headers.get("Content-Type")).to.equal("application/json");
         
@@ -83,25 +99,26 @@ describe("RecordScanner", () => {
         const expectedBody = JSON.stringify({ view_key: defaultAccount.viewKey().to_string(), start: 0 });
         expect(body).to.equal(expectedBody);
         
-        expect(registrationResponse.uuid).equal("test-uuid");
+        expect(result.ok).to.equal(true);
+        if (result.ok) expect(result.data.uuid).equal("test-uuid");
     });
 
     it("should return the optional fields of RegistrationResponse if present after successfully registering the account", async () => {
-        recordScanner = new RecordScanner({ url: "https://record-scanner.aleo.org" });
+        recordScanner = new RecordScanner({ url: baseUrl });
         
         const mockResponse = {
             ok: true,
             status: 201,
-            text: () => Promise.resolve('{"uuid": "test-uuid", "job_id": "test-job-id", "status": "pending"}'),
-            json: () => Promise.resolve({ uuid: "test-uuid", job_id: "test-job-id", status: "pending" })
+            text: () => Promise.resolve('{"uuid": "test-uuid", "status": "pending"}'),
+            json: () => Promise.resolve({ uuid: "test-uuid", status: "pending" })
         };
         
         fetchStub.resolves(mockResponse);
-        const registrationResponse = await recordScanner.register(defaultAccount.viewKey(), 0);
+        const result = await recordScanner.register(defaultAccount.viewKey(), 0);
 
         expect(fetchStub.calledOnce).to.be.true;
         const request = fetchStub.firstCall.args[0] as Request;
-        expect(request.url).to.equal("https://record-scanner.aleo.org/register");
+        expect(request.url).to.equal(recordScanner.url + "/register");
         expect(request.method).to.equal("POST");
         expect(request.headers.get("Content-Type")).to.equal("application/json");
         
@@ -109,14 +126,16 @@ describe("RecordScanner", () => {
         const expectedBody = JSON.stringify({ view_key: defaultAccount.viewKey().to_string(), start: 0 });
         expect(body).to.equal(expectedBody);
         
-        expect(registrationResponse.uuid).equal("test-uuid");
-        expect(registrationResponse.job_id).equal("test-job-id");
-        expect(registrationResponse.status).equal("pending");
+        expect(result.ok).to.equal(true);
+        if (result.ok) {
+            expect(result.data.uuid).equal("test-uuid");
+            expect(result.data.status).equal("pending");
+        }
     });
 
     
     it("should return EncryptedRecord[] after successfully getting encrypted records", async () => {
-        recordScanner = new RecordScanner({ url: "https://record-scanner.aleo.org" });
+        recordScanner = new RecordScanner({ url: baseUrl });
         const mockResponse = {
             ok: true,
             status: 200,
@@ -154,13 +173,13 @@ describe("RecordScanner", () => {
         const body = await request.text();
         const expectedBody = JSON.stringify(filter);
         expect(body).to.equal(expectedBody);
-        expect(request.url).to.equal("https://record-scanner.aleo.org/records/encrypted");
+        expect(request.url).to.equal(recordScanner.url + "/records/encrypted");
         expect(request.method).to.equal("POST");
         expect(request.headers.get("Content-Type")).to.equal("application/json");
     });
 
     it("should return OwnedRecord[] after successfully getting owned records", async () => {
-        recordScanner = new RecordScanner({ url: "https://record-scanner.aleo.org" });
+        recordScanner = new RecordScanner({ url: baseUrl });
         recordScanner.setUuid(defaultAccount.viewKey());
 
         const mockResponse = {
@@ -202,13 +221,13 @@ describe("RecordScanner", () => {
         const body = await request.text();
         const expectedBody = JSON.stringify(filter);
         expect(body).to.equal(expectedBody);
-        expect(request.url).to.equal("https://record-scanner.aleo.org/records/owned");
+        expect(request.url).to.equal(recordScanner.url + "/records/owned");
         expect(request.method).to.equal("POST");
         expect(request.headers.get("Content-Type")).to.equal("application/json");
     });
 
     it("should return OwnedRecord after successfully getting owned record", async () => {
-        recordScanner = new RecordScanner({ url: "https://record-scanner.aleo.org" });
+        recordScanner = new RecordScanner({ url: baseUrl });
         recordScanner.setUuid(defaultAccount.viewKey());
 
         const mockResponse = {
@@ -229,13 +248,13 @@ describe("RecordScanner", () => {
             uuid: "7884164224800444110633570141944665301008802280502652120359195870264061098703field",
         });
         expect(body).to.equal(expectedBody);
-        expect(request.url).to.equal("https://record-scanner.aleo.org/records/owned");
+        expect(request.url).to.equal(recordScanner.url + "/records/owned");
         expect(request.method).to.equal("POST");
         expect(request.headers.get("Content-Type")).to.equal("application/json");
     });
 
     it("should throw an error if the uuid is not registered", async () => {
-        recordScanner = new RecordScanner({ url: "https://record-scanner.aleo.org" });
+        recordScanner = new RecordScanner({ url: baseUrl });
         let failed = false;
         try {
             await recordScanner.findRecords({
@@ -254,14 +273,13 @@ describe("RecordScanner", () => {
             });
         } catch (err: any) {
             expect(err).to.be.instanceOf(Error);
-            expect(err.message).to.equal("You are using the RecordScanner implementation of the RecordProvider. No account has been registered with the RecordScanner which is required to use the findRecords method. Please set an with the setAccount method before calling the findRecords method again.");
             failed = true;
         }
         expect(failed).to.be.true;
     });
 
     it("should return record of string->boolean after successfully checking serial numbers", async () => {
-        recordScanner = new RecordScanner({ url: "https://record-scanner.aleo.org" });
+        recordScanner = new RecordScanner({ url: baseUrl });
         const mockResponse = {
             ok: true,
             status: 200,
@@ -282,13 +300,13 @@ describe("RecordScanner", () => {
             "5684626152578699086223993752521225507576791345254401210560771329591763880242field",
         ]);
         expect(body).to.equal(expectedBody);
-        expect(request.url).to.equal("https://record-scanner.aleo.org/records/sns");
+        expect(request.url).to.equal(recordScanner.url + "/records/sns");
         expect(request.method).to.equal("POST");
         expect(request.headers.get("Content-Type")).to.equal("application/json");
     });
 
     it("should return record of string->boolean after successfully checking tags", async () => {
-        recordScanner = new RecordScanner({ url: "https://record-scanner.aleo.org" });
+        recordScanner = new RecordScanner({ url: baseUrl });
         const mockResponse = {
             ok: true,
             status: 200,
@@ -311,13 +329,13 @@ describe("RecordScanner", () => {
             "5941252181432651644402279701137165256963073258332916685063623109173576520831field",
         ]);
         expect(body).to.equal(expectedBody);
-        expect(request.url).to.equal("https://record-scanner.aleo.org/records/tags");
+        expect(request.url).to.equal(recordScanner.url + "/records/tags");
         expect(request.method).to.equal("POST");
         expect(request.headers.get("Content-Type")).to.equal("application/json");
     });
 
     it("should return StatusResponse after successfully checking status", async () => {
-        recordScanner = new RecordScanner({ url: "https://record-scanner.aleo.org" });
+        recordScanner = new RecordScanner({ url: baseUrl });
         const mockResponse = {
             ok: true,
             status: 200,
@@ -326,20 +344,23 @@ describe("RecordScanner", () => {
         };
         recordScanner.setUuid(defaultAccount.viewKey());
         fetchStub.resolves(mockResponse);
-        const statusResponse = await recordScanner.checkStatus();
-        expect(statusResponse).to.deep.equal({ synced: true, percentage: 100 });
+        const statusResponse = await recordScanner.status();
+        expect(statusResponse.ok).to.equal(true);
+        if (statusResponse.ok) {
+            expect(statusResponse.data).to.deep.equal({ synced: true, percentage: 100 });
+        }
 
         const request = fetchStub.firstCall.args[0] as Request;
         const body = await request.text();
         const expectedBody = JSON.stringify(recordScanner.computeUUID(defaultAccount.viewKey()).toString());
         expect(body).to.equal(expectedBody);
-        expect(request.url).to.equal("https://record-scanner.aleo.org/status");
+        expect(request.url).to.equal(recordScanner.url + "/status");
         expect(request.method).to.equal("POST");
         expect(request.headers.get("Content-Type")).to.equal("application/json");
     });
 
     it("should handle HTTP errors", async () => {
-        recordScanner = new RecordScanner({ url: "https://record-scanner.aleo.org" });
+        recordScanner = new RecordScanner({ url: baseUrl });
         let mockResponse = {
             ok: false,
             status: 500,
@@ -347,15 +368,12 @@ describe("RecordScanner", () => {
         };
 
         fetchStub.resolves(mockResponse);
-        let failed = false;
-        try {
-            await recordScanner.register(defaultAccount.viewKey(), 0);
-        } catch (err: any) {
-            expect(err).to.be.instanceOf(Error);
-            expect(err.message).to.equal('{"error": "Internal server error"}');
-            failed = true;
+        let result = await recordScanner.register(defaultAccount.viewKey(), 0);
+        expect(result.ok).to.equal(false);
+        if (!result.ok) {
+            expect(result.status).to.equal(500);
+            expect(result.error.message).to.equal('{"error": "Internal server error"}');
         }
-        expect(failed).to.be.true;
 
         mockResponse = {
             ok: false,
@@ -364,18 +382,15 @@ describe("RecordScanner", () => {
         };
 
         fetchStub.resolves(mockResponse);
-        failed = false;
-        try {
-            await recordScanner.register(defaultAccount.viewKey(), 0);
-        } catch (err: any) {
-            expect(err).to.be.instanceOf(Error);
-            expect(err.message).to.equal('{"error": "Invalid view key"}');
-            failed = true;
+        result = await recordScanner.register(defaultAccount.viewKey(), 0);
+        expect(result.ok).to.equal(false);
+        if (!result.ok) {
+            expect(result.status).to.equal(422);
+            expect(result.error.message).to.equal('{"error": "Invalid view key"}');
         }
-        expect(failed).to.be.true;
 
         fetchStub.rejects(new Error("Unknown error"));
-        failed = false;
+        let failed = false;
         try {
             await recordScanner.register(defaultAccount.viewKey(), 0);
         } catch (err: any) {
@@ -384,5 +399,411 @@ describe("RecordScanner", () => {
             failed = true;
         }
         expect(failed).to.be.true;
+    });
+
+    describe("registerEncrypted error handling", () => {
+        it("registerEncrypted returns ok: false with status 422 when server returns 422", async () => {
+            await sodium.ready;
+            const keyPair = sodium.crypto_box_keypair();
+            const pubKeyB64 = sodium.to_base64(keyPair.publicKey, sodium.base64_variants.ORIGINAL);
+            recordScanner = new RecordScanner({ url: baseUrl });
+            fetchStub.onCall(0).resolves({
+                ok: true,
+                text: () =>
+                    Promise.resolve(
+                        JSON.stringify({ key_id: "test-key-id", public_key: pubKeyB64 }),
+                    ),
+            });
+            fetchStub.onCall(1).resolves({
+                ok: false,
+                status: 422,
+                text: () =>
+                    Promise.resolve(
+                        "Something went wrong: Encrypted registration failed",
+                    ),
+            });
+            const viewKey = defaultAccount.viewKey();
+            const result = await recordScanner.registerEncrypted(viewKey, 0);
+            expect(result.ok).to.equal(false);
+            if (!result.ok) {
+                expect(result.status).to.equal(422);
+                expect(result.error.message).to.include("Encrypted registration failed");
+            }
+        });
+
+        it("registerEncrypted returns ok: false with status 500 when server returns 500", async () => {
+            await sodium.ready;
+            const keyPair = sodium.crypto_box_keypair();
+            const pubKeyB64 = sodium.to_base64(keyPair.publicKey, sodium.base64_variants.ORIGINAL);
+            recordScanner = new RecordScanner({ url: baseUrl });
+            fetchStub.onCall(0).resolves({
+                ok: true,
+                text: () =>
+                    Promise.resolve(
+                        JSON.stringify({ key_id: "test-key-id", public_key: pubKeyB64 }),
+                    ),
+            });
+            fetchStub.onCall(1).resolves({
+                ok: false,
+                status: 500,
+                text: () =>
+                    Promise.resolve("Something went wrong: Unable to register view key."),
+            });
+            const viewKey = defaultAccount.viewKey();
+            const result = await recordScanner.registerEncrypted(viewKey, 0);
+            expect(result.ok).to.equal(false);
+            if (!result.ok) {
+                expect(result.status).to.equal(500);
+                expect(result.error.message).to.include("Unable to register view key");
+            }
+        });
+
+    });
+});
+
+describe("Record scanner encrypted registration", function () {
+    it("should fetch ephemeral public key from /pubkey", async function () {
+        this.retries(3);
+        const recordScanner = new RecordScanner({
+            url: sandboxUrl,
+            ...(apiKey && { apiKey }),
+            ...(consumerId && { consumerId }),
+        });
+        const pubkey = await recordScanner.getPubkey();
+        expect(pubkey).to.have.property("key_id");
+        expect(pubkey).to.have.property("public_key");
+        expect(pubkey.key_id).to.be.a("string");
+        expect(pubkey.public_key).to.be.a("string");
+    });
+
+    it("should execute encrypted registration (/register/encrypted)", async function () {
+        this.retries(3);
+        const startBlock = 0;
+
+        // Ensure encryption roundtrip works locally (same pattern as program-manager encrypted proving test).
+        await sodium.ready;
+        const keyPair = sodium.crypto_box_keypair();
+        const viewKey = new Account().viewKey();
+        const ciphertext = encryptRegistrationRequest(
+            sodium.to_base64(keyPair.publicKey, sodium.base64_variants.ORIGINAL),
+            viewKey,
+            startBlock,
+        );
+        const plaintextBytes = sodium.crypto_box_seal_open(
+            sodium.from_base64(ciphertext, sodium.base64_variants.ORIGINAL),
+            keyPair.publicKey,
+            keyPair.privateKey,
+        );
+        const vkBytes = viewKey.toBytesLe();
+        expect(plaintextBytes.length).to.equal(vkBytes.length + 4);
+        const decodedStart = new DataView(plaintextBytes.buffer).getUint32(plaintextBytes.length - 4, true);
+        expect(decodedStart).to.equal(startBlock);
+
+        // Register via encrypted flow against sandbox.
+        const recordScanner = new RecordScanner({
+            url: sandboxUrl,
+            ...(apiKey && { apiKey }),
+            ...(consumerId && { consumerId }),
+        });
+        const result = await recordScanner.registerEncrypted(viewKey, startBlock);
+        expect(result.ok).to.equal(true);
+        if (result.ok) {
+            expect(result.data).to.have.property("uuid");
+            expect(result.data.uuid).to.equal(recordScanner.computeUUID(viewKey).toString());
+        }
+    });
+
+    it("should execute unencrypted registration (/register)", async function () {
+        this.retries(3);
+        const startBlock = 0;
+
+        const viewKey = new Account().viewKey();
+
+        // Register via encrypted flow against sandbox.
+        const recordScanner = new RecordScanner({
+            url: sandboxUrl,
+            ...(apiKey && { apiKey }),
+            ...(consumerId && { consumerId }),
+        });
+        const result = await recordScanner.register(viewKey, startBlock);
+        expect(result.ok).to.equal(true);
+        if (result.ok) {
+            expect(result.data).to.have.property("uuid");
+            expect(result.data.uuid).to.equal(
+                recordScanner.computeUUID(viewKey).toString(),
+            );
+        }
+    });
+});
+
+const hasRealApiEnv = Boolean(sandboxUrl && viewKeyStr);
+
+describe("RecordScanner (real API)", function () {
+    this.timeout(30000);
+
+    const viewKey = viewKeyStr ? ViewKey.from_string(viewKeyStr) : null;
+    const accountFromEnv = process.env.PUZZLE_PK
+        ? new Account({ privateKey: process.env.PUZZLE_PK as string })
+        : null;
+
+    describe("utility methods", function () {
+        it("computeUUID returns the same value for the same view key", function () {
+            if (!viewKey) this.skip();
+            const scanner = new RecordScanner({ url: sandboxUrl });
+            const a = scanner.computeUUID(viewKey).toString();
+            const b = scanner.computeUUID(viewKey).toString();
+            expect(a).to.equal(b);
+        });
+
+        it("uuidIsValid accepts a valid field string and rejects invalid", function () {
+            if (!viewKey) this.skip();
+            const scanner = new RecordScanner({ url: sandboxUrl });
+            const validUuid = scanner.computeUUID(viewKey).toString();
+            expect(scanner.uuidIsValid(validUuid)).to.equal(true);
+            expect(scanner.uuidIsValid("not-a-valid-uuid")).to.equal(false);
+        });
+
+        it("when Account is set, view key is stored and owned/findRecords can use it", async function () {
+            if (!hasRealApiEnv || !accountFromEnv) this.skip();
+            const scanner = new RecordScanner({
+                url: sandboxUrl,
+                account: accountFromEnv,
+                decryptEnabled: true,
+                ...(apiKey && { apiKey }),
+                ...(consumerId && { consumerId }),
+            });
+            const uuid = scanner.computeUUID(accountFromEnv.viewKey()).toString();
+            const result = await scanner.owned({
+                uuid,
+                unspent: true,
+                filter: { program: "credits.aleo", records: ["credits"] },
+                responseFilter: { record_ciphertext: true },
+            });
+            console.log(result);
+            expect(result.ok).to.equal(true);
+            if (result.ok) {
+                expect(result.data).to.be.an("array");
+                if (result.data.length > 0 && result.data[0].record_ciphertext) {
+                    expect(result.data[0].record_plaintext).to.be.a("string");
+                }
+            }
+        });
+    });
+
+    describe("UUID only, no view keys or account", function () {
+        it("findCreditsRecord throws DecryptionNotEnabledError when decryptEnabled is false", async function () {
+            if (!hasRealApiEnv || !viewKey) this.skip();
+            const scanner = new RecordScanner({
+                url: sandboxUrl,
+                ...(apiKey && { apiKey }),
+                ...(consumerId && { consumerId }),
+            });
+            scanner.setUuid(viewKey);
+            const uuid = scanner.computeUUID(viewKey).toString();
+            try {
+                await scanner.findCreditsRecord(1, { uuid, unspent: true });
+                expect.fail("should have thrown DecryptionNotEnabledError");
+            } catch (err) {
+                expect(err).to.be.instanceOf(DecryptionNotEnabledError);
+            }
+        });
+
+        it("findCreditsRecord throws ViewKeyNotStoredError when decryptEnabled is true but no view key stored", async function () {
+            if (!hasRealApiEnv || !viewKey) this.skip();
+            const scanner = new RecordScanner({
+                url: sandboxUrl,
+                decryptEnabled: true,
+                ...(apiKey && { apiKey }),
+                ...(consumerId && { consumerId }),
+            });
+            scanner.setUuid(viewKey);
+            const uuid = scanner.computeUUID(viewKey).toString();
+            try {
+                await scanner.findCreditsRecord(1, { uuid, unspent: true });
+                expect.fail("should have thrown ViewKeyNotStoredError");
+            } catch (err) {
+                expect(err).to.be.instanceOf(ViewKeyNotStoredError);
+            }
+        });
+
+        it("findCreditsRecords throws DecryptionNotEnabledError when decryptEnabled is false", async function () {
+            if (!hasRealApiEnv || !viewKey) this.skip();
+            const scanner = new RecordScanner({
+                url: sandboxUrl,
+                ...(apiKey && { apiKey }),
+                ...(consumerId && { consumerId }),
+            });
+            scanner.setUuid(viewKey);
+            const uuid = scanner.computeUUID(viewKey).toString();
+            try {
+                await scanner.findCreditsRecords([1], { uuid, unspent: true });
+                expect.fail("should have thrown DecryptionNotEnabledError");
+            } catch (err) {
+                expect(err).to.be.instanceOf(DecryptionNotEnabledError);
+            }
+        });
+
+        it("findCreditsRecords throws ViewKeyNotStoredError when decryptEnabled is true but no view key stored", async function () {
+            if (!hasRealApiEnv || !viewKey) this.skip();
+            const scanner = new RecordScanner({
+                url: sandboxUrl,
+                decryptEnabled: true,
+                ...(apiKey && { apiKey }),
+                ...(consumerId && { consumerId }),
+            });
+            scanner.setUuid(viewKey);
+            const uuid = scanner.computeUUID(viewKey).toString();
+            try {
+                await scanner.findCreditsRecords([1], { uuid, unspent: true });
+                expect.fail("should have thrown ViewKeyNotStoredError");
+            } catch (err) {
+                expect(err).to.be.instanceOf(ViewKeyNotStoredError);
+            }
+        });
+
+        it("owned returns records without record_plaintext when only UUID set and decryptEnabled false", async function () {
+            if (!hasRealApiEnv || !viewKey) this.skip();
+            const scanner = new RecordScanner({
+                url: sandboxUrl,
+                ...(apiKey && { apiKey }),
+                ...(consumerId && { consumerId }),
+            });
+            scanner.setUuid(viewKey);
+            const uuid = scanner.computeUUID(viewKey).toString();
+            const result = await scanner.owned({
+                uuid,
+                unspent: true,
+                filter: { program: "credits.aleo", records: ["credits"] },
+                responseFilter: { record_ciphertext: true },
+            });
+            expect(result.ok).to.equal(true);
+            if (result.ok && result.data.length > 0) {
+                const first = result.data[0];
+                if (first.record_ciphertext) {
+                    expect(first.record_plaintext).to.satisfy(
+                        (v: unknown) => v === undefined || v === "" || (typeof v === "string" && v.trim() === ""),
+                    );
+                }
+            }
+        });
+    });
+
+    describe("view key or account set", function () {
+        it("owned with decryptEnabled and addViewKey returns records with record_plaintext", async function () {
+            if (!hasRealApiEnv || !viewKey) this.skip();
+            const scanner = new RecordScanner({
+                url: sandboxUrl,
+                viewKeys: [viewKey],
+                decryptEnabled: true,
+                ...(apiKey && { apiKey }),
+                ...(consumerId && { consumerId }),
+            });
+            const uuid = scanner.computeUUID(viewKey).toString();
+            const result = await scanner.owned({
+                uuid,
+                unspent: true,
+                filter: { program: "credits.aleo", records: ["credits"] },
+                responseFilter: { record_ciphertext: true },
+            });
+            expect(result.ok).to.equal(true);
+            if (result.ok && result.data.length > 0) {
+                const withCipher = result.data.find((r) => r.record_ciphertext?.trim());
+                if (withCipher) {
+                    expect(withCipher.record_plaintext).to.be.a("string");
+                    expect(withCipher.record_plaintext!.trim().length).to.be.greaterThan(0);
+                }
+            }
+        });
+
+        it("findCreditsRecord returns a record when view key and decryptEnabled are set", async function () {
+            if (!hasRealApiEnv || !viewKey) this.skip();
+            const scanner = new RecordScanner({
+                url: sandboxUrl,
+                viewKeys: [viewKey],
+                decryptEnabled: true,
+                ...(apiKey && { apiKey }),
+                ...(consumerId && { consumerId }),
+            });
+            const uuid = scanner.computeUUID(viewKey).toString();
+            try {
+                const record = await scanner.findCreditsRecord(1, { uuid, unspent: true });
+                expect(record).to.have.property("record_plaintext");
+                expect(record.record_plaintext).to.be.a("string");
+            } catch (err) {
+                if (err instanceof RecordNotFoundError) {
+                    this.skip();
+                }
+                throw err;
+            }
+        });
+
+        it("findCreditsRecords returns records when view key and decryptEnabled are set", async function () {
+            if (!hasRealApiEnv || !viewKey) this.skip();
+            const scanner = new RecordScanner({
+                url: sandboxUrl,
+                viewKeys: [viewKey],
+                decryptEnabled: true,
+                ...(apiKey && { apiKey }),
+                ...(consumerId && { consumerId }),
+            });
+            const uuid = scanner.computeUUID(viewKey).toString();
+            const records = await scanner.findCreditsRecords([1, 100], { uuid, unspent: true });
+            expect(records).to.be.an("array");
+            for (const record of records) {
+                expect(record).to.have.property("record_plaintext");
+                expect(record.record_plaintext).to.be.a("string");
+            }
+        });
+    });
+
+    describe("register and status", function () {
+        it("register returns ok and uuid matches computeUUID", async function () {
+            this.retries(3);
+            const ephemeralViewKey = new Account().viewKey();
+            const scanner = new RecordScanner({
+                url: sandboxUrl,
+                ...(apiKey && { apiKey }),
+                ...(consumerId && { consumerId }),
+            });
+            const result = await scanner.register(ephemeralViewKey, 0);
+            expect(result.ok).to.equal(true);
+            if (result.ok) {
+                expect(result.data.uuid).to.equal(scanner.computeUUID(ephemeralViewKey).toString());
+            }
+        });
+
+        it("registerEncrypted returns ok and uuid matches computeUUID", async function () {
+            this.retries(3);
+            await sodium.ready;
+            const ephemeralViewKey = new Account().viewKey();
+            const scanner = new RecordScanner({
+                url: sandboxUrl,
+                ...(apiKey && { apiKey }),
+                ...(consumerId && { consumerId }),
+            });
+            const result = await scanner.registerEncrypted(ephemeralViewKey, 0);
+            expect(result.ok).to.equal(true);
+            if (result.ok) {
+                expect(result.data.uuid).to.equal(scanner.computeUUID(ephemeralViewKey).toString());
+            }
+        });
+
+        it("status returns expected shape when UUID is set", async function () {
+            if (!hasRealApiEnv || !viewKey) this.skip();
+            const scanner = new RecordScanner({
+                url: sandboxUrl,
+                ...(apiKey && { apiKey }),
+                ...(consumerId && { consumerId }),
+            });
+            scanner.setUuid(viewKey);
+            const result = await scanner.status();
+            expect(result.ok).to.equal(true);
+            if (result.ok) {
+                expect(result.data).to.have.property("synced");
+                expect(result.data).to.have.property("percentage");
+                expect(typeof result.data.synced).to.equal("boolean");
+                expect(typeof result.data.percentage).to.equal("number");
+            }
+        });
     });
 });

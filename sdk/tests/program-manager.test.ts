@@ -217,6 +217,9 @@ describe('Program Manager', async () => {
                         },
                     );
 
+                if (!safeResult.ok) {
+                    console.log(safeResult);
+                }
                 expect(safeResult.ok).to.equal(true);
                 if (safeResult.ok) {
                     expect(safeResult.data).to.have.property("transaction");

@@ -1,4 +1,4 @@
-import { get, post, parseJSON, logAndThrow, retryWithBackoff, environment } from "./utils.js";
+import { get, post, parseJSON, logAndThrow, retryWithBackoff, environment, isNode } from "./utils.js";
 import { Account } from "./account.js";
 import { BlockJSON } from "./models/blockJSON.js";
 import { TransactionJSON } from "./models/transaction/transactionJSON.js";
@@ -1851,6 +1851,7 @@ class AleoNetworkClient {
                 // Get an ephemeral public key from a DPS service.
                 const pubKeyResponse = await get(proverUri + "/pubkey", {
                     headers,
+                    credentials: "include",
                 });
 
                 // Encrypt the provingRequest.
@@ -1867,10 +1868,19 @@ class AleoNetworkClient {
                     key_id: pubkey.key_id,
                     ciphertext: ciphertext,
                 };
+
+                // We're in node, attempt to set the cookie manually.
+                const cookie = isNode() ? pubKeyResponse.headers.get("set-cookie"): undefined;
+
+                // Send the encrypted proving request to the DPS service.
                 const res = await fetch(`${proverUri}/prove/encrypted`, {
                     method: "POST",
                     body: JSON.stringify(payload),
-                    headers,
+                    headers: {
+                        ...headers,
+                        ...(cookie ? { Cookie: cookie } : {})
+                    },
+                    credentials: "include",
                 });
 
                 // Properly handle the proving response.
