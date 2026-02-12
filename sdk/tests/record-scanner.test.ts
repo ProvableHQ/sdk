@@ -2,15 +2,25 @@ import { Account } from "../src/account";
 import { CHECK_SNS_RESPONSE, CHECK_TAGS_RESPONSE, ENCRYPTED_RECORDS, OWNED_RECORDS } from "./data/records";
 import { expect } from "chai";
 import sodium from "libsodium-wrappers";
+import {
+    DecryptionNotEnabledError,
+    RecordNotFoundError,
+    RecordScannerRequestError,
+    ViewKeyNotStoredError,
+} from "../src/models/record-scanner/error";
 import { OwnedFilter } from "../src/models/record-scanner/ownedFilter";
 import { OwnedRecordsResponseFilter } from "../src/models/record-scanner/ownedRecordsResponseFilter";
-import { RecordScannerRequestError } from "../src/models/record-scanner/error";
 import { RecordScanner } from "../src/record-scanner";
 import { RecordsFilter } from "../src/models/record-scanner/recordsFilter";
 import { RecordsResponseFilter } from "../src/models/record-scanner/recordsResponseFilter";
 import { ViewKey } from "../src/node";
 import { encryptRegistrationRequest } from "../src/security";
 import sinon from "sinon";
+
+const sandboxUrl = process.env.RECORD_SCANNER_URL ?? "";
+const viewKeyStr = process.env.PUZZLE_VK as string;
+const apiKey = process.env.KONG_API_KEY as string;
+const consumerId = process.env.CONSUMER_ID as string | undefined;
 
 describe("RecordScanner", () => {
     const defaultAccount = new Account({ privateKey: "APrivateKey1zkp8CZNn3yeCseEtxuVPbDCwSyhGW6yZKUYKfgXmcpoGPWH" });
@@ -453,10 +463,6 @@ describe("RecordScanner", () => {
 });
 
 describe("Record scanner encrypted registration", function () {
-    const sandboxUrl = process.env.RECORD_SCANNER_URL ?? "";
-    const apiKey = process.env.KONG_API_KEY as string;
-    const consumerId = process.env.CONSUMER_ID as string | undefined;
-
     it("should fetch ephemeral public key from /pubkey", async function () {
         this.retries(3);
         const recordScanner = new RecordScanner({
@@ -528,5 +534,277 @@ describe("Record scanner encrypted registration", function () {
                 recordScanner.computeUUID(viewKey).toString(),
             );
         }
+    });
+});
+
+const hasRealApiEnv = Boolean(sandboxUrl && viewKeyStr);
+
+describe("RecordScanner (real API)", function () {
+    this.timeout(30000);
+
+    const viewKey = viewKeyStr ? ViewKey.from_string(viewKeyStr) : null;
+    const accountFromEnv = process.env.PUZZLE_PK
+        ? new Account({ privateKey: process.env.PUZZLE_PK as string })
+        : null;
+
+    describe("utility methods", function () {
+        it("computeUUID returns the same value for the same view key", function () {
+            if (!viewKey) this.skip();
+            const scanner = new RecordScanner({ url: sandboxUrl });
+            const a = scanner.computeUUID(viewKey).toString();
+            const b = scanner.computeUUID(viewKey).toString();
+            expect(a).to.equal(b);
+        });
+
+        it("uuidIsValid accepts a valid field string and rejects invalid", function () {
+            if (!viewKey) this.skip();
+            const scanner = new RecordScanner({ url: sandboxUrl });
+            const validUuid = scanner.computeUUID(viewKey).toString();
+            expect(scanner.uuidIsValid(validUuid)).to.equal(true);
+            expect(scanner.uuidIsValid("not-a-valid-uuid")).to.equal(false);
+        });
+
+        it("when Account is set, view key is stored and owned/findRecords can use it", async function () {
+            if (!hasRealApiEnv || !accountFromEnv) this.skip();
+            const scanner = new RecordScanner({
+                url: sandboxUrl,
+                account: accountFromEnv,
+                decryptEnabled: true,
+                ...(apiKey && { apiKey }),
+                ...(consumerId && { consumerId }),
+            });
+            const uuid = scanner.computeUUID(accountFromEnv.viewKey()).toString();
+            const result = await scanner.owned({
+                uuid,
+                unspent: true,
+                filter: { program: "credits.aleo", records: ["credits"] },
+                responseFilter: { record_ciphertext: true },
+            });
+            console.log(result);
+            expect(result.ok).to.equal(true);
+            if (result.ok) {
+                expect(result.data).to.be.an("array");
+                if (result.data.length > 0 && result.data[0].record_ciphertext) {
+                    expect(result.data[0].record_plaintext).to.be.a("string");
+                }
+            }
+        });
+    });
+
+    describe("UUID only, no view keys or account", function () {
+        it("findCreditsRecord throws DecryptionNotEnabledError when decryptEnabled is false", async function () {
+            if (!hasRealApiEnv || !viewKey) this.skip();
+            const scanner = new RecordScanner({
+                url: sandboxUrl,
+                ...(apiKey && { apiKey }),
+                ...(consumerId && { consumerId }),
+            });
+            scanner.setUuid(viewKey);
+            const uuid = scanner.computeUUID(viewKey).toString();
+            try {
+                await scanner.findCreditsRecord(1, { uuid, unspent: true });
+                expect.fail("should have thrown DecryptionNotEnabledError");
+            } catch (err) {
+                expect(err).to.be.instanceOf(DecryptionNotEnabledError);
+            }
+        });
+
+        it("findCreditsRecord throws ViewKeyNotStoredError when decryptEnabled is true but no view key stored", async function () {
+            if (!hasRealApiEnv || !viewKey) this.skip();
+            const scanner = new RecordScanner({
+                url: sandboxUrl,
+                decryptEnabled: true,
+                ...(apiKey && { apiKey }),
+                ...(consumerId && { consumerId }),
+            });
+            scanner.setUuid(viewKey);
+            const uuid = scanner.computeUUID(viewKey).toString();
+            try {
+                await scanner.findCreditsRecord(1, { uuid, unspent: true });
+                expect.fail("should have thrown ViewKeyNotStoredError");
+            } catch (err) {
+                expect(err).to.be.instanceOf(ViewKeyNotStoredError);
+            }
+        });
+
+        it("findCreditsRecords throws DecryptionNotEnabledError when decryptEnabled is false", async function () {
+            if (!hasRealApiEnv || !viewKey) this.skip();
+            const scanner = new RecordScanner({
+                url: sandboxUrl,
+                ...(apiKey && { apiKey }),
+                ...(consumerId && { consumerId }),
+            });
+            scanner.setUuid(viewKey);
+            const uuid = scanner.computeUUID(viewKey).toString();
+            try {
+                await scanner.findCreditsRecords([1], { uuid, unspent: true });
+                expect.fail("should have thrown DecryptionNotEnabledError");
+            } catch (err) {
+                expect(err).to.be.instanceOf(DecryptionNotEnabledError);
+            }
+        });
+
+        it("findCreditsRecords throws ViewKeyNotStoredError when decryptEnabled is true but no view key stored", async function () {
+            if (!hasRealApiEnv || !viewKey) this.skip();
+            const scanner = new RecordScanner({
+                url: sandboxUrl,
+                decryptEnabled: true,
+                ...(apiKey && { apiKey }),
+                ...(consumerId && { consumerId }),
+            });
+            scanner.setUuid(viewKey);
+            const uuid = scanner.computeUUID(viewKey).toString();
+            try {
+                await scanner.findCreditsRecords([1], { uuid, unspent: true });
+                expect.fail("should have thrown ViewKeyNotStoredError");
+            } catch (err) {
+                expect(err).to.be.instanceOf(ViewKeyNotStoredError);
+            }
+        });
+
+        it("owned returns records without record_plaintext when only UUID set and decryptEnabled false", async function () {
+            if (!hasRealApiEnv || !viewKey) this.skip();
+            const scanner = new RecordScanner({
+                url: sandboxUrl,
+                ...(apiKey && { apiKey }),
+                ...(consumerId && { consumerId }),
+            });
+            scanner.setUuid(viewKey);
+            const uuid = scanner.computeUUID(viewKey).toString();
+            const result = await scanner.owned({
+                uuid,
+                unspent: true,
+                filter: { program: "credits.aleo", records: ["credits"] },
+                responseFilter: { record_ciphertext: true },
+            });
+            expect(result.ok).to.equal(true);
+            if (result.ok && result.data.length > 0) {
+                const first = result.data[0];
+                if (first.record_ciphertext) {
+                    expect(first.record_plaintext).to.satisfy(
+                        (v: unknown) => v === undefined || v === "" || (typeof v === "string" && v.trim() === ""),
+                    );
+                }
+            }
+        });
+    });
+
+    describe("view key or account set", function () {
+        it("owned with decryptEnabled and addViewKey returns records with record_plaintext", async function () {
+            if (!hasRealApiEnv || !viewKey) this.skip();
+            const scanner = new RecordScanner({
+                url: sandboxUrl,
+                viewKeys: [viewKey],
+                decryptEnabled: true,
+                ...(apiKey && { apiKey }),
+                ...(consumerId && { consumerId }),
+            });
+            const uuid = scanner.computeUUID(viewKey).toString();
+            const result = await scanner.owned({
+                uuid,
+                unspent: true,
+                filter: { program: "credits.aleo", records: ["credits"] },
+                responseFilter: { record_ciphertext: true },
+            });
+            expect(result.ok).to.equal(true);
+            if (result.ok && result.data.length > 0) {
+                const withCipher = result.data.find((r) => r.record_ciphertext?.trim());
+                if (withCipher) {
+                    expect(withCipher.record_plaintext).to.be.a("string");
+                    expect(withCipher.record_plaintext!.trim().length).to.be.greaterThan(0);
+                }
+            }
+        });
+
+        it("findCreditsRecord returns a record when view key and decryptEnabled are set", async function () {
+            if (!hasRealApiEnv || !viewKey) this.skip();
+            const scanner = new RecordScanner({
+                url: sandboxUrl,
+                viewKeys: [viewKey],
+                decryptEnabled: true,
+                ...(apiKey && { apiKey }),
+                ...(consumerId && { consumerId }),
+            });
+            const uuid = scanner.computeUUID(viewKey).toString();
+            try {
+                const record = await scanner.findCreditsRecord(1, { uuid, unspent: true });
+                expect(record).to.have.property("record_plaintext");
+                expect(record.record_plaintext).to.be.a("string");
+            } catch (err) {
+                if (err instanceof RecordNotFoundError) {
+                    this.skip();
+                }
+                throw err;
+            }
+        });
+
+        it("findCreditsRecords returns records when view key and decryptEnabled are set", async function () {
+            if (!hasRealApiEnv || !viewKey) this.skip();
+            const scanner = new RecordScanner({
+                url: sandboxUrl,
+                viewKeys: [viewKey],
+                decryptEnabled: true,
+                ...(apiKey && { apiKey }),
+                ...(consumerId && { consumerId }),
+            });
+            const uuid = scanner.computeUUID(viewKey).toString();
+            const records = await scanner.findCreditsRecords([1, 100], { uuid, unspent: true });
+            expect(records).to.be.an("array");
+            for (const record of records) {
+                expect(record).to.have.property("record_plaintext");
+                expect(record.record_plaintext).to.be.a("string");
+            }
+        });
+    });
+
+    describe("register and status", function () {
+        it("register returns ok and uuid matches computeUUID", async function () {
+            this.retries(3);
+            const ephemeralViewKey = new Account().viewKey();
+            const scanner = new RecordScanner({
+                url: sandboxUrl,
+                ...(apiKey && { apiKey }),
+                ...(consumerId && { consumerId }),
+            });
+            const result = await scanner.register(ephemeralViewKey, 0);
+            expect(result.ok).to.equal(true);
+            if (result.ok) {
+                expect(result.data.uuid).to.equal(scanner.computeUUID(ephemeralViewKey).toString());
+            }
+        });
+
+        it("registerEncrypted returns ok and uuid matches computeUUID", async function () {
+            this.retries(3);
+            await sodium.ready;
+            const ephemeralViewKey = new Account().viewKey();
+            const scanner = new RecordScanner({
+                url: sandboxUrl,
+                ...(apiKey && { apiKey }),
+                ...(consumerId && { consumerId }),
+            });
+            const result = await scanner.registerEncrypted(ephemeralViewKey, 0);
+            expect(result.ok).to.equal(true);
+            if (result.ok) {
+                expect(result.data.uuid).to.equal(scanner.computeUUID(ephemeralViewKey).toString());
+            }
+        });
+
+        it("status returns expected shape when UUID is set", async function () {
+            if (!hasRealApiEnv || !viewKey) this.skip();
+            const scanner = new RecordScanner({
+                url: sandboxUrl,
+                ...(apiKey && { apiKey }),
+                ...(consumerId && { consumerId }),
+            });
+            scanner.setUuid(viewKey);
+            const result = await scanner.status();
+            expect(result.ok).to.equal(true);
+            if (result.ok) {
+                expect(result.data).to.have.property("synced");
+                expect(result.data).to.have.property("percentage");
+                expect(typeof result.data.synced).to.equal("boolean");
+                expect(typeof result.data.percentage).to.equal("number");
+            }
+        });
     });
 });
