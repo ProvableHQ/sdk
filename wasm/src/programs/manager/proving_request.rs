@@ -62,6 +62,7 @@ impl ProgramManager {
         broadcast: bool,
         unchecked: bool,
         edition: Option<u16>,
+        useFeeMaster: bool,
     ) -> Result<ProvingRequest, String> {
         log(&format!("Creating proving request for {function_name}"));
         let mut process_native = ProcessNative::load_web().map_err(|err| err.to_string())?;
@@ -81,7 +82,7 @@ impl ProgramManager {
         let authorization =
             authorize!(process, process_inputs!(inputs), program, function_name, private_key, rng, unchecked, edition);
 
-        // Add
+        // Add base fee to the authorization.
         let base_fee_microcredits = ProgramManager::estimate_fee_for_authorization(
             &crate::Authorization::from(&authorization),
             program,
@@ -91,7 +92,7 @@ impl ProgramManager {
 
         // Authorize the fee.
         let execution_id = authorization.to_execution_id().map_err(|e| e.to_string())?;
-        let fee_authorization = if program_native.id().to_string().as_str() == "credits.aleo"
+        let fee_authorization = if (program_native.id().to_string().as_str() == "credits.aleo" || useFeeMaster)
             && (function_name == "split"
                 || function_name == "upgrade"
                 || function_name == "fee_public"
