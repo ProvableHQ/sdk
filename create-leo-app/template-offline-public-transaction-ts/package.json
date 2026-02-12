@@ -8,7 +8,7 @@
     "dev": "npm run build && node --trace-uncaught dist/index.js"
   },
   "dependencies": {
-    "@provablehq/sdk": "^0.9.15"
+    "@provablehq/sdk": "^0.9.16"
   },
   "devDependencies": {
     "rimraf": "^6.0.1",
