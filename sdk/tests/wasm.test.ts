@@ -433,7 +433,7 @@ describe('WASM Objects', () => {
         const privateKey = PrivateKey.from_string("APrivateKey1zkp8CZNn3yeCseEtxuVPbDCwSyhGW6yZKUYKfgXmcpoGPWH");
         const viewKey = privateKey.to_view_key();
 
-        let connection = new AleoNetworkClient("https://api.explorer.provable.com/v1");
+        let connection = new AleoNetworkClient("https://api.provable.com/v2");
 
         if (connection.network === "testnet") {
         it('can be decrypted with a valid transition view key', () => {

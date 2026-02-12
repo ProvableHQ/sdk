@@ -26,7 +26,7 @@ export interface ProveApiErrorBody {
 
 /** Error thrown on prove API failure; `status` is set for retry logic (e.g. retryWithBackoff checks error.status >= 500). */
 export interface ProvingRequestError extends Error {
-    status?: bigint | number;
+    status?: number;
 }
 
 /** Success variant of a proving request result. */
@@ -38,7 +38,7 @@ export interface ProvingSuccess {
 /** Failure variant of a proving request result (HTTP 400, 500, 503). */
 export interface ProvingFailure {
     ok: false;
-    status: bigint | number;
+    status: number;
     error: ProveApiErrorBody;
 }
 

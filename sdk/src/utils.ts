@@ -16,6 +16,12 @@ function detectBrowser() {
     }
 }
 
+export function isNode(): boolean {
+    return typeof process !== "undefined" &&
+    process.versions != null &&
+    process.versions.node != null;
+}
+
 export function environment() {
     if ((typeof process !== 'undefined') &&
         (process.release?.name === 'node')) {

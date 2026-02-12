@@ -85,13 +85,13 @@ import { Account, ProgramManager, AleoKeyProvider, NetworkRecordProvider, AleoNe
 
 // Create a new NetworkClient, KeyProvider, and RecordProvider
 const account = Account.from_string({privateKey: "user1PrivateKey"});
-const networkClient = new AleoNetworkClient("https://api.explorer.provable.com/v1");
+const networkClient = new AleoNetworkClient("https://api.provable.com/v2");
 const keyProvider = new AleoKeyProvider();
 const recordProvider = new NetworkRecordProvider(account, networkClient);
 
 // Initialize a program manager with the key provider to automatically fetch keys for executions
 const USER_2_ADDRESS = "user2Address";
-const programManager = new ProgramManager("https://api.explorer.provable.com/v1", keyProvider, recordProvider);
+const programManager = new ProgramManager("https://api.provable.com/v2", keyProvider, recordProvider);
 programManager.setAccount(account);
 
 /// Send private transfer to User 2
@@ -106,12 +106,12 @@ import { Account, ProgramManager, AleoKeyProvider, NetworkRecordProvider, AleoNe
 
 // Create a new NetworkClient, KeyProvider, and RecordProvider
 const account = Account.from_string({privateKey: "user2PrivateKey"});
-const networkClient = new AleoNetworkClient("https://api.explorer.provable.com/v1");
+const networkClient = new AleoNetworkClient("https://api.provable.com/v2");
 const keyProvider = new AleoKeyProvider();
 const recordProvider_User2 = new NetworkRecordProvider(account, networkClient);
 
 // Initialize a program manager with the key provider to automatically fetch keys for executions
-const programManager = new ProgramManager("https://api.explorer.provable.com/v1", keyProvider, recordProvider);
+const programManager = new ProgramManager("https://api.provable.com/v2", keyProvider, recordProvider);
 programManager.setAccount(account);
 
 // Fetch the transaction from the network that user 1 sent

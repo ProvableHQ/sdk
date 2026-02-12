@@ -2,7 +2,7 @@ import * as aleo from "@provablehq/sdk";
 
 await aleo.initThreadPool();
 
-const defaultHost = "https://api.explorer.provable.com/v1";
+const defaultHost = "https://api.provable.com/v2";
 const keyProvider = new aleo.AleoKeyProvider();
 const programManager = new aleo.ProgramManager(defaultHost, keyProvider, undefined);
 keyProvider.useCache(true);

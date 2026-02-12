@@ -32,6 +32,7 @@ use crate::{
             CurrentNetwork,
             FieldNative,
             IdentifierNative,
+            LiteralNative,
             PlaintextEntryNative,
             PlaintextNative,
             ProgramIDNative,
@@ -108,7 +109,11 @@ impl RecordPlaintext {
     pub fn owner(&self) -> Result<Address, String> {
         match self.0.owner() {
             Owner::<CurrentNetwork, PlaintextNative>::Public(owner) => Ok(Address::from(*owner)),
-            _ => Err("Record is not public".to_string()),
+            // For decrypted records, extract the address from the plaintext literal
+            Owner::<CurrentNetwork, PlaintextNative>::Private(plaintext) => match plaintext {
+                PlaintextNative::Literal(LiteralNative::Address(address), _) => Ok(Address::from(*address)),
+                _ => Err("Private owner is not an address literal".to_string()),
+            },
         }
     }
 
@@ -467,6 +472,20 @@ mod tests {
             Some("The record plaintext string provided was invalid".into())
         );
         assert!(RecordPlaintext::from_string(invalid_bech32).is_err());
+    }
+
+    #[wasm_bindgen_test]
+    fn test_owner_with_private_visibility() {
+        let record = RecordPlaintext::from_string(CREDITS_RECORD).unwrap();
+        let owner = record.owner().unwrap();
+        assert_eq!(owner.to_string(), "aleo1j7qxyunfldj2lp8hsvy7mw5k8zaqgjfyr72x2gh3x4ewgae8v5gscf5jh3");
+    }
+
+    #[wasm_bindgen_test]
+    fn test_owner_with_private_visibility_battleship() {
+        let record = RecordPlaintext::from_string(BATTLESHIP_RECORD).unwrap();
+        let owner = record.owner().unwrap();
+        assert_eq!(owner.to_string(), "aleo1kh5t7m30djl0ecdn4f5vuzp7dx0tcwh7ncquqjkm4matj2p2zqpqm6at48");
     }
 
     #[wasm_bindgen_test]
