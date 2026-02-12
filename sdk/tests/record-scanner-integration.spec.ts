@@ -10,8 +10,11 @@ describe("RecordScanner", () => {
     let recordScanner = new RecordScanner({ url: recordScannerUrl, apiKey });
 
     it("should successfully register a view key", async () => {
-        let response = await recordScanner.register(viewKey, 0);
-        expect(response.uuid).to.equal(recordScanner.computeUUID(viewKey).toString());
+        const result = await recordScanner.register(viewKey, 0);
+        expect(result.ok).to.equal(true);
+        if (result.ok) {
+            expect(result.data.uuid).to.equal(recordScanner.computeUUID(viewKey).toString());
+        }
     });
 
     it("should successfully get owned records", async () => {
@@ -118,8 +121,11 @@ describe("RecordScanner", () => {
     });
 
     it("should successfully get a job status", async () => {
-        let response = await recordScanner.checkStatus();
-        expect(response.synced).to.be.instanceOf(Boolean);
-        expect(response.percentage).to.be.instanceOf(Number);
+        let response = await recordScanner.status();
+        expect(response.ok).to.equal(true);
+        if (response.ok) {
+            expect(response.data.synced).to.be.instanceOf(Boolean);
+            expect(response.data.percentage).to.be.instanceOf(Number);
+        }
     })
 });

@@ -9,7 +9,6 @@ import { OwnedRecordsResponseFilter } from "./ownedRecordsResponseFilter";
  * const ownedFilter: OwnedFilter = {
  *     unspent: true,
  *     nonces: ["3077450429259593211617823051143573281856129402760267155982965992208217472983group"],
- *     decrypt: true,
  *     filter: {
  *         program: "credits.aleo",
  *         record: "credits",
@@ -17,7 +16,6 @@ import { OwnedRecordsResponseFilter } from "./ownedRecordsResponseFilter";
  * }
  */ 
 export interface OwnedFilter extends RecordSearchParams {
-    decrypt?: boolean;
     filter?: RecordsFilter;
     responseFilter?: OwnedRecordsResponseFilter;
     unspent?: boolean;

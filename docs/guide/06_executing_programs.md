@@ -111,7 +111,7 @@ await initThreadPool();
 const account = new Account({ privateKey: 'APrivateKey1...'});
 
 // Create a network client to connect to the Aleo network.
-const networkClient = new AleoNetworkClient("https://api.explorer.provable.com/v1");
+const networkClient = new AleoNetworkClient("https://api.provable.com/v2");
 
 // Create a key provider that will be used to find public proving & verifying keys for Aleo programs.
 const keyProvider = new AleoKeyProvider();
@@ -241,7 +241,7 @@ import { getBindingIdentifiers } from "@babel/types";
 import keys = getBindingIdentifiers.keys;
 
 /// Initialize the key provider and network client.
-const networkClient = new AleoNetworkClient("https://api.explorer.provable.com/v1");
+const networkClient = new AleoNetworkClient("https://api.provable.com/v2");
 const keyProvider = new AleoKeyProvider();
 keys.useCache(true);
 
