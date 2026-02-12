@@ -32,7 +32,7 @@ export const GetMappingNames = () => {
             if (id) {
                 axios
                     .get(
-                        `https://api.explorer.provable.com/v1/testnet/program/${id}/mappings`,
+                        `https://api.provable.com/v2/testnet/program/${id}/mappings`,
                     )
                     .then((response) => {
                         setStatus("success");

@@ -80,7 +80,7 @@ If `credits.aleo`records are being searched for, users can also optionally speci
 import { AleoNetworkClient } from '@provablehq/sdk';
 
 const account = new Account.fromCiphertext(process.env.cipherText, process.env.secret);
-const networkClient = new AleoNetworkClient("https://api.explorer.provable.com/v1", undefined, account);
+const networkClient = new AleoNetworkClient("https://api.provable.com/v2", undefined, account);
 
 // Find all records from an account within a block range.
 const allRecords = networkClient.findRecords(
@@ -119,13 +119,13 @@ A usage example of the `RecordProvider` is shown below using the `NetworkRecordP
 import { AleoNetworkClient, AleoKeyProvider, NetworkRecordProvider, ProgramManager } from '@provablehq/sdk';
 
 // Create a new NetworkClient, KeyProvider, and RecordProvider using official Aleo record, key, and network providers
-const networkClient = new AleoNetworkClient("https://api.explorer.provable.com/v1");
+const networkClient = new AleoNetworkClient("https://api.provable.com/v2");
 const keyProvider = new AleoKeyProvider();
 keyProvider.useCache(true);
 const recordProvider = new NetworkRecordProvider(account, networkClient);
 
 // Initialize a program manager with the key provider to automatically fetch keys for executions
-const programManager = new ProgramManager("https://api.explorer.provable.com/v1", keyProvider, recordProvider);
+const programManager = new ProgramManager("https://api.provable.com/v2", keyProvider, recordProvider);
 
 // Find a record to pay the fee for the transaction
 let inputRecordSearchParameters = {

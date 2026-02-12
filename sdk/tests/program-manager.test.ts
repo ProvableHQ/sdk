@@ -36,17 +36,20 @@ import {
     PUZZLE_SPINNER_V002_INPUT_2
 } from "./data/proving.js";
 import * as process from "node:process";
+import { ProvingResponse } from "../src/models/provingResponse.js";
+import { encryptProvingRequest } from "../src/browser";
+import sodium from "libsodium-wrappers";
 
 describe('Program Manager', async () => {
     const keyProvider = new AleoKeyProvider();
     keyProvider.useCache(true);
-    const programManager = new ProgramManager("https://api.explorer.provable.com/v1", keyProvider);
+    const programManager = new ProgramManager("https://api.provable.com/v2", keyProvider);
     programManager.setAccount(new Account({ privateKey: statePathv0RecordOwnerPrivateKey }));
     const network = programManager.networkClient.network;
-
+    programManager.networkClient.setProverUri("https://accelerate.provable.com");
     describe('Instantiate with AleoNetworkClientOptions', () => {
         it('should have the specified headers when instantiated', async () => {
-            const newProgramManager = new ProgramManager("https://api.explorer.provable.com/v1", undefined, undefined, { headers: { 'X-Test-Header': 'programManager' } });
+            const newProgramManager = new ProgramManager("https://api.provable.com/v2", undefined, undefined, { headers: { 'X-Test-Header': 'programManager' } });
             expect(Object.keys(newProgramManager.networkClient.headers).length).equal(1);
             expect(newProgramManager.networkClient.headers['X-Test-Header']).equal('programManager');
             expect(newProgramManager.networkClient.headers['X-Aleo-SDK-Version']).undefined;
@@ -158,6 +161,87 @@ describe('Program Manager', async () => {
                 });
 
                 expect(request.feeAuthorization()).equal(undefined);
+            }
+        });
+
+        it('Should execute an encrypted proving request', async function() {
+            this.retries(3);
+
+            if (network === "testnet") {
+                const pk = PrivateKey.from_string(
+                    <string>process.env["PUZZLE_PK"],
+                );
+
+                const provingRequest = <ProvingRequest>(
+                    await programManager.provingRequest({
+                        programName: "hello_hello.aleo",
+                        functionName: "hello",
+                        priorityFee: 0.0,
+                        privateFee: false,
+                        inputs: ["1u32", "1u32"],
+                        broadcast: false,
+                        privateKey: pk,
+                    })
+                );
+
+                // Ensure an encryption roundtrip works locally.
+                await sodium.ready;
+                const keyPair = sodium.crypto_box_keypair();
+                const ciphertext = await encryptProvingRequest(
+                    sodium.to_base64(
+                        keyPair.publicKey,
+                        sodium.base64_variants.ORIGINAL,
+                    ),
+                    provingRequest,
+                );
+                const plaintextBytes = sodium.crypto_box_seal_open(
+                    sodium.from_base64(
+                        ciphertext,
+                        sodium.base64_variants.ORIGINAL,
+                    ),
+                    keyPair.publicKey,
+                    keyPair.privateKey,
+                );
+                const deserializedProvingRequest =
+                    ProvingRequest.fromBytesLe(plaintextBytes);
+                expect(deserializedProvingRequest.broadcast).equals(
+                    provingRequest.broadcast,
+                );
+
+                // Submit the proving request using the safe method.
+                const safeResult =
+                    await programManager.networkClient.submitProvingRequestSafe(
+                        {
+                            provingRequest,
+                            dpsPrivacy: true,
+                        },
+                    );
+
+                if (!safeResult.ok) {
+                    console.log(safeResult);
+                }
+                expect(safeResult.ok).to.equal(true);
+                if (safeResult.ok) {
+                    expect(safeResult.data).to.have.property("transaction");
+                    expect(safeResult.data.transaction).to.have.property("id");
+                    expect(safeResult.data).to.have.property("broadcast_result");
+                    expect(safeResult.data.broadcast_result.status).to.equal(
+                        "Skipped",
+                    );
+                }
+
+                // Submit the proving request using the regular method.
+                const result =
+                    await programManager.networkClient.submitProvingRequest(
+                        {
+                            provingRequest,
+                            dpsPrivacy: true,
+                        },
+                    );
+
+                expect(result).to.have.property("transaction");
+                expect(result).to.have.property("broadcast_result");
+                expect(result.broadcast_result.status).to.equal("Skipped");
             }
         });
     });

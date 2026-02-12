@@ -132,7 +132,7 @@ export const TransactionInfo = () => {
         try {
             if (id) {
                 axios
-                    .get(`https://api.explorer.provable.com/v1/testnet/transaction/${id}`)
+                    .get(`https://api.provable.com/v2/testnet/transaction/${id}`)
                     .then((response) => {
                         tryParseTransaction(response.data, true);
                     })
