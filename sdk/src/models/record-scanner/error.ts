@@ -37,3 +37,13 @@ export interface RecordScannerErrorBody {
     status: number;
 }
 
+/**
+ * Failure variant shared by record-scanner result types.
+ * Use with a success interface to form a discriminated union (e.g. Success | RecordScannerFailure).
+ */
+export interface RecordScannerFailure {
+    ok: false;
+    status: number;
+    error: RecordScannerErrorBody;
+}
+

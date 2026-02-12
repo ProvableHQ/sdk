@@ -1,4 +1,4 @@
-import type { RecordScannerErrorBody } from "./error.js";
+import type { RecordScannerFailure } from "./error.js";
 import type { EncryptedRecord } from "../record-provider/encryptedRecord.js";
 
 export interface EncryptedRecordsSuccess {
@@ -6,11 +6,5 @@ export interface EncryptedRecordsSuccess {
     data: EncryptedRecord[];
 }
 
-export interface EncryptedRecordsFailure {
-    ok: false;
-    status: number;
-    error: RecordScannerErrorBody;
-}
-
-export type EncryptedRecordsResult = EncryptedRecordsSuccess | EncryptedRecordsFailure;
+export type EncryptedRecordsResult = EncryptedRecordsSuccess | RecordScannerFailure;
 

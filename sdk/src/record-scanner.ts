@@ -8,7 +8,11 @@ import { RecordProvider } from "./record-provider";
 import { Field, Poseidon4, RecordCiphertext, RecordPlaintext, ViewKey } from "./wasm";
 import { RecordsFilter } from "./models/record-scanner/recordsFilter";
 import { RegisterResult } from "./models/record-scanner/registrationResult.js";
-import { UUIDError, RecordScannerRequestError } from "./models/record-scanner/error.js";
+import {
+    RecordScannerFailure,
+    UUIDError,
+    RecordScannerRequestError,
+} from "./models/record-scanner/error.js";
 import { RegistrationRequest } from "./models/record-scanner/registrationRequest";
 import { RegistrationResponse } from "./models/record-scanner/registrationResponse";
 import { StatusResponse } from "./models/record-scanner/statusResponse";
@@ -23,25 +27,36 @@ import { Account } from "./account.js";
 
 /**
  * JWT data for optional authentication with the record scanning service (e.g. Provable API).
+ *
+ * @property {string} jwt The JWT token string.
+ * @property {number} expiration Expiration time as a Unix timestamp (e.g. in milliseconds).
  */
 export interface RecordScannerJWTData {
     jwt: string;
     expiration: number;
 }
 
-export type RecordScannerOptions = {
+/**
+ * Configuration for the record scanner.
+ *
+ * @property {string} url Base URL of the record scanning service (network path is appended by the SDK).
+ * @property {string | { header: string, value: string }} [apiKey] API key as a string or as a custom header name and value.
+ * @property {string} [consumerId] Required for JWT refresh when using authenticated record scanner (e.g. Provable API).
+ * @property {RecordScannerJWTData} [jwtData] Optional JWT for auth. If omitted and apiKey + consumerId are set, JWT is refreshed when needed.
+ * @property {ViewKey[]} [viewKeys] Optional view keys to use for local scanning and decryption.
+ * @property {Account} [account] Optional account to use for local scanning and decryption.
+ * @property {boolean} [cacheViewKeysOnRegister] Cache view keys in memory for faster scanning upon register.
+ * @property {boolean} [autoReRegister] If true, on 422 from /owned attempt one re-register via registerEncrypted (when a view key is in viewKeys or account) and retry once. Default false.
+ */
+export interface RecordScannerOptions {
     url: string;
     apiKey?: string | { header: string, value: string };
-    /** Required for JWT refresh when using authenticated record scanner (e.g. Provable API). */
     consumerId?: string;
-    /** Optional JWT for auth. If omitted and apiKey + consumerId are set, JWT is refreshed when needed. */
     jwtData?: RecordScannerJWTData;
-    /** Optional view keys to use for local scanning and decryption. */
-    viewKeys?: ViewKey[]
-    /** Optional account to use for local scanning and decryption. */
+    viewKeys?: ViewKey[];
     account?: Account;
-    /** Cache view keys in memory for faster scanning upon register. */
     cacheViewKeysOnRegister?: boolean;
+    autoReRegister?: boolean;
 }
 
 /**
@@ -95,8 +110,12 @@ class RecordScanner implements RecordProvider {
     private jwtData?: RecordScannerJWTData;
     private uuid?: Field;
     private viewKeys?: { [key: string]: ViewKey };
+    private autoReRegister?: boolean;
     account?: Account | undefined;
 
+    /**
+     * @param {RecordScannerOptions} options Configuration for the record scanner.
+     */
     constructor(options: RecordScannerOptions) {
         // Set the network by detecting which version of the SDK is being used.
         const network = "/%%NETWORK%%";
@@ -133,12 +152,13 @@ class RecordScanner implements RecordProvider {
         } : options.apiKey;
         this.consumerId = options.consumerId;
         this.jwtData = options.jwtData;
+        this.autoReRegister = options.autoReRegister;
     }
 
     /**
      * Set the API key to use for the record scanner.
-     * 
-     * @param {string} apiKey The API key to use for the record scanner.
+     *
+     * @param {string | { header: string, value: string }} apiKey The API key to use for the record scanner.
      */
     setApiKey(apiKey: string | { header: string, value: string }) {
         this.apiKey = typeof apiKey === "string" ? { header: "X-Provable-API-Key", value: apiKey } : apiKey;
@@ -146,6 +166,8 @@ class RecordScanner implements RecordProvider {
 
     /**
      * Set the consumer ID used for JWT refresh when using authenticated record scanner (e.g. Provable API).
+     *
+     * @param {string} consumerId The consumer ID to use for JWT refresh.
      */
     setConsumerId(consumerId: string) {
         this.consumerId = consumerId;
@@ -153,9 +175,20 @@ class RecordScanner implements RecordProvider {
 
     /**
      * Set JWT data for authentication. Optional; when not set, JWT can be refreshed from apiKey + consumerId if provided.
+     *
+     * @param {RecordScannerJWTData | undefined} jwtData The JWT data to use, or undefined to clear.
      */
     setJwtData(jwtData: RecordScannerJWTData | undefined) {
         this.jwtData = jwtData;
+    }
+
+    /**
+     * Set whether /owned should automatically re-register on 422 (when a view key for the UUID is in viewKeys or account) and retry once.
+     *
+     * @param {boolean} enabled Whether to enable auto re-register on 422.
+     */
+    setAutoReRegister(enabled: boolean) {
+        this.autoReRegister = enabled;
     }
 
     /**
@@ -180,6 +213,21 @@ class RecordScanner implements RecordProvider {
     }
 
     /**
+     * Return the view key for the given record-scanner UUID if one is configured
+     * (in viewKeys or as the account's view key). Used to decide if re-registration on 422 is possible.
+     *
+     * @param {string} uuid The record-scanner UUID to look up.
+     * @returns {ViewKey | undefined} The view key for that UUID, or undefined.
+     */
+    private getViewKeyForUuid(uuid: string): ViewKey | undefined {
+        const cachedVk = this.viewKeys?.[uuid];
+        if (cachedVk) return cachedVk;
+        const accountVk = this.account?.viewKey();
+        if (accountVk && this.computeUUID(accountVk).toString() === uuid) return accountVk;
+        return undefined;
+    }
+
+    /**
      * Set the primary account for the record scanner.
      *
      * @param {Account} account The account to set as the primary account.
@@ -200,10 +248,14 @@ class RecordScanner implements RecordProvider {
 
     /**
      * Refreshes the JWT by making a POST request to /jwts/{consumer_id}. Used when authentication is required.
+     *
+     * @param {string} apiKey The API key to use for the refresh request.
+     * @param {string} consumerId The consumer ID for the JWT endpoint.
+     * @returns {Promise<RecordScannerJWTData>} The new JWT data.
      */
     private async refreshJwt(apiKey: string, consumerId: string): Promise<RecordScannerJWTData> {
         const response = await post(
-            `https://api.provable.com/jwts/${consumerId}`,
+            `${this.url}/jwts/${consumerId}`,
             {
                 headers: {
                     "X-Provable-API-Key": apiKey,
@@ -223,6 +275,8 @@ class RecordScanner implements RecordProvider {
 
     /**
      * Returns auth headers (e.g. Authorization with JWT). Refreshes JWT if expired and apiKey + consumerId are set. Empty when auth is not configured.
+     *
+     * @returns {Promise<Record<string, string>>} Auth headers to add to requests, or empty object when not configured.
      */
     private async getAuthHeaders(): Promise<Record<string, string>> {
         let jwtData = this.jwtData;
@@ -249,6 +303,25 @@ class RecordScanner implements RecordProvider {
      */
     setUuid(keyMaterial: Field | ViewKey) {
         this.uuid = keyMaterial instanceof ViewKey ? this.computeUUID(keyMaterial) : keyMaterial;
+    }
+
+    /**
+     * If the error is a RecordScannerRequestError (from request()), return a RecordScannerFailure result;
+     * otherwise re-throw the error.
+     *
+     * @param {unknown} err The error from a failed request (e.g. from request() or from a catch after calling it).
+     * @returns {RecordScannerFailure} When err is RecordScannerRequestError.
+     * @throws Re-throws err when it is not a RecordScannerRequestError.
+     */
+    private handleRequestError(err: unknown): RecordScannerFailure {
+        if (err instanceof RecordScannerRequestError) {
+            return {
+                ok: false,
+                status: err.status,
+                error: { message: err.message, status: err.status },
+            };
+        }
+        throw err;
     }
 
     /**
@@ -284,15 +357,8 @@ class RecordScanner implements RecordProvider {
             }
             return { ok: true, data };
         } catch (err) {
-            if (err instanceof RecordScannerRequestError) {
-                return {
-                    ok: false,
-                    status: err.status,
-                    error: { message: err.message, status: err.status },
-                };
-            }
             console.error(`Failed to register view key: ${err}`);
-            throw err;
+            return this.handleRequestError(err);
         }
     }
 
@@ -350,14 +416,7 @@ class RecordScanner implements RecordProvider {
             }
             return { ok: true, data };
         } catch (err) {
-            if (err instanceof RecordScannerRequestError) {
-                return {
-                    ok: false,
-                    status: err.status,
-                    error: { message: err.message, status: err.status },
-                };
-            }
-            throw err;
+            return this.handleRequestError(err);
         }
     }
 
@@ -380,14 +439,7 @@ class RecordScanner implements RecordProvider {
             const data = await response.json();
             return { ok: true, data };
         } catch (err) {
-            if (err instanceof RecordScannerRequestError) {
-                return {
-                    ok: false,
-                    status: err.status,
-                    error: { message: err.message, status: err.status },
-                };
-            }
-            throw err;
+            return this.handleRequestError(err);
         }
     }
 
@@ -421,14 +473,7 @@ class RecordScanner implements RecordProvider {
             const data = await response.json();
             return { ok: true, data };
         } catch (err) {
-            if (err instanceof RecordScannerRequestError) {
-                return {
-                    ok: false,
-                    status: err.status,
-                    error: { message: err.message, status: err.status },
-                };
-            }
-            throw err;
+            return this.handleRequestError(err);
         }
     }
 
@@ -463,14 +508,7 @@ class RecordScanner implements RecordProvider {
             const data = await response.json();
             return { ok: true, data };
         } catch (err) {
-            if (err instanceof RecordScannerRequestError) {
-                return {
-                    ok: false,
-                    status: err.status,
-                    error: { message: err.message, status: err.status },
-                };
-            }
-            throw err;
+            return this.handleRequestError(err);
         }
     }
 
@@ -516,14 +554,7 @@ class RecordScanner implements RecordProvider {
             const data = await response.json();
             return { ok: true, data };
         } catch (err) {
-            if (err instanceof RecordScannerRequestError) {
-                return {
-                    ok: false,
-                    status: err.status,
-                    error: { message: err.message, status: err.status },
-                };
-            }
-            throw err;
+            return this.handleRequestError(err);
         }
     }
 
@@ -556,18 +587,16 @@ class RecordScanner implements RecordProvider {
      */
     async owned(filter: OwnedFilter): Promise<OwnedRecordsResult> {
         // Extract and verify the correctness of the UUID from the filter or get the configured UUID within the scanner.
-        const uuid = this.getUUID(filter)
+        const uuid = this.getUUID(filter);
         // Throw an error if none could be found, otherwise set the UUID on the filter with either the UUID configured
         // within the filter or the UUID configured within the scanner.
         if (!uuid) {
             throw new Error("Error while using the record scanner. UUID is not set on the scanner and the UUID " +
                 "provided in the record filter was invalid.");
-        } else {
-            filter.uuid = uuid;
         }
+        filter.uuid = uuid;
 
-        try {
-            // Construct the request to the record scanner owned endpoint.
+        const ownedRequest = async (): Promise<OwnedRecordsResult> => {
             const response = await this.request(
                 new Request(`${this.url}/records/owned`, {
                     method: "POST",
@@ -575,19 +604,28 @@ class RecordScanner implements RecordProvider {
                     body: JSON.stringify(filter),
                 }),
             );
-            // If the response is okay, return the records.
             const data = await response.json();
             return { ok: true, data };
+        };
+
+        try {
+            return await ownedRequest();
         } catch (err) {
-            // If the response was not a 200, return the error to the caller.
-            if (err instanceof RecordScannerRequestError) {
-                return {
-                    ok: false,
-                    status: err.status,
-                    error: { message: err.message, status: err.status },
-                };
+            const failure = this.handleRequestError(err);
+            if (failure.status === 422 && this.autoReRegister) {
+                const viewKey = this.getViewKeyForUuid(uuid);
+                if (viewKey) {
+                    const regResult = await this.registerEncrypted(viewKey, 0);
+                    if (regResult.ok) {
+                        try {
+                            return await ownedRequest();
+                        } catch (retryErr) {
+                            return this.handleRequestError(retryErr);
+                        }
+                    }
+                }
             }
-            throw err;
+            return failure;
         }
     }
 
@@ -731,11 +769,12 @@ method.`;
     }
 
     /**
-     * Wrapper function to make a request to the record scanning service and handle any errors.
-     * Optionally adds JWT Authorization header when consumerId/jwtData (or apiKey+consumerId) are configured.
+     * Wrapper function to make a request to the record scanning service and handle any errors. Optionally adds JWT Authorization header when consumerId/jwtData (or apiKey+consumerId) are configured.
      *
      * @param {Request} req The request to make.
-     * @returns {Promise<Response>} The response.
+     * @returns {Promise<Response>} The response when the request succeeds.
+     * @throws {RecordScannerRequestError} When the server returns a non-2xx status (e.g. 4xx, 5xx).
+     * @throws Re-throws any error from fetch (e.g. network failure) or from getAuthHeaders().
      */
     private async request(req: Request): Promise<Response> {
         try {
@@ -793,8 +832,7 @@ method.`;
     }
 
     /**
-     * Get the uuid for the filter, first by extracting the UUID from the filter, then falling back to the uuid
-     * configured within the record scanner.
+     * Get the uuid for the filter, first by extracting the UUID from the filter, then falling back to the uuid configured within the record scanner.
      *
      * @param {OwnedFilter} filter The filter to extract the UUID from.
      * @returns {string | undefined} The UUID for the filter, or undefined if the filter does not contain a UUID.

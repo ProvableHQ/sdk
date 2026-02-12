@@ -1,4 +1,4 @@
-import type { RecordScannerErrorBody } from "./error.js";
+import type { RecordScannerFailure } from "./error.js";
 import type { OwnedRecord } from "../record-provider/ownedRecord.js";
 
 /**
@@ -12,18 +12,5 @@ export interface OwnedRecordsSuccess {
     data: OwnedRecord[];
 }
 
-/**
- * Failure variant of ownedRecords() result.
- *
- * @property ok - Whether the request was successful, always false for this interface variant.
- * @property status - HTTP status code returned by the server.
- * @property error - Error payload returned by the server.
- */
-export interface OwnedRecordsFailure {
-    ok: false;
-    status: number;
-    error: RecordScannerErrorBody;
-}
-
-export type OwnedRecordsResult = OwnedRecordsSuccess | OwnedRecordsFailure;
+export type OwnedRecordsResult = OwnedRecordsSuccess | RecordScannerFailure;
 

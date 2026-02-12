@@ -1,4 +1,4 @@
-import type { RecordScannerErrorBody } from "./error.js";
+import type { RecordScannerFailure } from "./error.js";
 
 /**
  * Success variant of tags() result.
@@ -11,18 +11,5 @@ export interface TagsSuccess {
     data: Record<string, boolean>;
 }
 
-/**
- * Failure variant of tags() result.
- *
- * @property ok - Whether the request was successful, always false for this interface variant.
- * @property status - HTTP status code returned by the server.
- * @property error - Error payload returned by the server.
- */
-export interface TagsFailure {
-    ok: false;
-    status: number;
-    error: RecordScannerErrorBody;
-}
-
-export type TagsResult = TagsSuccess | TagsFailure;
+export type TagsResult = TagsSuccess | RecordScannerFailure;
 

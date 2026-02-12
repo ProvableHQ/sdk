@@ -1,4 +1,4 @@
-import type { RecordScannerErrorBody } from "./error.js";
+import type { RecordScannerFailure } from "./error.js";
 import type { StatusResponse } from "./statusResponse.js";
 
 /**
@@ -12,18 +12,5 @@ export interface StatusSuccess {
     data: StatusResponse;
 }
 
-/**
- * Failure variant of status() result.
- *
- * @property ok - Whether the request was successful, always false for this interface variant.
- * @property status - HTTP status code returned by the server.
- * @property error - Error payload returned by the server.
- */
-export interface StatusFailure {
-    ok: false;
-    status: number;
-    error: RecordScannerErrorBody;
-}
-
-export type StatusResult = StatusSuccess | StatusFailure;
+export type StatusResult = StatusSuccess | RecordScannerFailure;
 
