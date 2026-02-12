@@ -44,11 +44,11 @@ import { OwnedRecord } from "./models/record-provider/ownedRecord.js";
  * This interface is used to specify the parameters required for building and submitting an deployment transaction.
  *
  * @property {string} program - The program source code to be deployed.
- * @property {number} priorityFee - The optional priority fee to be paid for the transaction.
+ * @property {number} priorityFee - The priority fee to be paid for the transaction.
  * @property {boolean} privateFee - If true, uses a private record to pay the fee; otherwise, uses the account's public credit balance.
- * @property {RecordSearchParams | undefined} [recordSearchParams] - Optional parameters for searching for a record to pay the execution transaction fee.
- * @property {string | RecordPlaintext | undefined} [feeRecord] - Optional fee record to use for the transaction.
- * @property {PrivateKey} [privateKey] - Optional private key to use for the transaction.
+ * @property {RecordSearchParams} [recordSearchParams] - Parameters for searching for a record to pay the execution transaction fee.
+ * @property {string | RecordPlaintext} [feeRecord] - Fee record to use for the transaction.
+ * @property {PrivateKey} [privateKey] - Private key to use for the transaction.
  */
 interface DeployOptions {
     program: string;
@@ -65,18 +65,19 @@ interface DeployOptions {
  *
  * @property {string} programName - The name of the program containing the function to be executed.
  * @property {string} functionName - The name of the function to execute within the program.
- * @property {number} priorityFee - The optional priority fee to be paid for the transaction.
+ * @property {number} priorityFee - The priority fee to be paid for the transaction.
  * @property {boolean} privateFee - If true, uses a private record to pay the fee; otherwise, uses the account's public credit balance.
  * @property {string[]} inputs - The inputs to the function being executed.
- * @property {RecordSearchParams} [recordSearchParams] - Optional parameters for searching for a record to pay the execution transaction fee.
- * @property {KeySearchParams} [keySearchParams] - Optional parameters for finding the matching proving & verifying keys for the function.
- * @property {string | RecordPlaintext} [feeRecord] - Optional fee record to use for the transaction.
- * @property {ProvingKey} [provingKey] - Optional proving key to use for the transaction.
- * @property {VerifyingKey} [verifyingKey] - Optional verifying key to use for the transaction.
- * @property {PrivateKey} [privateKey] - Optional private key to use for the transaction.
- * @property {OfflineQuery} [offlineQuery] - Optional offline query if creating transactions in an offline environment.
- * @property {string | Program} [program] - Optional program source code to use for the transaction.
- * @property {ProgramImports} [imports] - Optional programs that the program being executed imports.
+ * @property {RecordSearchParams} [recordSearchParams] - Parameters for searching for a record to pay the execution transaction fee.
+ * @property {KeySearchParams} [keySearchParams] - Parameters for finding the matching proving & verifying keys for the function.
+ * @property {string | RecordPlaintext} [feeRecord] - Fee record to use for the transaction.
+ * @property {ProvingKey} [provingKey] - Proving key to use for the transaction.
+ * @property {VerifyingKey} [verifyingKey] - Verifying key to use for the transaction.
+ * @property {PrivateKey} [privateKey] - Private key to use for the transaction.
+ * @property {OfflineQuery} [offlineQuery] - Offline query if creating transactions in an offline environment.
+ * @property {string | Program} [program] - Program source code to use for the transaction.
+ * @property {ProgramImports} [imports] - Programs that the program being executed imports.
+ * @property {number} [edition] - Edition of the program to execute the function in.
  */
 interface ExecuteOptions {
     programName: string;
