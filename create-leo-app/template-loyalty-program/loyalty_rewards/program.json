@@ -1,6 +1,0 @@
-{
-    "program": "loyalty_rewards.aleo",
-    "version": "0.0.0",
-    "description": "Loyalty rewards program for voucher redemption - imports loyalty_token.aleo",
-    "license": "MIT"
-}

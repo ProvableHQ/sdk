@@ -1,0 +1,18 @@
+// The program input for loyalty_rewards.aleo
+[redeem_for_voucher]
+card: loyalty_token.aleo/LoyaltyCard = loyalty_token.aleo/LoyaltyCard {
+    owner: aleo1rhgdu77hgyqd3xjj8ucu3jj9r2krwz6mnzyd80gncr5fxcwlh5rsvzp9dx,
+    card_id: 123456789field,
+    points: 1000u64,
+    tier: 1u8
+};
+reward_type: u8 = 1u8;
+points_cost: u64 = 500u64;
+
+[use_voucher]
+voucher: RewardVoucher = RewardVoucher {
+    owner: aleo1rhgdu77hgyqd3xjj8ucu3jj9r2krwz6mnzyd80gncr5fxcwlh5rsvzp9dx,
+    voucher_id: 987654321field,
+    reward_type: 1u8,
+    value: 50u64
+};

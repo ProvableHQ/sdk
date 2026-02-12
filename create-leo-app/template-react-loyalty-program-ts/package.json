@@ -1,5 +1,5 @@
 {
-  "name": "aleo-loyalty-program-demo",
+  "name": "template-react-loyalty-program-ts",
   "private": true,
   "version": "0.0.0",
   "description": "Multi-program loyalty system demonstrating records, hashes, and mappings",
