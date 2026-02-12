@@ -6,12 +6,12 @@ This example can be run with the following
 
 #### Yarn
 ```bash
-yarn dev
+yarn start
 ```
 
 #### NPM
 ```bash
-npm run dev
+npm start
 ```
 
 Recommend Node.js 20+ for best performance.

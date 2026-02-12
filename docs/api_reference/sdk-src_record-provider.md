@@ -41,7 +41,7 @@ __*return*__ | `Promise.<Array.<OwnedRecord>>` | *The records if found, otherwis
 
 ```javascript
 // Create a new NetworkRecordProvider
-const networkClient = new AleoNetworkClient("https://api.explorer.provable.com/v1");
+const networkClient = new AleoNetworkClient("https://api.provable.com/v2");
 const keyProvider = new AleoKeyProvider();
 const recordProvider = new NetworkRecordProvider(account, networkClient);
 
@@ -54,7 +54,7 @@ const records = await recordProvider.findCreditsRecords(5000, { unspent: true, n
 
 // When the program manager is initialized with the record provider it will be used to find automatically find
 // fee records and amount records for value transfers so that they do not need to be specified manually
-const programManager = new ProgramManager("https://api.explorer.provable.com/v1", keyProvider, recordProvider);
+const programManager = new ProgramManager("https://api.provable.com/v2", keyProvider, recordProvider);
 programManager.transfer(1, "aleo166q6ww6688cug7qxwe7nhctjpymydwzy2h7rscfmatqmfwnjvggqcad0at", "public", 0.5);
 ```
 
@@ -76,7 +76,7 @@ __*return*__ | `Promise.<OwnedRecord>` | *The record if found, otherwise an erro
 
 ```javascript
 // Create a new NetworkRecordProvider
-const networkClient = new AleoNetworkClient("https://api.explorer.provable.com/v1");
+const networkClient = new AleoNetworkClient("https://api.provable.com/v2");
 const keyProvider = new AleoKeyProvider();
 const recordProvider = new NetworkRecordProvider(account, networkClient);
 
@@ -89,7 +89,7 @@ const records = await recordProvider.findCreditsRecords(5000, { unspent: true, n
 
 // When the program manager is initialized with the record provider it will be used to find automatically find
 // fee records and amount records for value transfers so that they do not need to be specified manually
-const programManager = new ProgramManager("https://api.explorer.provable.com/v1", keyProvider, recordProvider);
+const programManager = new ProgramManager("https://api.provable.com/v2", keyProvider, recordProvider);
 programManager.transfer(1, "aleo166q6ww6688cug7qxwe7nhctjpymydwzy2h7rscfmatqmfwnjvggqcad0at", "public", 0.5);
 ```
 
@@ -139,7 +139,7 @@ __*return*__ | `Promise.<Array.<OwnedRecord>>` | *The records if found, otherwis
 
 ```javascript
 // Create a new NetworkRecordProvider
-const networkClient = new AleoNetworkClient("https://api.explorer.provable.com/v1");
+const networkClient = new AleoNetworkClient("https://api.provable.com/v2");
 const keyProvider = new AleoKeyProvider();
 const recordProvider = new NetworkRecordProvider(account, networkClient);
 
@@ -152,7 +152,7 @@ const records = await recordProvider.findCreditsRecords(5000, { unspent: true, n
 
 // When the program manager is initialized with the record provider it will be used to find automatically find
 // fee records and amount records for value transfers so that they do not need to be specified manually
-const programManager = new ProgramManager("https://api.explorer.provable.com/v1", keyProvider, recordProvider);
+const programManager = new ProgramManager("https://api.provable.com/v2", keyProvider, recordProvider);
 programManager.transfer(1, "aleo166q6ww6688cug7qxwe7nhctjpymydwzy2h7rscfmatqmfwnjvggqcad0at", "public", 0.5);
 ```
 
@@ -174,7 +174,7 @@ __*return*__ | `Promise.<OwnedRecord>` | *The record if found, otherwise an erro
 
 ```javascript
 // Create a new NetworkRecordProvider
-const networkClient = new AleoNetworkClient("https://api.explorer.provable.com/v1");
+const networkClient = new AleoNetworkClient("https://api.provable.com/v2");
 const keyProvider = new AleoKeyProvider();
 const recordProvider = new NetworkRecordProvider(account, networkClient);
 
@@ -187,7 +187,7 @@ const records = await recordProvider.findCreditsRecords(5000, { unspent: true, n
 
 // When the program manager is initialized with the record provider it will be used to find automatically find
 // fee records and amount records for value transfers so that they do not need to be specified manually
-const programManager = new ProgramManager("https://api.explorer.provable.com/v1", keyProvider, recordProvider);
+const programManager = new ProgramManager("https://api.provable.com/v2", keyProvider, recordProvider);
 programManager.transfer(1, "aleo166q6ww6688cug7qxwe7nhctjpymydwzy2h7rscfmatqmfwnjvggqcad0at", "public", 0.5);
 ```
 
@@ -231,7 +231,7 @@ block height range.
 const params = new BlockHeightSearch(89995, 99995);
 
 // Create a new NetworkRecordProvider
-const networkClient = new AleoNetworkClient("https://api.explorer.provable.com/v1");
+const networkClient = new AleoNetworkClient("https://api.provable.com/v2");
 const keyProvider = new AleoKeyProvider();
 const recordProvider = new NetworkRecordProvider(account, networkClient);
 

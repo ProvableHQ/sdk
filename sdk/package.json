@@ -56,6 +56,7 @@
     "comlink": "^4.4.2",
     "core-js": "^3.40.0",
     "mime": "^4.0.6",
+    "libsodium-wrappers": "^0.8.2",
     "xmlhttprequest-ssl": "^4.0.0"
   },
   "devDependencies": {
