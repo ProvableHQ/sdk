@@ -32,10 +32,13 @@ import { RatificationJSON } from "./models/ratification.js";
 import { EncryptedRegistrationRequest } from "./models/record-scanner/encryptedRegistrationRequest.js";
 import { EncryptedRecordsResult, EncryptedRecordsSuccess } from "./models/record-scanner/encryptedRecordsResult.js";
 import {
+    DecryptionNotEnabledError,
+    RecordNotFoundError,
     RecordScannerErrorBody,
     RecordScannerFailure,
     RecordScannerRequestError,
     UUIDError,
+    ViewKeyNotStoredError,
 } from "./models/record-scanner/error.js";
 import { OwnedRecordsResult, OwnedRecordsSuccess } from "./models/record-scanner/ownedRecordsResult.js";
 import { OwnedRecordsResponseFilter } from "./models/record-scanner/ownedRecordsResponseFilter.js";
@@ -224,7 +227,10 @@ export {
     RecordScannerFailure,
     RecordScannerJWTData,
     RecordScannerOptions,
+    DecryptionNotEnabledError,
+    RecordNotFoundError,
     RecordScannerRequestError,
+    ViewKeyNotStoredError,
     RecordSearchParams,
     RegisterResult,
     RegisterSuccess,

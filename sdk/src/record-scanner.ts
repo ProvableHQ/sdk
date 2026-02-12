@@ -9,9 +9,12 @@ import { Field, Poseidon4, RecordCiphertext, RecordPlaintext, ViewKey } from "./
 import { RecordsFilter } from "./models/record-scanner/recordsFilter";
 import { RegisterResult } from "./models/record-scanner/registrationResult.js";
 import {
+    DecryptionNotEnabledError,
+    RecordNotFoundError,
     RecordScannerFailure,
     UUIDError,
     RecordScannerRequestError,
+    ViewKeyNotStoredError,
 } from "./models/record-scanner/error.js";
 import { RegistrationRequest } from "./models/record-scanner/registrationRequest";
 import { RegistrationResponse } from "./models/record-scanner/registrationResponse";
@@ -47,6 +50,7 @@ export interface RecordScannerJWTData {
  * @property {Account} [account] Optional account to use for local scanning and decryption.
  * @property {boolean} [cacheViewKeysOnRegister] Cache view keys in memory for faster scanning upon register.
  * @property {boolean} [autoReRegister] If true, on 422 from /owned attempt one re-register via registerEncrypted (when a view key is in viewKeys or account) and retry once. Default false.
+ * @property {boolean} [decryptEnabled] If true, enable decryption of owned records (e.g. for use with the decrypt method). This is REQUIRED for findCreditsRecord/findCreditsRecords to work properly. Further the ViewKey matching the UUID must be stored in the RecordScanner object to perform decryption. Default false.
  */
 export interface RecordScannerOptions {
     url: string;
@@ -57,6 +61,7 @@ export interface RecordScannerOptions {
     account?: Account;
     cacheViewKeysOnRegister?: boolean;
     autoReRegister?: boolean;
+    decryptEnabled?: boolean;
 }
 
 /**
@@ -68,7 +73,7 @@ export interface RecordScannerOptions {
  *
  * const recordScanner = new RecordScanner({ url: "https://record-scanner.aleo.org" });
  * recordScanner.setAccount(account);
- * recordScanner.setApiKey("your-api-key");
+ * recordScanner.setApiKey("example-api-key");
  * const result = await recordScanner.register(viewKey, 0);
  * if (result.ok) { const uuid = result.data.uuid; }
  *
@@ -111,6 +116,7 @@ class RecordScanner implements RecordProvider {
     private uuid?: Field;
     private viewKeys?: { [key: string]: ViewKey };
     private autoReRegister?: boolean;
+    private decryptEnabled?: boolean;
     account?: Account | undefined;
 
     /**
@@ -153,6 +159,7 @@ class RecordScanner implements RecordProvider {
         this.consumerId = options.consumerId;
         this.jwtData = options.jwtData;
         this.autoReRegister = options.autoReRegister;
+        this.decryptEnabled = options.decryptEnabled;
     }
 
     /**
@@ -192,7 +199,16 @@ class RecordScanner implements RecordProvider {
     }
 
     /**
-     * Add a view key to the record scanner for usage in local decryption.
+     * Set whether decryption of owned records is enabled (e.g. for use with the decrypt method).
+     *
+     * @param {boolean} enabled Whether to enable decryption of owned records received from the scanner using the `owned` or any `findRecords` methods.
+     */
+    setDecryptEnabled(enabled: boolean) {
+        this.decryptEnabled = enabled;
+    }
+
+    /**
+     * Add a view key to the record scanner for usage in local decryption. This is REQUIRED for findCreditsRecord/findCreditsRecords to work properly.
      *
      * @param {ViewKey} viewKey The view key to add.
      */
@@ -220,8 +236,10 @@ class RecordScanner implements RecordProvider {
      * @returns {ViewKey | undefined} The view key for that UUID, or undefined.
      */
     private getViewKeyForUuid(uuid: string): ViewKey | undefined {
+        // Prefer view key from the cached map (keyed by UUID string).
         const cachedVk = this.viewKeys?.[uuid];
         if (cachedVk) return cachedVk;
+        // Otherwise use the account's view key if it matches this UUID.
         const accountVk = this.account?.viewKey();
         if (accountVk && this.computeUUID(accountVk).toString() === uuid) return accountVk;
         return undefined;
@@ -280,6 +298,7 @@ class RecordScanner implements RecordProvider {
      */
     private async getAuthHeaders(): Promise<Record<string, string>> {
         let jwtData = this.jwtData;
+        // Consider JWT expired a few minutes early to avoid race at boundary.
         const isExpired = jwtData && Date.now() >= jwtData.expiration - FIVE_MINUTES;
         if (!jwtData || isExpired) {
             const apiKey = this.apiKey?.value;
@@ -287,7 +306,7 @@ class RecordScanner implements RecordProvider {
                 jwtData = await this.refreshJwt(apiKey, this.consumerId);
                 this.jwtData = jwtData;
             } else if (jwtData?.jwt) {
-                // Use existing JWT even if expired when we can't refresh
+                // Use existing JWT even if expired when refresh is not possible.
                 return { Authorization: jwtData.jwt };
             } else {
                 return {};
@@ -567,11 +586,9 @@ class RecordScanner implements RecordProvider {
     async findRecord(searchParameters: OwnedFilter): Promise<OwnedRecord> {
         try {
             const records = await this.findRecords(searchParameters);
-
             if (records.length > 0) {
                 return records[0];
             }
-
             throw new Error("Record not found");
         } catch (error) {
             console.error(`Failed to find record: ${error}`);
@@ -596,6 +613,7 @@ class RecordScanner implements RecordProvider {
         }
         filter.uuid = uuid;
 
+        // Inner request used to retry once after 422 re-register without duplicating logic.
         const ownedRequest = async (): Promise<OwnedRecordsResult> => {
             const response = await this.request(
                 new Request(`${this.url}/records/owned`, {
@@ -608,17 +626,27 @@ class RecordScanner implements RecordProvider {
             return { ok: true, data };
         };
 
+        // When decryption is enabled and a view key exists for this UUID, decrypt records in place before returning.
+        const attemptDecrypt = (result: OwnedRecordsResult): OwnedRecordsResult => {
+            if (result.ok && this.decryptEnabled) {
+                const viewKey = this.getViewKeyForUuid(uuid);
+                if (viewKey) this.decrypt(viewKey, result.data);
+            }
+            return result;
+        };
+
         try {
-            return await ownedRequest();
+            return attemptDecrypt(await ownedRequest());
         } catch (err) {
             const failure = this.handleRequestError(err);
+            // On 422 (e.g. not registered), optionally re-register with registerEncrypted and retry once.
             if (failure.status === 422 && this.autoReRegister) {
                 const viewKey = this.getViewKeyForUuid(uuid);
                 if (viewKey) {
                     const regResult = await this.registerEncrypted(viewKey, 0);
                     if (regResult.ok) {
                         try {
-                            return await ownedRequest();
+                            return attemptDecrypt(await ownedRequest());
                         } catch (retryErr) {
                             return this.handleRequestError(retryErr);
                         }
@@ -644,6 +672,40 @@ class RecordScanner implements RecordProvider {
     }
 
     /**
+     * Get RecordPlaintext from an OwnedRecord by parsing record_plaintext (trimmed). Returns null if missing or parse fails. Does not decrypt; decryption is handled only in owned().
+     */
+    private getPlaintext(record: OwnedRecord): RecordPlaintext | null {
+        // Only read record_plaintext (decrypted by the owned() callwhen decryptEnabled is true).
+        const plaintextStr = record.record_plaintext?.trim();
+        if (!plaintextStr) return null;
+        try {
+            return RecordPlaintext.fromString(plaintextStr);
+        } catch {
+            return null;
+        }
+    }
+
+    /**
+     * For each owned record provided, attempt to decrypt with the given view key. On success, sets record_plaintext on that record to the decrypted plaintext string. Records that fail to decrypt (e.g. wrong view key) or have no record_ciphertext are left unchanged.
+     *
+     * @param {ViewKey} viewKey The view key to use for decryption.
+     * @param {OwnedRecord[]} records The owned records to decrypt (mutated in place).
+     */
+    decrypt(viewKey: ViewKey, records: OwnedRecord[]): void {
+        for (const record of records) {
+            const ciphertextStr = record.record_ciphertext?.trim();
+            if (!ciphertextStr) continue;
+            try {
+                const ciphertext = RecordCiphertext.fromString(ciphertextStr);
+                const plaintext = ciphertext.decrypt(viewKey);
+                record.record_plaintext = plaintext.toString();
+            } catch {
+                // Wrong view key or invalid ciphertext; leave this record unchanged.
+            }
+        }
+    }
+
+    /**
      * Find a credits.aleo record in the record scanning service.
      * 
      * @param {number} microcredits The amount of microcredits to find.
@@ -651,30 +713,27 @@ class RecordScanner implements RecordProvider {
      * @returns {Promise<OwnedRecord>} The record.
      */
     async findCreditsRecord(microcredits: number, searchParameters: OwnedFilter): Promise<OwnedRecord> {
-        // Attempt to get the UUID from the filter or the configured UUID within the scanner.
         const uuid = <string>this.getUUID(searchParameters);
         if (!uuid) {
             throw new UUIDError(`No uuid found in the record scanner filter`, uuid, searchParameters);
         }
 
-        // Specify an error message if no matching view key is found.
-        const msg = `Cannot find a credits.aleo record matching ${microcredits} microcredits
-- No matching view key found for UUID ${uuid} in the record scanner. A matching ViewKey must be present
-in order to decrypt the records from the record scanning service. ViewKeys can be added using the addViewKey
-method.`;
-
-        // Attempt to get the configured view key to decrypt the record.
-        const viewKey =
-            this.viewKeys?.[uuid] ??
-            (this.account?.viewKey() &&
-            this.computeUUID(this.account.viewKey()).toString() === uuid
-                ? this.account.viewKey()
-                : undefined);
-        if (!viewKey) throw new UUIDError(msg, uuid, searchParameters);
-
+        if (!this.decryptEnabled) {
+            throw new DecryptionNotEnabledError(
+                "Decryption of owned records must be enabled (set decryptEnabled in options or call setDecryptEnabled(true)) to use findCreditsRecord.",
+                searchParameters,
+            );
+        }
+        if (!this.getViewKeyForUuid(uuid)) {
+            throw new ViewKeyNotStoredError(
+                `No view key for UUID ${uuid} is stored in the record scanner. Add the view key via viewKeys in options, addViewKey(), or setAccount().`,
+                uuid,
+                searchParameters,
+            );
+        }
 
         try {
-            // Construct the request to the record scanner for credits.aleo records.
+            // Fetch credits records (owned() will decrypt when decryptEnabled and view key are set).
             const records = await this.findRecords({
                 unspent: searchParameters.unspent ?? true,
                 filter: {
@@ -686,27 +745,24 @@ method.`;
                 uuid,
             });
 
-            // Attempt to find a record matching the desired amount.
-            const record = records.find(record => {
-                // Find a record matching the desired amount.
-                if (record.record_ciphertext) {
-                    try {
-                        RecordCiphertext.fromString(record.record_ciphertext).decrypt(viewKey);
-                        const plaintext = RecordPlaintext.fromString(record.record_plaintext ?? '');
-                        const amountStr = plaintext.getMember("microcredits").toString();
-                        const amount = parseInt(amountStr.replace("u64", ""));
-                        return amount >= microcredits;
-                    } catch {
-                        return false;
-                    }
-                } else {
+            // First record whose plaintext microcredits >= requested amount.
+            const record = records.find(r => {
+                const plaintext = this.getPlaintext(r);
+                if (!plaintext) return false;
+                try {
+                    const amountStr = plaintext.getMember("microcredits").toString();
+                    const amount = parseInt(amountStr.replace("u64", ""));
+                    return amount >= microcredits;
+                } catch {
                     return false;
                 }
             });
 
-            // Throw an error if no matching record was found.
             if (!record) {
-                throw new Error(`No records found matching the supplied search filter:\n${JSON.stringify(searchParameters, null, 2)}`);
+                throw new RecordNotFoundError(
+                    `No records found matching the supplied search filter:\n${JSON.stringify(searchParameters, null, 2)}. Decryption of owned records MUST be enabled and the ViewKey matching the UUID must be stored in the RecordScanner object to perform decryption.`,
+                    searchParameters,
+                );
             }
 
             return record;
@@ -724,29 +780,27 @@ method.`;
      * @returns {Promise<OwnedRecord[]>} The records
      */
     async findCreditsRecords(microcreditAmounts: number[], searchParameters: OwnedFilter): Promise<OwnedRecord[]> {
-        // Attempt to get the UUID from the filter or the configured UUID within the scanner.
         const uuid = <string>this.getUUID(searchParameters);
         if (!uuid) {
             throw new UUIDError(`No uuid found in the record scanner filter, and none configured within the record scanner`, uuid, searchParameters);
         }
 
-        // Specify an error message if no matching view key is found.
-        const msg = `Cannot find credits.aleo records matching amounts ${microcreditAmounts} 
-- No matching view key found for UUID ${uuid} in the record scanner. A matching ViewKey must be present
-in order to decrypt the records from the record scanning service. ViewKeys can be added using the addViewKey
-method.`;
-
-        // Attempt to get the configured view key to decrypt the record.
-        const viewKey =
-            this.viewKeys?.[uuid] ??
-            (this.account?.viewKey() &&
-            this.computeUUID(this.account.viewKey()).toString() === uuid
-                ? this.account.viewKey()
-                : undefined);
-        if (!viewKey) throw new UUIDError(msg, uuid, searchParameters);
+        if (!this.decryptEnabled) {
+            throw new DecryptionNotEnabledError(
+                "Decryption of owned records must be enabled (set decryptEnabled in options or call setDecryptEnabled(true)) to use findCreditsRecords.",
+                searchParameters,
+            );
+        }
+        if (!this.getViewKeyForUuid(uuid)) {
+            throw new ViewKeyNotStoredError(
+                `No view key for UUID ${uuid} is stored in the record scanner. Add the view key via viewKeys in options, addViewKey(), or setAccount().`,
+                uuid,
+                searchParameters,
+            );
+        }
 
         try {
-            // Construct the request to the record scanner for credits.aleo records.
+            // Fetch credits records (owned() decrypts when decryptEnabled and a view key matching the UUID are set).
             const records = await this.findRecords({
                 unspent: searchParameters.unspent ?? true,
                 filter: {
@@ -757,10 +811,16 @@ method.`;
                 responseFilter: searchParameters.responseFilter,
                 uuid,
             });
-            return records.filter(record => {
-                const plaintext = RecordPlaintext.fromString(record.record_plaintext ?? '');
-                const amount = plaintext.getMember("microcredits").toString();
-                return microcreditAmounts.includes(parseInt(amount.replace("u64", "")));
+            // Keep only records whose plaintext microcredits match one of the requested amounts.
+            return records.filter(r => {
+                const plaintext = this.getPlaintext(r);
+                if (!plaintext) return false;
+                try {
+                    const amount = plaintext.getMember("microcredits").toString();
+                    return microcreditAmounts.includes(parseInt(amount.replace("u64", "")));
+                } catch {
+                    return false;
+                }
             });
         } catch (error) {
             console.error(`Failed to find credits records: ${error}`);
@@ -778,6 +838,7 @@ method.`;
      */
     private async request(req: Request): Promise<Response> {
         try {
+            // Attach JWT (if configured) and API key before sending.
             const authHeaders = await this.getAuthHeaders();
             for (const [key, value] of Object.entries(authHeaders)) {
                 req.headers.set(key, value);
@@ -787,6 +848,7 @@ method.`;
             }
             const response = await fetch(req);
 
+            // Non-2xx: throw so callers can handleRequestError or re-register on 422 if autoReRegister is enabled.
             if (!response.ok) {
                 const text = await response.text();
                 throw new RecordScannerRequestError(
@@ -838,11 +900,10 @@ method.`;
      * @returns {string | undefined} The UUID for the filter, or undefined if the filter does not contain a UUID.
      */
     private getUUID(filter: OwnedFilter): string | undefined {
-        // Extract the UUID from the filter.
+        // Filter may specify a UUID; otherwise use the scanner's configured UUID.
         if (filter.uuid && this.uuidIsValid(filter.uuid)) {
             return filter.uuid;
         }
-
         return this.uuid?.toString();
     }
 }
