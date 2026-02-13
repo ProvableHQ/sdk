@@ -2,7 +2,8 @@
   "include": ["src", "__tests__", "src/custom.d.ts"],
   "compilerOptions": {
     "outDir": "dist",
-    "target": "ES2015",
+    "target": "ES2020",
+    "module": "ESNext",
     "moduleResolution": "Bundler",
     "strict": true,
     "skipLibCheck": true,

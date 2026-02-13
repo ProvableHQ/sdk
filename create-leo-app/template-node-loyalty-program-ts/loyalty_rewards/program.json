@@ -8,8 +8,7 @@
     {
       "name": "loyalty_token.aleo",
       "location": "local",
-      "path": "../loyalty_token",
-      "edition": null
+      "path": "../loyalty_token"
     }
   ],
   "dev_dependencies": null

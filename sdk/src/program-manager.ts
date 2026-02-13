@@ -841,8 +841,8 @@ class ProgramManager {
             try {
                 edition = await this.networkClient.getLatestProgramEdition(programName);
             } catch (e: any) {
-                console.warn(`Error finding edition for ${programName}. Network response: '${e.message}'. Assuming edition 1.`);
-                edition = 1;
+                console.warn(`Error finding edition for ${programName}. Network response: '${e.message}'. Assuming edition 0.`);
+                edition = 0;
             }
         }
 
@@ -1209,8 +1209,8 @@ class ProgramManager {
             try {
                 edition = await this.networkClient.getLatestProgramEdition(programName);
             } catch (e: any) {
-                console.warn(`Error finding edition for ${programName}. Network response: '${e.message}'. Assuming edition 1.`);
-                edition = 1;
+                console.warn(`Error finding edition for ${programName}. Network response: '${e.message}'. Assuming edition 0.`);
+                edition = 0;
             }
         }
 
@@ -1333,8 +1333,8 @@ class ProgramManager {
             try {
                 edition = await this.networkClient.getLatestProgramEdition(programName);
             } catch (e: any) {
-                console.warn(`Error finding edition for ${programName}. Network response: '${e.message}'. Assuming edition 1.`);
-                edition = 1;
+                console.warn(`Error finding edition for ${programName}. Network response: '${e.message}'. Assuming edition 0.`);
+                edition = 0;
             }
         }
 
@@ -1427,8 +1427,8 @@ class ProgramManager {
             try {
                 edition = await this.networkClient.getLatestProgramEdition(programName);
             } catch (e: any) {
-                console.warn(`Error finding edition for ${programName}. Network response: '${e.message}'. Assuming edition 1.`);
-                edition = 1;
+                console.warn(`Error finding edition for ${programName}. Network response: '${e.message}'. Assuming edition 0.`);
+                edition = 0;
             }
         }
 

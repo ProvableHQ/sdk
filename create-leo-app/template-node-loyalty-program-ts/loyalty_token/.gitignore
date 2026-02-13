@@ -1,3 +1,4 @@
 outputs/
 *.prover
 *.verifier
+.env

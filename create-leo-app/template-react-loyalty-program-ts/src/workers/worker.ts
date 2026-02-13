@@ -1,16 +1,15 @@
-//@ts-nocheck
 /**
  * Loyalty Program Worker
  *
  * Provides a clean class abstraction for the loyalty program,
  * demonstrating SDK capabilities for:
- * - Record minting and consumption
- * - Record scanning/discovery (via RecordScanner)
- * - Record decryption
- * - Mapping reads
- * - Multi-program execution
- * - Parameter/key caching for large functions
- * - Delegated proving (optional)
+ * - Record minting and consumption.
+ * - Record scanning/discovery (via RecordScanner).
+ * - Record decryption.
+ * - Mapping reads.
+ * - Multi-program execution.
+ * - Parameter/key caching for large functions.
+ * - Delegated proving (optional).
  */
 import {
   Account,
@@ -19,10 +18,12 @@ import {
   PrivateKey,
   initThreadPool,
   AleoKeyProvider,
+  AleoKeyProviderParams,
   AleoNetworkClient,
   NetworkRecordProvider,
   RecordScanner,
   encryptRegistrationRequest,
+  RecordCiphertext,
 } from "@provablehq/sdk";
 import { expose, proxy } from "comlink";
 
@@ -38,6 +39,16 @@ await initThreadPool();
 export enum ProvingMode {
   Local = "local",
   Delegated = "delegated",
+}
+
+/**
+ * Scanner type for record discovery
+ */
+export enum ScannerType {
+  /** RecordScanner service (faster, requires JWT auth) */
+  RSS = "rss",
+  /** NetworkRecordProvider via explorer API (slower, no auth needed) */
+  Network = "network",
 }
 
 /**
@@ -59,29 +70,29 @@ export enum CardTier {
 }
 
 /**
- * Parsed LoyaltyCard record
+ * Parsed LoyaltyCard record.
  */
 export interface LoyaltyCard {
   owner: string;
   cardId: string;
   points: number;
   tier: CardTier;
-  raw: string; // Original record string for passing to functions
+  raw: string; // Original record string for passing to functions.
 }
 
 /**
- * Parsed RewardVoucher record
+ * Parsed RewardVoucher record.
  */
 export interface RewardVoucher {
   owner: string;
   voucherId: string;
   rewardType: RewardType;
   value: number;
-  raw: string; // Original record string for passing to functions
+  raw: string; // Original record string for passing to functions.
 }
 
 /**
- * Result of redeeming points for a voucher
+ * Result of redeeming points for a voucher.
  */
 export interface RedeemResult {
   card: LoyaltyCard;
@@ -89,7 +100,7 @@ export interface RedeemResult {
 }
 
 /**
- * Loyalty program statistics from mappings
+ * Loyalty program statistics from mappings.
  */
 export interface ProgramStats {
   totalCards: number;
@@ -98,18 +109,24 @@ export interface ProgramStats {
 }
 
 /**
- * Configuration for the LoyaltyProgram
+ * Configuration for the LoyaltyProgram.
  */
 export interface LoyaltyProgramConfig {
   provingMode?: ProvingMode;
+  /** Scanner type: "rss" (RecordScanner) or "network" (NetworkRecordProvider). */
+  scannerType?: ScannerType;
+  /** RecordScanner service URL (for RSS scanner). */
   recordScannerUrl?: string;
+  /** API key or JWT for RecordScanner (for RSS scanner). */
   recordScannerApiKey?: string;
+  /** Explorer API URL (for Network scanner). */
+  networkUrl?: string;
   dpsUrl?: string;
   dpsApiKey?: string;
   dpsConsumerId?: string;
-  /** Enable encrypted DPS flow (TEE-protected proving) */
+  /** Enable encrypted DPS flow (TEE-protected proving). */
   dpsPrivacy?: boolean;
-  /** Enable encrypted RSS flow (TEE-protected record scanning) */
+  /** Enable encrypted RSS flow (TEE-protected record scanning). */
   rssPrivacy?: boolean;
 }
 
@@ -192,7 +209,10 @@ class LoyaltyProgram {
 
   // Feature configuration
   private _provingMode: ProvingMode = ProvingMode.Local;
+  private _scannerType: ScannerType = ScannerType.RSS;
   private _recordScanner: RecordScanner | null = null;
+  private _networkRecordProvider: NetworkRecordProvider | null = null;
+  private _networkUrl?: string;
   private _dpsUrl?: string;
   private _dpsApiKey?: string;
   private _dpsConsumerId?: string;
@@ -230,11 +250,25 @@ class LoyaltyProgram {
       this._provingMode = config.provingMode;
     }
 
-    if (config?.recordScannerUrl) {
+    if (config?.scannerType) {
+      this._scannerType = config.scannerType;
+    }
+
+    // Configure scanner based on type.
+    if (this._scannerType === ScannerType.RSS && config?.recordScannerUrl) {
+      // RSS: RecordScanner service (faster, requires JWT auth).
+      const apiKeyConfig = config.recordScannerApiKey?.startsWith("eyJ")
+        ? { header: "Authorization", value: `Bearer ${config.recordScannerApiKey}` }
+        : config.recordScannerApiKey;
       this._recordScanner = new RecordScanner({
         url: config.recordScannerUrl,
-        apiKey: config.recordScannerApiKey,
+        apiKey: apiKeyConfig,
       });
+    } else if (this._scannerType === ScannerType.Network && config?.networkUrl && account) {
+      // Network: NetworkRecordProvider via explorer API (no auth needed).
+      this._networkUrl = config.networkUrl;
+      const networkClient = new AleoNetworkClient(config.networkUrl);
+      this._networkRecordProvider = new NetworkRecordProvider(account, networkClient);
     }
 
     if (config?.dpsUrl) {
@@ -262,10 +296,17 @@ class LoyaltyProgram {
   }
 
   /**
-   * Check if record scanner is configured.
+   * Get the current scanner type.
+   */
+  get scannerType(): ScannerType {
+    return this._scannerType;
+  }
+
+  /**
+   * Check if a record scanner is configured (RSS or Network).
    */
   get hasRecordScanner(): boolean {
-    return this._recordScanner !== null;
+    return this._recordScanner !== null || this._networkRecordProvider !== null;
   }
 
   /**
@@ -279,7 +320,7 @@ class LoyaltyProgram {
     if (this._onStatus) {
       this._onStatus(event);
     }
-    // Also log to console for debugging
+    // Also log to console for debugging.
     console.log(`[LoyaltyProgram] ${event.type}:`, event);
   }
 
@@ -296,13 +337,46 @@ class LoyaltyProgram {
   }
 
   /**
-   * Configure the record scanner for discovering records on-chain.
+   * Set the scanner type (RSS or Network).
+   *
+   * @param type - The scanner type to use
+   */
+  setScannerType(type: ScannerType): void {
+    if (type !== this._scannerType) {
+      this._scannerType = type;
+      console.log(`[LoyaltyProgram] Scanner type changed to: ${type}`);
+    }
+  }
+
+  /**
+   * Configure the RSS record scanner for discovering records on-chain.
    *
    * @param url - The record scanner service URL
-   * @param apiKey - Optional API key
+   * @param apiKey - Optional API key or JWT token (JWT tokens start with "eyJ")
    */
   setRecordScanner(url: string, apiKey?: string): void {
-    this._recordScanner = new RecordScanner({ url, apiKey });
+    // JWT tokens (start with "eyJ") use Authorization header.
+    // Plain API keys use X-Provable-API-Key header.
+    const apiKeyConfig = apiKey?.startsWith("eyJ")
+      ? { header: "Authorization", value: `Bearer ${apiKey}` }
+      : apiKey;
+    this._recordScanner = new RecordScanner({ url, apiKey: apiKeyConfig });
+    this._scannerType = ScannerType.RSS;
+  }
+
+  /**
+   * Configure the Network record provider for discovering records via explorer API.
+   *
+   * @param networkUrl - The explorer API URL (e.g., "https://api.explorer.provable.com/v1")
+   */
+  setNetworkRecordProvider(networkUrl: string): void {
+    if (!this.account) {
+      throw new Error("Account must be set before configuring Network record provider.");
+    }
+    this._networkUrl = networkUrl;
+    const networkClient = new AleoNetworkClient(networkUrl);
+    this._networkRecordProvider = new NetworkRecordProvider(this.account, networkClient);
+    this._scannerType = ScannerType.Network;
   }
 
   /**
@@ -393,16 +467,17 @@ class LoyaltyProgram {
   }
 
   /**
-   * Find LoyaltyCard records owned by this account using the record scanner.
+   * Find LoyaltyCard records owned by this account.
+   * Uses either RecordScanner (RSS) or NetworkRecordProvider based on scannerType.
    *
    * @param startHeight - The block height to start scanning from
    * @param endHeight - Optional end block height (defaults to latest)
    * @returns Array of LoyaltyCard records
    */
   async findMyCards(startHeight: number = 0, endHeight?: number): Promise<LoyaltyCard[]> {
-    if (!this._recordScanner) {
+    if (!this.hasRecordScanner) {
       throw new Error(
-        "Record Scanner not configured. Use setRecordScanner() first."
+        "No record scanner configured. Use setRecordScanner() for RSS or setNetworkRecordProvider() for Network."
       );
     }
     if (!this.account) {
@@ -414,27 +489,51 @@ class LoyaltyProgram {
       operation: "findMyCards",
     });
 
-    // Register view key with scanner (encrypted or standard based on config)
-    if (this._rssPrivacy) {
-      await this.registerEncrypted(startHeight);
+    let cards: LoyaltyCard[];
+
+    if (this._scannerType === ScannerType.RSS && this._recordScanner) {
+      // RSS: RecordScanner service.
+      if (this._rssPrivacy) {
+        await this.registerEncrypted(startHeight);
+      } else {
+        await this._recordScanner.register(this.account.viewKey(), startHeight);
+      }
+
+      const records = await this._recordScanner.findRecords({
+        decrypt: true,
+        unspent: true,
+        filter: {
+          start: startHeight,
+          end: endHeight,
+          program: this.TOKEN_PROGRAM_ID,
+          record: "LoyaltyCard",
+        },
+      });
+
+      cards = records
+        .filter((r) => r.record_name === "LoyaltyCard" && (r.record_plaintext || r.record_ciphertext))
+        .map((r) => {
+          if (r.record_plaintext) {
+            return this.parseCard(r.record_plaintext);
+          }
+          const ciphertext = RecordCiphertext.fromString(r.record_ciphertext!);
+          const plaintext = ciphertext.decrypt(this.account!.viewKey());
+          return this.parseCard(plaintext.toString());
+        });
+    } else if (this._scannerType === ScannerType.Network && this._networkRecordProvider) {
+      // Network: NetworkRecordProvider via explorer API.
+      const records = await this._networkRecordProvider.findRecords({
+        unspent: true,
+        startHeight,
+        programName: this.TOKEN_PROGRAM_ID,
+      });
+
+      cards = records
+        .filter((r) => r.record_plaintext)
+        .map((r) => this.parseCard(r.record_plaintext!));
     } else {
-      await this._recordScanner.register(this.account.viewKey(), startHeight);
+      throw new Error("Scanner not properly configured for the selected scanner type.");
     }
-
-    const records = await this._recordScanner.findRecords({
-      decrypt: true,
-      unspent: true,
-      filter: {
-        start: startHeight,
-        end: endHeight,
-        program: this.TOKEN_PROGRAM_ID,
-        record: "LoyaltyCard",
-      },
-    });
-
-    const cards = records
-      .filter((r) => r.record_plaintext)
-      .map((r) => this.parseCard(r.record_plaintext!));
 
     this.emitStatus({
       type: "scan_complete",
@@ -446,16 +545,17 @@ class LoyaltyProgram {
   }
 
   /**
-   * Find RewardVoucher records owned by this account using the record scanner.
+   * Find RewardVoucher records owned by this account.
+   * Uses either RecordScanner (RSS) or NetworkRecordProvider based on scannerType.
    *
    * @param startHeight - The block height to start scanning from
    * @param endHeight - Optional end block height (defaults to latest)
    * @returns Array of RewardVoucher records
    */
   async findMyVouchers(startHeight: number = 0, endHeight?: number): Promise<RewardVoucher[]> {
-    if (!this._recordScanner) {
+    if (!this.hasRecordScanner) {
       throw new Error(
-        "Record Scanner not configured. Use setRecordScanner() first."
+        "No record scanner configured. Use setRecordScanner() for RSS or setNetworkRecordProvider() for Network."
       );
     }
     if (!this.account) {
@@ -467,27 +567,51 @@ class LoyaltyProgram {
       operation: "findMyVouchers",
     });
 
-    // Register view key with scanner (encrypted or standard based on config)
-    if (this._rssPrivacy) {
-      await this.registerEncrypted(startHeight);
+    let vouchers: RewardVoucher[];
+
+    if (this._scannerType === ScannerType.RSS && this._recordScanner) {
+      // RSS: RecordScanner service.
+      if (this._rssPrivacy) {
+        await this.registerEncrypted(startHeight);
+      } else {
+        await this._recordScanner.register(this.account.viewKey(), startHeight);
+      }
+
+      const records = await this._recordScanner.findRecords({
+        decrypt: true,
+        unspent: true,
+        filter: {
+          start: startHeight,
+          end: endHeight,
+          program: this.REWARDS_PROGRAM_ID,
+          record: "RewardVoucher",
+        },
+      });
+
+      vouchers = records
+        .filter((r) => r.record_name === "RewardVoucher" && (r.record_plaintext || r.record_ciphertext))
+        .map((r) => {
+          if (r.record_plaintext) {
+            return this.parseVoucher(r.record_plaintext);
+          }
+          const ciphertext = RecordCiphertext.fromString(r.record_ciphertext!);
+          const plaintext = ciphertext.decrypt(this.account!.viewKey());
+          return this.parseVoucher(plaintext.toString());
+        });
+    } else if (this._scannerType === ScannerType.Network && this._networkRecordProvider) {
+      // Network: NetworkRecordProvider via explorer API.
+      const records = await this._networkRecordProvider.findRecords({
+        unspent: true,
+        startHeight,
+        programName: this.REWARDS_PROGRAM_ID,
+      });
+
+      vouchers = records
+        .filter((r) => r.record_plaintext)
+        .map((r) => this.parseVoucher(r.record_plaintext!));
     } else {
-      await this._recordScanner.register(this.account.viewKey(), startHeight);
+      throw new Error("Scanner not properly configured for the selected scanner type.");
     }
-
-    const records = await this._recordScanner.findRecords({
-      decrypt: true,
-      unspent: true,
-      filter: {
-        start: startHeight,
-        end: endHeight,
-        program: this.REWARDS_PROGRAM_ID,
-        record: "RewardVoucher",
-      },
-    });
-
-    const vouchers = records
-      .filter((r) => r.record_plaintext)
-      .map((r) => this.parseVoucher(r.record_plaintext!));
 
     this.emitStatus({
       type: "scan_complete",
@@ -635,7 +759,7 @@ class LoyaltyProgram {
 
     const inputs = [card.raw, `${rewardType}u8`, `${pointsCost}u64`];
 
-    // Multi-program execution requires imports
+    // Multi-program execution requires imports.
     const outputs = await this.executeWithImports(
       this.rewardsProgram,
       "redeem_points_for_voucher",
@@ -899,6 +1023,7 @@ class LoyaltyProgram {
 
   /**
    * Execute a function locally (offline).
+   * Uses key caching - keys are synthesized once and reused for subsequent calls.
    */
   private async executeLocal(
     program: string,
@@ -907,17 +1032,36 @@ class LoyaltyProgram {
   ): Promise<string[]> {
     console.log(`Starting ${functionName} execution (LOCAL)`);
 
-    // Create temporary account if none set
+    // Create temporary account if none set.
     if (!this.account) {
       const tempAccount = new Account();
       this.programManager.setAccount(tempAccount);
     }
 
+    // Get program name for cache key.
+    const programName = Program.fromString(program).id();
+    const cacheKey = `${programName}:${functionName}`;
+
+    // Synthesize and cache keys if not already cached.
+    // This speeds up subsequent executions of the same function.
+    if (!this.keyProvider.containsKeys(cacheKey)) {
+      console.log(`Synthesizing keys for ${cacheKey}...`);
+      const keyPair = await this.programManager.synthesizeKeys(program, functionName, inputs);
+      this.keyProvider.cacheKeys(cacheKey, keyPair);
+      console.log(`Keys cached for ${cacheKey}`);
+    } else {
+      console.log(`Using cached keys for ${cacheKey}`);
+    }
+
+    // Execute with cached keys.
+    const keySearchParams = new AleoKeyProviderParams({ cacheKey });
     const executionResponse = await this.programManager.run(
       program,
       functionName,
       inputs,
-      false // offline mode
+      false, // Offline mode.
+      undefined,
+      keySearchParams
     );
 
     const outputs = executionResponse.getOutputs();
@@ -928,6 +1072,7 @@ class LoyaltyProgram {
 
   /**
    * Execute a function locally with program imports.
+   * Uses key caching - keys are synthesized once and reused for subsequent calls.
    */
   private async executeLocalWithImports(
     program: string,
@@ -937,18 +1082,36 @@ class LoyaltyProgram {
   ): Promise<string[]> {
     console.log(`Starting ${functionName} execution with imports (LOCAL)`);
 
-    // Create temporary account if none set
+    // Create temporary account if none set.
     if (!this.account) {
       const tempAccount = new Account();
       this.programManager.setAccount(tempAccount);
     }
 
+    // Get program name for cache key.
+    const programName = Program.fromString(program).id();
+    const cacheKey = `${programName}:${functionName}`;
+
+    // Synthesize and cache keys if not already cached.
+    // This speeds up subsequent executions of the same function.
+    if (!this.keyProvider.containsKeys(cacheKey)) {
+      console.log(`Synthesizing keys for ${cacheKey}...`);
+      const keyPair = await this.programManager.synthesizeKeys(program, functionName, inputs);
+      this.keyProvider.cacheKeys(cacheKey, keyPair);
+      console.log(`Keys cached for ${cacheKey}`);
+    } else {
+      console.log(`Using cached keys for ${cacheKey}`);
+    }
+
+    // Execute with cached keys.
+    const keySearchParams = new AleoKeyProviderParams({ cacheKey });
     const executionResponse = await this.programManager.run(
       program,
       functionName,
       inputs,
-      false, // offline mode
-      imports
+      false, // Offline mode.
+      imports,
+      keySearchParams
     );
 
     const outputs = executionResponse.getOutputs();
@@ -974,10 +1137,10 @@ class LoyaltyProgram {
 
     console.log(`Starting ${functionName} execution (DELEGATED)`);
 
-    // Get program name from source
+    // Get program name from source.
     const programName = Program.fromString(program).id();
 
-    // Build the proving request
+    // Build the proving request.
     const provingRequest = await this.programManager.provingRequest({
       programName,
       programSource: program,
@@ -988,7 +1151,7 @@ class LoyaltyProgram {
       broadcast: false,
     });
 
-    // Submit to DPS (with optional encryption via dpsPrivacy flag)
+    // Submit to DPS (with optional encryption via dpsPrivacy flag).
     if (!this.networkClient) {
       this.networkClient = new AleoNetworkClient(this._dpsUrl);
     }
@@ -1005,7 +1168,7 @@ class LoyaltyProgram {
       dpsPrivacy: this._dpsPrivacy,
     });
 
-    // Extract outputs from the transaction
+    // Extract outputs from the transaction.
     return this.extractOutputsFromTransaction(response.transaction);
   }
 
@@ -1027,10 +1190,10 @@ class LoyaltyProgram {
 
     console.log(`Starting ${functionName} execution with imports (DELEGATED)`);
 
-    // Get program name from source
+    // Get program name from source.
     const programName = Program.fromString(program).id();
 
-    // Build the proving request
+    // Build the proving request.
     const provingRequest = await this.programManager.provingRequest({
       programName,
       programSource: program,
@@ -1042,7 +1205,7 @@ class LoyaltyProgram {
       broadcast: false,
     });
 
-    // Submit to DPS (with optional encryption via dpsPrivacy flag)
+    // Submit to DPS (with optional encryption via dpsPrivacy flag).
     if (!this.networkClient) {
       this.networkClient = new AleoNetworkClient(this._dpsUrl);
     }
@@ -1059,12 +1222,12 @@ class LoyaltyProgram {
       dpsPrivacy: this._dpsPrivacy,
     });
 
-    // Extract outputs from the transaction
+    // Extract outputs from the transaction.
     return this.extractOutputsFromTransaction(response.transaction);
   }
 
-  private extractOutputsFromTransaction(transaction: { execution?: { transitions: Array<{ outputs?: Array<{ value?: string }> }> } }): string[] {
-    // Extract record outputs from transaction execution
+  private extractOutputsFromTransaction(transaction: { execution?: { transitions: Array<{ outputs?: Array<{ type?: string; value?: string }> }> } }): string[] {
+    // Extract and decrypt record outputs from transaction execution.
     const outputs: string[] = [];
 
     if (transaction.execution?.transitions) {
@@ -1072,7 +1235,15 @@ class LoyaltyProgram {
         if (transition.outputs) {
           for (const output of transition.outputs) {
             if (output.value) {
-              outputs.push(output.value);
+              // Check if this is an encrypted record (starts with "record1").
+              if (output.type === "record" && output.value.startsWith("record1") && this.account) {
+                // Decrypt the record using the account's view key.
+                const ciphertext = RecordCiphertext.fromString(output.value);
+                const plaintext = ciphertext.decrypt(this.account.viewKey());
+                outputs.push(plaintext.toString());
+              } else {
+                outputs.push(output.value);
+              }
             }
           }
         }
@@ -1150,7 +1321,7 @@ class LoyaltyProgram {
       owner: this.cleanAddress(fields.owner),
       voucherId: this.cleanField(fields.voucher_id),
       rewardType: this.parseU8(fields.reward_type) as RewardType,
-      value: this.parseU64(fields.amount),  // Leo record uses 'amount' field
+      value: this.parseU64(fields.amount),  // Leo record uses 'amount' field.
       raw: recordString,
     };
   }
@@ -1244,7 +1415,7 @@ async function scanForRecords(
   privateKeyString: string,
   programId: string,
   startHeight: number,
-  endHeight: number,
+  _endHeight: number,
   apiUrl: string
 ): Promise<string[]> {
   const networkClient = new AleoNetworkClient(apiUrl);
@@ -1252,13 +1423,12 @@ async function scanForRecords(
   const recordProvider = new NetworkRecordProvider(account, networkClient);
 
   try {
-    const records = await recordProvider.findRecords(
+    const records = await recordProvider.findRecords({
+      unspent: true,
       startHeight,
-      endHeight,
-      true,
-      [programId]
-    );
-    return records.map((record) => record.toString());
+      programName: programId,
+    });
+    return records.map((record) => record.record_plaintext ?? "");
   } catch (error) {
     console.log(`Error scanning for records: ${error}`);
     return [];
@@ -1298,7 +1468,7 @@ function createLocalLoyaltyProgram(
 /**
  * Create a LoyaltyProgram instance configured for network execution.
  */
-function createNetworkLoyaltyProgram(
+function _createNetworkLoyaltyProgram(
   privateKey: string,
   apiUrl: string,
   tokenProgram: string,
@@ -1314,7 +1484,7 @@ function createNetworkLoyaltyProgram(
 // Worker Instance
 // ============================================================================
 
-// Create a shared instance for the worker
+// Create a shared instance for the worker.
 let loyaltyInstance: LoyaltyProgram | null = null;
 
 /**
@@ -1359,6 +1529,20 @@ function setProvingMode(mode: ProvingMode): void {
 }
 
 /**
+ * Get the current scanner type.
+ */
+function getScannerType(): ScannerType {
+  return getLoyaltyProgram().scannerType;
+}
+
+/**
+ * Set the scanner type.
+ */
+function setScannerType(type: ScannerType): void {
+  getLoyaltyProgram().setScannerType(type);
+}
+
+/**
  * Check if record scanner is configured.
  */
 function hasRecordScanner(): boolean {
@@ -1366,10 +1550,17 @@ function hasRecordScanner(): boolean {
 }
 
 /**
- * Configure the record scanner.
+ * Configure the RSS record scanner.
  */
 function setRecordScanner(url: string, apiKey?: string): void {
   getLoyaltyProgram().setRecordScanner(url, apiKey);
+}
+
+/**
+ * Configure the Network record provider.
+ */
+function setNetworkRecordProvider(networkUrl: string): void {
+  getLoyaltyProgram().setNetworkRecordProvider(networkUrl);
 }
 
 // Wrapper functions that use the shared instance
@@ -1427,8 +1618,11 @@ const workerMethods = {
   // Configuration
   getProvingMode,
   setProvingMode,
+  getScannerType,
+  setScannerType,
   hasRecordScanner,
   setRecordScanner,
+  setNetworkRecordProvider,
 
   // Card operations
   mintCard,
@@ -1458,26 +1652,11 @@ const workerMethods = {
 
   // Enums (for UI)
   ProvingMode,
+  ScannerType,
   RewardType,
   CardTier,
 };
 
 expose(workerMethods);
 
-// Export types for use in UI
-export type {
-  LoyaltyCard,
-  RewardVoucher,
-  RedeemResult,
-  ProgramStats,
-  LoyaltyProgramConfig,
-  StatusEvent,
-  StatusEventType,
-};
-
-export {
-  LoyaltyProgram,
-  ProvingMode,
-  RewardType,
-  CardTier,
-};
+// LoyaltyProgram class and types are already exported at their declarations.

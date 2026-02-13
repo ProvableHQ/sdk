@@ -6,12 +6,17 @@
     "scripts": {
         "build": "rimraf dist && rollup --config",
         "start": "npm run build && node dist/index.js",
+        "local": "npm run build && node dist/index.js local",
+        "delegated": "npm run build && node dist/index.js delegated",
+        "scanner": "npm run build && node dist/index.js scanner",
+        "scanner:network": "npm run build && node dist/index.js scanner:network",
         "start:mint": "npm run build && node dist/index.js mint_card",
         "start:add": "npm run build && node dist/index.js add_points",
         "start:redeem": "npm run build && node dist/index.js redeem_for_voucher"
     },
     "dependencies": {
-        "@provablehq/sdk": "^0.9.15"
+        "@provablehq/sdk": "^0.9.15",
+        "dotenv": "^16.4.5"
     },
     "devDependencies": {
         "rimraf": "^6.0.1",

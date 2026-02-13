@@ -44,11 +44,14 @@ function mint_card:
     input r2 as field.private;
     cast r0 r2 r1 into r3 as CardIdInput;
     hash.bhp256 r3 into r4 as field;
-    call calculate_tier r1 into r5;
-    cast r0 r4 r1 r5 into r6 as LoyaltyCard.record;
-    async mint_card r4 into r7;
-    output r6 as LoyaltyCard.record;
-    output r7 as loyalty_token.aleo/mint_card.future;
+    gte r1 10000u64 into r5;
+    gte r1 1000u64 into r6;
+    ternary r6 1u8 0u8 into r7;
+    ternary r5 2u8 r7 into r8;
+    cast r0 r4 r1 r8 into r9 as LoyaltyCard.record;
+    async mint_card r4 into r10;
+    output r9 as LoyaltyCard.record;
+    output r10 as loyalty_token.aleo/mint_card.future;
 
 finalize mint_card:
     input r0 as field.public;
@@ -64,11 +67,14 @@ function add_points:
     input r0 as LoyaltyCard.record;
     input r1 as u64.private;
     add r0.points r1 into r2;
-    call calculate_tier r2 into r3;
-    cast r0.owner r0.card_id r2 r3 into r4 as LoyaltyCard.record;
-    async add_points r0.card_id r1 into r5;
-    output r4 as LoyaltyCard.record;
-    output r5 as loyalty_token.aleo/add_points.future;
+    gte r2 10000u64 into r3;
+    gte r2 1000u64 into r4;
+    ternary r4 1u8 0u8 into r5;
+    ternary r3 2u8 r5 into r6;
+    cast r0.owner r0.card_id r2 r6 into r7 as LoyaltyCard.record;
+    async add_points r0.card_id r1 into r8;
+    output r7 as LoyaltyCard.record;
+    output r8 as loyalty_token.aleo/add_points.future;
 
 finalize add_points:
     input r0 as field.public;
@@ -105,16 +111,22 @@ function split_card:
     lt r1 r0.points into r3;
     assert.eq r3 true;
     sub r0.points r1 into r4;
-    call calculate_tier r1 into r5;
-    cast r0.owner r0.card_id r1 r5 into r6 as LoyaltyCard.record;
-    cast r0.owner r2 r4 into r7 as CardIdInput;
-    hash.bhp256 r7 into r8 as field;
-    call calculate_tier r4 into r9;
-    cast r0.owner r8 r4 r9 into r10 as LoyaltyCard.record;
-    async split_card r0.card_id r8 into r11;
-    output r6 as LoyaltyCard.record;
-    output r10 as LoyaltyCard.record;
-    output r11 as loyalty_token.aleo/split_card.future;
+    gte r1 10000u64 into r5;
+    gte r1 1000u64 into r6;
+    ternary r6 1u8 0u8 into r7;
+    ternary r5 2u8 r7 into r8;
+    cast r0.owner r0.card_id r1 r8 into r9 as LoyaltyCard.record;
+    cast r0.owner r2 r4 into r10 as CardIdInput;
+    hash.bhp256 r10 into r11 as field;
+    gte r4 10000u64 into r12;
+    gte r4 1000u64 into r13;
+    ternary r13 1u8 0u8 into r14;
+    ternary r12 2u8 r14 into r15;
+    cast r0.owner r11 r4 r15 into r16 as LoyaltyCard.record;
+    async split_card r0.card_id r11 into r17;
+    output r9 as LoyaltyCard.record;
+    output r16 as LoyaltyCard.record;
+    output r17 as loyalty_token.aleo/split_card.future;
 
 finalize split_card:
     input r0 as field.public;
@@ -132,9 +144,12 @@ function spend_points:
     gte r0.points r1 into r2;
     assert.eq r2 true;
     sub r0.points r1 into r3;
-    call calculate_tier r3 into r4;
-    cast r0.owner r0.card_id r3 r4 into r5 as LoyaltyCard.record;
-    output r5 as LoyaltyCard.record;
+    gte r3 10000u64 into r4;
+    gte r3 1000u64 into r5;
+    ternary r5 1u8 0u8 into r6;
+    ternary r4 2u8 r6 into r7;
+    cast r0.owner r0.card_id r3 r7 into r8 as LoyaltyCard.record;
+    output r8 as LoyaltyCard.record;
 
 constructor:
     gt edition 0u16 into r0;
