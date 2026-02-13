@@ -302,6 +302,12 @@ const records = await getOwnedRecords(
 
 You can define `OwnedRecord` to match the scanner response shape, or import it from the SDK if available.
 
+### Reference Implementation
+
+[A full implementation of the Record Scanner can be viewed here](https://github.com/ProvableHQ/sdk/blob/mainnet/sdk/src/record-scanner.ts) for usage in one's own SDK.
+
+
+
 ---
 
 ## Delegated Proving Service (DPS)
@@ -607,3 +613,4 @@ You can add retries for 500/503 and JWT refresh when the token is expired.
 4. **JWT and cookies:** For DPS with the Provable API, supply `apiKey` and `consumerId` (or a valid `jwtData`) so the SDK can refresh the JWT. In Node, forward the `/pubkey` response cookie to `/prove/encrypted` when the prover uses session cookies.
 5. **Fee master:** When the prover or your deployment supports a fee master, set `useFeeMaster: true` in proving request options so no fee authorization is built; the prover pays the fee on your behalf.
 6. **Record scanner with ProgramManager:** You can pass a `RecordScanner` (or any `RecordProvider`) into `ProgramManager`. The manager will then use it to resolve fee records (and inputs) when building executions or proving requests, so you do not have to fetch fee records manually.
+
