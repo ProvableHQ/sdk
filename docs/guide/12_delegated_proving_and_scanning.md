@@ -102,8 +102,9 @@ When using the record scanning service, users must first register their encrypte
 the following flow.
 
 ### Flow (encrypted registration)
+0. Client must obtain an API key or JWT from the provable API.
 1. Client requests an ephemeral X25519 public key from the scanner: `GET {scannerBase}/pubkey`.
-2. Client encrypts the view key and start block (e.g. with `encryptRegistrationRequest`) and sends: `POST {scannerBase}/register/encrypted` with `{ key_id, ciphertext }`.
+2. Client encrypts the view key and start block (e.g. with [encryptRegistrationRequest](https://github.com/ProvableHQ/sdk/blob/mainnet/sdk/src/security.ts#L51)) and sends: `POST {scannerBase}/register/encrypted` with `{ key_id, ciphertext }`.
 3. Scanner decrypts in a secure environment, indexes records for that view key, and returns a `uuid` (and optional `job_id`, `status`). The client uses `uuid` for subsequent queries (e.g. owned records).
 
 ```mermaid
@@ -142,7 +143,7 @@ If the scanner returns **422** on `/records/owned`, the UUID may no longer be va
 ### Using the Record Scanner via the Provable SDK
 
 1. Create a `RecordScanner` with the service URL. The SDK appends the network (e.g. `/mainnet`).
-2. Optionally set an API key: `recordScanner.setApiKey("your-api-key")`.
+2. Optionally set an API key: `recordScanner.setApiKey("your-api-key")` or a JWT `recordScanner.setJwtData({jwt: "jwt", expiration: 1810941101})`
 3. Register with the **encrypted** flow: `registerEncrypted(viewKey, startBlock)`. The result contains `uuid`; the scanner stores it for later calls.
 4. Query owned records with `findRecords(filter)` or `owned(filter)`, where `filter` includes `uuid` (and e.g. `unspent: true`, `filter: { program, record }`).
 
@@ -171,8 +172,6 @@ const records = await recordScanner.findRecords({
   filter: { program: "credits.aleo", record: "credits" },
 });
 ```
-
-You can also use `recordScanner.register(viewKey, startBlock)` for **unencrypted** registration if your deployment supports it.
 
 ---
 
@@ -307,11 +306,15 @@ You can define `OwnedRecord` to match the scanner response shape, or import it f
 
 ## Delegated Proving Service (DPS)
 
+When using the delegated proving service, users must obtain a Provable API key. They are then able to submit Proving
+requests in encrypted form to the delegated proving service.
+
 ### Flow (encrypted proving)
 
+0. Client must obtain an API key or JWT from the provable API.
 1. Client requests an ephemeral X25519 public key from the prover: `GET {proverBase}/pubkey`.
-2. Client builds a *proving request* (authorization, optional fee authorization, broadcast flag), encrypts it (e.g. with `encryptProvingRequest`), and sends: `POST {proverBase}/prove/encrypted` with `{ key_id, ciphertext }`.
-3. Prover decrypts in a secure environment, runs the prover, and returns a **transaction** and **broadcast_result** (if the request asked for broadcast). The client may submit the transaction themselves or use the broadcast result.
+2. Client builds a *proving request* (authorization, optional fee authorization, broadcast flag), encrypts it via a libsodium cryptobox (e.g. with [encryptProvingRequest](https://github.com/ProvableHQ/sdk/blob/mainnet/sdk/src/security.ts#L26)), and sends it to: `POST {proverBase}/prove/encrypted` with `{ "key_id": string, "ciphertext": string }`.
+3. Prover decrypts in a secure environment, runs the proof, and returns a **transaction** and **broadcast_result** (if the request asked for broadcast). The client may submit the transaction themselves or use the broadcast result.
 
 ```mermaid
 sequenceDiagram
@@ -337,10 +340,11 @@ All paths are relative to the prover base URL (e.g. `https://api.provable.com/v2
 | Path | Method | Purpose | Request body | Response |
 |------|--------|----------|--------------|----------|
 | `/pubkey` | GET | Ephemeral public key for encrypted proving | — | `{ "key_id": string, "public_key": string }` |
-| `/prove` | POST | Submit proving request (unencrypted) | ProvingRequest string (JSON) | `{ "transaction": object, "broadcast_result": object }` or error |
 | `/prove/encrypted` | POST | Submit proving request (encrypted) | `{ "key_id": string, "ciphertext": string }` | Same as `/prove` on success |
 
-Authentication (e.g. JWT in `Authorization`, cookies for session) is required for Provable’s API. In Node, you may need to forward the `set-cookie` header from the `/pubkey` response to the `/prove/encrypted` request so the prover can associate the two calls.
+Authentication (e.g. JWT in `Authorization`, cookies for session) is required for Provable’s API. In Node, you may need 
+to forward the `set-cookie` header from the `/pubkey` response to the `/prove/encrypted` request so the prover can 
+associate the two calls.
 
 ---
 
@@ -349,7 +353,8 @@ Authentication (e.g. JWT in `Authorization`, cookies for session) is required fo
 A **proving request** consists of:
 
 - An **authorization** for the program function (and inputs) the user wants to run.
-- An optional **fee authorization** (e.g. `credits.aleo` fee_public / fee_private) to pay for the execution—or **none** when using a fee master (`useFeeMaster: true`).
+- An optional **fee authorization** (e.g. `credits.aleo` fee_public / fee_private) to pay for the execution—or **none** 
+- when using a fee master (`useFeeMaster: true`).
 - A **broadcast** flag indicating whether the prover should submit the resulting transaction to the network.
 
 The SDK builds this in two stages:
@@ -357,7 +362,9 @@ The SDK builds this in two stages:
 1. **Authorize** the main function (program, function name, inputs, private key, optional edition). The base fee is estimated from this authorization.
 2. **Optionally authorize the fee** (execution ID, base fee, priority fee, fee record)—unless the program is a fee-related `credits.aleo` function or `useFeeMaster` is true, in which case no fee authorization is attached.
 
-So when you call `programManager.provingRequest(options)`, the SDK resolves the program (and imports, edition) if needed, resolves the fee record when not using the fee master, then calls the WASM layer to build the authorization and optional fee authorization and wraps them in a `ProvingRequest`. You can then submit that object (or its string form) to the prover.
+So when you call `programManager.provingRequest(options)`, the SDK resolves the program (and imports, edition) if needed, 
+resolves the fee record when not using the fee master, then calls the WASM layer to build the authorization and optional 
+fee authorization and wraps them in a `ProvingRequest`. You can then submit that object (or its string form) to the prover.
 
 ---
 
