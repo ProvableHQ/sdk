@@ -2,6 +2,7 @@
 import { wrap } from "comlink";
 
 let singletonWorker = null;
+let workerReady: Promise<void> | null = null;
 
 const AleoWorker = () => {
   if (!singletonWorker) {
@@ -13,9 +14,31 @@ const AleoWorker = () => {
       console.error("Error in worker: " + event?.message);
     };
 
-    singletonWorker = wrap(worker);
+    // Wait for worker to signal it's ready before wrapping
+    workerReady = new Promise<void>((resolve) => {
+      const handleMessage = (event: MessageEvent) => {
+        if (event.data === "ready") {
+          console.log("[AleoWorker] Worker signaled ready");
+          worker.removeEventListener("message", handleMessage);
+          resolve();
+        }
+      };
+      worker.addEventListener("message", handleMessage);
+    });
+
+    // Wrap after ready signal
+    workerReady.then(() => {
+      singletonWorker = wrap(worker);
+    });
   }
   return singletonWorker;
 };
 
-export { AleoWorker };
+// Get a promise that resolves to the worker when it's ready
+const getAleoWorker = async () => {
+  AleoWorker(); // Initialize if needed
+  await workerReady;
+  return singletonWorker;
+};
+
+export { AleoWorker, getAleoWorker };

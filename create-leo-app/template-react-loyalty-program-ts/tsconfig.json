@@ -1,5 +1,5 @@
 {
-  "include": ["src", "__tests__", "src/custom.d.ts"],
+  "include": ["src", "__tests__", "src/vite-env.d.ts"],
   "compilerOptions": {
     "outDir": "dist",
     "target": "ES2020",

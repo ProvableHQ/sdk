@@ -106,6 +106,12 @@ h1 {
   font-size: 0.9em;
 }
 
+.account-mode {
+  color: #888;
+  font-size: 0.85em;
+  margin-top: 0.5em;
+}
+
 /* Loyalty card display */
 .card-display {
   display: flex;
@@ -235,6 +241,27 @@ h1 {
   font-family: monospace;
 }
 
+.vouchers-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1em;
+}
+
+.voucher-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.5em;
+}
+
+.voucher-item .voucher {
+  margin: 0;
+}
+
+.voucher-item button {
+  width: 100%;
+}
+
 /* Card ID */
 .card-id {
   font-size: 0.7em;
@@ -270,12 +297,14 @@ button {
   font-weight: 500;
   font-family: inherit;
   background-color: #1a1a1a;
+  color: #e0e0e0;
   cursor: pointer;
-  transition: border-color 0.25s;
+  transition: border-color 0.25s, color 0.25s;
 }
 
 button:hover:not(:disabled) {
   border-color: #646cff;
+  color: #fff;
 }
 
 button:focus,
@@ -305,6 +334,71 @@ button:disabled {
 }
 
 .read-the-docs {
+  color: #888;
+}
+
+/* Scanner section */
+.scanner-info {
+  color: #888;
+  font-size: 0.9em;
+  margin-bottom: 1em;
+}
+
+.scanned-records {
+  margin-top: 1.5em;
+}
+
+.scanned-section {
+  margin-bottom: 1em;
+}
+
+.scanned-section h3 {
+  font-size: 1em;
+  color: #888;
+  margin-bottom: 0.5em;
+}
+
+.scanned-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5em;
+}
+
+.scanned-item {
+  display: flex;
+  gap: 0.5em;
+  padding: 0.5em 1em;
+  background: #2a2a2a;
+  border: 1px solid #444;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: border-color 0.2s, background-color 0.2s;
+}
+
+.scanned-item:hover {
+  border-color: #646cff;
+  background: #333;
+}
+
+.scanned-item.selected {
+  border-color: #4caf50;
+  background: #1a3a1a;
+}
+
+.scanned-tier {
+  font-weight: bold;
+}
+
+.scanned-points {
+  color: #888;
+}
+
+.scanned-type {
+  font-weight: bold;
+  color: #4caf50;
+}
+
+.scanned-value {
   color: #888;
 }
 

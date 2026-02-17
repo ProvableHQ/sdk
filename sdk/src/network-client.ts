@@ -32,6 +32,8 @@ interface AleoNetworkClientOptions {
     headers?: { [key: string]: string };
     proverUri?: string;
     recordScannerUri?: string;
+    /** API host for program/edition lookups (defaults to https://api.provable.com/v2) */
+    apiHost?: string;
 }
 
 /**
@@ -90,10 +92,14 @@ class AleoNetworkClient {
     jwtData?: JWTData;
     proverUri?: string;
     recordScannerUri?: string;
+    /** API host for program/edition lookups (defaults to https://api.provable.com/v2) */
+    apiHost: string;
 
     constructor(host: string, options?: AleoNetworkClientOptions) {
         this.host = host + "/%%NETWORK%%";
         this.network = "%%NETWORK%%";
+        // Default API host for program lookups - can be overridden via options
+        this.apiHost = (options?.apiHost ?? "https://api.provable.com/v2") + "/%%NETWORK%%";
         this.ctx = {};
         this.verboseErrors = true;
 
@@ -260,6 +266,21 @@ class AleoNetworkClient {
     }
 
     /**
+     * Fetches data from the Provable API (v2) and returns it as a JSON object.
+     * Uses apiHost which defaults to https://api.provable.com/v2.
+     *
+     * @param url The API endpoint path
+     */
+    async fetchDataFromApi<Type>(url = "/"): Promise<Type> {
+        try {
+            const raw = await this.fetchFromApi(url);
+            return parseJSON(raw);
+        } catch (error) {
+            throw new Error(`Error fetching data: ${error}`);
+        }
+    }
+
+    /**
      * Fetches data from the Aleo network and returns it as an unparsed string.
      *
      * This method should be used when it is desired to reconstitute data returned
@@ -272,6 +293,29 @@ class AleoNetworkClient {
             const ctx = {...this.ctx};
             return await retryWithBackoff(async () => {
                 const response = await get(this.host + url, {
+                    headers: {
+                        ...this.headers,
+                        ...ctx,
+                    },
+                });
+                return await response.text();
+            });
+        } catch (error) {
+            throw new Error(`Error fetching data: ${error}`);
+        }
+    }
+
+    /**
+     * Fetches data from the Provable API (v2) for program/edition lookups.
+     * Uses apiHost which defaults to https://api.provable.com/v2.
+     *
+     * @param url The API endpoint path
+     */
+    async fetchFromApi(url = "/"): Promise<string> {
+        try {
+            const ctx = {...this.ctx};
+            return await retryWithBackoff(async () => {
+                const response = await get(this.apiHost + url, {
                     headers: {
                         ...this.headers,
                         ...ctx,
@@ -1040,11 +1084,11 @@ class AleoNetworkClient {
         try {
             this.ctx = { "X-ALEO-METHOD": "getProgramVersion" };
             if (typeof edition === "number") {
-                return await this.fetchData<string>(
+                return await this.fetchDataFromApi<string>(
                     `/program/${programId}/${edition}`,
                 );
             } else {
-                return await this.fetchData<string>("/program/" + programId);
+                return await this.fetchDataFromApi<string>("/program/" + programId);
             }
         } catch (error) {
             throw new Error(`Error fetching program ${programId}: ${error}`);
@@ -1071,7 +1115,7 @@ class AleoNetworkClient {
     async getLatestProgramEdition(programId: string): Promise<number> {
         try {
             this.ctx = { "X-ALEO-METHOD": "getLatestProgramEdition" };
-            const raw = await this.fetchRaw("/program/" + programId + "/latest_edition");
+            const raw = await this.fetchFromApi("/program/" + programId + "/latest_edition");
             return JSON.parse(raw);
         } catch (error) {
             throw new Error(`Error fetching program ${programId}: ${error}`);

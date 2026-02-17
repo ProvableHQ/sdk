@@ -4,9 +4,26 @@ import aleoLogo from "./assets/aleo.svg";
 import "./App.css";
 import loyalty_token_program from "../loyalty_token/build/main.aleo?raw";
 import loyalty_rewards_program from "../loyalty_rewards/build/main.aleo?raw";
-import { AleoWorker } from "./workers/AleoWorker";
+import { getAleoWorker } from "./workers/AleoWorker";
 
-const aleoWorker = AleoWorker();
+// Read configuration from environment variables (Vite loads .env automatically)
+const getConfig = () => {
+  const provingMode = import.meta.env.VITE_ALEO_PROVING_MODE || "local";
+
+  return {
+    provingMode: provingMode as "local" | "delegated",
+    // Consumer ID (used for both DPS and RSS)
+    consumerId: import.meta.env.VITE_ALEO_CONSUMER_ID,
+    // DPS configuration
+    dpsUrl: import.meta.env.VITE_ALEO_DPS_URL,
+    dpsApiKey: import.meta.env.VITE_ALEO_DPS_API_KEY,
+    dpsPrivacy: import.meta.env.VITE_ALEO_DPS_PRIVACY === "true",
+    // RSS configuration
+    recordScannerUrl: import.meta.env.VITE_ALEO_RSS_URL,
+    recordScannerApiKey: import.meta.env.VITE_ALEO_RSS_API_KEY,
+    rssPrivacy: import.meta.env.VITE_ALEO_RSS_PRIVACY === "true",
+  };
+};
 
 // Type definitions (matching worker types)
 interface LoyaltyCard {
@@ -66,8 +83,8 @@ function App() {
   // Card state - now using typed LoyaltyCard
   const [card, setCard] = useState<LoyaltyCard | null>(null);
 
-  // Voucher state - now using typed RewardVoucher
-  const [voucher, setVoucher] = useState<RewardVoucher | null>(null);
+  // Voucher state - array to support multiple vouchers
+  const [vouchers, setVouchers] = useState<RewardVoucher[]>([]);
 
   // UI state
   const [loading, setLoading] = useState<string>("");
@@ -78,35 +95,54 @@ function App() {
   const [selectedRewardType, setSelectedRewardType] = useState<number>(RewardType.Discount);
   const [pointsCost, setPointsCost] = useState<number>(100);
 
+  // Config state (for conditional UI)
+  const [provingMode, setProvingMode] = useState<"local" | "delegated">("local");
+
   // Initialize the loyalty program on mount
   useEffect(() => {
     const init = async () => {
       try {
+        // Wait for worker to be ready
+        console.log("[App] Waiting for worker to be ready...");
+        const aleoWorker = await getAleoWorker();
+        console.log("[App] Worker ready!");
+
+        // Test comlink connectivity first
+        console.log("[App] Testing comlink with ping...");
+        const pong = await aleoWorker.ping();
+        console.log("[App] Ping response:", pong);
+
+        const config = getConfig();
+        console.log("[App] Config:", config);
+        console.log("[App] Calling initLoyaltyProgram...");
         await aleoWorker.initLoyaltyProgram(
           loyalty_token_program,
-          loyalty_rewards_program
+          loyalty_rewards_program,
+          config
         );
+        console.log("[App] initLoyaltyProgram completed!");
+        setProvingMode(config.provingMode);
+
+        // Auto-load account based on proving mode
+        // - Delegated: use pre-funded demo account (same as Node template)
+        // - Local: generate a random account (no funds needed)
+        console.log("[App] Loading account...");
+        const loadedAccount = config.provingMode === "delegated"
+          ? await aleoWorker.loadDemoAccount()
+          : await aleoWorker.createAccount();
+        setAccount(loadedAccount);
+        console.log("[App] Account loaded:", loadedAccount.address);
+
         setInitialized(true);
-        setStatus("Loyalty program initialized!");
+        const modeLabel = config.provingMode === "delegated" ? "delegated (demo account)" : "local";
+        setStatus(`Ready! Using ${modeLabel} mode`);
       } catch (error) {
+        console.error("[App] Init error:", error);
         setStatus(`Initialization error: ${error}`);
       }
     };
     init();
   }, []);
-
-  // Generate a new account
-  const generateAccount = async () => {
-    setLoading("Generating account...");
-    try {
-      const newAccount = await aleoWorker.createAccount();
-      setAccount(newAccount);
-      setStatus("Account generated successfully!");
-    } catch (error) {
-      setStatus(`Error: ${error}`);
-    }
-    setLoading("");
-  };
 
   // Mint a new loyalty card - clean API!
   const handleMintCard = async () => {
@@ -117,6 +153,7 @@ function App() {
 
     setLoading("Minting loyalty card (this may take a moment due to hash operations)...");
     try {
+      const aleoWorker = await getAleoWorker();
       // Clean API: just pass recipient and points
       const newCard = await aleoWorker.mintCard(account.address, 100);
 
@@ -137,6 +174,7 @@ function App() {
 
     setLoading(`Adding ${pointsToAdd} points (computing hash for audit trail)...`);
     try {
+      const aleoWorker = await getAleoWorker();
       // Clean API: pass the card object directly
       const updatedCard = await aleoWorker.addPoints(card, pointsToAdd);
 
@@ -164,6 +202,7 @@ function App() {
 
     setLoading("Redeeming points for voucher (multi-program execution)...");
     try {
+      const aleoWorker = await getAleoWorker();
       // Clean API: pass card, reward type, and cost
       const result = await aleoWorker.redeemForVoucher(
         card,
@@ -172,7 +211,7 @@ function App() {
       );
 
       setCard(result.card);
-      setVoucher(result.voucher);
+      setVouchers(prev => [...prev, result.voucher]);
       setStatus(
         `Redeemed ${pointsCost} points for a ${REWARD_TYPE_NAMES[result.voucher.rewardType]} voucher (value: ${result.voucher.value})!`
       );
@@ -182,19 +221,16 @@ function App() {
     setLoading("");
   };
 
-  // Use (burn) the voucher - clean API!
-  const handleUseVoucher = async () => {
-    if (!voucher) {
-      setStatus("No voucher to use");
-      return;
-    }
-
+  // Use (burn) a voucher - clean API!
+  const handleUseVoucher = async (voucherToUse: RewardVoucher) => {
     setLoading("Using voucher (consuming record)...");
     try {
+      const aleoWorker = await getAleoWorker();
       // Clean API: just pass the voucher
-      await aleoWorker.useVoucher(voucher);
+      await aleoWorker.useVoucher(voucherToUse);
 
-      setVoucher(null);
+      // Remove the used voucher from the array
+      setVouchers(prev => prev.filter(v => v.voucherId !== voucherToUse.voucherId));
       setStatus("Voucher used successfully! It has been consumed.");
     } catch (error) {
       setStatus(`Error using voucher: ${error}`);
@@ -244,14 +280,16 @@ function App() {
       {/* Account Section */}
       <div className="card">
         <h2>1. Account</h2>
-        <button onClick={generateAccount} disabled={!!loading}>
-          {account ? "Regenerate Account" : "Generate Account"}
-        </button>
         {account && (
           <div className="account-info">
             <p>
               <strong>Address:</strong>{" "}
               <code>{account.address.slice(0, 20)}...</code>
+            </p>
+            <p className="account-mode">
+              {provingMode === "delegated"
+                ? "Using pre-funded demo account"
+                : "Using generated account (local mode)"}
             </p>
           </div>
         )}
@@ -335,21 +373,27 @@ function App() {
           </div>
         )}
 
-        {voucher && (
+        {vouchers.length > 0 && (
           <div className="voucher-display">
-            <h3>Your Voucher</h3>
-            <div className="voucher">
-              <div className="voucher-type">
-                {REWARD_TYPE_NAMES[voucher.rewardType]}
-              </div>
-              <div className="voucher-value">Value: {voucher.value}</div>
-              <div className="voucher-id">
-                ID: {voucher.voucherId.slice(0, 12)}...
-              </div>
+            <h3>Your Vouchers ({vouchers.length})</h3>
+            <div className="vouchers-list">
+              {vouchers.map((v) => (
+                <div key={v.voucherId} className="voucher-item">
+                  <div className="voucher">
+                    <div className="voucher-type">
+                      {REWARD_TYPE_NAMES[v.rewardType]}
+                    </div>
+                    <div className="voucher-value">Value: {v.value}</div>
+                    <div className="voucher-id">
+                      ID: {v.voucherId.slice(0, 12)}...
+                    </div>
+                  </div>
+                  <button onClick={() => handleUseVoucher(v)} disabled={!!loading}>
+                    Use
+                  </button>
+                </div>
+              ))}
             </div>
-            <button onClick={handleUseVoucher} disabled={!!loading}>
-              Use Voucher
-            </button>
           </div>
         )}
       </div>

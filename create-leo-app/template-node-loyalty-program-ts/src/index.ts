@@ -7,9 +7,9 @@ import {
     AleoKeyProvider,
     AleoNetworkClient,
     RecordScanner,
-    NetworkRecordProvider,
     encryptRegistrationRequest,
     RecordCiphertext,
+    OfflineQuery,
 } from "@provablehq/sdk/testnet.js";
 import { readFileSync } from "fs";
 import { dirname, join } from "path";
@@ -28,16 +28,6 @@ await initThreadPool();
 export enum ProvingMode {
     Local = "local",
     Delegated = "delegated",
-}
-
-/**
- * Scanner type for record discovery
- */
-export enum ScannerType {
-    /** RecordScanner service (faster, requires JWT auth) */
-    RSS = "rss",
-    /** NetworkRecordProvider via explorer API (slower, no auth needed) */
-    Network = "network",
 }
 
 /**
@@ -93,19 +83,14 @@ export interface RedeemResult {
  */
 export interface LoyaltyProgramConfig {
     provingMode?: ProvingMode;
-    /** Scanner type: "rss" (RecordScanner) or "network" (NetworkRecordProvider). */
-    scannerType?: ScannerType;
-    /** RecordScanner service URL (for RSS scanner). */
+    /** RecordScanner service URL. */
     recordScannerUrl?: string;
     /** API key or JWT for RecordScanner (for RSS scanner). */
     recordScannerApiKey?: string;
-    /** Consumer ID for fetching RSS JWT token. */
-    rssConsumerId?: string;
-    /** Explorer API URL (for Network scanner). */
-    networkUrl?: string;
+    /** Provable API consumer ID (used for both DPS and RSS). */
+    consumerId?: string;
     dpsUrl?: string;
     dpsApiKey?: string;
-    dpsConsumerId?: string;
     /** Enable encrypted DPS flow (TEE-protected proving). */
     dpsPrivacy?: boolean;
     /** Enable encrypted RSS flow (TEE-protected record scanning). */
@@ -133,17 +118,14 @@ function logHeader(title: string): void {
     console.log(`${COLORS.cyan}╚${"═".repeat(58)}╝${COLORS.reset}`);
 }
 
-function logConfig(provingMode: ProvingMode, scannerType: ScannerType, hasRecordScanner: boolean, dpsPrivacy: boolean, rssPrivacy: boolean): void {
+function logConfig(provingMode: ProvingMode, hasRecordScanner: boolean, dpsPrivacy: boolean, rssPrivacy: boolean): void {
     console.log(`${COLORS.dim}┌──────────────────────────────────────────────────────────┐${COLORS.reset}`);
     const provingModeStr = provingMode === ProvingMode.Local
         ? `${COLORS.green}LOCAL${COLORS.reset}`
         : `${COLORS.magenta}DELEGATED${COLORS.reset}${dpsPrivacy ? ` ${COLORS.cyan}(encrypted)${COLORS.reset}` : ''}`;
     console.log(`${COLORS.dim}│${COLORS.reset} Proving Mode:    ${provingModeStr}`.padEnd(78) + `${COLORS.dim}│${COLORS.reset}`);
-    const scannerTypeStr = scannerType === ScannerType.RSS
-        ? `${COLORS.magenta}RSS${COLORS.reset}`
-        : `${COLORS.blue}NETWORK${COLORS.reset}`;
     const scannerStr = hasRecordScanner
-        ? `${scannerTypeStr}${rssPrivacy && scannerType === ScannerType.RSS ? ` ${COLORS.cyan}(encrypted)${COLORS.reset}` : ''}`
+        ? `${COLORS.magenta}RSS${COLORS.reset}${rssPrivacy ? ` ${COLORS.cyan}(encrypted)${COLORS.reset}` : ''}`
         : `${COLORS.yellow}DISABLED${COLORS.reset}`;
     console.log(`${COLORS.dim}│${COLORS.reset} Record Scanner:  ${scannerStr}`.padEnd(78) + `${COLORS.dim}│${COLORS.reset}`);
     console.log(`${COLORS.dim}└──────────────────────────────────────────────────────────┘${COLORS.reset}`);
@@ -234,15 +216,16 @@ class LoyaltyProgram {
 
     // Feature configuration
     private _provingMode: ProvingMode = ProvingMode.Local;
-    private _scannerType: ScannerType = ScannerType.RSS;
     private _recordScanner: RecordScanner | null = null;
-    private _networkRecordProvider: NetworkRecordProvider | null = null;
-    private _networkUrl?: string;
     private _dpsUrl?: string;
     private _dpsApiKey?: string;
-    private _dpsConsumerId?: string;
+    private _consumerId?: string;
     private _dpsPrivacy: boolean = false;
     private _rssPrivacy: boolean = false;
+
+    // Transaction confirmation polling configuration
+    private readonly TX_POLL_INTERVAL_MS = 5000;
+    private readonly TX_TIMEOUT_MS = 300000; // 5 minutes
 
     /**
      * Create a new LoyaltyProgram instance.
@@ -268,13 +251,8 @@ class LoyaltyProgram {
             this._provingMode = config.provingMode;
         }
 
-        if (config?.scannerType) {
-            this._scannerType = config.scannerType;
-        }
-
-        // Configure scanner based on type.
-        if (this._scannerType === ScannerType.RSS && config?.recordScannerUrl) {
-            // RSS: RecordScanner service (faster, requires JWT auth).
+        // Configure RecordScanner if URL is provided.
+        if (config?.recordScannerUrl) {
             const apiKeyConfig = config.recordScannerApiKey?.startsWith("eyJ")
                 ? { header: "Authorization", value: `Bearer ${config.recordScannerApiKey}` }
                 : config.recordScannerApiKey;
@@ -282,11 +260,6 @@ class LoyaltyProgram {
                 url: config.recordScannerUrl,
                 apiKey: apiKeyConfig,
             });
-        } else if (this._scannerType === ScannerType.Network && config?.networkUrl) {
-            // Network: NetworkRecordProvider via explorer API (no auth needed).
-            this._networkUrl = config.networkUrl;
-            const networkClient = new AleoNetworkClient(config.networkUrl);
-            this._networkRecordProvider = new NetworkRecordProvider(account, networkClient);
         }
 
         if (config?.dpsUrl) {
@@ -295,8 +268,8 @@ class LoyaltyProgram {
         if (config?.dpsApiKey) {
             this._dpsApiKey = config.dpsApiKey;
         }
-        if (config?.dpsConsumerId) {
-            this._dpsConsumerId = config.dpsConsumerId;
+        if (config?.consumerId) {
+            this._consumerId = config.consumerId;
         }
         if (config?.dpsPrivacy) {
             this._dpsPrivacy = config.dpsPrivacy;
@@ -321,17 +294,10 @@ class LoyaltyProgram {
     }
 
     /**
-     * Get the current scanner type.
-     */
-    get scannerType(): ScannerType {
-        return this._scannerType;
-    }
-
-    /**
-     * Check if a record scanner is configured (RSS or Network).
+     * Check if a record scanner is configured.
      */
     get hasRecordScanner(): boolean {
-        return this._recordScanner !== null || this._networkRecordProvider !== null;
+        return this._recordScanner !== null;
     }
 
     /**
@@ -350,23 +316,6 @@ class LoyaltyProgram {
     }
 
     /**
-     * Set the scanner type (RSS or Network).
-     *
-     * @param type - The scanner type to use
-     */
-    setScannerType(type: ScannerType): void {
-        if (type !== this._scannerType) {
-            console.log(`\n${COLORS.yellow}🔄 Switching to ${COLORS.bright}${type.toUpperCase()}${COLORS.reset}${COLORS.yellow} scanner${COLORS.reset}`);
-            if (type === ScannerType.RSS) {
-                console.log(`   ${COLORS.dim}└─ Using RecordScanner service (faster, requires JWT)${COLORS.reset}`);
-            } else {
-                console.log(`   ${COLORS.dim}└─ Using NetworkRecordProvider (slower, no auth needed)${COLORS.reset}`);
-            }
-        }
-        this._scannerType = type;
-    }
-
-    /**
      * Configure the RSS record scanner for discovering records on-chain.
      *
      * @param scanner - The RecordScanner instance to use
@@ -377,24 +326,7 @@ class LoyaltyProgram {
      */
     setRecordScanner(scanner: RecordScanner): void {
         this._recordScanner = scanner;
-        this._scannerType = ScannerType.RSS;
-        console.log(`${COLORS.green}✓${COLORS.reset} RSS Record Scanner configured`);
-    }
-
-    /**
-     * Configure the Network record provider for discovering records via explorer API.
-     *
-     * @param networkUrl - The explorer API URL (e.g., "https://api.explorer.provable.com/v1")
-     *
-     * @example
-     * loyalty.setNetworkRecordProvider("https://api.explorer.provable.com/v1");
-     */
-    setNetworkRecordProvider(networkUrl: string): void {
-        this._networkUrl = networkUrl;
-        const networkClient = new AleoNetworkClient(networkUrl);
-        this._networkRecordProvider = new NetworkRecordProvider(this._account, networkClient);
-        this._scannerType = ScannerType.Network;
-        console.log(`${COLORS.green}✓${COLORS.reset} Network Record Provider configured`);
+        console.log(`${COLORS.green}✓${COLORS.reset} Record Scanner configured`);
     }
 
     /**
@@ -471,8 +403,7 @@ class LoyaltyProgram {
     }
 
     /**
-     * Find LoyaltyCard records owned by this account.
-     * Uses either RecordScanner (RSS) or NetworkRecordProvider based on scannerType.
+     * Find LoyaltyCard records owned by this account using the RecordScanner service.
      *
      * @param startHeight - The block height to start scanning from.
      * @param endHeight - Optional end block height (defaults to latest).
@@ -483,67 +414,47 @@ class LoyaltyProgram {
      * console.log(`Found ${cards.length} cards`);
      */
     async findMyCards(startHeight: number = 0, endHeight?: number): Promise<LoyaltyCard[]> {
-        if (!this.hasRecordScanner) {
-            throw new Error(
-                "No record scanner configured. Use setRecordScanner() for RSS or setNetworkRecordProvider() for Network."
-            );
+        if (!this._recordScanner) {
+            throw new Error("No record scanner configured. Use setRecordScanner() to configure.");
         }
 
         logScanStart(this.TOKEN_PROGRAM_ID, "LoyaltyCard", startHeight, endHeight);
 
-        let cards: LoyaltyCard[];
-
-        if (this._scannerType === ScannerType.RSS && this._recordScanner) {
-            // RSS: RecordScanner service.
-            if (this._rssPrivacy) {
-                await this.registerEncrypted(startHeight);
-            } else {
-                await this._recordScanner.register(this._account.viewKey(), startHeight);
-            }
-
-            const records = await this._recordScanner.findRecords({
-                decrypt: true,
-                unspent: true,
-                filter: {
-                    start: startHeight,
-                    end: endHeight,
-                    program: this.TOKEN_PROGRAM_ID,
-                    record: "LoyaltyCard",
-                },
-            });
-
-            cards = records
-                .filter((r) => r.record_name === "LoyaltyCard" && (r.record_plaintext || r.record_ciphertext))
-                .map((r) => {
-                    if (r.record_plaintext) {
-                        return this.parseCard(r.record_plaintext);
-                    }
-                    const ciphertext = RecordCiphertext.fromString(r.record_ciphertext!);
-                    const plaintext = ciphertext.decrypt(this._account.viewKey());
-                    return this.parseCard(plaintext.toString());
-                });
-        } else if (this._scannerType === ScannerType.Network && this._networkRecordProvider) {
-            // Network: NetworkRecordProvider via explorer API.
-            const records = await this._networkRecordProvider.findRecords({
-                unspent: true,
-                startHeight,
-                programName: this.TOKEN_PROGRAM_ID,
-            });
-
-            cards = records
-                .filter((r) => r.record_plaintext)
-                .map((r) => this.parseCard(r.record_plaintext!));
+        // Register with the scanner.
+        if (this._rssPrivacy) {
+            await this.registerEncrypted(startHeight);
         } else {
-            throw new Error("Scanner not properly configured for the selected scanner type.");
+            await this._recordScanner.register(this._account.viewKey(), startHeight);
         }
+
+        const records = await this._recordScanner.findRecords({
+            decrypt: true,
+            unspent: true,
+            filter: {
+                start: startHeight,
+                end: endHeight,
+                program: this.TOKEN_PROGRAM_ID,
+                record: "LoyaltyCard",
+            },
+        });
+
+        const cards = records
+            .filter((r) => r.record_name === "LoyaltyCard" && (r.record_plaintext || r.record_ciphertext))
+            .map((r) => {
+                if (r.record_plaintext) {
+                    return this.parseCard(r.record_plaintext);
+                }
+                const ciphertext = RecordCiphertext.fromString(r.record_ciphertext!);
+                const plaintext = ciphertext.decrypt(this._account.viewKey());
+                return this.parseCard(plaintext.toString());
+            });
 
         logScanResults("LoyaltyCard", cards.length);
         return cards;
     }
 
     /**
-     * Find RewardVoucher records owned by this account.
-     * Uses either RecordScanner (RSS) or NetworkRecordProvider based on scannerType.
+     * Find RewardVoucher records owned by this account using the RecordScanner service.
      *
      * @param startHeight - The block height to start scanning from.
      * @param endHeight - Optional end block height (defaults to latest).
@@ -554,59 +465,40 @@ class LoyaltyProgram {
      * console.log(`Found ${vouchers.length} vouchers`);
      */
     async findMyVouchers(startHeight: number = 0, endHeight?: number): Promise<RewardVoucher[]> {
-        if (!this.hasRecordScanner) {
-            throw new Error(
-                "No record scanner configured. Use setRecordScanner() for RSS or setNetworkRecordProvider() for Network."
-            );
+        if (!this._recordScanner) {
+            throw new Error("No record scanner configured. Use setRecordScanner() to configure.");
         }
 
         logScanStart(this.REWARDS_PROGRAM_ID, "RewardVoucher", startHeight, endHeight);
 
-        let vouchers: RewardVoucher[];
-
-        if (this._scannerType === ScannerType.RSS && this._recordScanner) {
-            // RSS: RecordScanner service.
-            if (this._rssPrivacy) {
-                await this.registerEncrypted(startHeight);
-            } else {
-                await this._recordScanner.register(this._account.viewKey(), startHeight);
-            }
-
-            const records = await this._recordScanner.findRecords({
-                decrypt: true,
-                unspent: true,
-                filter: {
-                    start: startHeight,
-                    end: endHeight,
-                    program: this.REWARDS_PROGRAM_ID,
-                    record: "RewardVoucher",
-                },
-            });
-
-            vouchers = records
-                .filter((r) => r.record_name === "RewardVoucher" && (r.record_plaintext || r.record_ciphertext))
-                .map((r) => {
-                    if (r.record_plaintext) {
-                        return this.parseVoucher(r.record_plaintext);
-                    }
-                    const ciphertext = RecordCiphertext.fromString(r.record_ciphertext!);
-                    const plaintext = ciphertext.decrypt(this._account.viewKey());
-                    return this.parseVoucher(plaintext.toString());
-                });
-        } else if (this._scannerType === ScannerType.Network && this._networkRecordProvider) {
-            // Network: NetworkRecordProvider via explorer API.
-            const records = await this._networkRecordProvider.findRecords({
-                unspent: true,
-                startHeight,
-                programName: this.REWARDS_PROGRAM_ID,
-            });
-
-            vouchers = records
-                .filter((r) => r.record_plaintext)
-                .map((r) => this.parseVoucher(r.record_plaintext!));
+        // Register with the scanner.
+        if (this._rssPrivacy) {
+            await this.registerEncrypted(startHeight);
         } else {
-            throw new Error("Scanner not properly configured for the selected scanner type.");
+            await this._recordScanner.register(this._account.viewKey(), startHeight);
         }
+
+        const records = await this._recordScanner.findRecords({
+            decrypt: true,
+            unspent: true,
+            filter: {
+                start: startHeight,
+                end: endHeight,
+                program: this.REWARDS_PROGRAM_ID,
+                record: "RewardVoucher",
+            },
+        });
+
+        const vouchers = records
+            .filter((r) => r.record_name === "RewardVoucher" && (r.record_plaintext || r.record_ciphertext))
+            .map((r) => {
+                if (r.record_plaintext) {
+                    return this.parseVoucher(r.record_plaintext);
+                }
+                const ciphertext = RecordCiphertext.fromString(r.record_ciphertext!);
+                const plaintext = ciphertext.decrypt(this._account.viewKey());
+                return this.parseVoucher(plaintext.toString());
+            });
 
         logScanResults("RewardVoucher", vouchers.length);
         return vouchers;
@@ -871,11 +763,23 @@ class LoyaltyProgram {
         functionName: string,
         inputs: string[]
     ): Promise<string[]> {
+        // Use OfflineQuery with mock state to prevent network lookups for locally-created records.
+        const offlineQuery = new OfflineQuery(
+            0,
+            "sr1qqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqq6gk0xu"
+        );
+
         const executionResponse = await this.programManager.run(
             program,
             functionName,
             inputs,
-            false
+            false,      // proveExecution
+            undefined,  // imports
+            undefined,  // keySearchParams
+            undefined,  // provingKey
+            undefined,  // verifyingKey
+            undefined,  // privateKey
+            offlineQuery
         );
 
         return executionResponse.getOutputs();
@@ -887,15 +791,65 @@ class LoyaltyProgram {
         inputs: string[],
         imports: Record<string, string>
     ): Promise<string[]> {
+        // Use OfflineQuery with mock state to prevent network lookups for locally-created records.
+        const offlineQuery = new OfflineQuery(
+            0,
+            "sr1qqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqq6gk0xu"
+        );
+
         const executionResponse = await this.programManager.run(
             program,
             functionName,
             inputs,
-            false,
-            imports
+            false,      // proveExecution
+            imports,
+            undefined,  // keySearchParams
+            undefined,  // provingKey
+            undefined,  // verifyingKey
+            undefined,  // privateKey
+            offlineQuery
         );
 
         return executionResponse.getOutputs();
+    }
+
+    /**
+     * Wait for a transaction to be confirmed on-chain.
+     *
+     * @param txId - The transaction ID to wait for
+     * @returns The confirmed transaction
+     */
+    private async waitForTransaction(txId: string): Promise<any> {
+        const startTime = Date.now();
+        const shortId = txId.slice(0, 16);
+
+        console.log(`   ${COLORS.dim}├─ Broadcasting: ${shortId}...${COLORS.reset}`);
+
+        // Use explorer API for transaction lookups (not DPS).
+        const explorerClient = new AleoNetworkClient("https://api.explorer.provable.com/v1");
+
+        while (Date.now() - startTime < this.TX_TIMEOUT_MS) {
+            try {
+                const tx = await explorerClient.getTransaction(txId);
+                if (tx) {
+                    const elapsed = ((Date.now() - startTime) / 1000).toFixed(1);
+                    // Clear the "Waiting for confirmation..." line before printing
+                    process.stdout.write("\r\x1b[K");
+                    console.log(`   ${COLORS.dim}├─ Confirmed in ${elapsed}s${COLORS.reset}`);
+                    return tx;
+                }
+            } catch {
+                // Transaction not found yet, continue polling.
+            }
+
+            // Log progress every poll.
+            const elapsed = Math.round((Date.now() - startTime) / 1000);
+            process.stdout.write(`   ${COLORS.dim}├─ Waiting for confirmation... (${elapsed}s)\r${COLORS.reset}`);
+
+            await new Promise(resolve => setTimeout(resolve, this.TX_POLL_INTERVAL_MS));
+        }
+
+        throw new Error(`Transaction ${txId} not confirmed within ${this.TX_TIMEOUT_MS / 1000}s`);
     }
 
     private async executeDelegated(
@@ -913,7 +867,7 @@ class LoyaltyProgram {
         // Get program name from source.
         const programName = Program.fromString(program).id();
 
-        // Build the proving request (broadcast: false - this demo doesn't modify on-chain state).
+        // Build the proving request with broadcast: true to submit to chain.
         const provingRequest = await this.programManager.provingRequest({
             programName,
             programSource: program,
@@ -921,7 +875,7 @@ class LoyaltyProgram {
             inputs,
             priorityFee: 0,
             privateFee: false,
-            broadcast: false,
+            broadcast: true,
         });
 
         // Submit to DPS (with optional encryption via dpsPrivacy flag).
@@ -937,12 +891,18 @@ class LoyaltyProgram {
             provingRequest,
             url: this._dpsUrl,
             apiKey: this._dpsApiKey,
-            consumerId: this._dpsConsumerId,
+            consumerId: this._consumerId,
             dpsPrivacy: this._dpsPrivacy,
         });
 
-        // Extract outputs from the transaction.
-        return this.extractOutputsFromTransaction(response.transaction);
+        // Wait for transaction confirmation and extract outputs.
+        const txId = response.transaction?.id;
+        if (!txId) {
+            throw new Error("DPS response did not contain a transaction ID");
+        }
+
+        const confirmedTx = await this.waitForTransaction(txId);
+        return this.extractOutputsFromTransaction(confirmedTx);
     }
 
     private async executeDelegatedWithImports(
@@ -961,7 +921,7 @@ class LoyaltyProgram {
         // Get program name from source.
         const programName = Program.fromString(program).id();
 
-        // Build the proving request (broadcast: false - this demo doesn't modify on-chain state).
+        // Build the proving request with broadcast: true to submit to chain.
         const provingRequest = await this.programManager.provingRequest({
             programName,
             programSource: program,
@@ -970,7 +930,7 @@ class LoyaltyProgram {
             inputs,
             priorityFee: 0,
             privateFee: false,
-            broadcast: false,
+            broadcast: true,
         });
 
         // Submit to DPS (with optional encryption via dpsPrivacy flag).
@@ -986,12 +946,18 @@ class LoyaltyProgram {
             provingRequest,
             url: this._dpsUrl,
             apiKey: this._dpsApiKey,
-            consumerId: this._dpsConsumerId,
+            consumerId: this._consumerId,
             dpsPrivacy: this._dpsPrivacy,
         });
 
-        // Extract outputs from the transaction.
-        return this.extractOutputsFromTransaction(response.transaction);
+        // Wait for transaction confirmation and extract outputs.
+        const txId = response.transaction?.id;
+        if (!txId) {
+            throw new Error("DPS response did not contain a transaction ID");
+        }
+
+        const confirmedTx = await this.waitForTransaction(txId);
+        return this.extractOutputsFromTransaction(confirmedTx);
     }
 
     private extractOutputsFromTransaction(transaction: { execution?: { transitions: Array<{ outputs?: Array<{ type?: string; value?: string }> }> } }): string[] {
@@ -1112,33 +1078,25 @@ try {
 
 // Read configuration from environment.
 // Environment variables:
+//   ALEO_CONSUMER_ID     - Provable API consumer ID (used for both DPS and RSS)
 //   ALEO_PROVING_MODE    - "local" (default) or "delegated"
 //   ALEO_DPS_URL         - Delegated Proving Service URL (e.g., "https://api.provable.com/prove/testnet")
 //   ALEO_DPS_API_KEY     - API key for DPS authentication
-//   ALEO_DPS_CONSUMER_ID - Consumer ID for DPS authentication (optional)
 //   ALEO_DPS_PRIVACY     - "true" to enable encrypted DPS flow (TEE-protected)
-//   ALEO_SCANNER_TYPE    - "rss" (default, faster, requires JWT) or "network" (slower, no auth)
 //   ALEO_SCAN_START_HEIGHT - Block height to start scanning from (default: 0)
-//   ALEO_RSS_URL         - Record Scanning Service URL (e.g., "https://api.provable.com/scanner/testnet")
-//   ALEO_RSS_API_KEY     - JWT token for RSS authentication (optional if using ALEO_RSS_CONSUMER_ID)
-//   ALEO_RSS_CONSUMER_ID - Consumer ID for fetching RSS JWT token
+//   ALEO_RSS_URL         - Record Scanning Service URL (e.g., "https://api.provable.com/scanner")
+//   ALEO_RSS_API_KEY     - JWT token for RSS authentication (optional if using ALEO_CONSUMER_ID)
 //   ALEO_RSS_PRIVACY     - "true" to enable encrypted RSS flow (TEE-protected)
-//   ALEO_NETWORK_URL     - Explorer API URL (e.g., "https://api.explorer.provable.com/v1")
+const consumerId = process.env.ALEO_CONSUMER_ID;
 const provingMode = process.env.ALEO_PROVING_MODE === "delegated"
     ? ProvingMode.Delegated
     : ProvingMode.Local;
-const scannerType = process.env.ALEO_SCANNER_TYPE === "network"
-    ? ScannerType.Network
-    : ScannerType.RSS;
 const dpsUrl = process.env.ALEO_DPS_URL;
 const dpsApiKey = process.env.ALEO_DPS_API_KEY;
-const dpsConsumerId = process.env.ALEO_DPS_CONSUMER_ID;
 const dpsPrivacy = process.env.ALEO_DPS_PRIVACY === "true";
 const recordScannerUrl = process.env.ALEO_RSS_URL;
 let recordScannerApiKey = process.env.ALEO_RSS_API_KEY;
-const rssConsumerId = process.env.ALEO_RSS_CONSUMER_ID;
 const rssPrivacy = process.env.ALEO_RSS_PRIVACY === "true";
-const networkUrl = process.env.ALEO_NETWORK_URL;
 const scanStartHeight = parseInt(process.env.ALEO_SCAN_START_HEIGHT ?? "0", 10);
 
 // Derive JWT endpoint from DPS URL base (e.g., "https://api.provable.com/prove/testnet" -> "https://api.provable.com")
@@ -1157,13 +1115,13 @@ function getApiBaseUrl(): string {
 // If we have a consumer ID but no JWT, fetch the JWT from the Provable API.
 async function fetchRssJwt(): Promise<string | undefined> {
     // Skip if no consumer ID or API key.
-    if (!rssConsumerId || !dpsApiKey) return recordScannerApiKey;
+    if (!consumerId || !dpsApiKey) return recordScannerApiKey;
     // Skip if already have a JWT token.
     if (recordScannerApiKey?.startsWith("eyJ")) return recordScannerApiKey;
 
     const baseUrl = getApiBaseUrl();
     try {
-        const response = await fetch(`${baseUrl}/jwts/${rssConsumerId}`, {
+        const response = await fetch(`${baseUrl}/jwts/${consumerId}`, {
             method: "POST",
             headers: {
                 "Content-Type": "application/json",
@@ -1177,7 +1135,7 @@ async function fetchRssJwt(): Promise<string | undefined> {
                 console.error(`   ${COLORS.dim}Check that ALEO_DPS_API_KEY is correct${COLORS.reset}`);
             } else if (status === 404) {
                 console.error(`${COLORS.yellow}⚠${COLORS.reset}  Failed to fetch RSS JWT: Consumer ID not found`);
-                console.error(`   ${COLORS.dim}Check that ALEO_RSS_CONSUMER_ID is correct${COLORS.reset}`);
+                console.error(`   ${COLORS.dim}Check that ALEO_CONSUMER_ID is correct${COLORS.reset}`);
             } else {
                 console.error(`${COLORS.yellow}⚠${COLORS.reset}  Failed to fetch RSS JWT: HTTP ${status}`);
             }
@@ -1204,21 +1162,19 @@ const accountCiphertext =
     "ciphertext1qvq283j7ujnhz59d4rnu772rfmvf94039x9ekhk2lzuutteqzlghsr3g9824qgw97a79mmdymqdt0ulqdkahq39vnerw2tl7thvvnnunq386jzjnw29e0ghnq7unphgdzw637q3fgvvlkrcywsc5jukkdhss5qq3njp";
 const account = Account.fromCiphertext(accountCiphertext, "provablealeo1");
 
-// Fetch RSS JWT if consumer ID is provided (only needed for RSS scanner).
-if (scannerType === ScannerType.RSS && rssConsumerId) {
+// Fetch RSS JWT if consumer ID is provided.
+if (consumerId) {
     recordScannerApiKey = await fetchRssJwt();
 }
 
 // Create the LoyaltyProgram instance with configuration.
 const loyalty = new LoyaltyProgram(account, {
     provingMode,
-    scannerType,
     recordScannerUrl,
     recordScannerApiKey,
-    networkUrl,
     dpsUrl,
     dpsApiKey,
-    dpsConsumerId,
+    consumerId,
     dpsPrivacy,
     rssPrivacy,
 });
@@ -1229,7 +1185,7 @@ const address = account.address().to_string();
 
 // Display configuration.
 logHeader("Aleo Loyalty Program Demo");
-logConfig(loyalty.provingMode, loyalty.scannerType, loyalty.hasRecordScanner, dpsPrivacy, rssPrivacy);
+logConfig(loyalty.provingMode, loyalty.hasRecordScanner, dpsPrivacy, rssPrivacy);
 
 // Demo functions.
 const functions: Record<string, () => Promise<void>> = {
@@ -1388,32 +1344,18 @@ const functions: Record<string, () => Promise<void>> = {
     },
 
     // Alias for demo_scanner using RSS (RecordScanner service).
-    // Requires: ALEO_RSS_URL + (ALEO_RSS_CONSUMER_ID or ALEO_RSS_API_KEY)
+    // Requires: ALEO_RSS_URL + (ALEO_CONSUMER_ID or ALEO_RSS_API_KEY)
     scanner: async () => {
         if (!recordScannerUrl) {
             console.error(`\n${COLORS.yellow}⚠${COLORS.reset}  RSS scanner requires ALEO_RSS_URL`);
-            console.error(`   Example: ALEO_RSS_URL=https://api.provable.com/scanner/testnet npm run scanner\n`);
+            console.error(`   Example: ALEO_RSS_URL=https://api.provable.com/scanner npm run scanner\n`);
             process.exit(1);
         }
-        if (!recordScannerApiKey && !rssConsumerId) {
-            console.error(`\n${COLORS.yellow}⚠${COLORS.reset}  RSS scanner requires ALEO_RSS_CONSUMER_ID or ALEO_RSS_API_KEY`);
-            console.error(`   Set ALEO_RSS_CONSUMER_ID to fetch JWT automatically\n`);
+        if (!recordScannerApiKey && !consumerId) {
+            console.error(`\n${COLORS.yellow}⚠${COLORS.reset}  RSS scanner requires ALEO_CONSUMER_ID or ALEO_RSS_API_KEY`);
+            console.error(`   Set ALEO_CONSUMER_ID to fetch JWT automatically\n`);
             process.exit(1);
         }
-        loyalty.setScannerType(ScannerType.RSS);
-        await functions.demo_scanner();
-    },
-
-    // Alias for demo_scanner using Network (explorer API).
-    // Requires: ALEO_NETWORK_URL
-    "scanner:network": async () => {
-        if (!networkUrl) {
-            console.error(`\n${COLORS.yellow}⚠${COLORS.reset}  Network scanner requires ALEO_NETWORK_URL`);
-            console.error(`   Example: ALEO_NETWORK_URL=https://api.explorer.provable.com/v1 npm run scanner:network\n`);
-            process.exit(1);
-        }
-        loyalty.setScannerType(ScannerType.Network);
-        loyalty.setNetworkRecordProvider(networkUrl);
         await functions.demo_scanner();
     },
 };
