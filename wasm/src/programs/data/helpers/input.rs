@@ -77,6 +77,30 @@ pub fn input_to_js_value(input: &InputNative, convert_to_js: bool) -> JsValue {
                 "id" : if convert_to_js { JsValue::from(input_commitment.to_string()) } else { JsValue::from(Field::from(input_commitment)) },
             };
             JsValue::from(external_record)
+        },
+        InputNative::DynamicRecord(input_commitment) => {
+            let dynamic_record = object! {
+                "type" : "dynamicRecord",
+                "id" : if convert_to_js { JsValue::from(input_commitment.to_string()) } else { JsValue::from(Field::from(input_commitment)) },
+            };
+            JsValue::from(dynamic_record)
+        },
+        InputNative::RecordWithDynamicID(serial_number, tag, dynamic_id) => {
+            let record_with_dynamic_id = object! {
+                "type": "recordWithDynamicID",
+                "id": if convert_to_js { JsValue::from(serial_number.to_string()) } else { JsValue::from(Field::from(serial_number)) },
+                "tag":  if convert_to_js { JsValue::from(Field::from(tag).to_string()) } else { JsValue::from(Field::from(tag)) },
+                "dynamic_id":  if convert_to_js { JsValue::from(Field::from(dynamic_id).to_string()) } else { JsValue::from(Field::from(dynamic_id)) },
+            };
+            JsValue::from(record_with_dynamic_id)
+        },
+        InputNative::ExternalRecordWithDynamicID(external_record_hash, dynamic_id) => {
+            let external_record_with_dynamic_id = object! {
+                "type": "externalRecordWithDynamicID",
+                "id":  if convert_to_js { JsValue::from(external_record_hash.to_string()) } else { JsValue::from(Field::from(external_record_hash)) },
+                "dynamic_id":  if convert_to_js { JsValue::from(Field::from(dynamic_id).to_string()) } else { JsValue::from(Field::from(dynamic_id)) },
+            };
+            JsValue::from(external_record_with_dynamic_id)
         }
     }
 }

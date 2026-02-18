@@ -15,14 +15,7 @@
 // along with the Provable SDK library. If not, see <https://www.gnu.org/licenses/>.
 
 use crate::{
-    Ciphertext,
-    Field,
-    Plaintext,
-    RecordCiphertext,
-    future_to_js_value,
-    object,
-    plaintext_to_js_value,
-    types::native::OutputNative,
+    Ciphertext, Field, Plaintext, RecordCiphertext, future_to_js_value, object, plaintext_to_js_value, types::native::OutputNative
 };
 
 use wasm_bindgen::JsValue;
@@ -114,6 +107,50 @@ pub fn output_to_js_value(output: &OutputNative, convert_to_js: bool) -> JsValue
                 JsValue::UNDEFINED
             };
             JsValue::from(&value)
-        }
+        },
+        OutputNative::DynamicRecord(output_commitment) => {
+            let dynamic_record_object = object! {
+                "type": "dynamic_record",
+                "id": if convert_to_js { JsValue::from(output_commitment.to_string()) } else { JsValue::from(Field::from(output_commitment)) },
+            };
+            JsValue::from(dynamic_record_object)
+        },
+        OutputNative::RecordWithDynamicID(output_commitment, checksum, record_ciphertext, sender_ciphertext, dynamic_id) => {
+            let value = if let Some(record_ciphertext) = record_ciphertext {
+                if convert_to_js {
+                    JsValue::from(record_ciphertext.to_string())
+                } else {
+                    JsValue::from(RecordCiphertext::from(record_ciphertext))
+                }
+            } else {
+                JsValue::UNDEFINED
+            };
+            let sender_ciphertext = if let Some(sender_ciphertext) = sender_ciphertext {
+                if convert_to_js {
+                    JsValue::from(sender_ciphertext.to_string())
+                } else {
+                    JsValue::from(Field::from(sender_ciphertext))
+                }
+            } else {
+                JsValue::UNDEFINED
+            };
+            let record_with_dynamic_id_object = object! {
+                "type": "record_with_dynamic_id",
+                "id": if convert_to_js { JsValue::from(output_commitment.to_string()) } else { JsValue::from(Field::from(output_commitment)) },
+                "checksum": if convert_to_js { JsValue::from(checksum.to_string()) } else { JsValue::from(Field::from(checksum)) },
+                "value": value,
+                "sender_ciphertext": sender_ciphertext,
+                "dynamic_id": if convert_to_js { JsValue::from(dynamic_id.to_string()) } else { JsValue::from(Field::from(dynamic_id)) },
+            };
+            JsValue::from(record_with_dynamic_id_object)
+        },
+        OutputNative::ExternalRecordWithDynamicID(external_record_hash, dynamic_id) => {
+            let external_record_with_dynamic_id = object! {
+                "type": "external_record_with_dynamic_id",
+                "id": if convert_to_js { JsValue::from(external_record_hash.to_string()) } else { JsValue::from(Field::from(external_record_hash)) },
+                "dynamic_id": if convert_to_js { JsValue::from(Field::from(dynamic_id).to_string()) } else { JsValue::from(Field::from(dynamic_id)) },
+            };
+            JsValue::from(external_record_with_dynamic_id)
+        },
     }
 }

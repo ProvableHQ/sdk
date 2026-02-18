@@ -164,6 +164,7 @@ impl ExecutionRequest {
         root_tvk: Option<Field>,
         program_checksum: Option<Field>,
         is_root: bool,
+        is_dynamic: bool,
     ) -> Result<ExecutionRequest, String> {
         // Convert the ProgramID and function name to their native objects.
         let program_id = ProgramIDNative::from_str(&program_id).map_err(|e| e.to_string())?;
@@ -198,6 +199,7 @@ impl ExecutionRequest {
             root_tvk,
             is_root,
             program_checksum,
+            is_dynamic,
             &mut rng,
         )
         .map_err(|e| e.to_string())?;
