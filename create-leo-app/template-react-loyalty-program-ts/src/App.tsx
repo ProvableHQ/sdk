@@ -229,8 +229,8 @@ function App() {
       // Clean API: just pass the voucher
       await aleoWorker.useVoucher(voucherToUse);
 
-      // Remove the used voucher from the array
-      setVouchers(prev => prev.filter(v => v.voucherId !== voucherToUse.voucherId));
+      // Remove the used voucher from the array (use raw record string for uniqueness)
+      setVouchers(prev => prev.filter(v => v.raw !== voucherToUse.raw));
       setStatus("Voucher used successfully! It has been consumed.");
     } catch (error) {
       setStatus(`Error using voucher: ${error}`);
