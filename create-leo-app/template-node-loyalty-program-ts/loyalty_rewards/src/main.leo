@@ -6,12 +6,14 @@ program loyalty_rewards.aleo {
     // Admin address for upgrade authorization
     const ADMIN: address = aleo1ntkc8z9ea8gjp7pkudlh5xqj0xw8k86lc64yh7yd06708ye9gv9s6j8l45;
 
+    // Hash input for deterministic voucher ID generation
     struct VoucherInput {
         card_id: field,
         reward_type: u8,
         cost: u64
     }
 
+    // Private reward voucher redeemed from loyalty points
     record RewardVoucher {
         owner: address,
         voucher_id: field,
@@ -19,9 +21,13 @@ program loyalty_rewards.aleo {
         amount: u64
     }
 
+    // Tracks whether a voucher ID has been issued
     mapping voucher_exists: field => bool;
+    // Tracks whether a voucher has been consumed
     mapping voucher_used: field => bool;
+    // Redemption count per reward type (keyed by type as field)
     mapping redemptions_by_type: field => u64;
+    // Pre-approved checksums for program upgrades
     mapping approved_upgrades: field => bool;
 
     // Constructor runs on deployment and upgrades
@@ -46,6 +52,7 @@ program loyalty_rewards.aleo {
         approved_upgrades.set(checksum_hash, true);
     }
 
+    // Spend loyalty points to mint a reward voucher
     async transition redeem_points_for_voucher(
         card: loyalty_token.aleo/LoyaltyCard,
         reward_type: u8,
@@ -82,6 +89,7 @@ program loyalty_rewards.aleo {
         Mapping::set(redemptions_by_type, type_key, count + 1u64);
     }
 
+    // Consume a voucher, marking it as used on-chain
     async transition use_voucher(voucher: RewardVoucher) -> Future {
         return finalize_use_voucher(voucher.voucher_id);
     }
@@ -96,10 +104,12 @@ program loyalty_rewards.aleo {
         Mapping::set(voucher_used, voucher_id, true);
     }
 
+    // Return a voucher's reward type and amount without consuming it
     transition check_voucher(voucher: RewardVoucher) -> (RewardVoucher, u8, u64) {
         return (voucher, voucher.reward_type, voucher.amount);
     }
 
+    // Transfer voucher ownership to a new address
     async transition transfer_voucher(
         voucher: RewardVoucher,
         new_owner: address

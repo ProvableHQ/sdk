@@ -20,7 +20,6 @@ import {
   AleoKeyProvider,
   AleoNetworkClient,
   RecordScanner,
-  encryptRegistrationRequest,
   RecordCiphertext,
   OfflineQuery,
 } from "@provablehq/sdk";
@@ -100,9 +99,9 @@ export interface ProgramStats {
 }
 
 /**
- * Configuration for the LoyaltyProgram.
+ * Configuration for program execution.
  */
-export interface LoyaltyProgramConfig {
+export interface ProgramConfig {
   provingMode?: ProvingMode;
   /** Provable API consumer ID (used for both DPS and RSS). */
   consumerId?: string;
@@ -217,7 +216,7 @@ class LoyaltyProgram {
    * @param account - Optional account for network operations
    * @param config - Optional configuration for proving mode and record scanner
    */
-  constructor(account?: Account, config?: LoyaltyProgramConfig) {
+  constructor(account?: Account, config?: ProgramConfig) {
     // Use the standard API endpoint for state queries (needed for inclusion proofs).
     // For delegated mode, use the DPS URL if provided.
     const hostUrl = config?.provingMode === ProvingMode.Delegated && config?.dpsUrl
@@ -355,67 +354,6 @@ class LoyaltyProgram {
   // ==========================================================================
 
   /**
-   * Register with the record scanner using encrypted flow (TEE-protected).
-   * This demonstrates the full encrypted registration workflow:
-   * 1. GET /pubkey - Fetch the TEE's ephemeral public key
-   * 2. Encrypt the view key + start block using libsodium
-   * 3. POST /register/encrypted - Send encrypted registration
-   *
-   * @param startHeight - The block height to start scanning from
-   */
-  private async registerEncrypted(startHeight: number): Promise<void> {
-    if (!this._recordScanner) {
-      throw new Error("Record Scanner not configured.");
-    }
-    if (!this.account) {
-      throw new Error("Account not set.");
-    }
-
-    const scannerUrl = this._recordScanner.url;
-    console.log("[LoyaltyProgram] Using encrypted RSS flow (TEE-protected)");
-
-    // Step 1: Get the TEE's ephemeral public key
-    const pubkeyResponse = await fetch(`${scannerUrl}/pubkey`);
-    if (!pubkeyResponse.ok) {
-      throw new Error(`Failed to get scanner public key: ${pubkeyResponse.status}`);
-    }
-    const pubkeyData = await pubkeyResponse.json() as { key_id: string; public_key: string };
-
-    // Step 2: Encrypt the view key and start block
-    const ciphertext = encryptRegistrationRequest(
-      pubkeyData.public_key,
-      this.account.viewKey(),
-      startHeight
-    );
-
-    // Step 3: Send encrypted registration request
-    const registerResponse = await fetch(`${scannerUrl}/register/encrypted`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        key_id: pubkeyData.key_id,
-        ciphertext: ciphertext,
-      }),
-    });
-
-    // Handle 422 (already registered) as success
-    if (registerResponse.status === 422) {
-      console.log("[LoyaltyProgram] View key already registered with scanner");
-      return;
-    }
-
-    if (!registerResponse.ok) {
-      throw new Error(`Failed to register with scanner: ${registerResponse.status}`);
-    }
-
-    const result = await registerResponse.json();
-    console.log("[LoyaltyProgram] Registered with UUID:", result.uuid?.slice(0, 20) + "...");
-
-    // Set the UUID on the scanner for subsequent queries
-    await this._recordScanner.setUuid(this.account.viewKey());
-  }
-
-  /**
    * Find LoyaltyCard records owned by this account using the RecordScanner service.
    *
    * @param startHeight - The block height to start scanning from
@@ -437,7 +375,7 @@ class LoyaltyProgram {
 
     // Register with the scanner.
     if (this._rssPrivacy) {
-      await this.registerEncrypted(startHeight);
+      await this._recordScanner.registerEncrypted(this.account.viewKey(), startHeight);
     } else {
       await this._recordScanner.register(this.account.viewKey(), startHeight);
     }
@@ -495,7 +433,7 @@ class LoyaltyProgram {
 
     // Register with the scanner.
     if (this._rssPrivacy) {
-      await this.registerEncrypted(startHeight);
+      await this._recordScanner.registerEncrypted(this.account.viewKey(), startHeight);
     } else {
       await this._recordScanner.register(this.account.viewKey(), startHeight);
     }
@@ -1436,7 +1374,7 @@ let loyaltyInstance: LoyaltyProgram | null = null;
 function initLoyaltyProgram(
   tokenProgram: string,
   rewardsProgram: string,
-  config?: LoyaltyProgramConfig
+  config?: ProgramConfig
 ): boolean {
   console.log("[Worker] initLoyaltyProgram called with config:", config);
   if (config) {

@@ -4,12 +4,14 @@ program loyalty_token.aleo {
     // Admin address for upgrade authorization
     const ADMIN: address = aleo1ntkc8z9ea8gjp7pkudlh5xqj0xw8k86lc64yh7yd06708ye9gv9s6j8l45;
 
+    // Hash input for deterministic card ID generation
     struct CardIdInput {
         holder: address,
         nonce: field,
         points: u64
     }
 
+    // Private loyalty card issued to a holder
     record LoyaltyCard {
         owner: address,
         card_id: field,
@@ -17,9 +19,13 @@ program loyalty_token.aleo {
         tier: u8  // 0=bronze, 1=silver, 2=gold
     }
 
+    // Tracks whether a card ID has been minted
     mapping card_exists: field => bool;
+    // Global card count (keyed by 0field)
     mapping total_cards: field => u64;
+    // Global points issued (keyed by 0field)
     mapping total_points_issued: field => u64;
+    // Pre-approved checksums for program upgrades
     mapping approved_upgrades: field => bool;
 
     // Constructor runs on deployment and upgrades
@@ -49,6 +55,7 @@ program loyalty_token.aleo {
         return points >= 10000u64 ? 2u8 : (points >= 1000u64 ? 1u8 : 0u8);
     }
 
+    // Issue a new loyalty card with an initial point balance
     async transition mint_card(
         recipient: address,
         initial_points: u64,
@@ -80,6 +87,7 @@ program loyalty_token.aleo {
         Mapping::set(total_cards, 0field, count + 1u64);
     }
 
+    // Add earned points to an existing card and recalculate tier
     async transition add_points(
         card: LoyaltyCard,
         points_earned: u64
@@ -105,10 +113,12 @@ program loyalty_token.aleo {
         Mapping::set(total_points_issued, 0field, total + points);
     }
 
+    // Return a card's current point balance without consuming it
     transition check_points(card: LoyaltyCard) -> (LoyaltyCard, u64) {
         return (card, card.points);
     }
 
+    // Transfer card ownership to a new address
     async transition transfer_card(
         card: LoyaltyCard,
         new_owner: address
@@ -128,10 +138,10 @@ program loyalty_token.aleo {
         assert(exists);
     }
 
+    // Split a card into two, distributing points between them
     async transition split_card(
         card: LoyaltyCard,
-        points_to_keep: u64,
-        new_nonce: field
+        points_to_keep: u64
     ) -> (LoyaltyCard, LoyaltyCard, Future) {
         assert(points_to_keep < card.points);
         let points_to_split: u64 = card.points - points_to_keep;
@@ -143,8 +153,9 @@ program loyalty_token.aleo {
             tier: calculate_tier(points_to_keep)
         };
 
+        // Derive nonce from the record's hidden _nonce for protocol-level randomness
         let split_card_id: field = BHP256::hash_to_field(
-            CardIdInput { holder: card.owner, nonce: new_nonce, points: points_to_split }
+            CardIdInput { holder: card.owner, nonce: BHP256::hash_to_field(card), points: points_to_split }
         );
         let split_card: LoyaltyCard = LoyaltyCard {
             owner: card.owner,
@@ -166,6 +177,7 @@ program loyalty_token.aleo {
         Mapping::set(total_cards, 0field, count + 1u64);
     }
 
+    // Deduct points from a card (called by loyalty_rewards during redemption)
     transition spend_points(
         card: LoyaltyCard,
         points_to_spend: u64

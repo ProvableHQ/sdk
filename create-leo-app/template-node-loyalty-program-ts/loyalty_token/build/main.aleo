@@ -107,24 +107,24 @@ finalize transfer_card:
 function split_card:
     input r0 as LoyaltyCard.record;
     input r1 as u64.private;
-    input r2 as field.private;
-    lt r1 r0.points into r3;
-    assert.eq r3 true;
-    sub r0.points r1 into r4;
-    gte r1 10000u64 into r5;
-    gte r1 1000u64 into r6;
-    ternary r6 1u8 0u8 into r7;
-    ternary r5 2u8 r7 into r8;
-    cast r0.owner r0.card_id r1 r8 into r9 as LoyaltyCard.record;
-    cast r0.owner r2 r4 into r10 as CardIdInput;
+    lt r1 r0.points into r2;
+    assert.eq r2 true;
+    sub r0.points r1 into r3;
+    gte r1 10000u64 into r4;
+    gte r1 1000u64 into r5;
+    ternary r5 1u8 0u8 into r6;
+    ternary r4 2u8 r6 into r7;
+    cast r0.owner r0.card_id r1 r7 into r8 as LoyaltyCard.record;
+    hash.bhp256 r0 into r9 as field;
+    cast r0.owner r9 r3 into r10 as CardIdInput;
     hash.bhp256 r10 into r11 as field;
-    gte r4 10000u64 into r12;
-    gte r4 1000u64 into r13;
+    gte r3 10000u64 into r12;
+    gte r3 1000u64 into r13;
     ternary r13 1u8 0u8 into r14;
     ternary r12 2u8 r14 into r15;
-    cast r0.owner r11 r4 r15 into r16 as LoyaltyCard.record;
+    cast r0.owner r11 r3 r15 into r16 as LoyaltyCard.record;
     async split_card r0.card_id r11 into r17;
-    output r9 as LoyaltyCard.record;
+    output r8 as LoyaltyCard.record;
     output r16 as LoyaltyCard.record;
     output r17 as loyalty_token.aleo/split_card.future;
 

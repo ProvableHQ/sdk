@@ -7,7 +7,6 @@ import {
     AleoKeyProvider,
     AleoNetworkClient,
     RecordScanner,
-    encryptRegistrationRequest,
     RecordCiphertext,
     OfflineQuery,
 } from "@provablehq/sdk/testnet.js";
@@ -79,9 +78,9 @@ export interface RedeemResult {
 }
 
 /**
- * Configuration for the LoyaltyProgram.
+ * Configuration for program execution.
  */
-export interface LoyaltyProgramConfig {
+export interface ProgramConfig {
     provingMode?: ProvingMode;
     /** RecordScanner service URL. */
     recordScannerUrl?: string;
@@ -233,7 +232,7 @@ class LoyaltyProgram {
      * @param account - The Aleo account to use for transactions
      * @param config - Optional configuration for proving mode and record scanner
      */
-    constructor(account: Account, config?: LoyaltyProgramConfig) {
+    constructor(account: Account, config?: ProgramConfig) {
         this._account = account;
         const apiUrl = config?.dpsUrl;
         this.programManager = new ProgramManager(apiUrl);
@@ -345,64 +344,6 @@ class LoyaltyProgram {
     // ==========================================================================
 
     /**
-     * Register with the record scanner using encrypted flow (TEE-protected).
-     * This demonstrates the full encrypted registration workflow:
-     * 1. GET /pubkey - Fetch the TEE's ephemeral public key.
-     * 2. Encrypt the view key + start block using libsodium.
-     * 3. POST /register/encrypted - Send encrypted registration.
-     *
-     * @param startHeight - The block height to start scanning from.
-     */
-    private async registerEncrypted(startHeight: number): Promise<void> {
-        if (!this._recordScanner) {
-            throw new Error("Record Scanner not configured.");
-        }
-
-        const scannerUrl = this._recordScanner.url;
-        console.log(`   ${COLORS.dim}├─ Using encrypted RSS flow (TEE-protected)${COLORS.reset}`);
-
-        // Step 1: Get the TEE's ephemeral public key.
-        const pubkeyResponse = await fetch(`${scannerUrl}/pubkey`);
-        if (!pubkeyResponse.ok) {
-            throw new Error(`Failed to get scanner public key: ${pubkeyResponse.status}`);
-        }
-        const pubkeyData = await pubkeyResponse.json() as { key_id: string; public_key: string };
-
-        // Step 2: Encrypt the view key and start block.
-        const ciphertext = encryptRegistrationRequest(
-            pubkeyData.public_key,
-            this._account.viewKey(),
-            startHeight
-        );
-
-        // Step 3: Send encrypted registration request.
-        const registerResponse = await fetch(`${scannerUrl}/register/encrypted`, {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({
-                key_id: pubkeyData.key_id,
-                ciphertext: ciphertext,
-            }),
-        });
-
-        // Handle 422 (already registered) as success.
-        if (registerResponse.status === 422) {
-            console.log(`   ${COLORS.dim}├─ View key already registered with scanner${COLORS.reset}`);
-            return;
-        }
-
-        if (!registerResponse.ok) {
-            throw new Error(`Failed to register with scanner: ${registerResponse.status}`);
-        }
-
-        const result = await registerResponse.json();
-        console.log(`   ${COLORS.dim}├─ Registered with UUID: ${result.uuid?.slice(0, 20)}...${COLORS.reset}`);
-
-        // Set the UUID on the scanner for subsequent queries.
-        await this._recordScanner.setUuid(this._account.viewKey());
-    }
-
-    /**
      * Find LoyaltyCard records owned by this account using the RecordScanner service.
      *
      * @param startHeight - The block height to start scanning from.
@@ -422,7 +363,7 @@ class LoyaltyProgram {
 
         // Register with the scanner.
         if (this._rssPrivacy) {
-            await this.registerEncrypted(startHeight);
+            await this._recordScanner.registerEncrypted(this._account.viewKey(), startHeight);
         } else {
             await this._recordScanner.register(this._account.viewKey(), startHeight);
         }
@@ -473,7 +414,7 @@ class LoyaltyProgram {
 
         // Register with the scanner.
         if (this._rssPrivacy) {
-            await this.registerEncrypted(startHeight);
+            await this._recordScanner.registerEncrypted(this._account.viewKey(), startHeight);
         } else {
             await this._recordScanner.register(this._account.viewKey(), startHeight);
         }
