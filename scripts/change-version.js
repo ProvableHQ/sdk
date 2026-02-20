@@ -13,13 +13,14 @@ async function updateVersion(path, newVersion) {
 
 
 // Updates the `package.json` file so it uses the correct
-// version of `@provablehq/wasm` and `@provablehq/sdk`
+// version of `@provablehq/wasm`, `@provablehq/wasm-address`, and `@provablehq/sdk`
 async function updateDependency(path, newVersion) {
     const json = await readFile(path, { encoding: "utf8" });
 
     const replaced = json
         .replace(/"@provablehq\/sdk": *"[^"]+"/g, `"@provablehq/sdk": "^${newVersion}"`)
-        .replace(/"@provablehq\/wasm": *"[^"]+"/g, `"@provablehq/wasm": "^${newVersion}"`);
+        .replace(/"@provablehq\/wasm": *"[^"]+"/g, `"@provablehq/wasm": "^${newVersion}"`)
+        .replace(/"@provablehq\/wasm-address": *"[^"]+"/g, `"@provablehq/wasm-address": "^${newVersion}"`);
 
     await writeFile(path, replaced);
 }
@@ -30,21 +31,31 @@ async function updateVersions(newVersion) {
     await Promise.all([
         "create-leo-app/package.json",
         "sdk/package.json",
+        "sdk-address/package.json",
         "wasm/package.json",
+        "wasm-address/package.json",
     ].map(async (file) => {
         await updateVersion(file, newVersion);
     }));
 }
 
 
-// Updates the version in `Cargo.toml`
+// Updates the version in `Cargo.toml` files
 async function updateCargo(newVersion) {
-    const toml = await readFile("wasm/Cargo.toml", { encoding: "utf8" });
-
-    const replaced = toml
-        .replace(/(\[package\]\s+name *= *"aleo-wasm"\s+version *= *)"[^"]+"/, `$1"${newVersion}"`);
-
-    await writeFile("wasm/Cargo.toml", replaced);
+    await Promise.all([
+        {
+            path: "wasm/Cargo.toml",
+            pattern: /(\[package\]\s+name *= *"aleo-wasm"\s+version *= *)"[^"]+"/,
+        },
+        {
+            path: "wasm-address/Cargo.toml",
+            pattern: /(\[package\]\s+name *= *"aleo-wasm-address"\s+version *= *)"[^"]+"/,
+        },
+    ].map(async ({ path, pattern }) => {
+        const toml = await readFile(path, { encoding: "utf8" });
+        const replaced = toml.replace(pattern, `$1"${newVersion}"`);
+        await writeFile(path, replaced);
+    }));
 }
 
 

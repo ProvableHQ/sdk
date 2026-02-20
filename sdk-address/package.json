@@ -1,0 +1,46 @@
+{
+  "name": "@provablehq/sdk-address",
+  "version": "0.9.16",
+  "description": "Minimal TypeScript bindings for Aleo address operations",
+  "collaborators": [
+    "The Provable Team"
+  ],
+  "license": "GPL-3.0",
+  "type": "module",
+  "main": "./dist/address.js",
+  "types": "./dist/address.d.ts",
+  "exports": {
+    ".": "./dist/address.js"
+  },
+  "files": [
+    "dist",
+    "LICENSE.md"
+  ],
+  "scripts": {
+    "build": "rimraf dist && rollup -c rollup.config.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/ProvableHQ/sdk.git"
+  },
+  "keywords": [
+    "Aleo",
+    "Blockchain",
+    "Zero-Knowledge",
+    "ZK",
+    "Address"
+  ],
+  "bugs": {
+    "url": "https://github.com/ProvableHQ/sdk/issues"
+  },
+  "homepage": "https://github.com/ProvableHQ/sdk#readme",
+  "dependencies": {
+    "@provablehq/wasm-address": "^0.9.16"
+  },
+  "devDependencies": {
+    "rimraf": "^6.0.1",
+    "rollup": "^4.32.0",
+    "rollup-plugin-typescript2": "^0.36.0",
+    "typescript": "^5.7.3"
+  }
+}
