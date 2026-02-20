@@ -857,10 +857,12 @@ class LoyaltyProgram {
                         if (output.value) {
                             // Check if this is an encrypted record (starts with "record1").
                             if (output.type === "record" && output.value.startsWith("record1")) {
-                                // Decrypt the record using the account's view key.
                                 const ciphertext = RecordCiphertext.fromString(output.value);
-                                const plaintext = ciphertext.decrypt(this._account.viewKey());
-                                outputs.push(plaintext.toString());
+                                // Only decrypt records owned by this account (e.g. transfers produce records for other owners).
+                                if (ciphertext.isOwner(this._account.viewKey())) {
+                                    const plaintext = ciphertext.decrypt(this._account.viewKey());
+                                    outputs.push(plaintext.toString());
+                                }
                             } else {
                                 outputs.push(output.value);
                             }
@@ -1131,11 +1133,11 @@ const functions: Record<string, () => Promise<void>> = {
         card = await loyalty.addPoints(card, 900);
         console.log(`   ${COLORS.dim}└─${COLORS.reset} Points: ${COLORS.bright}${card.points}${COLORS.reset}, Tier: ${COLORS.bright}${CardTier[card.tier]}${COLORS.reset}`);
 
-        console.log("\n3. Adding 4100 points (should upgrade to Gold)...");
-        card = await loyalty.addPoints(card, 4100);
+        console.log("\n3. Adding 9900 points (should upgrade to Gold)...");
+        card = await loyalty.addPoints(card, 9900);
         console.log(`   ${COLORS.dim}└─${COLORS.reset} Points: ${COLORS.bright}${card.points}${COLORS.reset}, Tier: ${COLORS.bright}${CardTier[card.tier]}${COLORS.reset}`);
 
-        console.log("\n4. Splitting card (keep 3000, split off 2100)...");
+        console.log("\n4. Splitting card (keep 3000, split off 7900)...");
         const { keptCard, splitCard } = await loyalty.splitCardV2(card, 3000);
         console.log(`   ${COLORS.dim}├─${COLORS.reset} Kept card:  ${COLORS.bright}${keptCard.points}${COLORS.reset} points, Tier: ${COLORS.bright}${CardTier[keptCard.tier]}${COLORS.reset}`);
         console.log(`   ${COLORS.dim}└─${COLORS.reset} Split card: ${COLORS.bright}${splitCard.points}${COLORS.reset} points, Tier: ${COLORS.bright}${CardTier[splitCard.tier]}${COLORS.reset}`);
@@ -1269,6 +1271,9 @@ async function main() {
     console.log(`\n${COLORS.green}✓${COLORS.reset} Demo complete!\n`);
 }
 
-main().catch(console.error);
+main().catch((error) => {
+    console.error(error);
+    process.exit(1);
+});
 
 export { LoyaltyProgram };

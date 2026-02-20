@@ -1169,10 +1169,12 @@ class LoyaltyProgram {
             if (output.value) {
               // Check if this is an encrypted record (starts with "record1").
               if (output.type === "record" && output.value.startsWith("record1") && this.account) {
-                // Decrypt the record using the account's view key.
                 const ciphertext = RecordCiphertext.fromString(output.value);
-                const plaintext = ciphertext.decrypt(this.account.viewKey());
-                outputs.push(plaintext.toString());
+                // Only decrypt records owned by this account (e.g. transfers produce records for other owners).
+                if (ciphertext.isOwner(this.account.viewKey())) {
+                  const plaintext = ciphertext.decrypt(this.account.viewKey());
+                  outputs.push(plaintext.toString());
+                }
               } else {
                 outputs.push(output.value);
               }
