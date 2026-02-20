@@ -1556,7 +1556,7 @@ __*return*__ | `Promise.<Transaction>` | *- A promise that resolves to the trans
 import { AleoKeyProvider, getOrInitConsensusVersionTestHeights, ProgramManager, NetworkRecordProvider } from "@provablehq/sdk/mainnet.js";
 
 // Initialize the development consensus heights in order to work with devnode.
-getOrInitConsensusVersionTestHeights("0,1,2,3,4,5,6,7,8,9,10,11");
+getOrInitConsensusVersionTestHeights("0,1,2,3,4,5,6,7,8,9,10,11,12");
 
 // Create a new NetworkClient and RecordProvider.
 const recordProvider = new NetworkRecordProvider(account, networkClient);
@@ -1606,7 +1606,7 @@ __*return*__ | `string` | *The transaction id of the deployed program or a failu
 import { ProgramManager, NetworkRecordProvider, getOrInitConsensusVersionTestHeights } from "@provablehq/sdk/mainnet.js";
 
 // Initialize the development consensus heights in order to work with a local devnode.
-getOrInitConsensusVersionTestHeights("0,1,2,3,4,5,6,7,8,9,10,11");
+getOrInitConsensusVersionTestHeights("0,1,2,3,4,5,6,7,8,9,10,11,12");
 
 // Create a new NetworkClient, and RecordProvider
 const recordProvider = new NetworkRecordProvider(account, networkClient);
@@ -3213,7 +3213,7 @@ __*return*__ | `Promise.<Transaction>` | *- A promise that resolves to the trans
 import { AleoKeyProvider, getOrInitConsensusVersionTestHeights, ProgramManager, NetworkRecordProvider } from "@provablehq/sdk/mainnet.js";
 
 // Initialize the development consensus heights in order to work with devnode.
-getOrInitConsensusVersionTestHeights("0,1,2,3,4,5,6,7,8,9,10,11");
+getOrInitConsensusVersionTestHeights("0,1,2,3,4,5,6,7,8,9,10,11,12");
 
 // Create a new NetworkClient and RecordProvider.
 const recordProvider = new NetworkRecordProvider(account, networkClient);
@@ -3263,7 +3263,7 @@ __*return*__ | `string` | *The transaction id of the deployed program or a failu
 import { ProgramManager, NetworkRecordProvider, getOrInitConsensusVersionTestHeights } from "@provablehq/sdk/mainnet.js";
 
 // Initialize the development consensus heights in order to work with a local devnode.
-getOrInitConsensusVersionTestHeights("0,1,2,3,4,5,6,7,8,9,10,11");
+getOrInitConsensusVersionTestHeights("0,1,2,3,4,5,6,7,8,9,10,11,12");
 
 // Create a new NetworkClient, and RecordProvider
 const recordProvider = new NetworkRecordProvider(account, networkClient);
