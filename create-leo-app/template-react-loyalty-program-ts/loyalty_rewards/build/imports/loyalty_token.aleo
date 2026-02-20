@@ -126,6 +126,34 @@ finalize split_card:
     add r3 1u64 into r4;
     set r4 into total_cards[0field];
 
+function split_card_v2:
+    input r0 as LoyaltyCard.record;
+    input r1 as u64.private;
+    lt r1 r0.points into r2;
+    assert.eq r2 true;
+    sub r0.points r1 into r3;
+    call calculate_tier r1 into r4;
+    cast r0.owner r0.card_id r1 r4 into r5 as LoyaltyCard.record;
+    hash.bhp256 r0 into r6 as field;
+    cast r0.owner r6 r3 into r7 as CardIdInput;
+    hash.bhp256 r7 into r8 as field;
+    call calculate_tier r3 into r9;
+    cast r0.owner r8 r3 r9 into r10 as LoyaltyCard.record;
+    async split_card_v2 r0.card_id r8 into r11;
+    output r5 as LoyaltyCard.record;
+    output r10 as LoyaltyCard.record;
+    output r11 as loyalty_token.aleo/split_card_v2.future;
+
+finalize split_card_v2:
+    input r0 as field.public;
+    input r1 as field.public;
+    get card_exists[r0] into r2;
+    assert.eq r2 true;
+    set true into card_exists[r1];
+    get.or_use total_cards[0field] 0u64 into r3;
+    add r3 1u64 into r4;
+    set r4 into total_cards[0field];
+
 function spend_points:
     input r0 as LoyaltyCard.record;
     input r1 as u64.private;

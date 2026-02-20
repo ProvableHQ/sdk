@@ -323,6 +323,72 @@
             }
           },
           "mode": "None"
+        },
+        {
+          "name": "nonce",
+          "ty": {
+            "Plaintext": {
+              "Primitive": "Field"
+            }
+          },
+          "mode": "None"
+        }
+      ],
+      "outputs": [
+        {
+          "ty": {
+            "Record": {
+              "path": [
+                "LoyaltyCard"
+              ],
+              "program": "loyalty_token"
+            }
+          },
+          "mode": "None"
+        },
+        {
+          "ty": {
+            "Record": {
+              "path": [
+                "LoyaltyCard"
+              ],
+              "program": "loyalty_token"
+            }
+          },
+          "mode": "None"
+        },
+        {
+          "ty": "Future",
+          "mode": "None"
+        }
+      ]
+    },
+    {
+      "name": "split_card_v2",
+      "is_async": true,
+      "inputs": [
+        {
+          "name": "card",
+          "ty": {
+            "Record": {
+              "path": [
+                "LoyaltyCard"
+              ],
+              "program": "loyalty_token"
+            }
+          },
+          "mode": "None"
+        },
+        {
+          "name": "points_to_keep",
+          "ty": {
+            "Plaintext": {
+              "Primitive": {
+                "UInt": "U64"
+              }
+            }
+          },
+          "mode": "None"
         }
       ],
       "outputs": [

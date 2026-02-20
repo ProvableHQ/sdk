@@ -70,6 +70,14 @@ export interface RewardVoucher {
 }
 
 /**
+ * Result of splitting a card into two.
+ */
+export interface SplitResult {
+    keptCard: LoyaltyCard;
+    splitCard: LoyaltyCard;
+}
+
+/**
  * Result of redeeming points for a voucher.
  */
 export interface RedeemResult {
@@ -183,6 +191,7 @@ function logScanResults(recordType: string, count: number): void {
  * - addPoints: Add points to an existing card (consumes old, creates new)
  * - checkPoints: View card points without consuming
  * - transferCard: Transfer card to another address
+ * - splitCardV2: Split a card into two with deterministic nonce
  * - redeemForVoucher: Exchange points for a reward voucher (multi-program)
  * - useVoucher: Consume a voucher
  * - transferVoucher: Transfer voucher to another address
@@ -234,15 +243,17 @@ class LoyaltyProgram {
      */
     constructor(account: Account, config?: ProgramConfig) {
         this._account = account;
-        const apiUrl = config?.dpsUrl;
-        this.programManager = new ProgramManager(apiUrl);
+        // Always use the standard API endpoint for ProgramManager state queries
+        // (edition lookups, inclusion proofs, etc.). The DPS URL is only needed for
+        // submitProvingRequest() — passing it here doubles the /testnet/ path segment.
+        this.programManager = new ProgramManager("https://api.provable.com/v2");
         this.programManager.setAccount(account);
 
         this.keyProvider = new AleoKeyProvider();
         this.programManager.setKeyProvider(this.keyProvider);
 
-        if (apiUrl) {
-            this.networkClient = new AleoNetworkClient(apiUrl);
+        if (config?.dpsUrl) {
+            this.networkClient = new AleoNetworkClient(config.dpsUrl);
         }
 
         // Apply configuration.
@@ -542,6 +553,40 @@ class LoyaltyProgram {
         return this.parseCard(outputs[0]);
     }
 
+    /**
+     * Split a loyalty card into two cards with a deterministic nonce.
+     * Uses BHP256 hash of the record for the split card's ID, preventing
+     * caller-provided nonce manipulation.
+     *
+     * @param card - The card to split.
+     * @param pointsToKeep - Points to retain on the original card.
+     * @returns Object containing the kept card and the new split card.
+     *
+     * @example
+     * const { keptCard, splitCard } = await loyalty.splitCardV2(card, 3000);
+     * console.log(`Kept: ${keptCard.points}, Split: ${splitCard.points}`);
+     */
+    async splitCardV2(card: LoyaltyCard, pointsToKeep: number): Promise<SplitResult> {
+        if (pointsToKeep >= card.points) {
+            throw new Error(
+                `pointsToKeep (${pointsToKeep}) must be less than card points (${card.points})`
+            );
+        }
+
+        const inputs = [card.raw, `${pointsToKeep}u64`];
+
+        const outputs = await this.execute(
+            this.tokenProgram,
+            "split_card_v2",
+            inputs
+        );
+
+        return {
+            keptCard: this.parseCard(outputs[0]),
+            splitCard: this.parseCard(outputs[1]),
+        };
+    }
+
     // ==========================================================================
     // Voucher Operations (loyalty_rewards.aleo)
     // ==========================================================================
@@ -576,7 +621,7 @@ class LoyaltyProgram {
 
         const inputs = [card.raw, `${rewardType}u8`, `${pointsCost}u64`];
 
-        const outputs = await this.executeWithImports(
+        const outputs = await this.execute(
             this.rewardsProgram,
             "redeem_points_for_voucher",
             inputs,
@@ -598,7 +643,7 @@ class LoyaltyProgram {
     async useVoucher(voucher: RewardVoucher): Promise<void> {
         const inputs = [voucher.raw];
 
-        await this.executeWithImports(
+        await this.execute(
             this.rewardsProgram,
             "use_voucher",
             inputs,
@@ -617,7 +662,7 @@ class LoyaltyProgram {
     ): Promise<{ voucher: RewardVoucher; rewardType: RewardType; value: number }> {
         const inputs = [voucher.raw];
 
-        const outputs = await this.executeWithImports(
+        const outputs = await this.execute(
             this.rewardsProgram,
             "check_voucher",
             inputs,
@@ -644,7 +689,7 @@ class LoyaltyProgram {
     ): Promise<RewardVoucher> {
         const inputs = [voucher.raw, newOwner];
 
-        const outputs = await this.executeWithImports(
+        const outputs = await this.execute(
             this.rewardsProgram,
             "transfer_voucher",
             inputs,
@@ -661,28 +706,8 @@ class LoyaltyProgram {
     private async execute(
         program: string,
         functionName: string,
-        inputs: string[]
-    ): Promise<string[]> {
-        logOperation(functionName, this._provingMode);
-        const start = Date.now();
-
-        let outputs: string[];
-
-        if (this._provingMode === ProvingMode.Delegated) {
-            outputs = await this.executeDelegated(program, functionName, inputs);
-        } else {
-            outputs = await this.executeLocal(program, functionName, inputs);
-        }
-
-        logOperationComplete(functionName, Date.now() - start, this._provingMode);
-        return outputs;
-    }
-
-    private async executeWithImports(
-        program: string,
-        functionName: string,
         inputs: string[],
-        imports: Record<string, string>
+        imports?: Record<string, string>
     ): Promise<string[]> {
         logOperation(functionName, this._provingMode);
         const start = Date.now();
@@ -690,9 +715,9 @@ class LoyaltyProgram {
         let outputs: string[];
 
         if (this._provingMode === ProvingMode.Delegated) {
-            outputs = await this.executeDelegatedWithImports(program, functionName, inputs, imports);
+            outputs = await this.executeDelegated(program, functionName, inputs, imports);
         } else {
-            outputs = await this.executeLocalWithImports(program, functionName, inputs, imports);
+            outputs = await this.executeLocal(program, functionName, inputs, imports);
         }
 
         logOperationComplete(functionName, Date.now() - start, this._provingMode);
@@ -702,35 +727,8 @@ class LoyaltyProgram {
     private async executeLocal(
         program: string,
         functionName: string,
-        inputs: string[]
-    ): Promise<string[]> {
-        // Use OfflineQuery with mock state to prevent network lookups for locally-created records.
-        const offlineQuery = new OfflineQuery(
-            0,
-            "sr1qqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqq6gk0xu"
-        );
-
-        const executionResponse = await this.programManager.run(
-            program,
-            functionName,
-            inputs,
-            false,      // proveExecution
-            undefined,  // imports
-            undefined,  // keySearchParams
-            undefined,  // provingKey
-            undefined,  // verifyingKey
-            undefined,  // privateKey
-            offlineQuery
-        );
-
-        return executionResponse.getOutputs();
-    }
-
-    private async executeLocalWithImports(
-        program: string,
-        functionName: string,
         inputs: string[],
-        imports: Record<string, string>
+        imports?: Record<string, string>
     ): Promise<string[]> {
         // Use OfflineQuery with mock state to prevent network lookups for locally-created records.
         const offlineQuery = new OfflineQuery(
@@ -796,61 +794,8 @@ class LoyaltyProgram {
     private async executeDelegated(
         program: string,
         functionName: string,
-        inputs: string[]
-    ): Promise<string[]> {
-        if (!this._dpsUrl) {
-            throw new Error(
-                "Delegated proving requires dpsUrl to be configured. " +
-                "Pass dpsUrl in the config or use setProvingMode(ProvingMode.Local)."
-            );
-        }
-
-        // Get program name from source.
-        const programName = Program.fromString(program).id();
-
-        // Build the proving request with broadcast: true to submit to chain.
-        const provingRequest = await this.programManager.provingRequest({
-            programName,
-            programSource: program,
-            functionName,
-            inputs,
-            priorityFee: 0,
-            privateFee: false,
-            broadcast: true,
-        });
-
-        // Submit to DPS (with optional encryption via dpsPrivacy flag).
-        if (!this.networkClient) {
-            this.networkClient = new AleoNetworkClient(this._dpsUrl);
-        }
-
-        if (this._dpsPrivacy) {
-            console.log(`   ${COLORS.dim}├─ Using encrypted DPS flow (TEE-protected)${COLORS.reset}`);
-        }
-
-        const response = await this.networkClient.submitProvingRequest({
-            provingRequest,
-            url: this._dpsUrl,
-            apiKey: this._dpsApiKey,
-            consumerId: this._consumerId,
-            dpsPrivacy: this._dpsPrivacy,
-        });
-
-        // Wait for transaction confirmation and extract outputs.
-        const txId = response.transaction?.id;
-        if (!txId) {
-            throw new Error("DPS response did not contain a transaction ID");
-        }
-
-        const confirmedTx = await this.waitForTransaction(txId);
-        return this.extractOutputsFromTransaction(confirmedTx);
-    }
-
-    private async executeDelegatedWithImports(
-        program: string,
-        functionName: string,
         inputs: string[],
-        imports: Record<string, string>
+        imports?: Record<string, string>
     ): Promise<string[]> {
         if (!this._dpsUrl) {
             throw new Error(
@@ -1190,16 +1135,21 @@ const functions: Record<string, () => Promise<void>> = {
         card = await loyalty.addPoints(card, 4100);
         console.log(`   ${COLORS.dim}└─${COLORS.reset} Points: ${COLORS.bright}${card.points}${COLORS.reset}, Tier: ${COLORS.bright}${CardTier[card.tier]}${COLORS.reset}`);
 
-        console.log("\n4. Redeeming 2000 points for Upgrade voucher...");
+        console.log("\n4. Splitting card (keep 3000, split off 2100)...");
+        const { keptCard, splitCard } = await loyalty.splitCardV2(card, 3000);
+        console.log(`   ${COLORS.dim}├─${COLORS.reset} Kept card:  ${COLORS.bright}${keptCard.points}${COLORS.reset} points, Tier: ${COLORS.bright}${CardTier[keptCard.tier]}${COLORS.reset}`);
+        console.log(`   ${COLORS.dim}└─${COLORS.reset} Split card: ${COLORS.bright}${splitCard.points}${COLORS.reset} points, Tier: ${COLORS.bright}${CardTier[splitCard.tier]}${COLORS.reset}`);
+
+        console.log("\n5. Redeeming 2000 points from kept card for Upgrade voucher...");
         const { card: updatedCard, voucher } = await loyalty.redeemForVoucher(
-            card,
+            keptCard,
             RewardType.Upgrade,
             2000
         );
         console.log(`   ${COLORS.dim}├─${COLORS.reset} Card points remaining: ${COLORS.bright}${updatedCard.points}${COLORS.reset}`);
         console.log(`   ${COLORS.dim}└─${COLORS.reset} Voucher: ${RewardType[voucher.rewardType]}, value: ${voucher.value}`);
 
-        console.log("\n5. Using the voucher...");
+        console.log("\n6. Using the voucher...");
         await loyalty.useVoucher(voucher);
         console.log(`   ${COLORS.green}✓${COLORS.reset} Voucher consumed successfully!`);
     },

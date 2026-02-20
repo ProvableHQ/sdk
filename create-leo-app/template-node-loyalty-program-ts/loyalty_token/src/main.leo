@@ -138,10 +138,11 @@ program loyalty_token.aleo {
         assert(exists);
     }
 
-    // Split a card into two, distributing points between them
+    // Split a card into two, distributing points between them (legacy — uses caller-provided nonce)
     async transition split_card(
         card: LoyaltyCard,
-        points_to_keep: u64
+        points_to_keep: u64,
+        nonce: field
     ) -> (LoyaltyCard, LoyaltyCard, Future) {
         assert(points_to_keep < card.points);
         let points_to_split: u64 = card.points - points_to_keep;
@@ -153,7 +154,36 @@ program loyalty_token.aleo {
             tier: calculate_tier(points_to_keep)
         };
 
-        // Derive nonce from the record's hidden _nonce for protocol-level randomness
+        let split_card_id: field = BHP256::hash_to_field(
+            CardIdInput { holder: card.owner, nonce: nonce, points: points_to_split }
+        );
+        let split_card: LoyaltyCard = LoyaltyCard {
+            owner: card.owner,
+            card_id: split_card_id,
+            points: points_to_split,
+            tier: calculate_tier(points_to_split)
+        };
+
+        return (kept_card, split_card, finalize_split_card(card.card_id, split_card_id));
+    }
+
+    // Split a card using deterministic nonce derived from the record's hidden _nonce.
+    // Preferred over split_card — the caller-provided nonce is game-able, whereas
+    // hashing the record incorporates its inherent randomness.
+    async transition split_card_v2(
+        card: LoyaltyCard,
+        points_to_keep: u64,
+    ) -> (LoyaltyCard, LoyaltyCard, Future) {
+        assert(points_to_keep < card.points);
+        let points_to_split: u64 = card.points - points_to_keep;
+
+        let kept_card: LoyaltyCard = LoyaltyCard {
+            owner: card.owner,
+            card_id: card.card_id,
+            points: points_to_keep,
+            tier: calculate_tier(points_to_keep)
+        };
+
         let split_card_id: field = BHP256::hash_to_field(
             CardIdInput { holder: card.owner, nonce: BHP256::hash_to_field(card), points: points_to_split }
         );

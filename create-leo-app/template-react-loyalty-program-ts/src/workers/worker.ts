@@ -82,6 +82,14 @@ export interface RewardVoucher {
 }
 
 /**
+ * Result of splitting a card into two.
+ */
+export interface SplitResult {
+  keptCard: LoyaltyCard;
+  splitCard: LoyaltyCard;
+}
+
+/**
  * Result of redeeming points for a voucher.
  */
 export interface RedeemResult {
@@ -152,6 +160,7 @@ export interface StatusEvent {
  * - addPoints: Add points to an existing card
  * - checkPoints: View card points without consuming
  * - transferCard: Transfer card to another address
+ * - splitCardV2: Split a card into two with deterministic nonce
  * - redeemForVoucher: Exchange points for a reward voucher
  * - useVoucher: Consume a voucher
  * - transferVoucher: Transfer voucher to another address
@@ -217,11 +226,10 @@ class LoyaltyProgram {
    * @param config - Optional configuration for proving mode and record scanner
    */
   constructor(account?: Account, config?: ProgramConfig) {
-    // Use the standard API endpoint for state queries (needed for inclusion proofs).
-    // For delegated mode, use the DPS URL if provided.
-    const hostUrl = config?.provingMode === ProvingMode.Delegated && config?.dpsUrl
-      ? config.dpsUrl
-      : "https://api.provable.com/v2";
+    // Always use the standard API endpoint for ProgramManager state queries
+    // (edition lookups, inclusion proofs, etc.). The DPS URL is only needed for
+    // submitProvingRequest() — passing it here doubles the /testnet/ path segment.
+    const hostUrl = "https://api.provable.com/v2";
     this.programManager = new ProgramManager(hostUrl);
 
     this.keyProvider = new AleoKeyProvider();
@@ -573,6 +581,39 @@ class LoyaltyProgram {
     );
 
     return this.parseCard(outputs[0]);
+  }
+
+  /**
+   * Split a loyalty card into two cards with a deterministic nonce.
+   * Uses BHP256 hash of the record for the split card's ID, preventing
+   * caller-provided nonce manipulation.
+   *
+   * @param card - The card to split.
+   * @param pointsToKeep - Points to retain on the original card.
+   * @returns Object containing the kept card and the new split card.
+   *
+   * @example
+   * const { keptCard, splitCard } = await loyalty.splitCardV2(card, 3000);
+   */
+  async splitCardV2(card: LoyaltyCard, pointsToKeep: number): Promise<SplitResult> {
+    if (pointsToKeep >= card.points) {
+      throw new Error(
+        `pointsToKeep (${pointsToKeep}) must be less than card points (${card.points})`
+      );
+    }
+
+    const inputs = [card.raw, `${pointsToKeep}u64`];
+
+    const outputs = await this.execute(
+      this.tokenProgram,
+      "split_card_v2",
+      inputs
+    );
+
+    return {
+      keptCard: this.parseCard(outputs[0]),
+      splitCard: this.parseCard(outputs[1]),
+    };
   }
 
   // ==========================================================================
@@ -1458,6 +1499,10 @@ async function useVoucher(voucher: RewardVoucher): Promise<void> {
   return getLoyaltyProgram().useVoucher(voucher);
 }
 
+async function splitCardV2(card: LoyaltyCard, pointsToKeep: number): Promise<SplitResult> {
+  return getLoyaltyProgram().splitCardV2(card, pointsToKeep);
+}
+
 async function transferCard(card: LoyaltyCard, newOwner: string): Promise<LoyaltyCard> {
   return getLoyaltyProgram().transferCard(card, newOwner);
 }
@@ -1505,6 +1550,7 @@ const workerMethods = {
   // Card operations
   mintCard,
   addPoints,
+  splitCardV2,
   transferCard,
 
   // Voucher operations

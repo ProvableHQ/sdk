@@ -1,0 +1,303 @@
+{
+  "program": "loyalty_rewards.aleo",
+  "structs": [],
+  "records": [
+    {
+      "path": [
+        "RewardVoucher"
+      ],
+      "fields": [
+        {
+          "name": "owner",
+          "ty": {
+            "Primitive": "Address"
+          },
+          "mode": "None"
+        },
+        {
+          "name": "voucher_id",
+          "ty": {
+            "Primitive": "Field"
+          },
+          "mode": "None"
+        },
+        {
+          "name": "reward_type",
+          "ty": {
+            "Primitive": {
+              "UInt": "U8"
+            }
+          },
+          "mode": "None"
+        },
+        {
+          "name": "amount",
+          "ty": {
+            "Primitive": {
+              "UInt": "U64"
+            }
+          },
+          "mode": "None"
+        }
+      ]
+    }
+  ],
+  "mappings": [
+    {
+      "name": "voucher_exists",
+      "key": {
+        "Primitive": "Field"
+      },
+      "value": {
+        "Primitive": "Boolean"
+      }
+    },
+    {
+      "name": "voucher_used",
+      "key": {
+        "Primitive": "Field"
+      },
+      "value": {
+        "Primitive": "Boolean"
+      }
+    },
+    {
+      "name": "redemptions_by_type",
+      "key": {
+        "Primitive": "Field"
+      },
+      "value": {
+        "Primitive": {
+          "UInt": "U64"
+        }
+      }
+    },
+    {
+      "name": "approved_upgrades",
+      "key": {
+        "Primitive": "Field"
+      },
+      "value": {
+        "Primitive": "Boolean"
+      }
+    }
+  ],
+  "storage_variables": [],
+  "transitions": [
+    {
+      "name": "approve_upgrade",
+      "is_async": true,
+      "inputs": [
+        {
+          "name": "checksum",
+          "ty": {
+            "Plaintext": {
+              "Array": {
+                "element": {
+                  "Primitive": {
+                    "UInt": "U8"
+                  }
+                },
+                "length": 32
+              }
+            }
+          },
+          "mode": "None"
+        }
+      ],
+      "outputs": [
+        {
+          "ty": "Future",
+          "mode": "None"
+        }
+      ]
+    },
+    {
+      "name": "redeem_points_for_voucher",
+      "is_async": true,
+      "inputs": [
+        {
+          "name": "card",
+          "ty": {
+            "Record": {
+              "path": [
+                "LoyaltyCard"
+              ],
+              "program": "loyalty_token"
+            }
+          },
+          "mode": "None"
+        },
+        {
+          "name": "reward_type",
+          "ty": {
+            "Plaintext": {
+              "Primitive": {
+                "UInt": "U8"
+              }
+            }
+          },
+          "mode": "None"
+        },
+        {
+          "name": "points_to_spend",
+          "ty": {
+            "Plaintext": {
+              "Primitive": {
+                "UInt": "U64"
+              }
+            }
+          },
+          "mode": "None"
+        }
+      ],
+      "outputs": [
+        {
+          "ty": {
+            "Record": {
+              "path": [
+                "LoyaltyCard"
+              ],
+              "program": "loyalty_token"
+            }
+          },
+          "mode": "None"
+        },
+        {
+          "ty": {
+            "Record": {
+              "path": [
+                "RewardVoucher"
+              ],
+              "program": "loyalty_rewards"
+            }
+          },
+          "mode": "None"
+        },
+        {
+          "ty": "Future",
+          "mode": "None"
+        }
+      ]
+    },
+    {
+      "name": "use_voucher",
+      "is_async": true,
+      "inputs": [
+        {
+          "name": "voucher",
+          "ty": {
+            "Record": {
+              "path": [
+                "RewardVoucher"
+              ],
+              "program": "loyalty_rewards"
+            }
+          },
+          "mode": "None"
+        }
+      ],
+      "outputs": [
+        {
+          "ty": "Future",
+          "mode": "None"
+        }
+      ]
+    },
+    {
+      "name": "check_voucher",
+      "is_async": false,
+      "inputs": [
+        {
+          "name": "voucher",
+          "ty": {
+            "Record": {
+              "path": [
+                "RewardVoucher"
+              ],
+              "program": "loyalty_rewards"
+            }
+          },
+          "mode": "None"
+        }
+      ],
+      "outputs": [
+        {
+          "ty": {
+            "Record": {
+              "path": [
+                "RewardVoucher"
+              ],
+              "program": "loyalty_rewards"
+            }
+          },
+          "mode": "None"
+        },
+        {
+          "ty": {
+            "Plaintext": {
+              "Primitive": {
+                "UInt": "U8"
+              }
+            }
+          },
+          "mode": "None"
+        },
+        {
+          "ty": {
+            "Plaintext": {
+              "Primitive": {
+                "UInt": "U64"
+              }
+            }
+          },
+          "mode": "None"
+        }
+      ]
+    },
+    {
+      "name": "transfer_voucher",
+      "is_async": true,
+      "inputs": [
+        {
+          "name": "voucher",
+          "ty": {
+            "Record": {
+              "path": [
+                "RewardVoucher"
+              ],
+              "program": "loyalty_rewards"
+            }
+          },
+          "mode": "None"
+        },
+        {
+          "name": "new_owner",
+          "ty": {
+            "Plaintext": {
+              "Primitive": "Address"
+            }
+          },
+          "mode": "None"
+        }
+      ],
+      "outputs": [
+        {
+          "ty": {
+            "Record": {
+              "path": [
+                "RewardVoucher"
+              ],
+              "program": "loyalty_rewards"
+            }
+          },
+          "mode": "None"
+        },
+        {
+          "ty": "Future",
+          "mode": "None"
+        }
+      ]
+    }
+  ]
+}

@@ -112,6 +112,49 @@ h1 {
   margin-top: 0.5em;
 }
 
+/* Card selector tabs (shown when multiple cards from splits) */
+.card-selector {
+  display: flex;
+  gap: 0.5em;
+  flex-wrap: wrap;
+  justify-content: center;
+  margin-bottom: 0.5em;
+}
+
+.card-tab {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.15em;
+  padding: 0.4em 0.8em;
+  border: 2px solid #444;
+  border-radius: 6px;
+  background: #2a2a2a;
+  cursor: pointer;
+  transition: border-color 0.2s, background-color 0.2s;
+}
+
+.card-tab:hover:not(:disabled) {
+  background: #333;
+}
+
+.card-tab.active {
+  background: #1a2a1a;
+}
+
+.card-tab-points {
+  font-weight: bold;
+  font-size: 1em;
+  color: #fff;
+}
+
+.card-tab-tier {
+  font-size: 0.7em;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
 /* Loyalty card display */
 .card-display {
   display: flex;

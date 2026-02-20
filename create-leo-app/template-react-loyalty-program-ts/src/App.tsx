@@ -42,6 +42,11 @@ interface RewardVoucher {
   raw: string;
 }
 
+interface SplitResult {
+  keptCard: LoyaltyCard;
+  splitCard: LoyaltyCard;
+}
+
 // Enums (matching worker enums)
 const RewardType = {
   Discount: 1,
@@ -80,8 +85,12 @@ function App() {
     address: string;
   } | null>(null);
 
-  // Card state - now using typed LoyaltyCard
-  const [card, setCard] = useState<LoyaltyCard | null>(null);
+  // Card state - array to support multiple cards from splits
+  const [cards, setCards] = useState<LoyaltyCard[]>([]);
+  const [selectedCardIndex, setSelectedCardIndex] = useState<number>(0);
+
+  // Derived selected card (null when no cards exist)
+  const selectedCard = cards.length > 0 ? cards[selectedCardIndex] : null;
 
   // Voucher state - array to support multiple vouchers
   const [vouchers, setVouchers] = useState<RewardVoucher[]>([]);
@@ -92,6 +101,7 @@ function App() {
 
   // Input state
   const [pointsToAdd, setPointsToAdd] = useState<number>(500);
+  const [pointsToKeep, setPointsToKeep] = useState<number>(50);
   const [selectedRewardType, setSelectedRewardType] = useState<number>(RewardType.Discount);
   const [pointsCost, setPointsCost] = useState<number>(100);
 
@@ -157,7 +167,8 @@ function App() {
       // Clean API: just pass recipient and points
       const newCard = await aleoWorker.mintCard(account.address, 100);
 
-      setCard(newCard);
+      setCards(prev => [...prev, newCard]);
+      setSelectedCardIndex(cards.length); // Select the newly minted card
       setStatus(`Loyalty card minted! You have ${newCard.points} points (${TIER_NAMES[newCard.tier]} tier)`);
     } catch (error) {
       setStatus(`Error minting card: ${error}`);
@@ -165,9 +176,14 @@ function App() {
     setLoading("");
   };
 
+  // Helper to replace the selected card in the array
+  const updateSelectedCard = (updatedCard: LoyaltyCard) => {
+    setCards(prev => prev.map((c, i) => i === selectedCardIndex ? updatedCard : c));
+  };
+
   // Add points to the card - clean API!
   const handleAddPoints = async () => {
-    if (!card) {
+    if (!selectedCard) {
       setStatus("Please mint a card first");
       return;
     }
@@ -176,9 +192,9 @@ function App() {
     try {
       const aleoWorker = await getAleoWorker();
       // Clean API: pass the card object directly
-      const updatedCard = await aleoWorker.addPoints(card, pointsToAdd);
+      const updatedCard = await aleoWorker.addPoints(selectedCard, pointsToAdd);
 
-      setCard(updatedCard);
+      updateSelectedCard(updatedCard);
       setStatus(
         `Added ${pointsToAdd} points! New balance: ${updatedCard.points} (${TIER_NAMES[updatedCard.tier]} tier)`
       );
@@ -188,15 +204,50 @@ function App() {
     setLoading("");
   };
 
-  // Redeem points for a voucher - clean API!
-  const handleRedeem = async () => {
-    if (!card) {
+  // Split a card into two - clean API!
+  const handleSplitCard = async () => {
+    if (!selectedCard) {
       setStatus("Please mint a card first");
       return;
     }
 
-    if (card.points < pointsCost) {
-      setStatus(`Not enough points! You have ${card.points}, need ${pointsCost}`);
+    if (pointsToKeep >= selectedCard.points) {
+      setStatus(`Points to keep must be less than card balance (${selectedCard.points})`);
+      return;
+    }
+
+    const splitPoints = selectedCard.points - pointsToKeep;
+    setLoading(`Splitting card (keep ${pointsToKeep}, split off ${splitPoints})...`);
+    try {
+      const aleoWorker = await getAleoWorker();
+      const result: SplitResult = await aleoWorker.splitCardV2(selectedCard, pointsToKeep);
+
+      // Replace the current card with keptCard, append splitCard
+      setCards(prev => {
+        const updated = [...prev];
+        updated[selectedCardIndex] = result.keptCard;
+        updated.push(result.splitCard);
+        return updated;
+      });
+      setStatus(
+        `Card split! Kept: ${result.keptCard.points} points (${TIER_NAMES[result.keptCard.tier]}), ` +
+        `Split off: ${result.splitCard.points} points (${TIER_NAMES[result.splitCard.tier]})`
+      );
+    } catch (error) {
+      setStatus(`Error splitting card: ${error}`);
+    }
+    setLoading("");
+  };
+
+  // Redeem points for a voucher - clean API!
+  const handleRedeem = async () => {
+    if (!selectedCard) {
+      setStatus("Please mint a card first");
+      return;
+    }
+
+    if (selectedCard.points < pointsCost) {
+      setStatus(`Not enough points! You have ${selectedCard.points}, need ${pointsCost}`);
       return;
     }
 
@@ -205,12 +256,12 @@ function App() {
       const aleoWorker = await getAleoWorker();
       // Clean API: pass card, reward type, and cost
       const result = await aleoWorker.redeemForVoucher(
-        card,
+        selectedCard,
         selectedRewardType,
         pointsCost
       );
 
-      setCard(result.card);
+      updateSelectedCard(result.card);
       setVouchers(prev => [...prev, result.voucher]);
       setStatus(
         `Redeemed ${pointsCost} points for a ${REWARD_TYPE_NAMES[result.voucher.rewardType]} voucher (value: ${result.voucher.value})!`
@@ -298,42 +349,78 @@ function App() {
       {/* Loyalty Card Section */}
       <div className="card">
         <h2>2. Loyalty Card</h2>
-        {!card ? (
+        {cards.length === 0 ? (
           <button onClick={handleMintCard} disabled={!account || !!loading}>
             Mint Loyalty Card
           </button>
         ) : (
           <div className="card-display">
-            <div
-              className="loyalty-card"
-              style={{ borderColor: getTierColor(card.tier) }}
-            >
-              <div
-                className="tier-badge"
-                style={{ backgroundColor: getTierColor(card.tier) }}
-              >
-                {TIER_NAMES[card.tier]}
+            {/* Card selector tabs - shown when multiple cards exist */}
+            {cards.length > 1 && (
+              <div className="card-selector">
+                {cards.map((c, i) => (
+                  <button
+                    key={c.cardId}
+                    className={`card-tab ${i === selectedCardIndex ? "active" : ""}`}
+                    style={{ borderColor: i === selectedCardIndex ? getTierColor(c.tier) : undefined }}
+                    onClick={() => setSelectedCardIndex(i)}
+                    disabled={!!loading}
+                  >
+                    <span className="card-tab-points">{c.points}</span>
+                    <span className="card-tab-tier" style={{ color: getTierColor(c.tier) }}>
+                      {TIER_NAMES[c.tier]}
+                    </span>
+                  </button>
+                ))}
               </div>
-              <div className="points-display">
-                <span className="points-value">{card.points}</span>
-                <span className="points-label">Points</span>
-              </div>
-              <div className="card-id">
-                ID: {card.cardId.slice(0, 12)}...
-              </div>
-            </div>
-            <div className="points-controls">
-              <input
-                type="number"
-                value={pointsToAdd}
-                onChange={(e) => setPointsToAdd(Number(e.target.value))}
-                min="1"
-                max="10000"
-              />
-              <button onClick={handleAddPoints} disabled={!!loading}>
-                Add Points
-              </button>
-            </div>
+            )}
+
+            {selectedCard && (
+              <>
+                <div
+                  className="loyalty-card"
+                  style={{ borderColor: getTierColor(selectedCard.tier) }}
+                >
+                  <div
+                    className="tier-badge"
+                    style={{ backgroundColor: getTierColor(selectedCard.tier) }}
+                  >
+                    {TIER_NAMES[selectedCard.tier]}
+                  </div>
+                  <div className="points-display">
+                    <span className="points-value">{selectedCard.points}</span>
+                    <span className="points-label">Points</span>
+                  </div>
+                  <div className="card-id">
+                    ID: {selectedCard.cardId.slice(0, 12)}...
+                  </div>
+                </div>
+                <div className="points-controls">
+                  <input
+                    type="number"
+                    value={pointsToAdd}
+                    onChange={(e) => setPointsToAdd(Number(e.target.value))}
+                    min="1"
+                    max="10000"
+                  />
+                  <button onClick={handleAddPoints} disabled={!!loading}>
+                    Add Points
+                  </button>
+                </div>
+                <div className="points-controls">
+                  <input
+                    type="number"
+                    value={pointsToKeep}
+                    onChange={(e) => setPointsToKeep(Number(e.target.value))}
+                    min="1"
+                    max={selectedCard.points - 1}
+                  />
+                  <button onClick={handleSplitCard} disabled={!!loading || selectedCard.points <= 1}>
+                    Split Card
+                  </button>
+                </div>
+              </>
+            )}
           </div>
         )}
       </div>
@@ -341,7 +428,7 @@ function App() {
       {/* Rewards Section */}
       <div className="card">
         <h2>3. Redeem Rewards</h2>
-        {card && (
+        {selectedCard && (
           <div className="redeem-controls">
             <div className="input-group">
               <label>Reward Type:</label>
@@ -361,12 +448,12 @@ function App() {
                 value={pointsCost}
                 onChange={(e) => setPointsCost(Number(e.target.value))}
                 min="10"
-                max={card.points}
+                max={selectedCard.points}
               />
             </div>
             <button
               onClick={handleRedeem}
-              disabled={!!loading || card.points < pointsCost}
+              disabled={!!loading || selectedCard.points < pointsCost}
             >
               Redeem for Voucher
             </button>
@@ -414,11 +501,14 @@ const card = await loyalty.mintCard(address, 1000);
 // Add points (typed LoyaltyCard)
 const updated = await loyalty.addPoints(card, 500);
 
+// Split card (deterministic nonce)
+const { keptCard, splitCard } = await loyalty.splitCardV2(
+  updated, 300
+);
+
 // Redeem for voucher (typed RedeemResult)
 const { card, voucher } = await loyalty.redeemForVoucher(
-  card,
-  RewardType.Discount,
-  100
+  keptCard, RewardType.Discount, 100
 );
 
 // Use voucher

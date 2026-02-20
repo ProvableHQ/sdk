@@ -112,10 +112,10 @@ finalize transfer_voucher:
 
 constructor:
     gt edition 0u16 into r0;
-    branch.eq r0 false to end_then_0_2;
+    branch.eq r0 false to end_then_0_0;
     hash.bhp256 checksum into r1 as field;
     get approved_upgrades[r1] into r2;
     assert.eq r2 true;
-    branch.eq true true to end_otherwise_0_3;
-    position end_then_0_2;
-    position end_otherwise_0_3;
+    branch.eq true true to end_otherwise_0_1;
+    position end_then_0_0;
+    position end_otherwise_0_1;
