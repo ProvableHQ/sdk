@@ -17,7 +17,8 @@
     "LICENSE.md"
   ],
   "scripts": {
-    "build": "rimraf dist && rollup -c rollup.config.js"
+    "build": "rimraf dist && rollup -c rollup.config.js",
+    "test": "rimraf tmp && rollup -c rollup.test.js && mocha tmp/**/*.test.js --timeout 60000"
   },
   "repository": {
     "type": "git",
@@ -38,6 +39,11 @@
     "@provablehq/wasm-address": "^0.9.16"
   },
   "devDependencies": {
+    "@types/chai": "^5.0.1",
+    "@types/mocha": "^10.0.10",
+    "chai": "^5.1.2",
+    "glob": "^11.0.1",
+    "mocha": "^11.1.0",
     "rimraf": "^6.0.1",
     "rollup": "^4.32.0",
     "rollup-plugin-typescript2": "^0.36.0",
