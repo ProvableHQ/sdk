@@ -188,7 +188,7 @@ impl Address {
     }
 
     /// Check if the input is a valid Aleo address.
-    /// String addresses must be lowercase to be considered valid.
+    /// String addresses are automatically lowercased before validation.
     ///
     /// @param {string | Uint8Array} address - Either a string representation of an address
     ///        or a Uint8Array of bytes in little-endian format.
@@ -197,10 +197,7 @@ impl Address {
     pub fn is_valid(address: JsValue) -> bool {
         // Try parsing as string first
         if let Some(address_str) = address.as_string() {
-            if address_str != address_str.to_lowercase() {
-                return false;
-            }
-            return AddressNative::from_str(&address_str).is_ok();
+            return AddressNative::from_str(&address_str.to_lowercase()).is_ok();
         }
 
         // Try parsing as Uint8Array
@@ -327,13 +324,13 @@ mod tests {
         assert!(!Address::is_valid(JsValue::from_str("aleo1xyz")));
         assert!(!Address::is_valid(JsValue::from_str("")));
 
-        // Test uppercase string addresses are rejected
+        // Test uppercase string addresses are accepted (auto-lowercased)
         let uppercase_address = "ALEO1RHGDU77HGYQD3XJJ8UCU3JJ9R2KRWZ6MNZYD80GNCR5FXCWLH5RSVZP9PX";
-        assert!(!Address::is_valid(JsValue::from_str(uppercase_address)));
+        assert!(Address::is_valid(JsValue::from_str(uppercase_address)));
 
-        // Test mixed case string addresses are rejected
+        // Test mixed case string addresses are accepted (auto-lowercased)
         let mixed_case_address = "Aleo1rhgdu77hgyqd3xjj8ucu3jj9r2krwz6mnzyd80gncr5fxcwlh5rsvzp9px";
-        assert!(!Address::is_valid(JsValue::from_str(mixed_case_address)));
+        assert!(Address::is_valid(JsValue::from_str(mixed_case_address)));
 
         // Test valid bytes
         let address = Address::from_string(valid_address);

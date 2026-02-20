@@ -104,14 +104,14 @@ describe('WASM Objects', () => {
             expect(Address.isValid(new Uint8Array([]))).equal(false);
         });
 
-        it('rejects uppercase address strings with isValid', () => {
+        it('accepts uppercase address strings with isValid (auto-lowercased)', () => {
             const uppercaseAddress = addressString.toUpperCase();
-            expect(Address.isValid(uppercaseAddress)).equal(false);
+            expect(Address.isValid(uppercaseAddress)).equal(true);
         });
 
-        it('rejects mixed case address strings with isValid', () => {
+        it('accepts mixed case address strings with isValid (auto-lowercased)', () => {
             const mixedCaseAddress = addressString.charAt(0).toUpperCase() + addressString.slice(1);
-            expect(Address.isValid(mixedCaseAddress)).equal(false);
+            expect(Address.isValid(mixedCaseAddress)).equal(true);
         });
 
         it('auto-lowercases address strings in from_string', () => {
