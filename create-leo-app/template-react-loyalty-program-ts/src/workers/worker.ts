@@ -651,7 +651,7 @@ class LoyaltyProgram {
     const inputs = [card.raw, `${rewardType}u8`, `${pointsCost}u64`];
 
     // Multi-program execution requires imports.
-    const outputs = await this.executeWithImports(
+    const outputs = await this.execute(
       this.rewardsProgram,
       "redeem_points_for_voucher",
       inputs,
@@ -677,7 +677,7 @@ class LoyaltyProgram {
   async useVoucher(voucher: RewardVoucher): Promise<void> {
     const inputs = [voucher.raw];
 
-    await this.executeWithImports(
+    await this.execute(
       this.rewardsProgram,
       "use_voucher",
       inputs,
@@ -696,7 +696,7 @@ class LoyaltyProgram {
   ): Promise<{ voucher: RewardVoucher; rewardType: RewardType; value: number }> {
     const inputs = [voucher.raw];
 
-    const outputs = await this.executeWithImports(
+    const outputs = await this.execute(
       this.rewardsProgram,
       "check_voucher",
       inputs,
@@ -723,7 +723,7 @@ class LoyaltyProgram {
   ): Promise<RewardVoucher> {
     const inputs = [voucher.raw, newOwner];
 
-    const outputs = await this.executeWithImports(
+    const outputs = await this.execute(
       this.rewardsProgram,
       "transfer_voucher",
       inputs,
@@ -836,47 +836,8 @@ class LoyaltyProgram {
   private async execute(
     program: string,
     functionName: string,
-    inputs: string[]
-  ): Promise<string[]> {
-    this.emitStatus({
-      type: "operation_start",
-      operation: functionName,
-      mode: this._provingMode,
-    });
-
-    const start = Date.now();
-    let outputs: string[];
-
-    try {
-      if (this._provingMode === ProvingMode.Delegated) {
-        outputs = await this.executeDelegated(program, functionName, inputs);
-      } else {
-        outputs = await this.executeLocal(program, functionName, inputs);
-      }
-
-      this.emitStatus({
-        type: "operation_complete",
-        operation: functionName,
-        mode: this._provingMode,
-        duration: Date.now() - start,
-      });
-
-      return outputs;
-    } catch (error: any) {
-      this.emitStatus({
-        type: "error",
-        operation: functionName,
-        error: error.message,
-      });
-      throw error;
-    }
-  }
-
-  private async executeWithImports(
-    program: string,
-    functionName: string,
     inputs: string[],
-    imports: Record<string, string>
+    imports?: Record<string, string>
   ): Promise<string[]> {
     this.emitStatus({
       type: "operation_start",
@@ -889,9 +850,9 @@ class LoyaltyProgram {
 
     try {
       if (this._provingMode === ProvingMode.Delegated) {
-        outputs = await this.executeDelegatedWithImports(program, functionName, inputs, imports);
+        outputs = await this.executeDelegated(program, functionName, inputs, imports);
       } else {
-        outputs = await this.executeLocalWithImports(program, functionName, inputs, imports);
+        outputs = await this.executeLocal(program, functionName, inputs, imports);
       }
 
       this.emitStatus({
@@ -919,7 +880,8 @@ class LoyaltyProgram {
   private async executeLocal(
     program: string,
     functionName: string,
-    inputs: string[]
+    inputs: string[],
+    imports?: Record<string, string>
   ): Promise<string[]> {
     console.log(`Starting ${functionName} execution (LOCAL)`);
 
@@ -939,51 +901,6 @@ class LoyaltyProgram {
 
     // Execute locally using run() with offlineQuery - no network lookups.
     // Keys will be synthesized internally by the WASM using the offline query.
-    const executionResponse = await this.programManager.run(
-      program,
-      functionName,
-      inputs,
-      false, // proveExecution - false for local demo
-      undefined, // imports
-      undefined, // keySearchParams
-      undefined, // provingKey
-      undefined, // verifyingKey
-      undefined, // privateKey
-      offlineQuery
-    );
-
-    const outputs = executionResponse.getOutputs();
-    console.log("Outputs:", outputs);
-
-    return outputs;
-  }
-
-  /**
-   * Execute a function locally with program imports using run() with OfflineQuery.
-   * Uses OfflineQuery to prevent network state lookups for locally-created records.
-   */
-  private async executeLocalWithImports(
-    program: string,
-    functionName: string,
-    inputs: string[],
-    imports: Record<string, string>
-  ): Promise<string[]> {
-    console.log(`Starting ${functionName} execution with imports (LOCAL)`);
-
-    // Create temporary account if none set.
-    if (!this.account) {
-      const tempAccount = new Account();
-      this.account = tempAccount;
-      this.programManager.setAccount(tempAccount);
-    }
-
-    // Create OfflineQuery with mock state to prevent network lookups.
-    const offlineQuery = new OfflineQuery(
-      0, // block height
-      "sr1qqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqq6gk0xu" // mock state root
-    );
-
-    // Execute locally using run() with offlineQuery - no network lookups.
     const executionResponse = await this.programManager.run(
       program,
       functionName,
@@ -1046,7 +963,8 @@ class LoyaltyProgram {
   private async executeDelegated(
     program: string,
     functionName: string,
-    inputs: string[]
+    inputs: string[],
+    imports?: Record<string, string>
   ): Promise<string[]> {
     if (!this._dpsUrl) {
       throw new Error(
@@ -1056,65 +974,6 @@ class LoyaltyProgram {
     }
 
     console.log(`Starting ${functionName} execution (DELEGATED)`);
-
-    // Get program name from source.
-    const programName = Program.fromString(program).id();
-
-    // Build the proving request with broadcast: true to submit to chain.
-    const provingRequest = await this.programManager.provingRequest({
-      programName,
-      programSource: program,
-      functionName,
-      inputs,
-      priorityFee: 0,
-      privateFee: false,
-      broadcast: true,
-    });
-
-    // Submit to DPS (with optional encryption via dpsPrivacy flag).
-    if (!this.networkClient) {
-      this.networkClient = new AleoNetworkClient(this._dpsUrl);
-    }
-
-    if (this._dpsPrivacy) {
-      console.log("[LoyaltyProgram] Using encrypted DPS flow (TEE-protected)");
-    }
-
-    const response = await this.networkClient.submitProvingRequest({
-      provingRequest,
-      url: this._dpsUrl,
-      apiKey: this._dpsApiKey,
-      consumerId: this._consumerId,
-      dpsPrivacy: this._dpsPrivacy,
-    });
-
-    // Wait for transaction confirmation and extract outputs.
-    const txId = response.transaction?.id;
-    if (!txId) {
-      throw new Error("DPS response did not contain a transaction ID");
-    }
-
-    const confirmedTx = await this.waitForTransaction(txId);
-    return this.extractOutputsFromTransaction(confirmedTx);
-  }
-
-  /**
-   * Execute a function using delegated proving with imports.
-   */
-  private async executeDelegatedWithImports(
-    program: string,
-    functionName: string,
-    inputs: string[],
-    imports: Record<string, string>
-  ): Promise<string[]> {
-    if (!this._dpsUrl) {
-      throw new Error(
-        "Delegated proving requires dpsUrl to be configured. " +
-        "Pass dpsUrl in the config or use setProvingMode(ProvingMode.Local)."
-      );
-    }
-
-    console.log(`Starting ${functionName} execution with imports (DELEGATED)`);
 
     // Get program name from source.
     const programName = Program.fromString(program).id();
