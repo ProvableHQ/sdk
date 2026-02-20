@@ -29,6 +29,10 @@ features = [
 [dependencies.anyhow]
 version = "1.0"
 
+[dependencies.getrandom]
+version = "0.2"
+features = ["js"]
+
 [dependencies.js-sys]
 version = "0.3"
 
