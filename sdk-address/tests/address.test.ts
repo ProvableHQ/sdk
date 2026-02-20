@@ -1,3 +1,4 @@
+import "../src/node-polyfill.js";
 import { expect } from "chai";
 import { Address } from "../src/address.js";
 
