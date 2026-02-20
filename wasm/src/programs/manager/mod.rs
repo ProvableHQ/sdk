@@ -47,7 +47,7 @@ use crate::{
     },
 };
 use snarkvm_console::{network::Network, prelude::ToBytes};
-use snarkvm_synthesizer::process::{minimum_cost_in_microcredits_v2, deployment_cost};
+use snarkvm_synthesizer::process::{deployment_cost, minimum_cost_in_microcredits_v2};
 use snarkvm_synthesizer_program::StackTrait;
 use std::panic::{AssertUnwindSafe, catch_unwind};
 
