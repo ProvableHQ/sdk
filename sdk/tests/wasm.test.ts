@@ -103,6 +103,25 @@ describe('WASM Objects', () => {
             expect(Address.isValid(new Uint8Array([1, 2, 3]))).equal(false);
             expect(Address.isValid(new Uint8Array([]))).equal(false);
         });
+
+        it('accepts uppercase address strings with isValid (auto-lowercased)', () => {
+            const uppercaseAddress = addressString.toUpperCase();
+            expect(Address.isValid(uppercaseAddress)).equal(true);
+        });
+
+        it('accepts mixed case address strings with isValid (auto-lowercased)', () => {
+            const mixedCaseAddress = addressString.charAt(0).toUpperCase() + addressString.slice(1);
+            expect(Address.isValid(mixedCaseAddress)).equal(true);
+        });
+
+        it('auto-lowercases address strings in from_string', () => {
+            const uppercaseAddress = addressString.toUpperCase();
+            const mixedCaseAddress = addressString.charAt(0).toUpperCase() + addressString.slice(1);
+
+            const expected = Address.from_string(addressString);
+            expect(Address.from_string(uppercaseAddress).to_string()).equal(expected.to_string());
+            expect(Address.from_string(mixedCaseAddress).to_string()).equal(expected.to_string());
+        });
     });
 
     describe('PrivateKey', () => {
