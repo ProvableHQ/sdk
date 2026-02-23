@@ -2,6 +2,7 @@ import * as fs from "node:fs/promises";
 import * as path from "path";
 
 import { CachedKeyPair, FunctionKeyPair } from "../../models/keyPair.js";
+import { type KeyMetadata, KeyVerifier } from "./metadata.js";
 import { KeyStore } from "./keystore.js";
 import { ProvingKey, VerifyingKey } from "../../wasm.js";
 
@@ -24,6 +25,35 @@ export class LocalFileKeyStore implements KeyStore {
 
     private verifierPath(locator: string): string {
         return path.join(this.directory, `${locator}.verifier`);
+    }
+
+    private metadataPath(locator: string): string {
+        return path.join(this.directory, `${locator}.metadata`);
+    }
+
+    private async readMetadata(
+        locator: string
+    ): Promise<{ prover: KeyMetadata; verifier: KeyMetadata } | null> {
+        try {
+            const data = await fs.readFile(this.metadataPath(locator), "utf-8");
+            return JSON.parse(data) as { prover: KeyMetadata; verifier: KeyMetadata };
+        } catch (err: unknown) {
+            if (err && typeof err === "object" && "code" in err && err.code === "ENOENT")
+                return null;
+            throw err;
+        }
+    }
+
+    private async writeMetadata(
+        locator: string,
+        metadata: { prover: KeyMetadata; verifier: KeyMetadata }
+    ): Promise<void> {
+        await fs.mkdir(path.dirname(this.metadataPath(locator)), { recursive: true });
+        await fs.writeFile(
+            this.metadataPath(locator),
+            JSON.stringify(metadata, null, 0),
+            "utf-8"
+        );
     }
 
     private async readFileOptional(filepath: string): Promise<Uint8Array | null> {
@@ -65,7 +95,11 @@ export class LocalFileKeyStore implements KeyStore {
 
             if (isDirectory) {
                 await this.clearRecursive(full);
-            } else if (name.endsWith(".prover") || name.endsWith(".verifier")) {
+            } else if (
+                name.endsWith(".prover") ||
+                name.endsWith(".verifier") ||
+                name.endsWith(".metadata")
+            ) {
                 await fs.unlink(full).catch(() => {});
             }
         }));
@@ -83,9 +117,11 @@ export class LocalFileKeyStore implements KeyStore {
     }
 
     async getKeyBytes(locator: string): Promise<CachedKeyPair | null> {
-        const prover = await this.getProvingKeyBytes(locator);
-        const verifier = await this.getVerifyingKeyBytes(locator);
+        const prover = await this.readFileOptional(this.proverPath(locator));
+        const verifier = await this.readFileOptional(this.verifierPath(locator));
         if (!prover || !verifier) return null;
+        const metadata = await this.readMetadata(locator);
+        if (metadata) await KeyVerifier.verifyKeyPairBytes([prover, verifier], metadata);
         return [prover, verifier];
     }
 
@@ -95,7 +131,11 @@ export class LocalFileKeyStore implements KeyStore {
     }
 
     async getProvingKeyBytes(locator: string): Promise<Uint8Array | null> {
-        return this.readFileOptional(this.proverPath(locator));
+        const prover = await this.readFileOptional(this.proverPath(locator));
+        if (!prover) return null;
+        const metadata = await this.readMetadata(locator);
+        if (metadata) await KeyVerifier.verifyProverBytes(prover, metadata.prover);
+        return prover;
     }
 
     async getVerifyingKey(locator: string): Promise<VerifyingKey | null> {
@@ -104,19 +144,43 @@ export class LocalFileKeyStore implements KeyStore {
     }
 
     async getVerifyingKeyBytes(locator: string): Promise<Uint8Array | null> {
-        return this.readFileOptional(this.verifierPath(locator));
+        const verifier = await this.readFileOptional(this.verifierPath(locator));
+        if (!verifier) return null;
+        const metadata = await this.readMetadata(locator);
+        if (metadata) await KeyVerifier.verifyVerifierBytes(verifier, metadata.verifier);
+        return verifier;
     }
 
     async setKeys(locator: string, keys: FunctionKeyPair): Promise<void> {
         const [p, v] = keys;
-        await this.writeFileAtomic(this.proverPath(locator), p.toBytes());
-        await this.writeFileAtomic(this.verifierPath(locator), v.toBytes());
+        await this.setKeyBytes(locator, [p.toBytes(), v.toBytes()]);
     }
 
-    async setKeyBytes(locator: string, keys: CachedKeyPair): Promise<void> {
+    async setKeyBytes(
+        locator: string,
+        keys: CachedKeyPair,
+        options?: { metadata?: { prover: KeyMetadata; verifier: KeyMetadata } }
+    ): Promise<void> {
         const [proverBytes, verifierBytes] = keys;
+        let metadata: { prover: KeyMetadata; verifier: KeyMetadata };
+        if (options?.metadata) {
+            metadata = options.metadata;
+        } else {
+            const [proverMeta, verifierMeta] = await Promise.all([
+                KeyVerifier.computeProverMetadata(proverBytes),
+                KeyVerifier.computeVerifierMetadata(verifierBytes),
+            ]);
+            metadata = { prover: proverMeta, verifier: verifierMeta };
+        }
         await this.writeFileAtomic(this.proverPath(locator), proverBytes);
         await this.writeFileAtomic(this.verifierPath(locator), verifierBytes);
+        await this.writeMetadata(locator, metadata);
+    }
+
+    async getKeyMetadata(
+        locator: string
+    ): Promise<{ prover: KeyMetadata; verifier: KeyMetadata } | null> {
+        return this.readMetadata(locator);
     }
 
     async has(locator: string): Promise<boolean> {
@@ -136,9 +200,11 @@ export class LocalFileKeyStore implements KeyStore {
     async delete(locator: string): Promise<void> {
         const p = this.proverPath(locator);
         const v = this.verifierPath(locator);
+        const m = this.metadataPath(locator);
 
         await fs.unlink(p).catch(() => {});
         await fs.unlink(v).catch(() => {});
+        await fs.unlink(m).catch(() => {});
     }
 
     async clear(): Promise<void> {

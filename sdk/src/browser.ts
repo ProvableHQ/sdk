@@ -67,7 +67,11 @@ import {
     KeySearchParams,
 } from "./keys/provider/function-key-provider";
 import {
-    KeyStore
+    ChecksumMismatchError,
+    KeyPairMetadataVerifier,
+    KeyMetadata,
+    KeyStore,
+    KeyVerifier,
 } from "./keys/keystore/keystore";
 import {
     promoteMapToKeyStore
@@ -198,7 +202,11 @@ export {
     ImportedVerifyingKeys,
     InputJSON,
     InputObject,
+    ChecksumMismatchError,
+    KeyPairMetadataVerifier,
+    KeyMetadata,
     KeyStore,
+    KeyVerifier,
     KeySearchParams,
     Metadata,
     NetworkRecordProvider,

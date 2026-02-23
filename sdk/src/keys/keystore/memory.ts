@@ -1,4 +1,5 @@
 import { CachedKeyPair } from "../../models/keyPair.js";
+import { type KeyMetadata, KeyVerifier } from "./metadata.js";
 import { KeyStore } from "./keystore.js";
 import { ProvingKey, VerifyingKey } from "../../wasm.js";
 
@@ -10,6 +11,10 @@ import { ProvingKey, VerifyingKey } from "../../wasm.js";
 export function promoteMapToKeyStore(
     map: Map<string, CachedKeyPair>
 ): KeyStore {
+    const metadataMap = new Map<
+        string,
+        { prover: KeyMetadata; verifier: KeyMetadata }
+    >();
     const ks = map as unknown as KeyStore;
 
     ks.getKeys = async (locator) => {
@@ -22,7 +27,13 @@ export function promoteMapToKeyStore(
         ];
     };
 
-    ks.getKeyBytes = async (locator) => map.get(locator) ?? null;
+    ks.getKeyBytes = async (locator) => {
+        const raw = map.get(locator) ?? null;
+        if (!raw) return null;
+        const metadata = metadataMap.get(locator);
+        if (metadata) await KeyVerifier.verifyKeyPairBytes(raw, metadata);
+        return raw;
+    };
 
     ks.getProvingKey = async (locator) => {
         const raw = map.get(locator);
@@ -41,20 +52,38 @@ export function promoteMapToKeyStore(
         map.get(locator)?.[1] ?? null;
 
     ks.setKeys = async (locator, [pk, vk]) => {
-        map.set(locator, [pk.toBytes(), vk.toBytes()]);
+        await ks.setKeyBytes(locator, [pk.toBytes(), vk.toBytes()]);
     };
 
-    ks.setKeyBytes = async (locator, raw) => {
+    ks.setKeyBytes = async (locator, raw, options?) => {
         map.set(locator, raw);
+        let metadata: { prover: KeyMetadata; verifier: KeyMetadata };
+        if (options?.metadata) {
+            metadata = options.metadata;
+        } else {
+            const [proverMeta, verifierMeta] = await Promise.all([
+                KeyVerifier.computeProverMetadata(raw[0]),
+                KeyVerifier.computeVerifierMetadata(raw[1]),
+            ]);
+            metadata = { prover: proverMeta, verifier: verifierMeta };
+        }
+        metadataMap.set(locator, metadata);
     };
+
+    ks.getKeyMetadata = async (locator) =>
+        metadataMap.get(locator) ?? null;
 
     ks.has = async (locator) => Map.prototype.has.call(map, locator);
 
     ks.delete = async (locator) => {
         Map.prototype.delete.call(map, locator);
+        metadataMap.delete(locator);
     };
 
-    ks.clear = async () => Map.prototype.clear.call(map);
+    ks.clear = async () => {
+        Map.prototype.clear.call(map);
+        metadataMap.clear();
+    };
 
     return ks;
 }
