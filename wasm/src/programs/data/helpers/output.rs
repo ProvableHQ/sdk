@@ -117,7 +117,7 @@ pub fn output_to_js_value(output: &OutputNative, convert_to_js: bool) -> JsValue
         }
         OutputNative::DynamicRecord(output_commitment) => {
             let dynamic_record_object = object! {
-                "type": "dynamic_record",
+                "type": "record_dynamic",
                 "id": if convert_to_js { JsValue::from(output_commitment.to_string()) } else { JsValue::from(Field::from(output_commitment)) },
             };
             JsValue::from(dynamic_record_object)
@@ -165,5 +165,42 @@ pub fn output_to_js_value(output: &OutputNative, convert_to_js: bool) -> JsValue
             };
             JsValue::from(external_record_with_dynamic_id)
         }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::types::native::FieldNative;
+    use js_sys::Reflect;
+    use snarkvm_console::prelude::One;
+    use wasm_bindgen_test::*;
+
+    fn get_type(js: &JsValue) -> String {
+        Reflect::get(js, &JsValue::from_str("type")).unwrap().as_string().unwrap()
+    }
+
+    #[wasm_bindgen_test]
+    fn test_dynamic_record_output_type_matches_snarkvm() {
+        let field = FieldNative::one();
+        let output = OutputNative::DynamicRecord(field);
+        let js = output_to_js_value(&output, true);
+        assert_eq!(get_type(&js), "record_dynamic");
+    }
+
+    #[wasm_bindgen_test]
+    fn test_record_with_dynamic_id_output_type_matches_snarkvm() {
+        let field = FieldNative::one();
+        let output = OutputNative::RecordWithDynamicID(field, field, None, None, field);
+        let js = output_to_js_value(&output, true);
+        assert_eq!(get_type(&js), "record_with_dynamic_id");
+    }
+
+    #[wasm_bindgen_test]
+    fn test_external_record_with_dynamic_id_output_type_matches_snarkvm() {
+        let field = FieldNative::one();
+        let output = OutputNative::ExternalRecordWithDynamicID(field, field);
+        let js = output_to_js_value(&output, true);
+        assert_eq!(get_type(&js), "external_record_with_dynamic_id");
     }
 }

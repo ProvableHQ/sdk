@@ -80,14 +80,14 @@ pub fn input_to_js_value(input: &InputNative, convert_to_js: bool) -> JsValue {
         }
         InputNative::DynamicRecord(input_commitment) => {
             let dynamic_record = object! {
-                "type" : "dynamicRecord",
+                "type" : "record_dynamic",
                 "id" : if convert_to_js { JsValue::from(input_commitment.to_string()) } else { JsValue::from(Field::from(input_commitment)) },
             };
             JsValue::from(dynamic_record)
         }
         InputNative::RecordWithDynamicID(serial_number, tag, dynamic_id) => {
             let record_with_dynamic_id = object! {
-                "type": "recordWithDynamicID",
+                "type": "record_with_dynamic_id",
                 "id": if convert_to_js { JsValue::from(serial_number.to_string()) } else { JsValue::from(Field::from(serial_number)) },
                 "tag":  if convert_to_js { JsValue::from(Field::from(tag).to_string()) } else { JsValue::from(Field::from(tag)) },
                 "dynamic_id":  if convert_to_js { JsValue::from(Field::from(dynamic_id).to_string()) } else { JsValue::from(Field::from(dynamic_id)) },
@@ -96,11 +96,48 @@ pub fn input_to_js_value(input: &InputNative, convert_to_js: bool) -> JsValue {
         }
         InputNative::ExternalRecordWithDynamicID(external_record_hash, dynamic_id) => {
             let external_record_with_dynamic_id = object! {
-                "type": "externalRecordWithDynamicID",
+                "type": "external_record_with_dynamic_id",
                 "id":  if convert_to_js { JsValue::from(external_record_hash.to_string()) } else { JsValue::from(Field::from(external_record_hash)) },
                 "dynamic_id":  if convert_to_js { JsValue::from(Field::from(dynamic_id).to_string()) } else { JsValue::from(Field::from(dynamic_id)) },
             };
             JsValue::from(external_record_with_dynamic_id)
         }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::types::native::FieldNative;
+    use js_sys::Reflect;
+    use snarkvm_console::prelude::One;
+    use wasm_bindgen_test::*;
+
+    fn get_type(js: &JsValue) -> String {
+        Reflect::get(js, &JsValue::from_str("type")).unwrap().as_string().unwrap()
+    }
+
+    #[wasm_bindgen_test]
+    fn test_dynamic_record_input_type_matches_snarkvm() {
+        let field = FieldNative::one();
+        let input = InputNative::DynamicRecord(field);
+        let js = input_to_js_value(&input, true);
+        assert_eq!(get_type(&js), "record_dynamic");
+    }
+
+    #[wasm_bindgen_test]
+    fn test_record_with_dynamic_id_input_type_matches_snarkvm() {
+        let field = FieldNative::one();
+        let input = InputNative::RecordWithDynamicID(field, field, field);
+        let js = input_to_js_value(&input, true);
+        assert_eq!(get_type(&js), "record_with_dynamic_id");
+    }
+
+    #[wasm_bindgen_test]
+    fn test_external_record_with_dynamic_id_input_type_matches_snarkvm() {
+        let field = FieldNative::one();
+        let input = InputNative::ExternalRecordWithDynamicID(field, field);
+        let js = input_to_js_value(&input, true);
+        assert_eq!(get_type(&js), "external_record_with_dynamic_id");
     }
 }
