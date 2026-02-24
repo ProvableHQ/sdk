@@ -873,9 +873,10 @@ describe("RecordScanner (real API)", function () {
             if (result.ok) {
                 actualUUID = result.data.uuid;
                 expect(actualUUID).to.equal(expectedUUID);
+                const revokeResult = await scanner.revoke(result.data.uuid);
+                expect(revokeResult.ok).to.equal(true);
             }
 
-            const revokeResult = await scanner.removeViewKey(actualUUID);
         });
 
         it("registerEncrypted returns ok and uuid matches computeUUID", async function () {

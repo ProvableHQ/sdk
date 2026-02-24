@@ -441,7 +441,28 @@ class RecordScanner implements RecordProvider {
     }
 
     /**
-     * Revoke the account registration with the record scanning service (POST /revoke).
+     * Remove all local scanner state associated with the given UUID (stored uuid, viewKeys entry, account if it matches).
+     * Called after a successful revoke so the scanner does not retain view keys or account for a revoked registration.
+     */
+    private clearLocalStateForUuid(uuidStr: string): void {
+        if (this.uuid != null && this.uuid.toString() === uuidStr) {
+            this.uuid = undefined;
+        }
+        if (this.viewKeys != null) {
+            delete this.viewKeys[uuidStr];
+            if (Object.keys(this.viewKeys).length === 0) {
+                this.viewKeys = undefined;
+            }
+        }
+        if (this.account != null && this.computeUUID(this.account.viewKey()).toString() === uuidStr) {
+            this.account = undefined;
+        }
+    }
+
+    /**
+     * Revoke the account registration with the record scanning service (POST /revoke). On success, also removes
+     * all local state for that UUID: the stored UUID (if it matches), the view key for that UUID, and the
+     * account (if its view key corresponds to that UUID).
      *
      * @param {string | Field | undefined} uuid The UUID to revoke. If omitted, uses the UUID configured on the scanner.
      * @returns {Promise<RevokeResult>} `{ ok: true, data: { status } }` on success, or `{ ok: false, status, error }` on failure.
@@ -465,6 +486,7 @@ class RecordScanner implements RecordProvider {
                 }),
             );
             const data = await response.json();
+            this.clearLocalStateForUuid(uuidStr);
             return { ok: true, data };
         } catch (err) {
             return this.handleRequestError(err);
