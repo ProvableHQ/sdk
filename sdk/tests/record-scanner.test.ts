@@ -6,6 +6,7 @@ import {
     DecryptionNotEnabledError,
     RecordNotFoundError,
     RecordScannerRequestError,
+    UUIDError,
     ViewKeyNotStoredError,
 } from "../src/models/record-scanner/error";
 import { OwnedFilter } from "../src/models/record-scanner/ownedFilter";
@@ -42,21 +43,36 @@ describe("RecordScanner", () => {
         expect(recordScanner.url).to.equal(baseUrl + network);
     });
 
+    const validTestUuid = "7884164224800444110633570141944665301008802280502652120359195870264061098703field";
+
     it("should intialize with the correct api key as a string", async () => {
         recordScanner = new RecordScanner({ url: baseUrl, apiKey: "1234567890" });
         
         const mockResponse = {
             ok: true,
             status: 201,
-            text: () => Promise.resolve('{"uuid": "test-uuid"}'),
-            json: () => Promise.resolve({ uuid: "test-uuid" })
+            text: () => Promise.resolve(JSON.stringify({ uuid: validTestUuid })),
+            json: () => Promise.resolve({ uuid: validTestUuid })
         };
-        
-        fetchStub.resolves(mockResponse);
+        const revokeResponse = {
+            ok: true,
+            status: 200,
+            text: () => Promise.resolve('{"status": "OK"}'),
+            json: () => Promise.resolve({ status: "OK" }),
+        };
+        fetchStub.onCall(0).resolves(mockResponse);
+        fetchStub.onCall(1).resolves(revokeResponse);
         await recordScanner.register(defaultAccount.viewKey(), 0);
         
         const request = fetchStub.firstCall.args[0] as Request;
         expect(request.headers.get("X-Provable-API-Key")).to.equal("1234567890");
+
+        const revokeResult = await recordScanner.revoke(validTestUuid);
+        expect(revokeResult.ok).to.equal(true);
+        expect(fetchStub.callCount).to.equal(2);
+        const revokeRequest = fetchStub.secondCall.args[0] as Request;
+        expect(revokeRequest.url).to.equal(recordScanner.url + "/revoke");
+        expect(revokeRequest.method).to.equal("POST");
     });
 
     it("should intialize with the correct api key as an object", async () => {
@@ -65,15 +81,24 @@ describe("RecordScanner", () => {
         const mockResponse = {
             ok: true,
             status: 201,
-            text: () => Promise.resolve('{"uuid": "test-uuid"}'),
-            json: () => Promise.resolve({ uuid: "test-uuid" })
+            text: () => Promise.resolve(JSON.stringify({ uuid: validTestUuid })),
+            json: () => Promise.resolve({ uuid: validTestUuid })
         };
-        
-        fetchStub.resolves(mockResponse);
+        const revokeResponse = {
+            ok: true,
+            status: 200,
+            text: () => Promise.resolve('{"status": "OK"}'),
+            json: () => Promise.resolve({ status: "OK" }),
+        };
+        fetchStub.onCall(0).resolves(mockResponse);
+        fetchStub.onCall(1).resolves(revokeResponse);
         await recordScanner.register(defaultAccount.viewKey(), 0);
         
         const request = fetchStub.firstCall.args[0] as Request;
         expect(request.headers.get("Some-API-Key")).to.equal("1234567890");
+
+        const revokeResult = await recordScanner.revoke(validTestUuid);
+        expect(revokeResult.ok).to.equal(true);
     });
 
     it("should return RegisterResult with data after successfully registering the account", async () => {
@@ -82,14 +107,20 @@ describe("RecordScanner", () => {
         const mockResponse = {
             ok: true,
             status: 201,
-            text: () => Promise.resolve('{"uuid": "test-uuid"}'),
-            json: () => Promise.resolve({ uuid: "test-uuid" })
+            text: () => Promise.resolve(JSON.stringify({ uuid: validTestUuid })),
+            json: () => Promise.resolve({ uuid: validTestUuid })
         };
-        
-        fetchStub.resolves(mockResponse);
+        const revokeResponse = {
+            ok: true,
+            status: 200,
+            text: () => Promise.resolve('{"status": "OK"}'),
+            json: () => Promise.resolve({ status: "OK" }),
+        };
+        fetchStub.onCall(0).resolves(mockResponse);
+        fetchStub.onCall(1).resolves(revokeResponse);
         const result = await recordScanner.register(defaultAccount.viewKey(), 0);
         
-        expect(fetchStub.calledOnce).to.be.true;
+        expect(fetchStub.called).to.be.true;
         const request = fetchStub.firstCall.args[0] as Request;
         expect(request.url).to.equal(recordScanner.url + "/register");
         expect(request.method).to.equal("POST");
@@ -100,7 +131,13 @@ describe("RecordScanner", () => {
         expect(body).to.equal(expectedBody);
         
         expect(result.ok).to.equal(true);
-        if (result.ok) expect(result.data.uuid).equal("test-uuid");
+        if (result.ok) expect(result.data.uuid).equal(validTestUuid);
+
+        const revokeResult = await recordScanner.revoke(result.ok ? result.data.uuid : undefined);
+        expect(revokeResult.ok).to.equal(true);
+        const revokeRequest = fetchStub.secondCall.args[0] as Request;
+        expect(revokeRequest.url).to.equal(recordScanner.url + "/revoke");
+        expect(revokeRequest.method).to.equal("POST");
     });
 
     it("should return the optional fields of RegistrationResponse if present after successfully registering the account", async () => {
@@ -109,14 +146,20 @@ describe("RecordScanner", () => {
         const mockResponse = {
             ok: true,
             status: 201,
-            text: () => Promise.resolve('{"uuid": "test-uuid", "status": "pending"}'),
-            json: () => Promise.resolve({ uuid: "test-uuid", status: "pending" })
+            text: () => Promise.resolve(JSON.stringify({ uuid: validTestUuid, status: "pending" })),
+            json: () => Promise.resolve({ uuid: validTestUuid, status: "pending" })
         };
-        
-        fetchStub.resolves(mockResponse);
+        const revokeResponse = {
+            ok: true,
+            status: 200,
+            text: () => Promise.resolve('{"status": "OK"}'),
+            json: () => Promise.resolve({ status: "OK" }),
+        };
+        fetchStub.onCall(0).resolves(mockResponse);
+        fetchStub.onCall(1).resolves(revokeResponse);
         const result = await recordScanner.register(defaultAccount.viewKey(), 0);
 
-        expect(fetchStub.calledOnce).to.be.true;
+        expect(fetchStub.called).to.be.true;
         const request = fetchStub.firstCall.args[0] as Request;
         expect(request.url).to.equal(recordScanner.url + "/register");
         expect(request.method).to.equal("POST");
@@ -128,9 +171,63 @@ describe("RecordScanner", () => {
         
         expect(result.ok).to.equal(true);
         if (result.ok) {
-            expect(result.data.uuid).equal("test-uuid");
+            expect(result.data.uuid).equal(validTestUuid);
             expect(result.data.status).equal("pending");
         }
+
+        if (result.ok) {
+            const revokeResult = await recordScanner.revoke(result.data.uuid);
+            expect(revokeResult.ok).to.equal(true);
+        }
+    });
+
+    it("should return RevokeResult with data after successfully revoking", async () => {
+        recordScanner = new RecordScanner({ url: baseUrl });
+        const revokeResponse = {
+            ok: true,
+            status: 200,
+            text: () => Promise.resolve('{"status": "OK"}'),
+            json: () => Promise.resolve({ status: "OK" }),
+        };
+        fetchStub.resolves(revokeResponse);
+        const result = await recordScanner.revoke(validTestUuid);
+        expect(result.ok).to.equal(true);
+        if (result.ok) {
+            expect(result.data.status).to.equal("OK");
+        }
+        const request = fetchStub.firstCall.args[0] as Request;
+        expect(request.url).to.equal(recordScanner.url + "/revoke");
+        expect(request.method).to.equal("POST");
+        expect(await request.text()).to.equal(JSON.stringify(validTestUuid));
+    });
+
+    it("revoke throws UUIDError when no UUID configured and none provided", async () => {
+        recordScanner = new RecordScanner({ url: baseUrl });
+        let thrown: UUIDError | undefined;
+        try {
+            await recordScanner.revoke();
+        } catch (err) {
+            thrown = err as UUIDError;
+        }
+        expect(thrown).to.be.instanceOf(UUIDError);
+        expect(thrown!.name).to.equal("UUIDError");
+        expect(thrown!.message).to.include("No UUID configured");
+        expect(fetchStub.called).to.be.false;
+    });
+
+    it("revoke throws UUIDError for invalid UUID string", async () => {
+        recordScanner = new RecordScanner({ url: baseUrl });
+        let thrown: UUIDError | undefined;
+        try {
+            await recordScanner.revoke("not-a-valid-field");
+        } catch (err) {
+            thrown = err as UUIDError;
+        }
+        expect(thrown).to.be.instanceOf(UUIDError);
+        expect(thrown!.name).to.equal("UUIDError");
+        expect(thrown!.message).to.include("invalid");
+        expect(thrown!.uuid).to.equal("not-a-valid-field");
+        expect(fetchStub.called).to.be.false;
     });
 
     
@@ -253,9 +350,9 @@ describe("RecordScanner", () => {
         expect(request.headers.get("Content-Type")).to.equal("application/json");
     });
 
-    it("should throw an error if the uuid is not registered", async () => {
+    it("should throw UUIDError if the uuid is not set on scanner and filter uuid is invalid", async () => {
         recordScanner = new RecordScanner({ url: baseUrl });
-        let failed = false;
+        let thrown: UUIDError | undefined;
         try {
             await recordScanner.findRecords({
                 uuid: "test-uuid",
@@ -271,11 +368,12 @@ describe("RecordScanner", () => {
                 },
                 decrypt: true,
             });
-        } catch (err: any) {
-            expect(err).to.be.instanceOf(Error);
-            failed = true;
+        } catch (err) {
+            thrown = err as UUIDError;
         }
-        expect(failed).to.be.true;
+        expect(thrown).to.be.instanceOf(UUIDError);
+        expect(thrown!.name).to.equal("UUIDError");
+        expect(thrown!.message).to.include("UUID");
     });
 
     it("should return record of string->boolean after successfully checking serial numbers", async () => {
@@ -477,7 +575,6 @@ describe("Record scanner encrypted registration", function () {
     });
 
     it("should execute encrypted registration (/register/encrypted)", async function () {
-        this.retries(3);
         const startBlock = 0;
 
         // Ensure encryption roundtrip works locally (same pattern as program-manager encrypted proving test).
@@ -510,11 +607,13 @@ describe("Record scanner encrypted registration", function () {
         if (result.ok) {
             expect(result.data).to.have.property("uuid");
             expect(result.data.uuid).to.equal(recordScanner.computeUUID(viewKey).toString());
+            await new Promise((r) => setTimeout(r, 5000));
+            const revokeResult = await recordScanner.revoke(result.data.uuid);
+            expect(revokeResult.ok).to.equal(true);
         }
     });
 
     it("should execute unencrypted registration (/register)", async function () {
-        this.retries(3);
         const startBlock = 0;
 
         const viewKey = new Account().viewKey();
@@ -532,6 +631,9 @@ describe("Record scanner encrypted registration", function () {
             expect(result.data.uuid).to.equal(
                 recordScanner.computeUUID(viewKey).toString(),
             );
+            await new Promise((r) => setTimeout(r, 5000));
+            const revokeResult = await recordScanner.revoke(result.data.uuid);
+            expect(revokeResult.ok).to.equal(true);
         }
     });
 });
@@ -758,7 +860,6 @@ describe("RecordScanner (real API)", function () {
 
     describe("register and status", function () {
         it("register returns ok and uuid matches computeUUID", async function () {
-            this.retries(3);
             const ephemeralViewKey = new Account().viewKey();
             const scanner = new RecordScanner({
                 url: sandboxUrl,
@@ -766,14 +867,18 @@ describe("RecordScanner (real API)", function () {
                 ...(consumerId && { consumerId }),
             });
             const result = await scanner.register(ephemeralViewKey, 0);
+            const expectedUUID = scanner.computeUUID(ephemeralViewKey).toString();
             expect(result.ok).to.equal(true);
+            let actualUUID = expectedUUID;
             if (result.ok) {
-                expect(result.data.uuid).to.equal(scanner.computeUUID(ephemeralViewKey).toString());
+                actualUUID = result.data.uuid;
+                expect(actualUUID).to.equal(expectedUUID);
             }
+
+            const revokeResult = await scanner.removeViewKey(actualUUID);
         });
 
         it("registerEncrypted returns ok and uuid matches computeUUID", async function () {
-            this.retries(3);
             await sodium.ready;
             const ephemeralViewKey = new Account().viewKey();
             const scanner = new RecordScanner({

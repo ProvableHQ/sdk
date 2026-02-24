@@ -45,6 +45,7 @@ import { OwnedRecordsResponseFilter } from "./models/record-scanner/ownedRecords
 import { RegisterResult, RegisterSuccess } from "./models/record-scanner/registrationResult.js";
 import { RegistrationRequest } from "./models/record-scanner/registrationRequest.js";
 import { RegistrationResponse } from "./models/record-scanner/registrationResponse.js";
+import { RevokeResult, RevokeSuccess, RevokeResponse } from "./models/record-scanner/revokeResult.js";
 import { RecordsFilter } from "./models/record-scanner/recordsFilter.js";
 import { RecordsResponseFilter } from "./models/record-scanner/recordsResponseFilter.js";
 import { SerialNumbersResult, SerialNumbersSuccess } from "./models/record-scanner/serialNumbersResult.js";
@@ -236,6 +237,9 @@ export {
     RegisterSuccess,
     RegistrationRequest,
     RegistrationResponse,
+    RevokeResult,
+    RevokeSuccess,
+    RevokeResponse,
     SealanceMerkleTree,
     SerialNumbersResult,
     SerialNumbersSuccess,

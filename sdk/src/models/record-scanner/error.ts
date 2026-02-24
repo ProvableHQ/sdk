@@ -53,14 +53,14 @@ export class RecordNotFoundError extends Error {
     }
 }
 
-/** Error thrown when a record scanner request fails due to an invalid response. */
+/** Error thrown when no UUID is configured, the UUID is invalid, or a record scanner request fails due to an invalid UUID/response. */
 export class UUIDError extends Error {
     readonly uuid?: string;
     readonly filter?: OwnedFilter;
 
     constructor(message: string, uuid?: string, filter?: OwnedFilter) {
         super(message);
-        this.name = "InvalidResponseError";
+        this.name = "UUIDError";
         this.uuid = uuid;
         this.filter = filter;
         Object.setPrototypeOf(this, UUIDError.prototype);
