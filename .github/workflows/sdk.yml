@@ -140,6 +140,48 @@ jobs:
           yarn start
 
 
+  create-leo-app-loyalty-program-local:
+    name: "create-leo-app loyalty-program (local)"
+    runs-on: ubuntu-latest-m
+    needs: build
+    steps:
+      - uses: actions/checkout@v4
+      - uses: ./.github/actions/setup-yarn
+      - uses: ./.github/actions/use-build
+
+      - working-directory: create-leo-app/template-node-loyalty-program-ts
+        run: |
+          yarn local
+
+
+  create-leo-app-loyalty-program-delegated:
+    name: "create-leo-app loyalty-program (delegated + scanner)"
+    runs-on: ubuntu-latest-m
+    needs: build
+    env:
+      # Consumer ID (used for both DPS and RSS)
+      ALEO_CONSUMER_ID: ${{ secrets.ALEO_CONSUMER_ID }}
+      # DPS configuration
+      ALEO_DPS_URL: https://api.provable.com/prove/testnet
+      ALEO_DPS_API_KEY: ${{ secrets.ALEO_DPS_API_KEY }}
+      # RSS configuration
+      ALEO_RSS_URL: https://api.provable.com/scanner
+    steps:
+      - uses: actions/checkout@v4
+      - uses: ./.github/actions/setup-yarn
+      - uses: ./.github/actions/use-build
+
+      - name: Run delegated mode (creates on-chain records)
+        working-directory: create-leo-app/template-node-loyalty-program-ts
+        run: |
+          yarn delegated
+
+      - name: Run scanner mode (finds on-chain records)
+        working-directory: create-leo-app/template-node-loyalty-program-ts
+        run: |
+          yarn scanner
+
+
   clippy:
     name: "clippy"
     runs-on: ubuntu-latest

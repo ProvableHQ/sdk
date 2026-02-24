@@ -1,0 +1,466 @@
+{
+  "program": "loyalty_token.aleo",
+  "structs": [],
+  "records": [
+    {
+      "path": [
+        "LoyaltyCard"
+      ],
+      "fields": [
+        {
+          "name": "owner",
+          "ty": {
+            "Primitive": "Address"
+          },
+          "mode": "None"
+        },
+        {
+          "name": "card_id",
+          "ty": {
+            "Primitive": "Field"
+          },
+          "mode": "None"
+        },
+        {
+          "name": "points",
+          "ty": {
+            "Primitive": {
+              "UInt": "U64"
+            }
+          },
+          "mode": "None"
+        },
+        {
+          "name": "tier",
+          "ty": {
+            "Primitive": {
+              "UInt": "U8"
+            }
+          },
+          "mode": "None"
+        }
+      ]
+    }
+  ],
+  "mappings": [
+    {
+      "name": "card_exists",
+      "key": {
+        "Primitive": "Field"
+      },
+      "value": {
+        "Primitive": "Boolean"
+      }
+    },
+    {
+      "name": "total_cards",
+      "key": {
+        "Primitive": "Field"
+      },
+      "value": {
+        "Primitive": {
+          "UInt": "U64"
+        }
+      }
+    },
+    {
+      "name": "total_points_issued",
+      "key": {
+        "Primitive": "Field"
+      },
+      "value": {
+        "Primitive": {
+          "UInt": "U64"
+        }
+      }
+    },
+    {
+      "name": "approved_upgrades",
+      "key": {
+        "Primitive": "Field"
+      },
+      "value": {
+        "Primitive": "Boolean"
+      }
+    }
+  ],
+  "storage_variables": [],
+  "transitions": [
+    {
+      "name": "approve_upgrade",
+      "is_async": true,
+      "inputs": [
+        {
+          "name": "checksum",
+          "ty": {
+            "Plaintext": {
+              "Array": {
+                "element": {
+                  "Primitive": {
+                    "UInt": "U8"
+                  }
+                },
+                "length": 32
+              }
+            }
+          },
+          "mode": "None"
+        }
+      ],
+      "outputs": [
+        {
+          "ty": "Future",
+          "mode": "None"
+        }
+      ]
+    },
+    {
+      "name": "mint_card",
+      "is_async": true,
+      "inputs": [
+        {
+          "name": "recipient",
+          "ty": {
+            "Plaintext": {
+              "Primitive": "Address"
+            }
+          },
+          "mode": "None"
+        },
+        {
+          "name": "initial_points",
+          "ty": {
+            "Plaintext": {
+              "Primitive": {
+                "UInt": "U64"
+              }
+            }
+          },
+          "mode": "None"
+        },
+        {
+          "name": "nonce",
+          "ty": {
+            "Plaintext": {
+              "Primitive": "Field"
+            }
+          },
+          "mode": "None"
+        }
+      ],
+      "outputs": [
+        {
+          "ty": {
+            "Record": {
+              "path": [
+                "LoyaltyCard"
+              ],
+              "program": "loyalty_token"
+            }
+          },
+          "mode": "None"
+        },
+        {
+          "ty": "Future",
+          "mode": "None"
+        }
+      ]
+    },
+    {
+      "name": "add_points",
+      "is_async": true,
+      "inputs": [
+        {
+          "name": "card",
+          "ty": {
+            "Record": {
+              "path": [
+                "LoyaltyCard"
+              ],
+              "program": "loyalty_token"
+            }
+          },
+          "mode": "None"
+        },
+        {
+          "name": "points_earned",
+          "ty": {
+            "Plaintext": {
+              "Primitive": {
+                "UInt": "U64"
+              }
+            }
+          },
+          "mode": "None"
+        }
+      ],
+      "outputs": [
+        {
+          "ty": {
+            "Record": {
+              "path": [
+                "LoyaltyCard"
+              ],
+              "program": "loyalty_token"
+            }
+          },
+          "mode": "None"
+        },
+        {
+          "ty": "Future",
+          "mode": "None"
+        }
+      ]
+    },
+    {
+      "name": "check_points",
+      "is_async": false,
+      "inputs": [
+        {
+          "name": "card",
+          "ty": {
+            "Record": {
+              "path": [
+                "LoyaltyCard"
+              ],
+              "program": "loyalty_token"
+            }
+          },
+          "mode": "None"
+        }
+      ],
+      "outputs": [
+        {
+          "ty": {
+            "Record": {
+              "path": [
+                "LoyaltyCard"
+              ],
+              "program": "loyalty_token"
+            }
+          },
+          "mode": "None"
+        },
+        {
+          "ty": {
+            "Plaintext": {
+              "Primitive": {
+                "UInt": "U64"
+              }
+            }
+          },
+          "mode": "None"
+        }
+      ]
+    },
+    {
+      "name": "transfer_card",
+      "is_async": true,
+      "inputs": [
+        {
+          "name": "card",
+          "ty": {
+            "Record": {
+              "path": [
+                "LoyaltyCard"
+              ],
+              "program": "loyalty_token"
+            }
+          },
+          "mode": "None"
+        },
+        {
+          "name": "new_owner",
+          "ty": {
+            "Plaintext": {
+              "Primitive": "Address"
+            }
+          },
+          "mode": "None"
+        }
+      ],
+      "outputs": [
+        {
+          "ty": {
+            "Record": {
+              "path": [
+                "LoyaltyCard"
+              ],
+              "program": "loyalty_token"
+            }
+          },
+          "mode": "None"
+        },
+        {
+          "ty": "Future",
+          "mode": "None"
+        }
+      ]
+    },
+    {
+      "name": "split_card",
+      "is_async": true,
+      "inputs": [
+        {
+          "name": "card",
+          "ty": {
+            "Record": {
+              "path": [
+                "LoyaltyCard"
+              ],
+              "program": "loyalty_token"
+            }
+          },
+          "mode": "None"
+        },
+        {
+          "name": "points_to_keep",
+          "ty": {
+            "Plaintext": {
+              "Primitive": {
+                "UInt": "U64"
+              }
+            }
+          },
+          "mode": "None"
+        },
+        {
+          "name": "nonce",
+          "ty": {
+            "Plaintext": {
+              "Primitive": "Field"
+            }
+          },
+          "mode": "None"
+        }
+      ],
+      "outputs": [
+        {
+          "ty": {
+            "Record": {
+              "path": [
+                "LoyaltyCard"
+              ],
+              "program": "loyalty_token"
+            }
+          },
+          "mode": "None"
+        },
+        {
+          "ty": {
+            "Record": {
+              "path": [
+                "LoyaltyCard"
+              ],
+              "program": "loyalty_token"
+            }
+          },
+          "mode": "None"
+        },
+        {
+          "ty": "Future",
+          "mode": "None"
+        }
+      ]
+    },
+    {
+      "name": "split_card_v2",
+      "is_async": true,
+      "inputs": [
+        {
+          "name": "card",
+          "ty": {
+            "Record": {
+              "path": [
+                "LoyaltyCard"
+              ],
+              "program": "loyalty_token"
+            }
+          },
+          "mode": "None"
+        },
+        {
+          "name": "points_to_keep",
+          "ty": {
+            "Plaintext": {
+              "Primitive": {
+                "UInt": "U64"
+              }
+            }
+          },
+          "mode": "None"
+        }
+      ],
+      "outputs": [
+        {
+          "ty": {
+            "Record": {
+              "path": [
+                "LoyaltyCard"
+              ],
+              "program": "loyalty_token"
+            }
+          },
+          "mode": "None"
+        },
+        {
+          "ty": {
+            "Record": {
+              "path": [
+                "LoyaltyCard"
+              ],
+              "program": "loyalty_token"
+            }
+          },
+          "mode": "None"
+        },
+        {
+          "ty": "Future",
+          "mode": "None"
+        }
+      ]
+    },
+    {
+      "name": "spend_points",
+      "is_async": false,
+      "inputs": [
+        {
+          "name": "card",
+          "ty": {
+            "Record": {
+              "path": [
+                "LoyaltyCard"
+              ],
+              "program": "loyalty_token"
+            }
+          },
+          "mode": "None"
+        },
+        {
+          "name": "points_to_spend",
+          "ty": {
+            "Plaintext": {
+              "Primitive": {
+                "UInt": "U64"
+              }
+            }
+          },
+          "mode": "None"
+        }
+      ],
+      "outputs": [
+        {
+          "ty": {
+            "Record": {
+              "path": [
+                "LoyaltyCard"
+              ],
+              "program": "loyalty_token"
+            }
+          },
+          "mode": "None"
+        }
+      ]
+    }
+  ]
+}

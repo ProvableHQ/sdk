@@ -1,0 +1,26 @@
+{
+    "name": "template-node-loyalty-program-ts",
+    "private": true,
+    "version": "0.0.0",
+    "type": "module",
+    "scripts": {
+        "build": "rimraf dist && rollup --config",
+        "start": "npm run build && node dist/index.js",
+        "local": "npm run build && node dist/index.js local",
+        "delegated": "npm run build && node dist/index.js delegated",
+        "scanner": "npm run build && node dist/index.js scanner",
+        "start:mint": "npm run build && node dist/index.js mint_card",
+        "start:add": "npm run build && node dist/index.js add_points",
+        "start:redeem": "npm run build && node dist/index.js redeem_for_voucher"
+    },
+    "dependencies": {
+        "@provablehq/sdk": "^0.9.15",
+        "dotenv": "^16.4.5"
+    },
+    "devDependencies": {
+        "rimraf": "^6.0.1",
+        "rollup": "^4.32.0",
+        "rollup-plugin-typescript2": "^0.36.0",
+        "typescript": "^5.7.3"
+    }
+}

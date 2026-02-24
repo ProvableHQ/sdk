@@ -1,0 +1,1451 @@
+/**
+ * Loyalty Program Worker
+ *
+ * Provides a clean class abstraction for the loyalty program,
+ * demonstrating SDK capabilities for:
+ * - Record minting and consumption.
+ * - Record scanning/discovery (via RecordScanner).
+ * - Record decryption.
+ * - Mapping reads.
+ * - Multi-program execution.
+ * - Parameter/key caching for large functions.
+ * - Delegated proving (optional).
+ */
+import {
+  Account,
+  ProgramManager,
+  Program,
+  PrivateKey,
+  initThreadPool,
+  AleoKeyProvider,
+  AleoNetworkClient,
+  RecordScanner,
+  RecordCiphertext,
+  OfflineQuery,
+} from "@provablehq/sdk";
+import { expose, proxy } from "comlink";
+
+console.log("[Worker] Initializing thread pool...");
+await initThreadPool();
+console.log("[Worker] Thread pool initialized!");
+
+// ============================================================================
+// Types and Interfaces
+// ============================================================================
+
+/**
+ * Proving mode for transactions
+ */
+export enum ProvingMode {
+  Local = "local",
+  Delegated = "delegated",
+}
+
+/**
+ * Reward types available for redemption
+ */
+export enum RewardType {
+  Discount = 1,
+  Freebie = 2,
+  Upgrade = 3,
+}
+
+/**
+ * Card tier levels based on points
+ */
+export enum CardTier {
+  Bronze = 0,
+  Silver = 1,
+  Gold = 2,
+}
+
+/**
+ * Parsed LoyaltyCard record.
+ */
+export interface LoyaltyCard {
+  owner: string;
+  cardId: string;
+  points: number;
+  tier: CardTier;
+  raw: string; // Original record string for passing to functions.
+}
+
+/**
+ * Parsed RewardVoucher record.
+ */
+export interface RewardVoucher {
+  owner: string;
+  voucherId: string;
+  rewardType: RewardType;
+  value: number;
+  raw: string; // Original record string for passing to functions.
+}
+
+/**
+ * Result of splitting a card into two.
+ */
+export interface SplitResult {
+  keptCard: LoyaltyCard;
+  splitCard: LoyaltyCard;
+}
+
+/**
+ * Result of redeeming points for a voucher.
+ */
+export interface RedeemResult {
+  card: LoyaltyCard;
+  voucher: RewardVoucher;
+}
+
+/**
+ * Loyalty program statistics from mappings.
+ */
+export interface ProgramStats {
+  totalCards: number;
+  totalPointsIssued: number;
+  redemptionsByType: Record<RewardType, number>;
+}
+
+/**
+ * Configuration for program execution.
+ */
+export interface ProgramConfig {
+  provingMode?: ProvingMode;
+  /** Provable API consumer ID (used for both DPS and RSS). */
+  consumerId?: string;
+  /** RecordScanner service URL. */
+  recordScannerUrl?: string;
+  /** API key or JWT for RecordScanner. */
+  recordScannerApiKey?: string;
+  dpsUrl?: string;
+  dpsApiKey?: string;
+  /** Enable encrypted DPS flow (TEE-protected proving). */
+  dpsPrivacy?: boolean;
+  /** Enable encrypted RSS flow (TEE-protected record scanning). */
+  rssPrivacy?: boolean;
+}
+
+/**
+ * Status event types for UI feedback
+ */
+export type StatusEventType =
+  | "mode_changed"
+  | "operation_start"
+  | "operation_complete"
+  | "scan_start"
+  | "scan_complete"
+  | "error";
+
+/**
+ * Status event for UI feedback
+ */
+export interface StatusEvent {
+  type: StatusEventType;
+  operation?: string;
+  mode?: ProvingMode;
+  duration?: number;
+  count?: number;
+  error?: string;
+}
+
+// ============================================================================
+// LoyaltyProgram Class
+// ============================================================================
+
+/**
+ * A class that wraps the loyalty_token.aleo and loyalty_rewards.aleo programs.
+ *
+ * Provides methods for all loyalty program functions:
+ * - mintCard: Create a new loyalty card
+ * - addPoints: Add points to an existing card
+ * - checkPoints: View card points without consuming
+ * - transferCard: Transfer card to another address
+ * - splitCardV2: Split a card into two with deterministic nonce
+ * - redeemForVoucher: Exchange points for a reward voucher
+ * - useVoucher: Consume a voucher
+ * - transferVoucher: Transfer voucher to another address
+ *
+ * Optional features:
+ * - Delegated Proving: Set provingMode to "delegated" to offload proving
+ * - Record Scanner: Use findMyCards() and findMyVouchers() to discover records
+ *
+ * Also provides mapping read helpers:
+ * - getTotalCards: Get total cards minted
+ * - getTotalPointsIssued: Get total points issued
+ * - cardExists: Check if a card ID exists
+ * - isVoucherUsed: Check if a voucher has been used
+ *
+ * @example
+ * // Local execution (offline)
+ * const loyalty = new LoyaltyProgram();
+ * loyalty.setPrograms(tokenProgram, rewardsProgram);
+ * const card = await loyalty.mintCard("aleo1...", 1000);
+ * const updatedCard = await loyalty.addPoints(card, 500);
+ *
+ * @example
+ * // With delegated proving
+ * const loyalty = new LoyaltyProgram(account, {
+ *   provingMode: ProvingMode.Delegated,
+ *   dpsUrl: "https://api.provable.com/prove/testnet"  // Include network suffix in URL
+ * });
+ */
+class LoyaltyProgram {
+  private programManager: ProgramManager;
+  private keyProvider: AleoKeyProvider;
+  private networkClient: AleoNetworkClient | null = null;
+  private account: Account | null = null;
+
+  // Program sources (for local execution)
+  private tokenProgram: string = "";
+  private rewardsProgram: string = "";
+
+  // Program IDs
+  private readonly TOKEN_PROGRAM_ID = "loyalty_token.aleo";
+  private readonly REWARDS_PROGRAM_ID = "loyalty_rewards.aleo";
+
+  // Feature configuration
+  private _provingMode: ProvingMode = ProvingMode.Local;
+  private _recordScanner: RecordScanner | null = null;
+  private _dpsUrl?: string;
+  private _dpsApiKey?: string;
+  private _consumerId?: string;
+  private _dpsPrivacy: boolean = false;
+  private _rssPrivacy: boolean = false;
+
+  // Transaction confirmation polling configuration
+  private readonly TX_POLL_INTERVAL_MS = 5000;
+  private readonly TX_TIMEOUT_MS = 300000; // 5 minutes
+
+  // Status callback for UI updates
+  private _onStatus: ((event: StatusEvent) => void) | null = null;
+
+  /**
+   * Create a new LoyaltyProgram instance.
+   *
+   * @param account - Optional account for network operations
+   * @param config - Optional configuration for proving mode and record scanner
+   */
+  constructor(account?: Account, config?: ProgramConfig) {
+    // Always use the standard API endpoint for ProgramManager state queries
+    // (edition lookups, inclusion proofs, etc.). The DPS URL is only needed for
+    // submitProvingRequest() — passing it here doubles the /testnet/ path segment.
+    const hostUrl = "https://api.provable.com/v2";
+    this.programManager = new ProgramManager(hostUrl);
+
+    this.keyProvider = new AleoKeyProvider();
+    this.keyProvider.useCache(true);
+    this.programManager.setKeyProvider(this.keyProvider);
+
+    if (account) {
+      this.account = account;
+      this.programManager.setAccount(account);
+    }
+
+    // Store network client for delegated proving (created on demand)
+    if (config?.dpsUrl) {
+      this._dpsUrl = config.dpsUrl;
+    }
+
+    // Apply configuration
+    if (config?.provingMode) {
+      this._provingMode = config.provingMode;
+    }
+
+    // Configure RecordScanner if URL is provided.
+    if (config?.recordScannerUrl) {
+      const apiKeyConfig = config.recordScannerApiKey?.startsWith("eyJ")
+        ? { header: "Authorization", value: `Bearer ${config.recordScannerApiKey}` }
+        : config.recordScannerApiKey;
+      this._recordScanner = new RecordScanner({
+        url: config.recordScannerUrl,
+        apiKey: apiKeyConfig,
+      });
+    }
+
+    if (config?.dpsUrl) {
+      this._dpsUrl = config.dpsUrl;
+    }
+    if (config?.dpsApiKey) {
+      this._dpsApiKey = config.dpsApiKey;
+    }
+    if (config?.consumerId) {
+      this._consumerId = config.consumerId;
+    }
+    if (config?.dpsPrivacy) {
+      this._dpsPrivacy = config.dpsPrivacy;
+    }
+    if (config?.rssPrivacy) {
+      this._rssPrivacy = config.rssPrivacy;
+    }
+  }
+
+  /**
+   * Get the current proving mode.
+   */
+  get provingMode(): ProvingMode {
+    return this._provingMode;
+  }
+
+  /**
+   * Check if a record scanner is configured.
+   */
+  get hasRecordScanner(): boolean {
+    return this._recordScanner !== null;
+  }
+
+  /**
+   * Set a callback for status events (for UI feedback).
+   */
+  onStatus(callback: (event: StatusEvent) => void): void {
+    this._onStatus = callback;
+  }
+
+  private emitStatus(event: StatusEvent): void {
+    if (this._onStatus) {
+      this._onStatus(event);
+    }
+    // Also log to console for debugging.
+    console.log(`[LoyaltyProgram] ${event.type}:`, event);
+  }
+
+  /**
+   * Set the proving mode (local or delegated).
+   *
+   * @param mode - The proving mode to use
+   */
+  setProvingMode(mode: ProvingMode): void {
+    if (mode !== this._provingMode) {
+      this._provingMode = mode;
+      this.emitStatus({ type: "mode_changed", mode });
+    }
+  }
+
+  /**
+   * Configure the RSS record scanner for discovering records on-chain.
+   *
+   * @param url - The record scanner service URL
+   * @param apiKey - Optional API key or JWT token (JWT tokens start with "eyJ")
+   */
+  setRecordScanner(url: string, apiKey?: string): void {
+    // JWT tokens (start with "eyJ") use Authorization header.
+    // Plain API keys use X-Provable-API-Key header.
+    const apiKeyConfig = apiKey?.startsWith("eyJ")
+      ? { header: "Authorization", value: `Bearer ${apiKey}` }
+      : apiKey;
+    this._recordScanner = new RecordScanner({ url, apiKey: apiKeyConfig });
+  }
+
+  /**
+   * Set the program sources for local execution.
+   * Required before calling any execution methods in local mode.
+   *
+   * @param tokenProgram - The loyalty_token.aleo program source
+   * @param rewardsProgram - The loyalty_rewards.aleo program source
+   */
+  setPrograms(tokenProgram: string, rewardsProgram: string): void {
+    this.tokenProgram = tokenProgram;
+    this.rewardsProgram = rewardsProgram;
+  }
+
+  /**
+   * Set the account for transactions.
+   *
+   * @param account - The Aleo account to use
+   */
+  setAccount(account: Account): void {
+    this.account = account;
+    this.programManager.setAccount(account);
+  }
+
+  // ==========================================================================
+  // Record Discovery (using RecordScanner)
+  // ==========================================================================
+
+  /**
+   * Find LoyaltyCard records owned by this account using the RecordScanner service.
+   *
+   * @param startHeight - The block height to start scanning from
+   * @param endHeight - Optional end block height (defaults to latest)
+   * @returns Array of LoyaltyCard records
+   */
+  async findMyCards(startHeight: number = 0, endHeight?: number): Promise<LoyaltyCard[]> {
+    if (!this._recordScanner) {
+      throw new Error("No record scanner configured. Use setRecordScanner() to configure.");
+    }
+    if (!this.account) {
+      throw new Error("Account not set. Use setAccount() first.");
+    }
+
+    this.emitStatus({
+      type: "scan_start",
+      operation: "findMyCards",
+    });
+
+    // Register with the scanner.
+    if (this._rssPrivacy) {
+      await this._recordScanner.registerEncrypted(this.account.viewKey(), startHeight);
+    } else {
+      await this._recordScanner.register(this.account.viewKey(), startHeight);
+    }
+
+    const records = await this._recordScanner.findRecords({
+      decrypt: true,
+      unspent: true,
+      filter: {
+        start: startHeight,
+        end: endHeight,
+        program: this.TOKEN_PROGRAM_ID,
+        record: "LoyaltyCard",
+      },
+    });
+
+    const cards = records
+      .filter((r) => r.record_name === "LoyaltyCard" && (r.record_plaintext || r.record_ciphertext))
+      .map((r) => {
+        if (r.record_plaintext) {
+          return this.parseCard(r.record_plaintext);
+        }
+        const ciphertext = RecordCiphertext.fromString(r.record_ciphertext!);
+        const plaintext = ciphertext.decrypt(this.account!.viewKey());
+        return this.parseCard(plaintext.toString());
+      });
+
+    this.emitStatus({
+      type: "scan_complete",
+      operation: "findMyCards",
+      count: cards.length,
+    });
+
+    return cards;
+  }
+
+  /**
+   * Find RewardVoucher records owned by this account.
+   *
+   * @param startHeight - The block height to start scanning from
+   * @param endHeight - Optional end block height (defaults to latest)
+   * @returns Array of RewardVoucher records
+   */
+  async findMyVouchers(startHeight: number = 0, endHeight?: number): Promise<RewardVoucher[]> {
+    if (!this._recordScanner) {
+      throw new Error("No record scanner configured. Use setRecordScanner() to configure.");
+    }
+    if (!this.account) {
+      throw new Error("Account not set. Use setAccount() first.");
+    }
+
+    this.emitStatus({
+      type: "scan_start",
+      operation: "findMyVouchers",
+    });
+
+    // Register with the scanner.
+    if (this._rssPrivacy) {
+      await this._recordScanner.registerEncrypted(this.account.viewKey(), startHeight);
+    } else {
+      await this._recordScanner.register(this.account.viewKey(), startHeight);
+    }
+
+    const records = await this._recordScanner.findRecords({
+      decrypt: true,
+      unspent: true,
+      filter: {
+        start: startHeight,
+        end: endHeight,
+        program: this.REWARDS_PROGRAM_ID,
+        record: "RewardVoucher",
+      },
+    });
+
+    const vouchers = records
+      .filter((r) => r.record_name === "RewardVoucher" && (r.record_plaintext || r.record_ciphertext))
+      .map((r) => {
+        if (r.record_plaintext) {
+          return this.parseVoucher(r.record_plaintext);
+        }
+        const ciphertext = RecordCiphertext.fromString(r.record_ciphertext!);
+        const plaintext = ciphertext.decrypt(this.account!.viewKey());
+        return this.parseVoucher(plaintext.toString());
+      });
+
+    this.emitStatus({
+      type: "scan_complete",
+      operation: "findMyVouchers",
+      count: vouchers.length,
+    });
+
+    return vouchers;
+  }
+
+  // ==========================================================================
+  // Card Operations (loyalty_token.aleo)
+  // ==========================================================================
+
+  /**
+   * Mint a new loyalty card with hash-generated unique ID.
+   *
+   * @param recipient - The address to receive the card
+   * @param initialPoints - Starting points on the card
+   * @param nonce - Optional nonce for uniqueness (auto-generated if not provided)
+   * @returns The newly minted LoyaltyCard
+   *
+   * @example
+   * const card = await loyalty.mintCard("aleo1abc...xyz", 1000);
+   * console.log(`Card minted with ${card.points} points`);
+   */
+  async mintCard(
+    recipient: string,
+    initialPoints: number,
+    nonce?: string
+  ): Promise<LoyaltyCard> {
+    const actualNonce = nonce ?? Math.floor(Math.random() * 1000000000).toString();
+    const inputs = [recipient, `${initialPoints}u64`, `${actualNonce}field`];
+
+    const outputs = await this.execute(
+      this.tokenProgram,
+      "mint_card",
+      inputs
+    );
+
+    return this.parseCard(outputs[0]);
+  }
+
+  /**
+   * Add points to an existing loyalty card.
+   * Consumes the old card and creates a new one with updated points.
+   *
+   * @param card - The card to add points to
+   * @param pointsToAdd - Number of points to add
+   * @returns The updated LoyaltyCard with new points and potentially upgraded tier
+   *
+   * @example
+   * const updatedCard = await loyalty.addPoints(card, 500);
+   * console.log(`New balance: ${updatedCard.points}, Tier: ${CardTier[updatedCard.tier]}`);
+   */
+  async addPoints(card: LoyaltyCard, pointsToAdd: number): Promise<LoyaltyCard> {
+    console.log("[LoyaltyProgram] addPoints called with card:", card);
+    console.log("[LoyaltyProgram] card.raw:", card.raw);
+    const inputs = [card.raw, `${pointsToAdd}u64`];
+    console.log("[LoyaltyProgram] inputs:", inputs);
+
+    const outputs = await this.execute(
+      this.tokenProgram,
+      "add_points",
+      inputs
+    );
+
+    return this.parseCard(outputs[0]);
+  }
+
+  /**
+   * Check card points without consuming the record.
+   *
+   * @param card - The card to check
+   * @returns The same card (for chaining) and points value
+   *
+   * @example
+   * const { card, points } = await loyalty.checkPoints(myCard);
+   */
+  async checkPoints(card: LoyaltyCard): Promise<{ card: LoyaltyCard; points: number }> {
+    const inputs = [card.raw];
+
+    const outputs = await this.execute(
+      this.tokenProgram,
+      "check_points",
+      inputs
+    );
+
+    return {
+      card: this.parseCard(outputs[0]),
+      points: this.parseU64(outputs[1]),
+    };
+  }
+
+  /**
+   * Transfer a loyalty card to a new owner.
+   *
+   * @param card - The card to transfer
+   * @param newOwner - The address of the new owner
+   * @returns The transferred card with new owner
+   *
+   * @example
+   * const transferredCard = await loyalty.transferCard(card, "aleo1new...owner");
+   */
+  async transferCard(card: LoyaltyCard, newOwner: string): Promise<LoyaltyCard> {
+    const inputs = [card.raw, newOwner];
+
+    const outputs = await this.execute(
+      this.tokenProgram,
+      "transfer_card",
+      inputs
+    );
+
+    return this.parseCard(outputs[0]);
+  }
+
+  /**
+   * Split a loyalty card into two cards with a deterministic nonce.
+   * Uses BHP256 hash of the record for the split card's ID, preventing
+   * caller-provided nonce manipulation.
+   *
+   * @param card - The card to split.
+   * @param pointsToKeep - Points to retain on the original card.
+   * @returns Object containing the kept card and the new split card.
+   *
+   * @example
+   * const { keptCard, splitCard } = await loyalty.splitCardV2(card, 3000);
+   */
+  async splitCardV2(card: LoyaltyCard, pointsToKeep: number): Promise<SplitResult> {
+    if (pointsToKeep >= card.points) {
+      throw new Error(
+        `pointsToKeep (${pointsToKeep}) must be less than card points (${card.points})`
+      );
+    }
+
+    const inputs = [card.raw, `${pointsToKeep}u64`];
+
+    const outputs = await this.execute(
+      this.tokenProgram,
+      "split_card_v2",
+      inputs
+    );
+
+    return {
+      keptCard: this.parseCard(outputs[0]),
+      splitCard: this.parseCard(outputs[1]),
+    };
+  }
+
+  // ==========================================================================
+  // Voucher Operations (loyalty_rewards.aleo)
+  // ==========================================================================
+
+  /**
+   * Redeem points for a reward voucher.
+   * This is a cross-program operation that consumes points and creates a voucher.
+   *
+   * @param card - The card to redeem points from
+   * @param rewardType - Type of reward (Discount, Freebie, or Upgrade)
+   * @param pointsCost - Number of points to spend
+   * @returns Object containing updated card and new voucher
+   *
+   * @example
+   * const { card, voucher } = await loyalty.redeemForVoucher(
+   *   myCard,
+   *   RewardType.Discount,
+   *   500
+   * );
+   * console.log(`Voucher value: ${voucher.value}`);
+   */
+  async redeemForVoucher(
+    card: LoyaltyCard,
+    rewardType: RewardType,
+    pointsCost: number
+  ): Promise<RedeemResult> {
+    if (card.points < pointsCost) {
+      throw new Error(
+        `Insufficient points: have ${card.points}, need ${pointsCost}`
+      );
+    }
+
+    const inputs = [card.raw, `${rewardType}u8`, `${pointsCost}u64`];
+
+    // Multi-program execution requires imports.
+    const outputs = await this.execute(
+      this.rewardsProgram,
+      "redeem_points_for_voucher",
+      inputs,
+      { [this.TOKEN_PROGRAM_ID]: this.tokenProgram }
+    );
+
+    return {
+      card: this.parseCard(outputs[0]),
+      voucher: this.parseVoucher(outputs[1]),
+    };
+  }
+
+  /**
+   * Use (burn) a voucher.
+   * The voucher record is consumed and cannot be used again.
+   *
+   * @param voucher - The voucher to use
+   *
+   * @example
+   * await loyalty.useVoucher(myVoucher);
+   * console.log("Voucher redeemed!");
+   */
+  async useVoucher(voucher: RewardVoucher): Promise<void> {
+    const inputs = [voucher.raw];
+
+    await this.execute(
+      this.rewardsProgram,
+      "use_voucher",
+      inputs,
+      { [this.TOKEN_PROGRAM_ID]: this.tokenProgram }
+    );
+  }
+
+  /**
+   * Check voucher details without consuming.
+   *
+   * @param voucher - The voucher to check
+   * @returns The voucher with its type and value
+   */
+  async checkVoucher(
+    voucher: RewardVoucher
+  ): Promise<{ voucher: RewardVoucher; rewardType: RewardType; value: number }> {
+    const inputs = [voucher.raw];
+
+    const outputs = await this.execute(
+      this.rewardsProgram,
+      "check_voucher",
+      inputs,
+      { [this.TOKEN_PROGRAM_ID]: this.tokenProgram }
+    );
+
+    return {
+      voucher: this.parseVoucher(outputs[0]),
+      rewardType: this.parseU8(outputs[1]) as RewardType,
+      value: this.parseU64(outputs[2]),
+    };
+  }
+
+  /**
+   * Transfer a voucher to a new owner.
+   *
+   * @param voucher - The voucher to transfer
+   * @param newOwner - The address of the new owner
+   * @returns The transferred voucher
+   */
+  async transferVoucher(
+    voucher: RewardVoucher,
+    newOwner: string
+  ): Promise<RewardVoucher> {
+    const inputs = [voucher.raw, newOwner];
+
+    const outputs = await this.execute(
+      this.rewardsProgram,
+      "transfer_voucher",
+      inputs,
+      { [this.TOKEN_PROGRAM_ID]: this.tokenProgram }
+    );
+
+    return this.parseVoucher(outputs[0]);
+  }
+
+  // ==========================================================================
+  // Mapping Reads (requires network client)
+  // ==========================================================================
+
+  /**
+   * Get total number of cards minted.
+   *
+   * @returns Total cards count, or null if not available
+   */
+  async getTotalCards(): Promise<number | null> {
+    return this.readMappingU64(this.TOKEN_PROGRAM_ID, "total_cards", "0field");
+  }
+
+  /**
+   * Get total points issued across all cards.
+   *
+   * @returns Total points issued, or null if not available
+   */
+  async getTotalPointsIssued(): Promise<number | null> {
+    return this.readMappingU64(
+      this.TOKEN_PROGRAM_ID,
+      "total_points_issued",
+      "0field"
+    );
+  }
+
+  /**
+   * Check if a card ID exists in the registry.
+   *
+   * @param cardId - The card ID to check
+   * @returns true if exists, false otherwise
+   */
+  async cardExists(cardId: string): Promise<boolean> {
+    const value = await this.readMapping(
+      this.TOKEN_PROGRAM_ID,
+      "card_exists",
+      cardId
+    );
+    return value === "true";
+  }
+
+  /**
+   * Check if a voucher has been used.
+   *
+   * @param voucherId - The voucher ID to check
+   * @returns true if used, false otherwise
+   */
+  async isVoucherUsed(voucherId: string): Promise<boolean> {
+    const value = await this.readMapping(
+      this.REWARDS_PROGRAM_ID,
+      "voucher_used",
+      voucherId
+    );
+    return value === "true";
+  }
+
+  /**
+   * Get redemption count for a specific reward type.
+   *
+   * @param rewardType - The reward type to query
+   * @returns Number of redemptions, or null if not available
+   */
+  async getRedemptionCount(rewardType: RewardType): Promise<number | null> {
+    return this.readMappingU64(
+      this.REWARDS_PROGRAM_ID,
+      "redemptions_by_type",
+      `${rewardType}field`
+    );
+  }
+
+  /**
+   * Get all program statistics.
+   *
+   * @returns Combined stats from all mappings
+   */
+  async getStats(): Promise<ProgramStats> {
+    const [totalCards, totalPoints, discounts, freebies, upgrades] =
+      await Promise.all([
+        this.getTotalCards(),
+        this.getTotalPointsIssued(),
+        this.getRedemptionCount(RewardType.Discount),
+        this.getRedemptionCount(RewardType.Freebie),
+        this.getRedemptionCount(RewardType.Upgrade),
+      ]);
+
+    return {
+      totalCards: totalCards ?? 0,
+      totalPointsIssued: totalPoints ?? 0,
+      redemptionsByType: {
+        [RewardType.Discount]: discounts ?? 0,
+        [RewardType.Freebie]: freebies ?? 0,
+        [RewardType.Upgrade]: upgrades ?? 0,
+      },
+    };
+  }
+
+  // ==========================================================================
+  // Private Execution Methods
+  // ==========================================================================
+
+  private async execute(
+    program: string,
+    functionName: string,
+    inputs: string[],
+    imports?: Record<string, string>
+  ): Promise<string[]> {
+    this.emitStatus({
+      type: "operation_start",
+      operation: functionName,
+      mode: this._provingMode,
+    });
+
+    const start = Date.now();
+    let outputs: string[];
+
+    try {
+      if (this._provingMode === ProvingMode.Delegated) {
+        outputs = await this.executeDelegated(program, functionName, inputs, imports);
+      } else {
+        outputs = await this.executeLocal(program, functionName, inputs, imports);
+      }
+
+      this.emitStatus({
+        type: "operation_complete",
+        operation: functionName,
+        mode: this._provingMode,
+        duration: Date.now() - start,
+      });
+
+      return outputs;
+    } catch (error: any) {
+      this.emitStatus({
+        type: "error",
+        operation: functionName,
+        error: error.message,
+      });
+      throw error;
+    }
+  }
+
+  /**
+   * Execute a function locally using run() with OfflineQuery.
+   * Uses OfflineQuery to prevent network state lookups for locally-created records.
+   */
+  private async executeLocal(
+    program: string,
+    functionName: string,
+    inputs: string[],
+    imports?: Record<string, string>
+  ): Promise<string[]> {
+    console.log(`Starting ${functionName} execution (LOCAL)`);
+
+    // Create temporary account if none set.
+    if (!this.account) {
+      const tempAccount = new Account();
+      this.account = tempAccount;
+      this.programManager.setAccount(tempAccount);
+    }
+
+    // Create OfflineQuery with mock state to prevent network lookups.
+    // This allows local execution with locally-created records.
+    const offlineQuery = new OfflineQuery(
+      0, // block height
+      "sr1qqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqq6gk0xu" // mock state root
+    );
+
+    // Execute locally using run() with offlineQuery - no network lookups.
+    // Keys will be synthesized internally by the WASM using the offline query.
+    const executionResponse = await this.programManager.run(
+      program,
+      functionName,
+      inputs,
+      false, // proveExecution - false for local demo
+      imports,
+      undefined, // keySearchParams
+      undefined, // provingKey
+      undefined, // verifyingKey
+      undefined, // privateKey
+      offlineQuery
+    );
+
+    const outputs = executionResponse.getOutputs();
+    console.log("Outputs:", outputs);
+
+    return outputs;
+  }
+
+  /**
+   * Wait for a transaction to be confirmed on-chain.
+   *
+   * @param txId - The transaction ID to wait for
+   * @returns The confirmed transaction
+   */
+  private async waitForTransaction(txId: string): Promise<any> {
+    const startTime = Date.now();
+    const shortId = txId.slice(0, 16);
+
+    console.log(`[LoyaltyProgram] Broadcasting: ${shortId}...`);
+
+    // Use explorer API for transaction lookups (not DPS).
+    const explorerClient = new AleoNetworkClient("https://api.explorer.provable.com/v1");
+
+    while (Date.now() - startTime < this.TX_TIMEOUT_MS) {
+      try {
+        const tx = await explorerClient.getTransaction(txId);
+        if (tx) {
+          const elapsed = ((Date.now() - startTime) / 1000).toFixed(1);
+          console.log(`[LoyaltyProgram] Confirmed in ${elapsed}s`);
+          return tx;
+        }
+      } catch {
+        // Transaction not found yet, continue polling.
+      }
+
+      // Log progress every poll.
+      const elapsed = Math.round((Date.now() - startTime) / 1000);
+      console.log(`[LoyaltyProgram] Waiting for confirmation... (${elapsed}s)`);
+
+      await new Promise(resolve => setTimeout(resolve, this.TX_POLL_INTERVAL_MS));
+    }
+
+    throw new Error(`Transaction ${txId} not confirmed within ${this.TX_TIMEOUT_MS / 1000}s`);
+  }
+
+  /**
+   * Execute a function using delegated proving.
+   */
+  private async executeDelegated(
+    program: string,
+    functionName: string,
+    inputs: string[],
+    imports?: Record<string, string>
+  ): Promise<string[]> {
+    if (!this._dpsUrl) {
+      throw new Error(
+        "Delegated proving requires dpsUrl to be configured. " +
+        "Pass dpsUrl in the config or use setProvingMode(ProvingMode.Local)."
+      );
+    }
+
+    console.log(`Starting ${functionName} execution (DELEGATED)`);
+
+    // Get program name from source.
+    const programName = Program.fromString(program).id();
+
+    // Build the proving request with broadcast: true to submit to chain.
+    const provingRequest = await this.programManager.provingRequest({
+      programName,
+      programSource: program,
+      programImports: imports,
+      functionName,
+      inputs,
+      priorityFee: 0,
+      privateFee: false,
+      broadcast: true,
+    });
+
+    // Submit to DPS (with optional encryption via dpsPrivacy flag).
+    if (!this.networkClient) {
+      this.networkClient = new AleoNetworkClient(this._dpsUrl);
+    }
+
+    if (this._dpsPrivacy) {
+      console.log("[LoyaltyProgram] Using encrypted DPS flow (TEE-protected)");
+    }
+
+    const response = await this.networkClient.submitProvingRequest({
+      provingRequest,
+      url: this._dpsUrl,
+      apiKey: this._dpsApiKey,
+      consumerId: this._consumerId,
+      dpsPrivacy: this._dpsPrivacy,
+    });
+
+    // Wait for transaction confirmation and extract outputs.
+    const txId = response.transaction?.id;
+    if (!txId) {
+      throw new Error("DPS response did not contain a transaction ID");
+    }
+
+    const confirmedTx = await this.waitForTransaction(txId);
+    return this.extractOutputsFromTransaction(confirmedTx);
+  }
+
+  private extractOutputsFromTransaction(transaction: { execution?: { transitions: Array<{ outputs?: Array<{ type?: string; value?: string }> }> } }): string[] {
+    // Extract and decrypt record outputs from transaction execution.
+    const outputs: string[] = [];
+
+    if (transaction.execution?.transitions) {
+      for (const transition of transaction.execution.transitions) {
+        if (transition.outputs) {
+          for (const output of transition.outputs) {
+            if (output.value) {
+              // Check if this is an encrypted record (starts with "record1").
+              if (output.type === "record" && output.value.startsWith("record1") && this.account) {
+                const ciphertext = RecordCiphertext.fromString(output.value);
+                // Only decrypt records owned by this account (e.g. transfers produce records for other owners).
+                if (ciphertext.isOwner(this.account.viewKey())) {
+                  const plaintext = ciphertext.decrypt(this.account.viewKey());
+                  outputs.push(plaintext.toString());
+                }
+              } else {
+                outputs.push(output.value);
+              }
+            }
+          }
+        }
+      }
+    }
+
+    return outputs;
+  }
+
+  /**
+   * Read a mapping value from the network.
+   */
+  private async readMapping(
+    programId: string,
+    mappingName: string,
+    key: string
+  ): Promise<string | null> {
+    if (!this.networkClient) {
+      console.warn("No network client configured for mapping reads");
+      return null;
+    }
+
+    try {
+      const value = await this.networkClient.getProgramMappingValue(
+        programId,
+        mappingName,
+        key
+      );
+      return value;
+    } catch (error) {
+      console.log(`Mapping value not found: ${error}`);
+      return null;
+    }
+  }
+
+  /**
+   * Read a u64 mapping value from the network.
+   */
+  private async readMappingU64(
+    programId: string,
+    mappingName: string,
+    key: string
+  ): Promise<number | null> {
+    const value = await this.readMapping(programId, mappingName, key);
+    if (!value) return null;
+    return this.parseU64(value);
+  }
+
+  // ==========================================================================
+  // Parsing Helpers
+  // ==========================================================================
+
+  /**
+   * Parse a LoyaltyCard record from its string representation.
+   */
+  private parseCard(recordString: string): LoyaltyCard {
+    const fields = this.parseRecordFields(recordString);
+
+    return {
+      owner: this.cleanAddress(fields.owner),
+      cardId: this.cleanField(fields.card_id),
+      points: this.parseU64(fields.points),
+      tier: this.parseU8(fields.tier) as CardTier,
+      raw: recordString,
+    };
+  }
+
+  /**
+   * Parse a RewardVoucher record from its string representation.
+   */
+  private parseVoucher(recordString: string): RewardVoucher {
+    const fields = this.parseRecordFields(recordString);
+
+    return {
+      owner: this.cleanAddress(fields.owner),
+      voucherId: this.cleanField(fields.voucher_id),
+      rewardType: this.parseU8(fields.reward_type) as RewardType,
+      value: this.parseU64(fields.amount),  // Leo record uses 'amount' field.
+      raw: recordString,
+    };
+  }
+
+  /**
+   * Parse record fields from string representation.
+   */
+  private parseRecordFields(recordString: string): Record<string, string> {
+    const fields: Record<string, string> = {};
+    const matches = recordString.matchAll(/(\w+):\s*([^,}]+)/g);
+
+    for (const match of matches) {
+      const [, key, value] = match;
+      fields[key.trim()] = value.trim();
+    }
+
+    return fields;
+  }
+
+  /**
+   * Parse a u64 value from string (e.g., "1000u64" -> 1000).
+   */
+  private parseU64(value: string): number {
+    const match = value.match(/(\d+)u64/);
+    return match ? parseInt(match[1], 10) : 0;
+  }
+
+  /**
+   * Parse a u8 value from string (e.g., "2u8" -> 2).
+   */
+  private parseU8(value: string): number {
+    const match = value.match(/(\d+)u8/);
+    return match ? parseInt(match[1], 10) : 0;
+  }
+
+  /**
+   * Clean address string (remove .private suffix).
+   */
+  private cleanAddress(value: string): string {
+    return value.replace(/\.private$/, "").trim();
+  }
+
+  /**
+   * Clean field string (remove field suffix).
+   */
+  private cleanField(value: string): string {
+    return value.replace(/field\.private$/, "field").trim();
+  }
+}
+
+// ============================================================================
+// Helper Functions (for backwards compatibility and utilities)
+// ============================================================================
+
+/**
+ * Demo account credentials (same as Node template).
+ * This account is pre-funded on testnet for demo purposes.
+ */
+const DEMO_ACCOUNT_CIPHERTEXT =
+  "ciphertext1qvq283j7ujnhz59d4rnu772rfmvf94039x9ekhk2lzuutteqzlghsr3g9824qgw97a79mmdymqdt0ulqdkahq39vnerw2tl7thvvnnunq386jzjnw29e0ghnq7unphgdzw637q3fgvvlkrcywsc5jukkdhss5qq3njp";
+const DEMO_ACCOUNT_PASSWORD = "provablealeo1";
+
+/**
+ * Load the pre-funded demo account and set it on the LoyaltyProgram.
+ * This is the same account used in the Node template.
+ */
+async function loadDemoAccount(): Promise<{
+  privateKey: string;
+  viewKey: string;
+  address: string;
+}> {
+  const account = Account.fromCiphertext(DEMO_ACCOUNT_CIPHERTEXT, DEMO_ACCOUNT_PASSWORD);
+  getLoyaltyProgram().setAccount(account);
+  return {
+    privateKey: account.privateKey().to_string(),
+    viewKey: account.viewKey().to_string(),
+    address: account.address().to_string(),
+  };
+}
+
+/**
+ * Create a new account, set it on the LoyaltyProgram, and return its details.
+ */
+async function createAccount(): Promise<{
+  privateKey: string;
+  viewKey: string;
+  address: string;
+}> {
+  const account = new Account();
+  // Set this account on the LoyaltyProgram so record operations work
+  getLoyaltyProgram().setAccount(account);
+  return {
+    privateKey: account.privateKey().to_string(),
+    viewKey: account.viewKey().to_string(),
+    address: account.address().to_string(),
+  };
+}
+
+/**
+ * Generate a new private key.
+ */
+async function getPrivateKey(): Promise<any> {
+  const key = new PrivateKey();
+  return proxy(key);
+}
+
+/**
+ * Get the current block height from the network.
+ */
+async function getBlockHeight(apiUrl: string): Promise<number> {
+  const networkClient = new AleoNetworkClient(apiUrl);
+  return networkClient.getLatestHeight();
+}
+
+/**
+ * Scan for records owned by an account.
+ */
+/**
+ * Get tier name from tier value.
+ */
+function getTierName(tier: CardTier): string {
+  return CardTier[tier] ?? "Unknown";
+}
+
+/**
+ * Get reward type name from type value.
+ */
+function getRewardTypeName(type: RewardType): string {
+  return RewardType[type] ?? "Unknown";
+}
+
+// ============================================================================
+// Factory function for creating LoyaltyProgram instances in the worker
+// ============================================================================
+
+/**
+ * Create a LoyaltyProgram instance configured for local execution.
+ */
+function createLocalLoyaltyProgram(
+  tokenProgram: string,
+  rewardsProgram: string
+): LoyaltyProgram {
+  const loyalty = new LoyaltyProgram();
+  loyalty.setPrograms(tokenProgram, rewardsProgram);
+  return loyalty;
+}
+
+
+// ============================================================================
+// Worker Instance
+// ============================================================================
+
+// Create a shared instance for the worker.
+let loyaltyInstance: LoyaltyProgram | null = null;
+
+/**
+ * Initialize the loyalty program with program sources.
+ */
+function initLoyaltyProgram(
+  tokenProgram: string,
+  rewardsProgram: string,
+  config?: ProgramConfig
+): boolean {
+  console.log("[Worker] initLoyaltyProgram called with config:", config);
+  if (config) {
+    console.log("[Worker] Creating account...");
+    const account = new Account();
+    console.log("[Worker] Creating LoyaltyProgram instance...");
+    loyaltyInstance = new LoyaltyProgram(account, config);
+    console.log("[Worker] Setting programs...");
+    loyaltyInstance.setPrograms(tokenProgram, rewardsProgram);
+  } else {
+    console.log("[Worker] Creating local LoyaltyProgram...");
+    loyaltyInstance = createLocalLoyaltyProgram(tokenProgram, rewardsProgram);
+  }
+  console.log("[Worker] initLoyaltyProgram complete!");
+  return true;
+}
+
+/**
+ * Get the current loyalty program instance.
+ */
+function getLoyaltyProgram(): LoyaltyProgram {
+  if (!loyaltyInstance) {
+    throw new Error("Loyalty program not initialized. Call initLoyaltyProgram first.");
+  }
+  return loyaltyInstance;
+}
+
+/**
+ * Get the current proving mode.
+ */
+function getProvingMode(): ProvingMode {
+  return getLoyaltyProgram().provingMode;
+}
+
+/**
+ * Set the proving mode.
+ */
+function setProvingMode(mode: ProvingMode): void {
+  getLoyaltyProgram().setProvingMode(mode);
+}
+
+/**
+ * Check if record scanner is configured.
+ */
+function hasRecordScanner(): boolean {
+  return getLoyaltyProgram().hasRecordScanner;
+}
+
+/**
+ * Configure the RSS record scanner.
+ */
+function setRecordScanner(url: string, apiKey?: string): void {
+  getLoyaltyProgram().setRecordScanner(url, apiKey);
+}
+
+// Wrapper functions that use the shared instance
+async function mintCard(
+  recipient: string,
+  initialPoints: number,
+  nonce?: string
+): Promise<LoyaltyCard> {
+  const card = await getLoyaltyProgram().mintCard(recipient, initialPoints, nonce);
+  console.log("[Worker] mintCard returning card:", JSON.stringify(card));
+  return card;
+}
+
+async function addPoints(card: LoyaltyCard, pointsToAdd: number): Promise<LoyaltyCard> {
+  console.log("[Worker] addPoints wrapper called with card:", JSON.stringify(card));
+  return getLoyaltyProgram().addPoints(card, pointsToAdd);
+}
+
+async function redeemForVoucher(
+  card: LoyaltyCard,
+  rewardType: RewardType,
+  pointsCost: number
+): Promise<RedeemResult> {
+  return getLoyaltyProgram().redeemForVoucher(card, rewardType, pointsCost);
+}
+
+async function useVoucher(voucher: RewardVoucher): Promise<void> {
+  return getLoyaltyProgram().useVoucher(voucher);
+}
+
+async function splitCardV2(card: LoyaltyCard, pointsToKeep: number): Promise<SplitResult> {
+  return getLoyaltyProgram().splitCardV2(card, pointsToKeep);
+}
+
+async function transferCard(card: LoyaltyCard, newOwner: string): Promise<LoyaltyCard> {
+  return getLoyaltyProgram().transferCard(card, newOwner);
+}
+
+async function transferVoucher(
+  voucher: RewardVoucher,
+  newOwner: string
+): Promise<RewardVoucher> {
+  return getLoyaltyProgram().transferVoucher(voucher, newOwner);
+}
+
+async function findMyCards(startHeight?: number, endHeight?: number): Promise<LoyaltyCard[]> {
+  return getLoyaltyProgram().findMyCards(startHeight, endHeight);
+}
+
+async function findMyVouchers(startHeight?: number, endHeight?: number): Promise<RewardVoucher[]> {
+  return getLoyaltyProgram().findMyVouchers(startHeight, endHeight);
+}
+
+// ============================================================================
+// Export Worker Methods
+// ============================================================================
+
+/**
+ * Simple ping function to test comlink connectivity.
+ */
+function ping(): string {
+  console.log("[Worker] ping called!");
+  return "pong";
+}
+
+const workerMethods = {
+  // Test
+  ping,
+
+  // Initialization
+  initLoyaltyProgram,
+
+  // Configuration
+  getProvingMode,
+  setProvingMode,
+  hasRecordScanner,
+  setRecordScanner,
+
+  // Card operations
+  mintCard,
+  addPoints,
+  splitCardV2,
+  transferCard,
+
+  // Voucher operations
+  redeemForVoucher,
+  useVoucher,
+  transferVoucher,
+
+  // Record discovery
+  findMyCards,
+  findMyVouchers,
+
+  // Account utilities
+  loadDemoAccount,
+  createAccount,
+  getPrivateKey,
+
+  // Network utilities
+  getBlockHeight,
+
+  // Helpers
+  getTierName,
+  getRewardTypeName,
+
+  // Enums (for UI)
+  ProvingMode,
+  RewardType,
+  CardTier,
+};
+
+console.log("[Worker] Exposing worker methods via comlink...");
+expose(workerMethods);
+console.log("[Worker] Worker ready!");
+
+// Signal to main thread that worker is ready
+self.postMessage("ready");
+
+// LoyaltyProgram class and types are already exported at their declarations.
