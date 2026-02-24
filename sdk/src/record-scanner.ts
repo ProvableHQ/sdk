@@ -8,6 +8,7 @@ import { RecordProvider } from "./record-provider";
 import { Field, Poseidon4, RecordCiphertext, RecordPlaintext, ViewKey } from "./wasm";
 import { RecordsFilter } from "./models/record-scanner/recordsFilter";
 import { RegisterResult } from "./models/record-scanner/registrationResult.js";
+import { RevokeResult } from "./models/record-scanner/revokeResult.js";
 import {
     DecryptionNotEnabledError,
     RecordNotFoundError,
@@ -440,6 +441,59 @@ class RecordScanner implements RecordProvider {
     }
 
     /**
+     * Remove all local scanner state associated with the given UUID (stored uuid, viewKeys entry, account if it matches).
+     * Called after a successful revoke so the scanner does not retain view keys or account for a revoked registration.
+     */
+    private clearLocalStateForUuid(uuidStr: string): void {
+        if (this.uuid != null && this.uuid.toString() === uuidStr) {
+            this.uuid = undefined;
+        }
+        if (this.viewKeys != null) {
+            delete this.viewKeys[uuidStr];
+            if (Object.keys(this.viewKeys).length === 0) {
+                this.viewKeys = undefined;
+            }
+        }
+        if (this.account != null && this.computeUUID(this.account.viewKey()).toString() === uuidStr) {
+            this.account = undefined;
+        }
+    }
+
+    /**
+     * Revoke the account registration with the record scanning service (POST /revoke). On success, also removes
+     * all local state for that UUID: the stored UUID (if it matches), the view key for that UUID, and the
+     * account (if its view key corresponds to that UUID).
+     *
+     * @param {string | Field | undefined} uuid The UUID to revoke. If omitted, uses the UUID configured on the scanner.
+     * @returns {Promise<RevokeResult>} `{ ok: true, data: { status } }` on success, or `{ ok: false, status, error }` on failure.
+     * @throws {UUIDError} When no UUID is configured and none provided, or when the UUID string is invalid.
+     */
+    async revoke(uuid?: string | Field): Promise<RevokeResult> {
+        const resolvedUuid = uuid ?? this.uuid;
+        if (!resolvedUuid) {
+            throw new UUIDError("No UUID configured for the record scanner and no UUID provided.");
+        }
+        const uuidStr = typeof resolvedUuid === "string" ? resolvedUuid : resolvedUuid.toString();
+        if (!this.uuidIsValid(uuidStr)) {
+            throw new UUIDError(`UUID provided ${uuidStr} is invalid`, uuidStr);
+        }
+        try {
+            const response = await this.request(
+                new Request(`${this.url}/revoke`, {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify(uuidStr),
+                }),
+            );
+            const data = await response.json();
+            this.clearLocalStateForUuid(uuidStr);
+            return { ok: true, data };
+        } catch (err) {
+            return this.handleRequestError(err);
+        }
+    }
+
+    /**
      * Get encrypted records from the record scanning service. This is a safe variant of /records/encrypted that returns
      * a result instead of throwing on HTTP error.
      *
@@ -608,8 +662,11 @@ class RecordScanner implements RecordProvider {
         // Throw an error if none could be found, otherwise set the UUID on the filter with either the UUID configured
         // within the filter or the UUID configured within the scanner.
         if (!uuid) {
-            throw new Error("Error while using the record scanner. UUID is not set on the scanner and the UUID " +
-                "provided in the record filter was invalid.");
+            throw new UUIDError(
+                "Error while using the record scanner. UUID is not set on the scanner and the UUID provided in the record filter was invalid.",
+                undefined,
+                filter,
+            );
         }
         filter.uuid = uuid;
 
