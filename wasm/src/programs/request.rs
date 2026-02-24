@@ -227,7 +227,9 @@ impl ExecutionRequest {
     /// @param {string[]} inputs The inputs to the function.
     /// @param {string[]} input_types The input types of the function.
     /// @param {Field | undefined} root_tvk The tvk of the function at the top of the call graph. This is undefined if this request is built for the top-level call or if there is only one function in the call graph.
+    /// @param {Field | undefined} program_checksum The checksum of the program. This is undefined if the call is not dynamic.
     /// @param {boolean} is_root Flag to indicate if this is the top level function in the call graph.
+    /// @param {boolean} is_dynamic Flag to indicate if this is a dynamic call.
     #[allow(clippy::too_many_arguments)]
     pub fn sign(
         private_key: PrivateKey,
@@ -238,6 +240,7 @@ impl ExecutionRequest {
         root_tvk: Option<Field>,
         program_checksum: Option<Field>,
         is_root: bool,
+        is_dynamic: bool,
     ) -> Result<ExecutionRequest, String> {
         // Convert the ProgramID and function name to their native objects.
         let program_id = ProgramIDNative::from_str(&program_id).map_err(|e| e.to_string())?;
@@ -272,6 +275,7 @@ impl ExecutionRequest {
             root_tvk,
             is_root,
             program_checksum,
+            is_dynamic,
             &mut rng,
         )
         .map_err(|e| e.to_string())?;
@@ -536,8 +540,9 @@ impl ExecutionRequest {
 
     /// Verify the input types within a request.
     ///
-    /// @param {string[]} The input_types within the request.
-    /// @param {boolean} Flag to indicate whether this request is the first function in the call graph.
+    /// @param {string[]} input_types The input types within the request.
+    /// @param {boolean} is_root Flag to indicate whether this request is the first function in the call graph.
+    /// @param {Field | undefined} program_checksum The checksum of the program. This is undefined if the call is not dynamic.
     pub fn verify(&self, input_types: Array, is_root: bool, program_checksum: Option<Field>) -> bool {
         let input_types = input_types
             .iter()

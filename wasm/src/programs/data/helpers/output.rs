@@ -115,5 +115,92 @@ pub fn output_to_js_value(output: &OutputNative, convert_to_js: bool) -> JsValue
             };
             JsValue::from(&value)
         }
+        OutputNative::DynamicRecord(output_commitment) => {
+            let dynamic_record_object = object! {
+                "type": "record_dynamic",
+                "id": if convert_to_js { JsValue::from(output_commitment.to_string()) } else { JsValue::from(Field::from(output_commitment)) },
+            };
+            JsValue::from(dynamic_record_object)
+        }
+        OutputNative::RecordWithDynamicID(
+            output_commitment,
+            checksum,
+            record_ciphertext,
+            sender_ciphertext,
+            dynamic_id,
+        ) => {
+            let value = if let Some(record_ciphertext) = record_ciphertext {
+                if convert_to_js {
+                    JsValue::from(record_ciphertext.to_string())
+                } else {
+                    JsValue::from(RecordCiphertext::from(record_ciphertext))
+                }
+            } else {
+                JsValue::UNDEFINED
+            };
+            let sender_ciphertext = if let Some(sender_ciphertext) = sender_ciphertext {
+                if convert_to_js {
+                    JsValue::from(sender_ciphertext.to_string())
+                } else {
+                    JsValue::from(Field::from(sender_ciphertext))
+                }
+            } else {
+                JsValue::UNDEFINED
+            };
+            let record_with_dynamic_id_object = object! {
+                "type": "record_with_dynamic_id",
+                "id": if convert_to_js { JsValue::from(output_commitment.to_string()) } else { JsValue::from(Field::from(output_commitment)) },
+                "checksum": if convert_to_js { JsValue::from(checksum.to_string()) } else { JsValue::from(Field::from(checksum)) },
+                "value": value,
+                "sender_ciphertext": sender_ciphertext,
+                "dynamic_id": if convert_to_js { JsValue::from(dynamic_id.to_string()) } else { JsValue::from(Field::from(dynamic_id)) },
+            };
+            JsValue::from(record_with_dynamic_id_object)
+        }
+        OutputNative::ExternalRecordWithDynamicID(external_record_hash, dynamic_id) => {
+            let external_record_with_dynamic_id = object! {
+                "type": "external_record_with_dynamic_id",
+                "id": if convert_to_js { JsValue::from(external_record_hash.to_string()) } else { JsValue::from(Field::from(external_record_hash)) },
+                "dynamic_id": if convert_to_js { JsValue::from(Field::from(dynamic_id).to_string()) } else { JsValue::from(Field::from(dynamic_id)) },
+            };
+            JsValue::from(external_record_with_dynamic_id)
+        }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::types::native::FieldNative;
+    use js_sys::Reflect;
+    use snarkvm_console::prelude::One;
+    use wasm_bindgen_test::*;
+
+    fn get_type(js: &JsValue) -> String {
+        Reflect::get(js, &JsValue::from_str("type")).unwrap().as_string().unwrap()
+    }
+
+    #[wasm_bindgen_test]
+    fn test_dynamic_record_output_type_matches_snarkvm() {
+        let field = FieldNative::one();
+        let output = OutputNative::DynamicRecord(field);
+        let js = output_to_js_value(&output, true);
+        assert_eq!(get_type(&js), "record_dynamic");
+    }
+
+    #[wasm_bindgen_test]
+    fn test_record_with_dynamic_id_output_type_matches_snarkvm() {
+        let field = FieldNative::one();
+        let output = OutputNative::RecordWithDynamicID(field, field, None, None, field);
+        let js = output_to_js_value(&output, true);
+        assert_eq!(get_type(&js), "record_with_dynamic_id");
+    }
+
+    #[wasm_bindgen_test]
+    fn test_external_record_with_dynamic_id_output_type_matches_snarkvm() {
+        let field = FieldNative::one();
+        let output = OutputNative::ExternalRecordWithDynamicID(field, field);
+        let js = output_to_js_value(&output, true);
+        assert_eq!(get_type(&js), "external_record_with_dynamic_id");
     }
 }
