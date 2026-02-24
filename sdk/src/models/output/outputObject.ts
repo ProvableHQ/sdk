@@ -14,5 +14,6 @@ export interface OutputObject {
     checksum?: string | Field,
     program?: string,
     function?: string,
-    arguments?: Array<Plaintext> | Array<OutputObject>
+    arguments?: Array<Plaintext> | Array<OutputObject>,
+    dynamic_id?: string | Field,
 }
