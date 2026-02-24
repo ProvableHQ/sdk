@@ -891,6 +891,8 @@ describe("RecordScanner (real API)", function () {
             expect(result.ok).to.equal(true);
             if (result.ok) {
                 expect(result.data.uuid).to.equal(scanner.computeUUID(ephemeralViewKey).toString());
+                const revokeResult = await scanner.revoke(result.data.uuid);
+                expect(revokeResult.ok).to.equal(true);
             }
         });
 
