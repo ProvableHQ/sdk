@@ -12,4 +12,5 @@ export interface InputObject {
     id: "string" | Field,
     tag?: string | Field,
     value?: Ciphertext | Plaintext | PlaintextObject,
+    dynamic_id?: string | Field,
 }
