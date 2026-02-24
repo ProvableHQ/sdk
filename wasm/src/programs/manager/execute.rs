@@ -742,7 +742,7 @@ impl ProgramManager {
 
         let stack = process.get_stack(program.id()).map_err(|e| e.to_string())?;
 
-        cost_in_microcredits_v2(&stack, &function_id).map_err(|e| e.to_string())
+        minimum_cost_in_microcredits_v2(&stack, &function_id).map_err(|e| e.to_string())
     }
 }
 
