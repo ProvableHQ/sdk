@@ -26,11 +26,12 @@ use crate::{
         IdentifierNative,
         ProgramIDNative,
         RequestNative,
+        U16Native,
         ValueNative,
         ValueTypeNative,
     },
 };
-use snarkvm_console::network::Network;
+use snarkvm_console::{network::Network, prelude::{One, ToFields, Zero}, program::compute_function_id};
 use snarkvm_wasm::utilities::{FromBytes, ToBytes};
 
 use js_sys::{Array, Uint8Array};
@@ -219,6 +220,73 @@ impl ExecutionRequest {
         let program_checksum = program_checksum.map(FieldNative::from);
         self.0.verify(&input_types, is_root, program_checksum)
     }
+
+    /// Computes the function ID and serialized input data for a program function call.
+    /// This is a helper for MPC wallets and other applications that need to compute
+    /// publicly computable inputs for the `Request::sign` function.
+    ///
+    /// Returns an array of the form:
+    ///   `[function_id, is_root, program_checksum | null, [[index, [field,...]], ...]]`
+    ///
+    /// @param {string} program_id The id of the program.
+    /// @param {string} function_name The function name.
+    /// @param {string[]} inputs The inputs to the function as strings.
+    /// @param {boolean} is_root Flag to indicate if this is the top level function in the call graph.
+    /// @param {Field | undefined} program_checksum The program checksum (required if the program has a constructor).
+    #[wasm_bindgen(js_name = "computePublicMessagePayload")]
+    pub fn compute_public_message_payload(
+        program_id: String,
+        function_name: String,
+        inputs: Array,
+        is_root: bool,
+        program_checksum: Option<Field>,
+    ) -> Result<Array, String> {
+        // Convert the ProgramID and function name to their native objects.
+        let program_id = ProgramIDNative::from_str(&program_id).map_err(|e| e.to_string())?;
+        let function_name = IdentifierNative::from_str(&function_name).map_err(|e| e.to_string())?;
+
+        // Retrieve the network ID.
+        let network_id = U16Native::new(CurrentNetwork::ID);
+
+        // Compute the function ID.
+        let function_id =
+            Field::from(compute_function_id(&network_id, &program_id, &function_name).map_err(|e| e.to_string())?);
+
+        // Compute 'is_root' as a field element.
+        let is_root_field = Field::from(if is_root { FieldNative::one() } else { FieldNative::zero() });
+
+        // Build the per-input data array.
+        let input_data = Array::new();
+        for (index, input_js) in inputs.iter().enumerate() {
+            // Parse the input value.
+            let input =
+                ValueNative::from_str(&input_js.as_string().ok_or_else(|| "Input must be a string".to_string())?)
+                    .map_err(|e| e.to_string())?;
+
+            // Compute the index as a field element.
+            let index_field = Field::from(FieldNative::from_u16(
+                u16::try_from(index).map_err(|_| format!("Input index {index} exceeds maximum allowed value"))?,
+            ));
+
+            // Serialize the input as fields.
+            let fields_array: Array = input
+                .to_fields()
+                .map_err(|e| e.to_string())?
+                .iter()
+                .map(|f| JsValue::from(Field::from(f)))
+                .collect();
+
+            // Build the [index, fields] pair and add to input_data.
+            input_data.push(&Array::of2(&JsValue::from(index_field), &fields_array));
+        }
+
+        // Build the result array.
+        let checksum_js = match program_checksum {
+            Some(checksum) => JsValue::from(checksum),
+            None => JsValue::NULL,
+        };
+        Ok(Array::of4(&JsValue::from(function_id), &JsValue::from(is_root_field), &checksum_js, &input_data))
+    }
 }
 
 impl Deref for ExecutionRequest {
@@ -250,5 +318,98 @@ impl From<ExecutionRequest> for RequestNative {
 impl From<&ExecutionRequest> for RequestNative {
     fn from(request: &ExecutionRequest) -> Self {
         request.0.clone()
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::types::native::CurrentNetwork;
+    use snarkvm_console::network::Network;
+    use wasm_bindgen_test::*;
+
+    #[wasm_bindgen_test]
+    fn test_compute_public_message_payload_returns_correct_structure() {
+        if CurrentNetwork::ID == 0 {
+            let program_id = "credits.aleo".to_string();
+            let function_name = "transfer_public".to_string();
+            let inputs = Array::new();
+            inputs.push(&JsValue::from_str("aleo1rhgdu77hgyqd3xjj8ucu3jj9r2krwz6mnzyd80gncr5fxcwlh5rsvzp9px"));
+            inputs.push(&JsValue::from_str("100u64"));
+
+            let result =
+                ExecutionRequest::compute_public_message_payload(program_id, function_name, inputs, true, None)
+                    .unwrap();
+
+            // The result should be an array of 4 elements.
+            assert_eq!(result.length(), 4);
+
+            // The first element should be a Field (function_id).
+            let function_id = Field::try_from_js_value(result.get(0)).unwrap();
+            assert!(!function_id.to_string().is_empty());
+
+            // The second element should be a Field (is_root = 1field for true).
+            let is_root = Field::try_from_js_value(result.get(1)).unwrap();
+            assert_eq!(is_root.to_string(), "1field");
+
+            // The third element should be null (no program checksum).
+            assert!(result.get(2).is_null());
+
+            // The fourth element should be an Array with 2 entries (one per input).
+            let input_data = Array::from(&result.get(3));
+            assert_eq!(input_data.length(), 2);
+
+            // Each entry should be a 2-element array of [index_field, fields_array].
+            let entry0 = Array::from(&input_data.get(0));
+            assert_eq!(entry0.length(), 2);
+            let index0 = Field::try_from_js_value(entry0.get(0)).unwrap();
+            assert_eq!(index0.to_string(), "0field");
+            let fields0 = Array::from(&entry0.get(1));
+            assert!(fields0.length() > 0);
+
+            let entry1 = Array::from(&input_data.get(1));
+            assert_eq!(entry1.length(), 2);
+            let index1 = Field::try_from_js_value(entry1.get(0)).unwrap();
+            assert_eq!(index1.to_string(), "1field");
+            let fields1 = Array::from(&entry1.get(1));
+            assert!(fields1.length() > 0);
+        }
+    }
+
+    #[wasm_bindgen_test]
+    fn test_compute_public_message_payload_is_root_false() {
+        if CurrentNetwork::ID == 0 {
+            let result = ExecutionRequest::compute_public_message_payload(
+                "credits.aleo".to_string(),
+                "transfer_public".to_string(),
+                Array::new(),
+                false,
+                None,
+            )
+            .unwrap();
+
+            let is_root = Field::try_from_js_value(result.get(1)).unwrap();
+            assert_eq!(is_root.to_string(), "0field");
+        }
+    }
+
+    #[wasm_bindgen_test]
+    fn test_compute_public_message_payload_with_checksum() {
+        if CurrentNetwork::ID == 0 {
+            let checksum = Field::from_string("1field").unwrap();
+            let result = ExecutionRequest::compute_public_message_payload(
+                "credits.aleo".to_string(),
+                "transfer_public".to_string(),
+                Array::new(),
+                true,
+                Some(checksum),
+            )
+            .unwrap();
+
+            // The third element should be a Field (program checksum).
+            assert!(!result.get(2).is_null());
+            let checksum_field = Field::try_from_js_value(result.get(2)).unwrap();
+            assert_eq!(checksum_field.to_string(), "1field");
+        }
     }
 }
