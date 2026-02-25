@@ -179,42 +179,24 @@ export class LocalFileKeyStore implements KeyStore {
 
     /**
      * Recursively removes all files and subdirectories under the given directory, then removes the directory itself.
+     * Uses fs.rm with recursive: true and force: true so that symbolic links are removed without following them,
+     * avoiding deletion of content outside the keystore.
      *
      * @private
      * @param {string} dir - Directory path to clear
      * @returns {Promise<void>} Resolves when clearing is complete
-     * @throws {Error} If directory listing fails for reasons other than non-existence
+     * @throws {Error} If directory removal fails for reasons other than non-existence
      */
-    private async clearRecursive(dir: string): Promise<void> {
-        let entries: string[];
+    private async clearDirectory(dir: string): Promise<void> {
         try {
-            entries = await fs.readdir(dir);
-        } catch (err: any) {
-            if (err.code === "ENOENT") {
+            await fs.rm(dir, { recursive: true, force: true });
+        } catch (err: unknown) {
+            const code = err && typeof err === "object" && "code" in err ? (err as NodeJS.ErrnoException).code : undefined;
+            if (code === "ENOENT") {
                 return;
             }
             throw err;
         }
-
-        await Promise.all(
-            entries.map(async (name) => {
-                const full = path.join(dir, name);
-                let stat: Awaited<ReturnType<typeof fs.stat>>;
-                try {
-                    stat = await fs.stat(full);
-                } catch {
-                    return;
-                }
-
-                if (stat.isDirectory()) {
-                    await this.clearRecursive(full);
-                } else if (stat.isFile()) {
-                    await fs.unlink(full).catch(() => {});
-                }
-            }),
-        );
-
-        await fs.rmdir(dir).catch(() => {});
     }
 
     // -------------------------------------------------------
@@ -472,6 +454,6 @@ export class LocalFileKeyStore implements KeyStore {
      * await clear(); // Removes all files under the keystore directory.
      */
     async clear(): Promise<void> {
-        await this.clearRecursive(this.directory);
+        await this.clearDirectory(this.directory);
     }
 }
