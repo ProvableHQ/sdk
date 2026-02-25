@@ -58,8 +58,8 @@ class AleoKeyProviderParams implements KeySearchParams {
 
 
 /**
- * AleoKeyProvider class. Implements the KeyProvider interface. Enables the retrieval of Aleo program proving and
- * verifying keys for the credits.aleo program over http from official Aleo sources and storing and retrieving function
+ * AleoKeyProvider class. Implements the FunctionKeyProvider interface. Enables the retrieval of Aleo program proving and
+ * verifying keys for the credits.aleo program over HTTP from official Aleo sources and storing and retrieving function
  * keys from a local memory cache.
  */
 class AleoKeyProvider implements FunctionKeyProvider {

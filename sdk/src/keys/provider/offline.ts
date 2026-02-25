@@ -66,7 +66,7 @@ class OfflineSearchParams implements KeySearchParams {
     }
 
     /**
-     * Create a new OfflineSearchParams instance for the claim_unbond_public function of the
+     * Create a new OfflineSearchParams instance for the claim_unbond_public function of the credits.aleo program.
      */
     static claimUnbondPublicKeyParams(): OfflineSearchParams {
         return new OfflineSearchParams(CREDITS_PROGRAM_KEYS.claim_unbond_public.locator, true);

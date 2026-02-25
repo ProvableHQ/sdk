@@ -179,15 +179,15 @@ export class LocalFileKeyStore implements KeyStore {
      * @example
      * const keyBytes = await getKeyBytes({
      *   locator: 'transfer_private.prover.421e5a5',
-     *   fingerprint: { checksum: '421e5a52f01a1eeb068bbf56d15e19477ff7290e4b988d1013e15563f2b77801', size: '116746954'}
+     *   fingerprint: { checksum: '421e5a52f01a1eeb068bbf56d15e19477ff7290e4b988d1013e15563f2b77801', size: 116746954 }
      * });
      * if (keyBytes) {
      *   // Use the verified key bytes
      * }
      */
     async getKeyBytes(locator: KeyLocator): Promise<Uint8Array | null> {
-        // Attempt to read key bytes from storage.
-        const keyBytes = await this.readFileOptional(locator.locator);
+        // Attempt to read key bytes from storage (under this.directory).
+        const keyBytes = await this.readFileOptional(path.join(this.directory, locator.locator));
 
         // If no key bytes were found, return null.
         if (!keyBytes) return null;
@@ -235,18 +235,19 @@ export class LocalFileKeyStore implements KeyStore {
     async getProvingKey(locator: KeyLocator): Promise<ProvingKey | null> {
         // Get the key bytes from storage.
         const proverBytes = await this.getKeyBytes(locator);
+        if (!proverBytes) return null;
 
         // Attempt to parse the key bytes as a WASM ProvingKey (throws if invalid).
-        ProvingKey.fromBytes(proverBytes);
+        return ProvingKey.fromBytes(proverBytes);
     }
 
     /**
      * Retrieves and verifies a verifying key from storage.
      *
-     * @param {KeyLocator} locator - Object containing the proving key location and optional fingerprint.
-     * @returns {Promise<ProvingKey | null>} The proving key if found and verified, null if not found.
+     * @param {KeyLocator} locator - Object containing the verifying key location and optional fingerprint.
+     * @returns {Promise<VerifyingKey | null>} The verifying key if found and verified, null if not found.
      * @throws {KeyVerificationError} If fingerprint verification fails.
-     * @throws {Error} If key bytes cannot be parsed into a valid ProvingKey.
+     * @throws {Error} If key bytes cannot be parsed into a valid VerifyingKey.
      *
      * @example
      * try {
@@ -254,7 +255,7 @@ export class LocalFileKeyStore implements KeyStore {
      *     locator: 'transfer_private.verifier.4ac2f71'
      *   });
      *   if (key) {
-     *     // Use the verified proving key
+     *     // Use the verified verifying key
      *   }
      * } catch (err) {
      *   if (err instanceof KeyVerificationError) {
@@ -264,12 +265,13 @@ export class LocalFileKeyStore implements KeyStore {
      *   }
      * }
      */
-    async getVerifyingKey(locator: KeyLocator): Promise<ProvingKey | null> {
+    async getVerifyingKey(locator: KeyLocator): Promise<VerifyingKey | null> {
         // Get the key bytes from storage.
-        const proverBytes = await this.getKeyBytes(locator);
+        const verifierBytes = await this.getKeyBytes(locator);
+        if (!verifierBytes) return null;
 
-        // Attempt to parse the key bytes as a WASM ProvingKey (throws if invalid).
-        VerifyingKey.fromBytes(proverBytes);
+        // Attempt to parse the key bytes as a WASM VerifyingKey (throws if invalid).
+        return VerifyingKey.fromBytes(verifierBytes);
     }
 
     /**
@@ -281,10 +283,11 @@ export class LocalFileKeyStore implements KeyStore {
      *
      * @example
      * const keys = await generateKeys();
-     * await setKeys({
-     *   proverLocator: 'transfer_private.prover',
-     *   verifierLocator: 'transfer_private.verifier'
-     * }, keys);
+     * await setKeys(
+     *   { locator: 'transfer_private.prover' },
+     *   { locator: 'transfer_private.verifier' },
+     *   keys
+     * );
      */
     async setKeys(
         proverLocator: KeyLocator,
@@ -312,9 +315,9 @@ export class LocalFileKeyStore implements KeyStore {
             }),
         ]);
 
-        // Write the proving and verifying key bytes and their metadata to storage.
-        await this.writeFileAtomic(proverLocator.locator, provingKeyBytes);
-        await this.writeFileAtomic(verifierLocator.locator, verifyingKeyBytes);
+        // Write the proving and verifying key bytes and their metadata to storage (under this.directory).
+        await this.writeFileAtomic(path.join(this.directory, proverLocator.locator), provingKeyBytes);
+        await this.writeFileAtomic(path.join(this.directory, verifierLocator.locator), verifyingKeyBytes);
         await this.writeKeyMetadata(proverLocator.locator, proverFingerPrint);
         await this.writeKeyMetadata(
             verifierLocator.locator,
@@ -342,16 +345,16 @@ export class LocalFileKeyStore implements KeyStore {
             fingerprint: locator.fingerprint,
         });
 
-        // Write the key bytes and metadata atomically
-        await this.writeFileAtomic(locator.locator, keyBytes);
+        // Write the key bytes and metadata atomically (key file under this.directory).
+        await this.writeFileAtomic(path.join(this.directory, locator.locator), keyBytes);
         await this.writeKeyMetadata(locator.locator, computedMetadata);
     }
 
     /**
-     * Returns stored metadata for a keypair, if any.
+     * Returns stored metadata for a key, if any.
      *
-     * @param {string} locator The unique locator for the keypair.
-     * @returns {Promise<{ prover: KeyFingerprint; verifier: KeyFingerprint } | null>} The stored metadata, or null if none or keypair does not exist.
+     * @param {string} locator The unique locator for the key.
+     * @returns {Promise<KeyFingerprint | null>} The stored fingerprint metadata for that locator, or null if none exists.
      *
      * @example
      * const metadata = await getKeyMetadata('transfer_private.prover.421e5a5');
@@ -378,8 +381,9 @@ export class LocalFileKeyStore implements KeyStore {
      * }
      */
     async has(locator: string): Promise<boolean> {
+        const keyPath = path.join(this.directory, locator);
         return await fs
-            .access(locator)
+            .access(keyPath)
             .then(() => true)
             .catch(() => false);
     }
@@ -394,7 +398,7 @@ export class LocalFileKeyStore implements KeyStore {
      * await delete('transfer_private.prover.421e5a5');
      */
     async delete(locator: string): Promise<void> {
-        const p = this.directory + "/" + locator;
+        const p = path.join(this.directory, locator);
         const m = this.metadataPath(locator);
 
         await fs.unlink(p).catch(() => {});

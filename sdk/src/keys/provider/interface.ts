@@ -2,7 +2,7 @@ import { FunctionKeyPair } from "../../models/keyPair.js";
 import { KeyStore } from "../keystore/interface.js";
 
 /**
- * Interface for record search parameters. This allows for arbitrary search parameters to be passed to record provider
+ * Interface for key search parameters. This allows for arbitrary search parameters to be passed to key provider
  * implementations.
  */
 interface KeySearchParams {
@@ -37,9 +37,9 @@ interface FunctionKeyProvider {
     cacheKeys(keyId: string, keys: FunctionKeyPair): void;
 
     /**
-     * Get unbond_public function keys from the credits.aleo program
+     * Get claim_unbond_public function keys from the credits.aleo program
      *
-     * @returns {Promise<FunctionKeyPair>} Proving and verifying keys for the unbond_public function
+     * @returns {Promise<FunctionKeyPair>} Proving and verifying keys for the claim_unbond_public function
      */
     claimUnbondPublicKeys(): Promise<FunctionKeyPair>;
 
@@ -111,31 +111,31 @@ interface FunctionKeyProvider {
     functionKeys(params?: KeySearchParams): Promise<FunctionKeyPair>;
 
     /**
-     * Gets an object which implements the `KeyStore` interface key store object for accessing proving and verifying
+     * Gets an object which implements the `KeyStore` interface for accessing proving and verifying
      * keys directly from persistent storage.
      *
-     * @return {KeyStore}
+     * @returns {Promise<KeyStore | undefined>} The key store if available, or undefined.
      */
     keyStore(): Promise<KeyStore | undefined>
 
     /**
      * Get fee_private function keys from the credits.aleo program
      *
-     * @returns {Promise<FunctionKeyPair>} Proving and verifying keys for the join function
+     * @returns {Promise<FunctionKeyPair>} Proving and verifying keys for the fee_private function
      */
     feePrivateKeys(): Promise<FunctionKeyPair>;
 
     /**
      * Get fee_public function keys from the credits.aleo program
      *
-     * @returns {Promise<FunctionKeyPair>} Proving and verifying keys for the join function
+     * @returns {Promise<FunctionKeyPair>} Proving and verifying keys for the fee_public function
      */
     feePublicKeys(): Promise<FunctionKeyPair>;
 
     /**
      * Get keys for the inclusion proof.
      *
-     * @returns {Promise<FunctionKeyPair>} Proving and verifying keys for the join function
+     * @returns {Promise<FunctionKeyPair>} Proving and verifying keys for the inclusion proof
      */
     inclusionKeys(): Promise<FunctionKeyPair>;
 
@@ -149,7 +149,7 @@ interface FunctionKeyProvider {
     /**
      * Get split function keys from the credits.aleo program
      *
-     * @returns {Promise<FunctionKeyPair>} Proving and verifying keys for the join function
+     * @returns {Promise<FunctionKeyPair>} Proving and verifying keys for the split function
      */
     splitKeys(): Promise<FunctionKeyPair>;
 
@@ -177,7 +177,7 @@ interface FunctionKeyProvider {
     /**
      * Get unbond_public function keys from the credits.aleo program
      *
-     * @returns {Promise<FunctionKeyPair>} Proving and verifying keys for the join function
+     * @returns {Promise<FunctionKeyPair>} Proving and verifying keys for the unbond_public function
      */
     unBondPublicKeys(): Promise<FunctionKeyPair>;
 }

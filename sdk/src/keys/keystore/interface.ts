@@ -6,7 +6,7 @@ import { KeyFingerprint } from "../verifier/interface.js";
  * The key locator string and optional fingerprint to verify the integrity of the key.
  *
  * @property {string} locator - The unique identifier for the key.
- * @property {KeyFingerprint} fingerprint - The fingerprint of the key.
+ * @property {KeyFingerprint} [fingerprint] - Optional fingerprint for verification.
  */
 export interface KeyLocator {
     locator: string;
@@ -15,11 +15,10 @@ export interface KeyLocator {
 
 export interface KeyStore {
     /**
-     * Returns the raw bytes of a `ProvingKey` for a given locator.
+     * Returns the raw bytes of a proving or verifying key for a given locator.
      *
-     * @param {KeyLocator} locator The unique locator for the desired `ProvingKey`.
-     *
-     * @returns {Promise<Uint8Array | null>} Returns the raw bytes of a `ProvingKey` for the given locator if it exists or null if it does not exist.
+     * @param {KeyLocator} locator The unique locator for the desired key.
+     * @returns {Promise<Uint8Array | null>} The raw key bytes if they exist, or null if not found.
      */
     getKeyBytes(locator: KeyLocator): Promise<Uint8Array | null>;
 
@@ -64,26 +63,28 @@ export interface KeyStore {
     setKeyBytes(keyBytes: Uint8Array, locator: KeyLocator): Promise<void>;
 
     /**
-     * Returns stored metadata for a keypair, if any.
+     * Returns stored metadata for a key, if any.
      *
-     * @param {string} locator The unique locator for the keypair.
-     * @returns {Promise<{ prover: KeyFingerprint; verifier: KeyFingerprint } | null>} The stored metadata, or null if none or keypair does not exist.
+     * @param {string} locator The unique locator for the key.
+     * @returns {Promise<KeyFingerprint | null>} The stored fingerprint for that locator, or null if none exists.
      */
     getKeyMetadata(
         locator: string
-    ): Promise< KeyFingerprint | null>;
+    ): Promise<KeyFingerprint | null>;
 
     /**
      * Determines if a given key exists or not.
      *
-     * @param {string} locator The unique locator for the desired keypair.
+     * @param {string} locator The unique locator for the desired key.
+     * @returns {Promise<boolean>} True if the key exists, false otherwise.
      */
     has(locator: string): Promise<boolean>;
 
     /**
-     * Deletes a key corresponding to a given locator.
+     * Deletes a key and its metadata corresponding to a given locator.
      *
-     * @param {string} locator The unique locator for the desired keypair.
+     * @param {string} locator The unique locator for the desired key.
+     * @returns {Promise<void>}
      */
     delete(locator: string): Promise<void>;
 

@@ -31,7 +31,7 @@ export interface KeyMetadata {
  */
 export class KeyVerificationError extends Error {
     /**
-     * Creates a new ChecksumMismatchError instance.
+     * Creates a new KeyVerificationError instance (error.name is "ChecksumMismatchError").
      *
      * @param {string} locator - The key locator where the mismatch occurred.
      * @param {"checksum" | "size"} field - The field that failed verification (either "checksum" or "size").
@@ -45,7 +45,7 @@ export class KeyVerificationError extends Error {
         public readonly actual: string
     ) {
         super(
-            `KeyStore ${locator} ${field} mismatch: expected ${expected}, got ${actual}`
+            `Key verification ${locator} ${field} mismatch: expected ${expected}, got ${actual}`
         );
         this.name = "ChecksumMismatchError";
     }

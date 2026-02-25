@@ -69,15 +69,17 @@ import {
     AleoKeyProviderInitParams,
 } from "./keys/provider/memory.js"
 import {
-    ChecksumMismatchError,
-    FunctionKeyVerifier,
     KeyFingerprint,
-    KeyStore,
-    MemKeyVerifier,
-} from "./keys/keystore/interface.js";
+    KeyMetadata,
+    KeyVerificationError,
+    KeyVerifier,
+    sha256Hex,
+} from "./keys/verifier/interface.js";
+import { MemKeyVerifier } from "./keys/verifier/memory.js";
 import {
-    promoteMapToKeyStore
-} from "./keys/keystore/memory";
+    KeyLocator,
+    KeyStore,
+} from "./keys/keystore/interface.js";
 import {
     OfflineKeyProvider,
     OfflineSearchParams
@@ -204,10 +206,12 @@ export {
     ImportedVerifyingKeys,
     InputJSON,
     InputObject,
-    ChecksumMismatchError,
-    FunctionKeyVerifier,
     KeyFingerprint,
+    KeyLocator,
+    KeyMetadata,
     KeyStore,
+    KeyVerificationError,
+    KeyVerifier,
     MemKeyVerifier,
     KeySearchParams,
     Metadata,
@@ -231,7 +235,6 @@ export {
     ProveApiErrorBody,
     ProvingFailure,
     ProvingRequestError,
-    promoteMapToKeyStore,
     ProvingRequestJSON,
     ProvingResult,
     ProvingSuccess,
@@ -260,6 +263,7 @@ export {
     SealanceMerkleTree,
     SerialNumbersResult,
     SerialNumbersSuccess,
+    sha256Hex,
     SolutionJSON,
     SolutionsJSON,
     StatusResponse,
@@ -274,5 +278,10 @@ export {
     UUIDError,
     VerifyingKeys,
 };
+
+export {
+    KeyVerificationError as ChecksumMismatchError,
+    KeyVerifier as FunctionKeyVerifier,
+} from "./keys/verifier/interface.js";
 
 export { encryptAuthorization, encryptProvingRequest, encryptViewKey, encryptRegistrationRequest } from "./security.js";

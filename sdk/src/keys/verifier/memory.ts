@@ -1,7 +1,7 @@
 import { KeyVerificationError, KeyVerifier, KeyFingerprint, KeyMetadata, sha256Hex } from "./interface";
 
 /**
- * In-memory implementation of FunctionKeyVerifier that stores and verifies key fingerprints.
+ * In-memory implementation of KeyVerifier that stores and verifies key fingerprints.
  * Provides functionality to compute and verify cryptographic checksums of keys, storing them
  * in memory for subsequent verification. This implementation is primarily used for testing
  * and development purposes where persistence is not required.
@@ -65,7 +65,7 @@ export class MemKeyVerifier implements KeyVerifier {
      * 3. If neither is available, throws an error.
      *
      * @param {KeyMetadata} keyMetadata - Object containing the key bytes and optional verification metadata.
-     * @throws {Error} When neither keyFingerprint nor valid locator is provided for verification.
+     * @throws {Error} When neither fingerprint nor valid locator is provided for verification.
      * @throws {KeyVerificationError} When size or checksum verification fails.
      * @returns {Promise<void>} Promise that resolves when verification succeeds.
      */
@@ -91,7 +91,7 @@ export class MemKeyVerifier implements KeyVerifier {
         }
 
         if (!fingerprintToVerify) {
-            throw new Error("Either keyFingerprint or a valid locator must be provided for verification.");
+            throw new Error("Either fingerprint or a valid locator must be provided for verification.");
         }
 
         // Verify the key size.
