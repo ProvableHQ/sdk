@@ -116,7 +116,7 @@ interface FunctionKeyProvider {
      *
      * @returns {Promise<KeyStore | undefined>} The key store if available, or undefined.
      */
-    keyStore(): Promise<KeyStore | undefined>
+    keyStore(): Promise<KeyStore | undefined>;
 
     /**
      * Get fee_private function keys from the credits.aleo program

@@ -77,13 +77,15 @@ import {
 } from "./keys/verifier/interface.js";
 import { MemKeyVerifier } from "./keys/verifier/memory.js";
 import {
+    InvalidLocatorError,
+    InvalidLocatorReason,
     KeyLocator,
     KeyStore,
 } from "./keys/keystore/interface.js";
 import {
     OfflineKeyProvider,
     OfflineSearchParams
-} from "./keys/provider/offline";
+} from "./keys/provider/offline.js";
 import {
     BlockHeightSearch,
     NetworkRecordProvider,
@@ -206,6 +208,8 @@ export {
     ImportedVerifyingKeys,
     InputJSON,
     InputObject,
+    InvalidLocatorError,
+    InvalidLocatorReason,
     KeyFingerprint,
     KeyLocator,
     KeyMetadata,

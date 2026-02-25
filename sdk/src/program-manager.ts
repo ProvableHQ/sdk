@@ -11,7 +11,7 @@ import {
 import {
     AleoKeyProvider,
     AleoKeyProviderParams,
-} from "./keys/provider/memory.js"
+} from "./keys/provider/memory.js";
 
 import {
     FunctionKeyPair

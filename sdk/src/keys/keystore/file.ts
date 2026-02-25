@@ -2,7 +2,8 @@ import * as fs from "node:fs/promises";
 import * as path from "path";
 
 import { FunctionKeyPair } from "../../models/keyPair.js";
-import { KeyFingerprint, } from "../verifier/interface.js";
+import { KeyFingerprint } from "../verifier/interface.js";
+import { InvalidLocatorError } from "./error.js";
 import { KeyLocator, KeyStore } from "./interface.js";
 import { MemKeyVerifier } from "../verifier/memory.js";
 import { ProvingKey, VerifyingKey } from "../../wasm.js";
@@ -24,6 +25,50 @@ export class LocalFileKeyStore implements KeyStore {
         fs.mkdir(this.directory, { recursive: true }).catch((err) => {
             console.error("Failed to create keystore directory:", err);
         });
+    }
+
+    /**
+     * Validates that a locator is a safe filesystem identifier.
+     *
+     * Only rejects values that could cause path traversal or escape the keystore directory:
+     *
+     * - Must NOT be empty or the reserved names `.` or `..`
+     * - Must NOT contain `..`
+     * - Must NOT contain path separators (`/`, `\`) or null byte
+     *
+     * All other characters are allowed (e.g. letters, numbers, punctuation, Unicode).
+     *
+     * @private
+     * @param {string} locator - Unique identifier used to derive a metadata file path.
+     * @throws {InvalidLocatorError} If the locator could cause path traversal.
+     */
+    private validateLocator(locator: string): void {
+        // Reject empty and reserved names that could resolve to the directory or parent
+        if (locator === "" || locator === "." || locator === "..") {
+            throw new InvalidLocatorError(
+                `Invalid locator: reserved or empty name "${locator}"`,
+                locator,
+                "reserved_name"
+            );
+        }
+
+        // Explicitly block traversal attempts
+        if (locator.includes("..")) {
+            throw new InvalidLocatorError(
+                "Invalid locator: path traversal detected",
+                locator,
+                "path_traversal"
+            );
+        }
+
+        // Block path separators and null byte
+        if (locator.includes("/") || locator.includes("\\") || locator.includes("\0")) {
+            throw new InvalidLocatorError(
+                "Invalid locator: path separator or null byte not allowed",
+                locator,
+                "path_separator"
+            );
+        }
     }
 
     /**
@@ -186,6 +231,7 @@ export class LocalFileKeyStore implements KeyStore {
      * }
      */
     async getKeyBytes(locator: KeyLocator): Promise<Uint8Array | null> {
+        this.validateLocator(locator.locator);
         // Attempt to read key bytes from storage (under this.directory).
         const keyBytes = await this.readFileOptional(path.join(this.directory, locator.locator));
 
@@ -294,6 +340,8 @@ export class LocalFileKeyStore implements KeyStore {
         verifierLocator: KeyLocator,
         keys: FunctionKeyPair,
     ): Promise<void> {
+        this.validateLocator(proverLocator.locator);
+        this.validateLocator(verifierLocator.locator);
         // Convert the WASM keys to raw bytes.
         const [provingKey, verifyingKey] = keys;
         const [provingKeyBytes, verifyingKeyBytes] = [
@@ -338,6 +386,7 @@ export class LocalFileKeyStore implements KeyStore {
      * await setKeyBytes(keys.provingKey.toBytes(), { locator: 'transfer_private.prover' });
      */
     async setKeyBytes(keyBytes: Uint8Array, locator: KeyLocator): Promise<void> {
+        this.validateLocator(locator.locator);
         // Compute the key metadata including fingerprint
         const computedMetadata = await this.keyVerifier.computeKeyMetadata({
             keyBytes: keyBytes,
@@ -363,6 +412,7 @@ export class LocalFileKeyStore implements KeyStore {
      * }
      */
     getKeyMetadata(locator: string): Promise<KeyFingerprint | null> {
+        this.validateLocator(locator);
         return this.readKeyMetadata(locator);
     }
 
@@ -381,6 +431,7 @@ export class LocalFileKeyStore implements KeyStore {
      * }
      */
     async has(locator: string): Promise<boolean> {
+        this.validateLocator(locator);
         const keyPath = path.join(this.directory, locator);
         return await fs
             .access(keyPath)
@@ -398,6 +449,7 @@ export class LocalFileKeyStore implements KeyStore {
      * await delete('transfer_private.prover.421e5a5');
      */
     async delete(locator: string): Promise<void> {
+        this.validateLocator(locator);
         const p = path.join(this.directory, locator);
         const m = this.metadataPath(locator);
 
