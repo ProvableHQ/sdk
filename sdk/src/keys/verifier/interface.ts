@@ -48,6 +48,7 @@ export class KeyVerificationError extends Error {
             `Key verification ${locator} ${field} mismatch: expected ${expected}, got ${actual}`
         );
         this.name = "ChecksumMismatchError";
+        Object.setPrototypeOf(this, KeyVerificationError.prototype);
     }
 }
 

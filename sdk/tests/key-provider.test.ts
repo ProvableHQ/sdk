@@ -6,6 +6,7 @@ import {
     FunctionKeyPair,
     KeyFingerprint,
     KeyVerificationError,
+    InvalidLocatorError,
     LocalFileKeyStore,
     MemKeyVerifier,
     OfflineKeyProvider,
@@ -163,14 +164,223 @@ describe("KeyStore (file) – LocalFileKeyStore", () => {
         const tempDir = `${process.cwd()}/.keystore-test-${Date.now()}-${Math.floor(Math.random() * 1e6)}`;
         const keystore = new LocalFileKeyStore(tempDir);
         try {
-            const proverLoc = "program.aleo/missing.prover";
-            const verifierLoc = "program.aleo/missing.verifier";
+            const proverLoc = "program.aleo.missing.prover";
+            const verifierLoc = "program.aleo.missing.verifier";
             expect(await keystore.getKeyBytes(locator(proverLoc))).equal(null);
             expect(await keystore.getProvingKey(locator(proverLoc))).equal(null);
             expect(await keystore.getVerifyingKey(locator(verifierLoc))).equal(null);
         } finally {
             await $fs.rm(tempDir, { recursive: true, force: true }).catch(() => {});
         }
+    });
+
+    describe("locator validation (path traversal)", () => {
+        const tempDir = `${process.cwd()}/.keystore-test-${Date.now()}-${Math.floor(Math.random() * 1e6)}`;
+        let keystore: LocalFileKeyStore;
+
+        before(() => {
+            keystore = new LocalFileKeyStore(tempDir);
+        });
+        after(async () => {
+            await $fs.rm(tempDir, { recursive: true, force: true }).catch(() => {});
+        });
+
+        it("throws InvalidLocatorError for locator containing '..'", async () => {
+            try {
+                await keystore.getKeyBytes(locator("a/../b.prover"));
+                expect.fail("should throw");
+            } catch (e) {
+                expect(e).instanceof(InvalidLocatorError);
+                expect((e as InvalidLocatorError).reason).equal("path_traversal");
+            }
+            try {
+                await keystore.setKeyBytes(new Uint8Array(10), locator(".."));
+                expect.fail("should throw");
+            } catch (e) {
+                expect(e).instanceof(InvalidLocatorError);
+                expect((e as InvalidLocatorError).reason).equal("reserved_name");
+            }
+        });
+
+        it("throws InvalidLocatorError for locator containing '/' or '\\\\'", async () => {
+            try {
+                await keystore.getKeyBytes(locator("program/key.prover"));
+                expect.fail("should throw");
+            } catch (e) {
+                expect(e).instanceof(InvalidLocatorError);
+                expect((e as InvalidLocatorError).reason).equal("path_separator");
+            }
+            try {
+                await keystore.has("dir\\key.prover");
+                expect.fail("should throw");
+            } catch (e) {
+                expect(e).instanceof(InvalidLocatorError);
+                expect((e as InvalidLocatorError).reason).equal("path_separator");
+            }
+        });
+
+        it("throws InvalidLocatorError for empty, '.', or '..' reserved names", async () => {
+            for (const invalid of ["", ".", ".."]) {
+                try {
+                    await keystore.getKeyMetadata(invalid);
+                    expect.fail(`should throw for "${invalid}"`);
+                } catch (e) {
+                    expect(e).instanceof(InvalidLocatorError);
+                    expect((e as InvalidLocatorError).reason).equal("reserved_name");
+                }
+            }
+        });
+
+        it("throws InvalidLocatorError from delete and setKeyBytes for invalid locators", async () => {
+            try {
+                await keystore.delete("x/../y");
+                expect.fail("should throw");
+            } catch (e) {
+                expect(e).instanceof(InvalidLocatorError);
+            }
+            try {
+                await keystore.setKeyBytes(new Uint8Array(5), locator("a/b"));
+                expect.fail("should throw");
+            } catch (e) {
+                expect(e).instanceof(InvalidLocatorError);
+                expect((e as InvalidLocatorError).reason).equal("path_separator");
+            }
+        });
+
+        it("accepts locators with alphanumeric, dots, underscores, hyphens", async () => {
+            const valid = "credits.aleo.fee_public.prover";
+            expect(await keystore.getKeyBytes(locator(valid))).equal(null);
+            expect(await keystore.has(valid)).equal(false);
+        });
+    });
+
+    describe(".aleo path behavior", () => {
+        it("uses process.cwd()/.aleo when no directory is passed", async () => {
+            const cwd = process.cwd();
+            const keystore = new LocalFileKeyStore();
+            const loc = "default_path_test.prover";
+            try {
+                await keystore.setKeyBytes(new Uint8Array([1, 2, 3]), locator(loc));
+                const expectedPath = path.join(cwd, ".aleo", loc);
+                await $fs.access(expectedPath);
+                expect(await keystore.has(loc)).equal(true);
+            } finally {
+                await $fs.rm(path.join(cwd, ".aleo"), { recursive: true, force: true }).catch(() => {});
+            }
+        });
+
+        it("appends .aleo when user path does not end with .aleo", async () => {
+            const base = `${process.cwd()}/.keystore-test-aleo-${Date.now()}`;
+            const keystore = new LocalFileKeyStore(base);
+            const loc = "nested.prover";
+            try {
+                await keystore.setKeyBytes(new Uint8Array([1]), locator(loc));
+                const expectedFile = path.join(base, ".aleo", loc);
+                await $fs.access(expectedFile);
+                const wrongPath = path.join(base, loc);
+                await $fs.access(wrongPath).then(
+                    () => expect.fail("key should not be directly under base"),
+                    () => {}
+                );
+            } finally {
+                await $fs.rm(base, { recursive: true, force: true }).catch(() => {});
+            }
+        });
+
+        it("does not append .aleo when user path already ends with .aleo", async () => {
+            const base = `${process.cwd()}/.keystore-test-aleo-${Date.now()}`;
+            const aleoDir = path.join(base, ".aleo");
+            const keystore = new LocalFileKeyStore(aleoDir);
+            const loc = "already_aleo.prover";
+            try {
+                await keystore.setKeyBytes(new Uint8Array([1]), locator(loc));
+                const expectedFile = path.join(aleoDir, loc);
+                await $fs.access(expectedFile);
+                const doubleAleo = path.join(aleoDir, ".aleo", loc);
+                await $fs.access(doubleAleo).then(
+                    () => expect.fail("should not create .aleo/.aleo"),
+                    () => {}
+                );
+            } finally {
+                await $fs.rm(base, { recursive: true, force: true }).catch(() => {});
+            }
+        });
+    });
+
+    describe("fingerprint from disk (no restart bug)", () => {
+        it("getKeyBytes succeeds without caller fingerprint when metadata is on disk (simulated restart)", async () => {
+            const tempDir = `${process.cwd()}/.keystore-test-${Date.now()}-${Math.floor(Math.random() * 1e6)}`;
+            const keyBytes = new Uint8Array([1, 2, 3, 4, 5, 6, 7, 8, 9, 10]);
+            const loc = "fee_public.prover";
+
+            const keystore1 = new LocalFileKeyStore(tempDir);
+            try {
+                await keystore1.setKeyBytes(keyBytes, locator(loc));
+                const fromFirst = await keystore1.getKeyBytes(locator(loc));
+                expect(fromFirst).not.equal(null);
+                expect(Buffer.from(fromFirst!).equals(Buffer.from(keyBytes))).equal(true);
+
+                // Simulate restart: new instance, no in-memory fingerprint; verification must use disk metadata.
+                const keystore2 = new LocalFileKeyStore(tempDir);
+                const fromSecond = await keystore2.getKeyBytes(locator(loc));
+                expect(fromSecond).not.equal(null);
+                expect(Buffer.from(fromSecond!).equals(Buffer.from(keyBytes))).equal(true);
+            } finally {
+                await $fs.rm(tempDir, { recursive: true, force: true }).catch(() => {});
+            }
+        });
+
+        it("getProvingKey succeeds after restart when no fingerprint in locator", async function () {
+            this.timeout(20000);
+            const tempDir = `${process.cwd()}/.keystore-test-${Date.now()}-${Math.floor(Math.random() * 1e6)}`;
+            const kp = new AleoKeyProvider();
+            const [prov, ver] = <FunctionKeyPair>await kp.fetchCreditsKeys(CREDITS_PROGRAM_KEYS.fee_public);
+            const proverLoc = "fee_public.prover";
+            const verifierLoc = "fee_public.verifier";
+
+            const keystore1 = new LocalFileKeyStore(tempDir);
+            try {
+                await keystore1.setKeys(locator(proverLoc), locator(verifierLoc), [prov, ver]);
+                const keystore2 = new LocalFileKeyStore(tempDir);
+                const got = await keystore2.getProvingKey(locator(proverLoc));
+                expect(got).not.equal(null);
+                expect(got!.checksum()).equal(prov.checksum());
+            } finally {
+                await $fs.rm(tempDir, { recursive: true, force: true }).catch(() => {});
+            }
+        });
+    });
+
+    describe("clear() removes directory", () => {
+        it("removes the keystore directory so it no longer exists", async () => {
+            const tempDir = `${process.cwd()}/.keystore-test-${Date.now()}-${Math.floor(Math.random() * 1e6)}`;
+            const keystore = new LocalFileKeyStore(tempDir);
+            await keystore.setKeyBytes(new Uint8Array([1]), locator("x.prover"));
+            await $fs.access(path.join(tempDir, ".aleo", "x.prover"));
+            await keystore.clear();
+            try {
+                await $fs.access(path.join(tempDir, ".aleo"));
+                expect.fail("directory should be removed");
+            } catch {
+                // expected: ENOENT
+            }
+            await $fs.rm(tempDir, { recursive: true, force: true }).catch(() => {});
+        });
+
+        it("subsequent write recreates directory", async () => {
+            const tempDir = `${process.cwd()}/.keystore-test-${Date.now()}-${Math.floor(Math.random() * 1e6)}`;
+            const keystore = new LocalFileKeyStore(tempDir);
+            try {
+                await keystore.setKeyBytes(new Uint8Array([1]), locator("a.prover"));
+                await keystore.clear();
+                await keystore.setKeyBytes(new Uint8Array([2]), locator("b.prover"));
+                const p = path.join(tempDir, ".aleo", "b.prover");
+                await $fs.access(p);
+                expect(await keystore.getKeyBytes(locator("b.prover"))).not.equal(null);
+            } finally {
+                await $fs.rm(tempDir, { recursive: true, force: true }).catch(() => {});
+            }
+        });
     });
 
     it("should set, get, has, delete, and clear using raw bytes on disk", async () => {
@@ -186,15 +396,15 @@ describe("KeyStore (file) – LocalFileKeyStore", () => {
         const keystore = new LocalFileKeyStore(tempDir);
         try {
             await keystore.clear();
-            await keystore.delete("program.aleo/function_a.prover").catch(() => {});
-            await keystore.delete("program.aleo/function_a.verifier").catch(() => {});
-            await keystore.delete("program.aleo/function_b.prover").catch(() => {});
-            await keystore.delete("program.aleo/function_b.verifier").catch(() => {});
+            await keystore.delete("program.aleo.function_a.prover").catch(() => {});
+            await keystore.delete("program.aleo.function_a.verifier").catch(() => {});
+            await keystore.delete("program.aleo.function_b.prover").catch(() => {});
+            await keystore.delete("program.aleo.function_b.verifier").catch(() => {});
 
-            const locatorAProver = "program.aleo/function_a.prover";
-            const locatorAVerifier = "program.aleo/function_a.verifier";
-            const locatorBProver = "program.aleo/function_b.prover";
-            const locatorBVerifier = "program.aleo/function_b.verifier";
+            const locatorAProver = "program.aleo.function_a.prover";
+            const locatorAVerifier = "program.aleo.function_a.verifier";
+            const locatorBProver = "program.aleo.function_b.prover";
+            const locatorBVerifier = "program.aleo.function_b.verifier";
 
             expect(await keystore.has(locatorAProver)).equal(false);
             expect(await keystore.getKeyBytes(locator(locatorAProver))).equal(null);
@@ -236,8 +446,8 @@ describe("KeyStore (file) – LocalFileKeyStore", () => {
     it("should set/get ProvingKey & VerifyingKey via setKeys and getProvingKey/getVerifyingKey", async () => {
         const tempDir = `${process.cwd()}/.keystore-test-${Date.now()}-${Math.floor(Math.random() * 1e6)}`;
         const keystore = new LocalFileKeyStore(tempDir);
-        const proverLoc = "credits.aleo/fee_public.prover";
-        const verifierLoc = "credits.aleo/fee_public.verifier";
+        const proverLoc = "credits.aleo.fee_public.prover";
+        const verifierLoc = "credits.aleo.fee_public.verifier";
         try {
             await keystore.clear();
             await keystore.delete(proverLoc).catch(() => {});
@@ -282,7 +492,7 @@ describe("KeyStore (file) – LocalFileKeyStore", () => {
 
         const tempDir = `${process.cwd()}/.keystore-test-${Date.now()}-${Math.floor(Math.random() * 1e6)}`;
         const keystore = new LocalFileKeyStore(tempDir);
-        const loc = "program.aleo/single_key";
+        const loc = "program.aleo.single_key";
         try {
             await keystore.clear();
             expect(await keystore.getKeyMetadata(loc)).equal(null);
@@ -492,7 +702,7 @@ describe("Key verifier with LocalFileKeyStore (checksum verification on read)", 
 
         const tempDir = `${process.cwd()}/.keystore-test-${Date.now()}-${Math.floor(Math.random() * 1e6)}`;
         const keystore = new LocalFileKeyStore(tempDir);
-        const loc = "credits.aleo/corrupt_me.prover";
+        const loc = "credits.aleo.corrupt_me.prover";
         try {
             await keystore.clear();
             await keystore.delete(loc).catch(() => {});
@@ -502,7 +712,7 @@ describe("Key verifier with LocalFileKeyStore (checksum verification on read)", 
             expect(readBefore).not.to.equal(null);
             expect(Buffer.from(readBefore!).equals(Buffer.from(keyBytes))).equal(true);
 
-            const keyPath = path.join(tempDir, loc);
+            const keyPath = path.join(tempDir, ".aleo", loc);
             await $fs.writeFile(keyPath, new Uint8Array([1, 2, 3, 4, 5]));
 
             let thrown: KeyVerificationError | undefined;
@@ -528,7 +738,7 @@ describe("Key verifier with LocalFileKeyStore (checksum verification on read)", 
 
         const tempDir = `${process.cwd()}/.keystore-test-${Date.now()}-${Math.floor(Math.random() * 1e6)}`;
         const keystore = new LocalFileKeyStore(tempDir);
-        const loc = "credits.aleo/with_fingerprint.prover";
+        const loc = "credits.aleo.with_fingerprint.prover";
         try {
             await keystore.clear();
             await keystore.setKeyBytes(keyBytes, locator(loc));
@@ -551,7 +761,7 @@ describe("Key verifier with LocalFileKeyStore (checksum verification on read)", 
 
         const tempDir = `${process.cwd()}/.keystore-test-${Date.now()}-${Math.floor(Math.random() * 1e6)}`;
         const keystore = new LocalFileKeyStore(tempDir);
-        const loc = "credits.aleo/wrong_fingerprint.prover";
+        const loc = "credits.aleo.wrong_fingerprint.prover";
         try {
             await keystore.clear();
             await keystore.setKeyBytes(keyBytes, locator(loc));

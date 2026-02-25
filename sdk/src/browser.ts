@@ -67,7 +67,7 @@ import {
     AleoKeyProvider,
     AleoKeyProviderParams,
     AleoKeyProviderInitParams,
-} from "./keys/provider/memory.js"
+} from "./keys/provider/memory.js";
 import {
     KeyFingerprint,
     KeyMetadata,

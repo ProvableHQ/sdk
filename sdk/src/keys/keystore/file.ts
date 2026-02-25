@@ -1,4 +1,5 @@
 import * as fs from "node:fs/promises";
+import * as fsSync from "node:fs";
 import * as path from "path";
 
 import { FunctionKeyPair } from "../../models/keyPair.js";
@@ -13,30 +14,23 @@ export class LocalFileKeyStore implements KeyStore {
     private readonly keyVerifier = new MemKeyVerifier();
 
     /**
-     * Creates a new directory at the given path or CURRENTDIR/keystore if none is provided to store keys.
+     * Creates a new directory at the given path or CURRENTDIR/.aleo if none is provided to store keys.
+     * If a custom directory is passed and its last path segment is not ".aleo", ".aleo" is appended
+     * so keys are stored under that subdirectory (e.g. /home/project → /home/project/.aleo).
      *
-     * @param {string} [directory] - Optional custom directory path for key storage. Defaults to "keystore" in current working directory.
+     * @param {string} [directory] - Optional custom directory path for key storage. Defaults to ".aleo" in current working directory.
      * @throws {Error} If directory creation fails.
      */
     constructor(directory?: string) {
-        this.directory = directory ?? path.join(process.cwd(), "keystore");
-
-        // Ensure directory exists
-        fs.mkdir(this.directory, { recursive: true }).catch((err) => {
-            console.error("Failed to create keystore directory:", err);
-        });
+        this.directory = directory ?? path.join(process.cwd(), ".aleo");
+        if (directory !== undefined && path.basename(this.directory) !== ".aleo") {
+            this.directory = path.join(this.directory, ".aleo");
+        }
+        fsSync.mkdirSync(this.directory, { recursive: true });
     }
 
     /**
      * Validates that a locator is a safe filesystem identifier.
-     *
-     * Only rejects values that could cause path traversal or escape the keystore directory:
-     *
-     * - Must NOT be empty or the reserved names `.` or `..`
-     * - Must NOT contain `..`
-     * - Must NOT contain path separators (`/`, `\`) or null byte
-     *
-     * All other characters are allowed (e.g. letters, numbers, punctuation, Unicode).
      *
      * @private
      * @param {string} locator - Unique identifier used to derive a metadata file path.
@@ -142,10 +136,9 @@ export class LocalFileKeyStore implements KeyStore {
             throw err;
         }
     }
-
+    
     /**
      * Atomically writes data to a file, ensuring the parent directories exist.
-     * Uses an atomic write pattern to prevent partial writes or corruption.
      *
      * @private
      * @param {string} filepath - Full path to the file to write
@@ -157,24 +150,40 @@ export class LocalFileKeyStore implements KeyStore {
         filepath: string,
         data: Uint8Array,
     ): Promise<void> {
-        // Ensure parent directories for nested locators exist
-        await fs.mkdir(path.dirname(filepath), { recursive: true });
-        await fs.writeFile(filepath, data);
+        const dir = path.dirname(filepath);
+        await fs.mkdir(dir, { recursive: true });
+        const tempPath = path.join(
+            dir,
+            `.${path.basename(filepath)}.${process.pid}.${Date.now()}.${Math.random().toString(16).slice(2)}.tmp`
+        );
+        await fs.writeFile(tempPath, data);
+        try {
+            await fs.rename(tempPath, filepath);
+        } catch (err: unknown) {
+            const code = err && typeof err === "object" && "code" in err ? (err as NodeJS.ErrnoException).code : undefined;
+            // Windows often throws EEXIST when target exists; EPERM/EACCES happen with locks/AV.
+            if (code === "EEXIST" || code === "EPERM" || code === "EACCES") {
+                await fs.unlink(filepath).catch(() => {});
+                try {
+                    await fs.rename(tempPath, filepath);
+                } catch (err2) {
+                    await fs.unlink(tempPath).catch(() => {});
+                    throw err2;
+                }
+            } else {
+                await fs.unlink(tempPath).catch(() => {});
+                throw err;
+            }
+        }
     }
 
     /**
-     * Recursively clears all key files from a directory.
-     * Only removes files with .prover, .verifier, or .metadata extensions.
+     * Recursively removes all files and subdirectories under the given directory, then removes the directory itself.
      *
      * @private
      * @param {string} dir - Directory path to clear
      * @returns {Promise<void>} Resolves when clearing is complete
      * @throws {Error} If directory listing fails for reasons other than non-existence
-     *
-     * @remarks
-     * - Silently ignores errors when removing individual files
-     * - Skips files that don't match the expected extensions
-     * - Does not remove directories themselves
      */
     private async clearRecursive(dir: string): Promise<void> {
         let entries: string[];
@@ -190,25 +199,22 @@ export class LocalFileKeyStore implements KeyStore {
         await Promise.all(
             entries.map(async (name) => {
                 const full = path.join(dir, name);
-                let isDirectory = false;
+                let stat: Awaited<ReturnType<typeof fs.stat>>;
                 try {
-                    const stat = await fs.stat(full);
-                    isDirectory = stat.isDirectory();
+                    stat = await fs.stat(full);
                 } catch {
                     return;
                 }
 
-                if (isDirectory) {
+                if (stat.isDirectory()) {
                     await this.clearRecursive(full);
-                } else if (
-                    name.endsWith(".prover") ||
-                    name.endsWith(".verifier") ||
-                    name.endsWith(".metadata")
-                ) {
+                } else if (stat.isFile()) {
                     await fs.unlink(full).catch(() => {});
                 }
             }),
         );
+
+        await fs.rmdir(dir).catch(() => {});
     }
 
     // -------------------------------------------------------
@@ -238,15 +244,14 @@ export class LocalFileKeyStore implements KeyStore {
         // If no key bytes were found, return null.
         if (!keyBytes) return null;
 
-        // If a fingerprint was provided, verify the key bytes against it.
-        if (
-            locator.fingerprint ||
-            (await this.getKeyMetadata(locator.locator))
-        ) {
+        // Use caller-provided fingerprint or metadata stored on disk for verification.
+        const fingerprint =
+            locator.fingerprint ?? (await this.getKeyMetadata(locator.locator));
+        if (fingerprint) {
             await this.keyVerifier.verifyKeyBytes({
                 keyBytes,
                 locator: locator.locator,
-                fingerprint: locator.fingerprint,
+                fingerprint,
             });
         }
 
@@ -411,7 +416,7 @@ export class LocalFileKeyStore implements KeyStore {
      *   // Use the stored metadata.
      * }
      */
-    getKeyMetadata(locator: string): Promise<KeyFingerprint | null> {
+    async getKeyMetadata(locator: string): Promise<KeyFingerprint | null> {
         this.validateLocator(locator);
         return this.readKeyMetadata(locator);
     }
@@ -458,13 +463,13 @@ export class LocalFileKeyStore implements KeyStore {
     }
 
     /**
-     * Clears all keys and metadata from the key storage directory. Uses recursive deletion but preserves the directory structure.
+     * Clears the key storage directory by recursively removing all files and subdirectories under it, then removes the keystore directory itself.
      *
      * @returns {Promise<void>}
-     * @throws {Error} If directory clearing fails for reasons other than non-existence
+     * @throws {Error} If directory listing fails for reasons other than non-existence.
      *
      * @example
-     * await clear(); // Clears all keys and metadata from the keystore directory.
+     * await clear(); // Removes all files under the keystore directory.
      */
     async clear(): Promise<void> {
         await this.clearRecursive(this.directory);

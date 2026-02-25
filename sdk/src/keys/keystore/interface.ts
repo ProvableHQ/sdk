@@ -1,9 +1,8 @@
 import { FunctionKeyPair } from "../../models/keyPair.js";
-import { ProvingKey, VerifyingKey } from "../../wasm.js";
-import { KeyFingerprint } from "../verifier/interface.js";
-
 export type { InvalidLocatorReason } from "./error.js";
 export { InvalidLocatorError } from "./error.js";
+import { KeyFingerprint } from "../verifier/interface.js";
+import { ProvingKey, VerifyingKey } from "../../wasm.js";
 
 /**
  * The key locator string and optional fingerprint to verify the integrity of the key.
