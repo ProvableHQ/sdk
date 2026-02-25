@@ -60,26 +60,28 @@ import { TransactionObject } from "./models/transaction/transactionObject.js";
 import { TransitionJSON } from "./models/transition/transitionJSON.js";
 import { TransitionObject } from "./models/transition/transitionObject.js";
 import {
+    FunctionKeyProvider,
+    KeySearchParams,
+} from "./keys/provider/interface.js";
+import {
     AleoKeyProvider,
     AleoKeyProviderParams,
     AleoKeyProviderInitParams,
-    FunctionKeyProvider,
-    KeySearchParams,
-} from "./keys/provider/function-key-provider";
+} from "./keys/provider/memory.js"
 import {
     ChecksumMismatchError,
-    KeyPairMetadataVerifier,
-    KeyMetadata,
+    FunctionKeyVerifier,
+    KeyFingerprint,
     KeyStore,
-    KeyVerifier,
-} from "./keys/keystore/keystore";
+    MemKeyVerifier,
+} from "./keys/keystore/interface.js";
 import {
     promoteMapToKeyStore
 } from "./keys/keystore/memory";
 import {
     OfflineKeyProvider,
     OfflineSearchParams
-} from "./keys/provider/offline-key-provider";
+} from "./keys/provider/offline";
 import {
     BlockHeightSearch,
     NetworkRecordProvider,
@@ -203,10 +205,10 @@ export {
     InputJSON,
     InputObject,
     ChecksumMismatchError,
-    KeyPairMetadataVerifier,
-    KeyMetadata,
+    FunctionKeyVerifier,
+    KeyFingerprint,
     KeyStore,
-    KeyVerifier,
+    MemKeyVerifier,
     KeySearchParams,
     Metadata,
     NetworkRecordProvider,

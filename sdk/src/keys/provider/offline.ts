@@ -1,7 +1,7 @@
 import {
     FunctionKeyProvider,
     KeySearchParams,
-} from "./function-key-provider.js";
+} from "./interface.js";
 
 import {
     CachedKeyPair,
@@ -21,8 +21,7 @@ import {
     PUBLIC_TO_PRIVATE_TRANSFER,
     PUBLIC_TRANSFER_AS_SIGNER,
 } from "../../constants.js";
-import { KeyStore } from "../keystore/keystore.js";
-import { promoteMapToKeyStore } from "../keystore/memory";
+import { KeyStore } from "../keystore/interface.js";
 
 /**
  * Search parameters for the offline key provider. This class implements the KeySearchParams interface and includes
@@ -217,7 +216,7 @@ class OfflineKeyProvider implements FunctionKeyProvider {
     }
 
     keyStore(): Promise<KeyStore | undefined> {
-        return Promise.resolve(promoteMapToKeyStore(this.cache));
+        return Promise.resolve(undefined);
     }
 
     /**
