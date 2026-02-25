@@ -1,17 +1,21 @@
 import { Account } from "./account.js";
 import { AleoNetworkClient, AleoNetworkClientOptions, ProgramImports } from "./network-client.js";
 import { ImportedPrograms, ImportedVerifyingKeys } from "./models/imports.js";
-import { FunctionInput } from "./models/functionInput";
 import { RecordProvider } from "./record-provider.js";
 import { RecordSearchParams } from "./models/record-provider/recordSearchParams.js";
 
 import {
-    AleoKeyProvider,
-    AleoKeyProviderParams,
-    FunctionKeyPair,
     FunctionKeyProvider,
     KeySearchParams,
-} from "./function-key-provider.js";
+} from "./keys/provider/interface.js";
+import {
+    AleoKeyProvider,
+    AleoKeyProviderParams,
+} from "./keys/provider/memory.js";
+
+import {
+    FunctionKeyPair
+} from "./models/keyPair.js";
 
 import {
     Address,
@@ -37,7 +41,6 @@ import {
 } from "./constants.js";
 
 import { logAndThrow } from "./utils.js";
-import { OwnedRecord } from "./models/record-provider/ownedRecord.js";
 
 /**
  * Represents the options for deploying and upgrading a transaction in the Aleo network.

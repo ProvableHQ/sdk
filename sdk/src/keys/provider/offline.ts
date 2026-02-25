@@ -1,14 +1,17 @@
 import {
-    CachedKeyPair,
-    FunctionKeyPair,
     FunctionKeyProvider,
     KeySearchParams,
-} from "./function-key-provider.js";
+} from "./interface.js";
+
+import {
+    CachedKeyPair,
+    FunctionKeyPair,
+} from "../../models/keyPair.js"
 
 import {
     ProvingKey,
     VerifyingKey,
-} from "./wasm.js";
+} from "../../wasm.js";
 
 import {
     CREDITS_PROGRAM_KEYS,
@@ -17,7 +20,8 @@ import {
     PUBLIC_TRANSFER,
     PUBLIC_TO_PRIVATE_TRANSFER,
     PUBLIC_TRANSFER_AS_SIGNER,
-} from "./constants.js";
+} from "../../constants.js";
+import { KeyStore } from "../keystore/interface.js";
 
 /**
  * Search parameters for the offline key provider. This class implements the KeySearchParams interface and includes
@@ -62,7 +66,7 @@ class OfflineSearchParams implements KeySearchParams {
     }
 
     /**
-     * Create a new OfflineSearchParams instance for the claim_unbond_public function of the
+     * Create a new OfflineSearchParams instance for the claim_unbond_public function of the credits.aleo program.
      */
     static claimUnbondPublicKeyParams(): OfflineSearchParams {
         return new OfflineSearchParams(CREDITS_PROGRAM_KEYS.claim_unbond_public.locator, true);
@@ -209,6 +213,10 @@ class OfflineKeyProvider implements FunctionKeyProvider {
 
     constructor() {
         this.cache = new Map<string, CachedKeyPair>();
+    }
+
+    keyStore(): Promise<KeyStore | undefined> {
+        return Promise.resolve(undefined);
     }
 
     /**

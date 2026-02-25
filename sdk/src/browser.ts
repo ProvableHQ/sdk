@@ -3,6 +3,7 @@ import "./polyfill/shared.js";
 import { Account } from "./account.js";
 import { AleoNetworkClient, ProgramImports } from "./network-client.js";
 import { BlockJSON, Header, Metadata } from "./models/blockJSON.js";
+import { CachedKeyPair, FunctionKeyPair } from "./models/keyPair.js";
 import { ConfirmedTransactionJSON } from "./models/confirmed_transaction.js";
 import { CryptoBoxPubKey } from "./models/cryptoBoxPubkey.js";
 import { DeploymentJSON, VerifyingKeys } from "./models/deployment/deploymentJSON.js";
@@ -59,18 +60,32 @@ import { TransactionObject } from "./models/transaction/transactionObject.js";
 import { TransitionJSON } from "./models/transition/transitionJSON.js";
 import { TransitionObject } from "./models/transition/transitionObject.js";
 import {
+    FunctionKeyProvider,
+    KeySearchParams,
+} from "./keys/provider/interface.js";
+import {
     AleoKeyProvider,
     AleoKeyProviderParams,
     AleoKeyProviderInitParams,
-    CachedKeyPair,
-    FunctionKeyPair,
-    FunctionKeyProvider,
-    KeySearchParams,
-} from "./function-key-provider.js";
+} from "./keys/provider/memory.js";
+import {
+    KeyFingerprint,
+    KeyMetadata,
+    KeyVerificationError,
+    KeyVerifier,
+    sha256Hex,
+} from "./keys/verifier/interface.js";
+import { MemKeyVerifier } from "./keys/verifier/memory.js";
+import {
+    InvalidLocatorError,
+    InvalidLocatorReason,
+    KeyLocator,
+    KeyStore,
+} from "./keys/keystore/interface.js";
 import {
     OfflineKeyProvider,
     OfflineSearchParams
-} from "./offline-key-provider.js";
+} from "./keys/provider/offline.js";
 import {
     BlockHeightSearch,
     NetworkRecordProvider,
@@ -193,6 +208,15 @@ export {
     ImportedVerifyingKeys,
     InputJSON,
     InputObject,
+    InvalidLocatorError,
+    InvalidLocatorReason,
+    KeyFingerprint,
+    KeyLocator,
+    KeyMetadata,
+    KeyStore,
+    KeyVerificationError,
+    KeyVerifier,
+    MemKeyVerifier,
     KeySearchParams,
     Metadata,
     NetworkRecordProvider,
@@ -243,6 +267,7 @@ export {
     SealanceMerkleTree,
     SerialNumbersResult,
     SerialNumbersSuccess,
+    sha256Hex,
     SolutionJSON,
     SolutionsJSON,
     StatusResponse,
@@ -257,5 +282,10 @@ export {
     UUIDError,
     VerifyingKeys,
 };
+
+export {
+    KeyVerificationError as ChecksumMismatchError,
+    KeyVerifier as FunctionKeyVerifier,
+} from "./keys/verifier/interface.js";
 
 export { encryptAuthorization, encryptProvingRequest, encryptViewKey, encryptRegistrationRequest } from "./security.js";
