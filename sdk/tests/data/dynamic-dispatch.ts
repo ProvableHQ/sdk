@@ -1,3 +1,65 @@
+/// A simple program that returns a constant value. Used as a dynamic dispatch target.
+export const DD_CONSTANTS_PROGRAM = `program dd_constants.aleo;
+
+function get_value:
+    output 42u128 as u128.private;
+
+constructor:
+    assert.eq true true;
+`;
+
+/// A program that calls another program via call.dynamic.
+export const DD_CALLER_PROGRAM = `program dd_caller.aleo;
+
+function call_and_increment:
+    input r0 as field.public;
+    input r1 as field.public;
+    input r2 as field.public;
+    call.dynamic r0 r1 r2 into r3 (as u128.private);
+    add r3 1u128 into r4;
+    output r4 as u128.public;
+
+constructor:
+    assert.eq true true;
+`;
+
+/// A second simple program that returns a constant value. Used as a second dynamic dispatch target.
+export const DD_TEN_PROGRAM = `program dd_ten.aleo;
+
+function get_ten:
+    output 10u128 as u128.private;
+
+constructor:
+    assert.eq true true;
+`;
+
+/// A program that calls TWO different programs via call.dynamic and adds the results.
+/// Calls dd_constants/get_value -> 42u128, then dd_ten/get_ten -> 10u128, returns 52u128.
+export const DD_MULTI_CALLER_PROGRAM = `program dd_multi_caller.aleo;
+
+function call_two_and_add:
+    input r0 as field.public;
+    input r1 as field.public;
+    input r2 as field.public;
+    input r3 as field.public;
+    input r4 as field.public;
+    call.dynamic r0 r1 r2 into r5 (as u128.private);
+    call.dynamic r3 r1 r4 into r6 (as u128.private);
+    add r5 r6 into r7;
+    output r7 as u128.public;
+
+constructor:
+    assert.eq true true;
+`;
+
+/// Pre-computed field-encoded identifiers for dynamic dispatch.
+/// These are Identifier::to_field() values computed from the Rust/WASM tests.
+export const DD_CONSTANTS_FIELD = "35731532782568442653824738404field";
+export const DD_ALEO_FIELD = "1868917857field";
+export const DD_GET_VALUE_FIELD = "1871582396405622531431field";
+export const DD_TEN_FIELD = "121382023160932field";
+export const DD_GET_TEN_FIELD = "31073797930247527field";
+
 /// Fixture 1: dynamic_transfer_pub_to_priv
 /// Covers: record_with_dynamic_id (output), record_dynamic (output)
 ///

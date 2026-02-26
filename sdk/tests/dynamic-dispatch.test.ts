@@ -1,5 +1,10 @@
 import { expect } from "chai";
 import {
+    Account,
+    AleoKeyProvider,
+    Authorization,
+    ProgramManager,
+    ProvingRequest,
     Transaction,
     TransactionObject,
     InputObject,
@@ -8,6 +13,11 @@ import {
     TransitionObject,
 } from "@provablehq/sdk/%%NETWORK%%.js";
 import {
+    DD_CALLER_PROGRAM,
+    DD_CONSTANTS_PROGRAM,
+    DD_CONSTANTS_FIELD,
+    DD_ALEO_FIELD,
+    DD_GET_VALUE_FIELD,
     FIXTURE_DYNAMIC_TRANSFER_PUB_TO_PRIV,
     FIXTURE_DYNAMIC_TRANSFER_PRIVATE,
     FIXTURE_EXTERNAL_RECORD_DYNAMIC,
@@ -297,6 +307,90 @@ describe("Dynamic Dispatch", () => {
 
             expect(outputs[0].type).equal("public");
             expect(outputs[0].value).equal(BigInt(100));
+        });
+    });
+
+    describe("Dynamic Dispatch Authorization", () => {
+        let programManager: ProgramManager;
+        const imports = {
+            "dd_constants.aleo": DD_CONSTANTS_PROGRAM,
+        };
+
+        before(() => {
+            const keyProvider = new AleoKeyProvider();
+            programManager = new ProgramManager(
+                "https://api.provable.com/v2",
+                keyProvider,
+            );
+            programManager.setAccount(new Account());
+        });
+
+        it("should build an authorization for a call.dynamic program via buildAuthorization", async () => {
+            const authorization = await programManager.buildAuthorization({
+                programName: "dd_caller.aleo",
+                functionName: "call_and_increment",
+                inputs: [DD_CONSTANTS_FIELD, DD_ALEO_FIELD, DD_GET_VALUE_FIELD],
+                programSource: DD_CALLER_PROGRAM,
+                programImports: imports,
+                edition: 0,
+            });
+
+            // The authorization should have 2 transitions: dd_constants/get_value + dd_caller/call_and_increment.
+            expect(authorization.transitions().length).equal(2);
+
+            // Verify serialization round-trips.
+            const fromString = Authorization.fromString(authorization.toString());
+            const fromBytes = Authorization.fromBytesLe(authorization.toBytesLe());
+            expect(fromString.equals(authorization)).equal(true);
+            expect(fromBytes.equals(authorization)).equal(true);
+        });
+
+        it("should build an unchecked authorization for a call.dynamic program via buildAuthorizationUnchecked", async () => {
+            const authorization = await programManager.buildAuthorizationUnchecked({
+                programName: "dd_caller.aleo",
+                functionName: "call_and_increment",
+                inputs: [DD_CONSTANTS_FIELD, DD_ALEO_FIELD, DD_GET_VALUE_FIELD],
+                programSource: DD_CALLER_PROGRAM,
+                programImports: imports,
+                edition: 0,
+            });
+
+            // The authorization should have 2 transitions: dd_constants/get_value + dd_caller/call_and_increment.
+            expect(authorization.transitions().length).equal(2);
+
+            // Verify serialization round-trips.
+            const fromString = Authorization.fromString(authorization.toString());
+            const fromBytes = Authorization.fromBytesLe(authorization.toBytesLe());
+            expect(fromString.equals(authorization)).equal(true);
+            expect(fromBytes.equals(authorization)).equal(true);
+        });
+
+        it("should build a proving request for a call.dynamic program via provingRequest", async () => {
+            const provingRequest = await programManager.provingRequest({
+                programName: "dd_caller.aleo",
+                functionName: "call_and_increment",
+                priorityFee: 0,
+                privateFee: false,
+                inputs: [DD_CONSTANTS_FIELD, DD_ALEO_FIELD, DD_GET_VALUE_FIELD],
+                programSource: DD_CALLER_PROGRAM,
+                programImports: imports,
+                edition: 0,
+                broadcast: false,
+                useFeeMaster: true,
+            });
+
+            // The proving request should have an authorization with 2 transitions.
+            const authorization = provingRequest.authorization();
+            expect(authorization.transitions().length).equal(2);
+
+            // No fee authorization when useFeeMaster is true.
+            expect(provingRequest.feeAuthorization()).equal(undefined);
+
+            // Verify serialization round-trips.
+            const fromString = ProvingRequest.fromString(provingRequest.toString());
+            const fromBytes = ProvingRequest.fromBytesLe(provingRequest.toBytesLe());
+            expect(fromString.equals(provingRequest)).equal(true);
+            expect(fromBytes.equals(provingRequest)).equal(true);
         });
     });
 });

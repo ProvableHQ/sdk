@@ -60,3 +60,115 @@ const start = Date.now();
 console.log("Starting execute!");
 await localProgramExecution(hello_hello_program, programName, "hello", ["5u32", "5u32"]);
 console.log("Execute finished!", Date.now() - start);
+
+// Dynamic dispatch execution tests
+
+const DD_CONSTANTS_PROGRAM = `program dd_constants.aleo;
+
+function get_value:
+    output 42u128 as u128.private;
+
+constructor:
+    assert.eq true true;
+`;
+
+const DD_CALLER_PROGRAM = `program dd_caller.aleo;
+
+function call_and_increment:
+    input r0 as field.public;
+    input r1 as field.public;
+    input r2 as field.public;
+    call.dynamic r0 r1 r2 into r3 (as u128.private);
+    add r3 1u128 into r4;
+    output r4 as u128.public;
+
+constructor:
+    assert.eq true true;
+`;
+
+const DD_TEN_PROGRAM = `program dd_ten.aleo;
+
+function get_ten:
+    output 10u128 as u128.private;
+
+constructor:
+    assert.eq true true;
+`;
+
+const DD_MULTI_CALLER_PROGRAM = `program dd_multi_caller.aleo;
+
+function call_two_and_add:
+    input r0 as field.public;
+    input r1 as field.public;
+    input r2 as field.public;
+    input r3 as field.public;
+    input r4 as field.public;
+    call.dynamic r0 r1 r2 into r5 (as u128.private);
+    call.dynamic r3 r1 r4 into r6 (as u128.private);
+    add r5 r6 into r7;
+    output r7 as u128.public;
+
+constructor:
+    assert.eq true true;
+`;
+
+const DD_CONSTANTS_FIELD = "35731532782568442653824738404field";
+const DD_ALEO_FIELD = "1868917857field";
+const DD_GET_VALUE_FIELD = "1871582396405622531431field";
+const DD_TEN_FIELD = "121382023160932field";
+const DD_GET_TEN_FIELD = "31073797930247527field";
+
+async function dynamicDispatchSingleImport() {
+    const keyProvider = new mainnet.AleoKeyProvider();
+    const programManager = new mainnet.ProgramManager(undefined, keyProvider);
+    programManager.setAccount(new mainnet.Account());
+
+    const imports = { "dd_constants.aleo": DD_CONSTANTS_PROGRAM };
+
+    const result = await programManager.run(
+        DD_CALLER_PROGRAM,
+        "call_and_increment",
+        [DD_CONSTANTS_FIELD, DD_ALEO_FIELD, DD_GET_VALUE_FIELD],
+        false,
+        imports,
+    );
+
+    const outputs = result.getOutputs();
+    if (outputs.length !== 1 || outputs[0] !== "43u128") {
+        throw new Error(`Single-import dynamic dispatch failed: expected ["43u128"], got ${JSON.stringify(outputs)}`);
+    }
+}
+
+async function dynamicDispatchMultiImport() {
+    const keyProvider = new mainnet.AleoKeyProvider();
+    const programManager = new mainnet.ProgramManager(undefined, keyProvider);
+    programManager.setAccount(new mainnet.Account());
+
+    const imports = {
+        "dd_constants.aleo": DD_CONSTANTS_PROGRAM,
+        "dd_ten.aleo": DD_TEN_PROGRAM,
+    };
+
+    const result = await programManager.run(
+        DD_MULTI_CALLER_PROGRAM,
+        "call_two_and_add",
+        [DD_CONSTANTS_FIELD, DD_ALEO_FIELD, DD_GET_VALUE_FIELD, DD_TEN_FIELD, DD_GET_TEN_FIELD],
+        false,
+        imports,
+    );
+
+    const outputs = result.getOutputs();
+    if (outputs.length !== 1 || outputs[0] !== "52u128") {
+        throw new Error(`Multi-import dynamic dispatch failed: expected ["52u128"], got ${JSON.stringify(outputs)}`);
+    }
+}
+
+console.log("Starting dynamic dispatch single-import execution!");
+let ddStart = Date.now();
+await dynamicDispatchSingleImport();
+console.log("Dynamic dispatch single-import execution passed!", Date.now() - ddStart);
+
+console.log("Starting dynamic dispatch multi-import execution!");
+ddStart = Date.now();
+await dynamicDispatchMultiImport();
+console.log("Dynamic dispatch multi-import execution passed!", Date.now() - ddStart);

@@ -106,7 +106,8 @@ impl ProgramManager {
 
         log("Check program imports are valid and add them to the process");
         let program_native = ProgramNative::from_str(program).map_err(|e| e.to_string())?;
-        ProgramManager::resolve_imports(process, &program_native, imports)?;
+        ProgramManager::resolve_imports(process, &program_native, imports.clone())?;
+        ProgramManager::resolve_dynamic_imports(process, imports)?;
         let edition = edition.unwrap_or(1);
 
         let (response, mut trace) = execute_program!(
@@ -205,7 +206,8 @@ impl ProgramManager {
         log("Check program imports are valid and add them to the process");
         let program_native = ProgramNative::from_str(program).map_err(|e| e.to_string())?;
         let program_id = program_native.id().to_string();
-        ProgramManager::resolve_imports(process, &program_native, imports)?;
+        ProgramManager::resolve_imports(process, &program_native, imports.clone())?;
+        ProgramManager::resolve_dynamic_imports(process, imports)?;
         let rng = &mut StdRng::from_entropy();
 
         log(&format!("Executing function: {program_id}/{function} on-chain"));
@@ -340,7 +342,8 @@ impl ProgramManager {
         let program_id = program_native.id().to_string();
 
         // Insert the program and its imports.
-        ProgramManager::resolve_imports(process, &program_native, imports)?;
+        ProgramManager::resolve_imports(process, &program_native, imports.clone())?;
+        ProgramManager::resolve_dynamic_imports(process, imports)?;
         if program_id != "credits.aleo" && !process.contains_program(program_native.id()) {
             process.add_program(&program_native).map_err(|e| e.to_string())?;
         }
@@ -513,7 +516,8 @@ impl ProgramManager {
         log("Check program imports are valid and add them to the process");
         let program_native = ProgramNative::from_str(program).map_err(|e| e.to_string())?;
         let program_id = program_native.id().to_string();
-        ProgramManager::resolve_imports(process, &program_native, imports)?;
+        ProgramManager::resolve_imports(process, &program_native, imports.clone())?;
+        ProgramManager::resolve_dynamic_imports(process, imports)?;
         let edition = edition.unwrap_or(1);
 
         let inputs = process_inputs!(inputs);
@@ -624,7 +628,8 @@ impl ProgramManager {
             .map_err(|e| e.to_string())?;
 
         // Resolve program imports.
-        ProgramManager::resolve_imports(process, &program_native, imports)?;
+        ProgramManager::resolve_imports(process, &program_native, imports.clone())?;
+        ProgramManager::resolve_dynamic_imports(process, imports)?;
 
         // Add the program to the process.
         let program_id = program_native.id();
@@ -697,7 +702,8 @@ impl ProgramManager {
         let program_native = ProgramNative::from_str(program).map_err(|e| e.to_string())?;
 
         // Resolve program imports.
-        ProgramManager::resolve_imports(process, &program_native, imports)?;
+        ProgramManager::resolve_imports(process, &program_native, imports.clone())?;
+        ProgramManager::resolve_dynamic_imports(process, imports)?;
 
         // Add the program to the process.
         let program_id = program_native.id();
@@ -762,5 +768,72 @@ mod tests {
 
             assert_eq!(authorization_estimate, cost);
         }
+    }
+
+    /// Test that a program using `call.dynamic` can be authorized after
+    /// `resolve_dynamic_imports` loads the target into the process.
+    ///
+    /// This validates:
+    /// 1. `resolve_dynamic_imports` loads the target program into the process
+    /// 2. The caller program with `call.dynamic` can be added to the process
+    /// 3. `process.authorize()` succeeds for the dynamic dispatch caller
+    ///
+    /// Note: Full execution (process.execute) is tested at the TS/SDK level because
+    /// WASM tests run via `wasm-pack test --node` which lacks XMLHttpRequest,
+    /// preventing the universal SRS download needed when `call.dynamic` synthesizes
+    /// the target program's circuit at runtime.
+    #[wasm_bindgen_test]
+    pub async fn test_authorize_dynamic_dispatch() {
+        use crate::{
+            PrivateKey,
+            programs::manager::tests::{DD_CALLER_PROGRAM, DD_CONSTANTS_PROGRAM},
+            types::native::{CurrentAleo, IdentifierNative, ProcessNative, ProgramNative},
+        };
+        use js_sys::{Object, Reflect};
+        use rand::SeedableRng;
+        use snarkvm_console::program::ToField;
+        use std::str::FromStr;
+        use wasm_bindgen::JsValue;
+
+        // Compute field-encoded identifiers for the dynamic call target.
+        let dd_constants_field = IdentifierNative::from_str("dd_constants").unwrap().to_field().unwrap();
+        let aleo_field = IdentifierNative::from_str("aleo").unwrap().to_field().unwrap();
+        let get_value_field = IdentifierNative::from_str("get_value").unwrap().to_field().unwrap();
+
+        // Set up the process with both programs loaded.
+        let mut process = ProcessNative::load_web().unwrap();
+        let caller_program = ProgramNative::from_str(DD_CALLER_PROGRAM).unwrap();
+        let constants_program = ProgramNative::from_str(DD_CONSTANTS_PROGRAM).unwrap();
+
+        // Build imports object and resolve dynamic imports.
+        let imports = Object::new();
+        Reflect::set(&imports, &JsValue::from_str("dd_constants.aleo"), &JsValue::from_str(DD_CONSTANTS_PROGRAM))
+            .unwrap();
+        ProgramManager::resolve_imports(&mut process, &caller_program, Some(imports.clone())).unwrap();
+        ProgramManager::resolve_dynamic_imports(&mut process, Some(imports)).unwrap();
+
+        // Add the caller program to the process.
+        process.add_program_with_edition(&caller_program, 1).unwrap();
+
+        // Verify both programs are in the process.
+        assert!(process.contains_program(constants_program.id()), "dd_constants.aleo should be in the process");
+        assert!(process.contains_program(caller_program.id()), "dd_caller.aleo should be in the process");
+
+        // Build the inputs for authorization.
+        // Field::fmt() already includes the "field" suffix.
+        let inputs = vec![format!("{dd_constants_field}"), format!("{aleo_field}"), format!("{get_value_field}")];
+        let private_key = PrivateKey::new();
+        let rng = &mut rand::rngs::StdRng::from_entropy();
+
+        // Authorize should succeed — this validates that the process can construct
+        // an authorization for a program that uses call.dynamic.
+        let authorization = process
+            .authorize::<CurrentAleo, _>(&private_key, caller_program.id(), "call_and_increment", inputs.iter(), rng)
+            .expect("Authorization should succeed for dynamic dispatch caller");
+
+        // Verify the authorization has the expected structure.
+        let request = authorization.peek_next().unwrap();
+        assert_eq!(request.program_id().to_string(), "dd_caller.aleo");
+        assert_eq!(request.function_name().to_string(), "call_and_increment");
     }
 }

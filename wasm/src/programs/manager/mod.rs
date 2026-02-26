@@ -161,6 +161,32 @@ impl ProgramManager {
         }
     }
 
+    /// Resolve dynamic dispatch imports — loads ALL programs from the imports object
+    /// that are not already in the process. This handles programs called via `call.dynamic`
+    /// which are not declared in the caller's static `import` block.
+    pub(crate) fn resolve_dynamic_imports(process: &mut ProcessNative, imports: Option<Object>) -> Result<(), String> {
+        if let Some(imports) = imports {
+            let keys = Object::keys(&imports);
+            for i in 0..keys.length() {
+                let key = keys.get(i).as_string().unwrap_or_default();
+                if key == "credits.aleo" {
+                    continue;
+                }
+                if let Some(source) = Reflect::get(&imports, &key.as_str().into()).ok().and_then(|v| v.as_string()) {
+                    let program = ProgramNative::from_str(&source).map_err(|e| e.to_string())?;
+                    if !process.contains_program(program.id()) {
+                        log(&format!("Loading dynamic dispatch target: {key}"));
+                        // Resolve this program's own static imports first.
+                        Self::resolve_imports(process, &program, Some(imports.clone()))?;
+                        log(&format!("Adding dynamic target {key} to the process"));
+                        process.add_program_with_edition(&program, 1).map_err(|e| e.to_string())?;
+                    }
+                }
+            }
+        }
+        Ok(())
+    }
+
     pub(crate) fn validate_fee_record(
         fee_record: &Option<RecordPlaintext>,
         minimum_execution_cost: u64,
@@ -266,5 +292,113 @@ function add_and_double:
         let bytes = reqwest::get(inclusion_prover_url).await.unwrap().bytes().await.unwrap().to_vec();
         let key = ProvingKey::from_bytes(&bytes).unwrap();
         ProgramManager::load_inclusion_prover(key);
+    }
+
+    /// A simple program that returns a constant value. Used as a dynamic dispatch target.
+    pub const DD_CONSTANTS_PROGRAM: &str = r#"program dd_constants.aleo;
+
+function get_value:
+    output 42u128 as u128.private;
+
+constructor:
+    assert.eq true true;
+"#;
+
+    /// A program that calls another program via `call.dynamic`. The first three inputs
+    /// are field-encoded identifiers for (program_name, network, function_name).
+    /// It calls the target, adds 1 to the result, and returns it.
+    pub const DD_CALLER_PROGRAM: &str = r#"program dd_caller.aleo;
+
+function call_and_increment:
+    input r0 as field.public;
+    input r1 as field.public;
+    input r2 as field.public;
+    call.dynamic r0 r1 r2 into r3 (as u128.private);
+    add r3 1u128 into r4;
+    output r4 as u128.public;
+
+constructor:
+    assert.eq true true;
+"#;
+
+    /// A second simple program that returns a constant value. Used as a second dynamic dispatch target.
+    pub const DD_TEN_PROGRAM: &str = r#"program dd_ten.aleo;
+
+function get_ten:
+    output 10u128 as u128.private;
+
+constructor:
+    assert.eq true true;
+"#;
+
+    /// A program that calls TWO different programs via `call.dynamic` and adds the results.
+    /// Calls dd_constants/get_value → 42u128, then dd_ten/get_ten → 10u128, returns 52u128.
+    pub const DD_MULTI_CALLER_PROGRAM: &str = r#"program dd_multi_caller.aleo;
+
+function call_two_and_add:
+    input r0 as field.public;
+    input r1 as field.public;
+    input r2 as field.public;
+    input r3 as field.public;
+    input r4 as field.public;
+    call.dynamic r0 r1 r2 into r5 (as u128.private);
+    call.dynamic r3 r1 r4 into r6 (as u128.private);
+    add r5 r6 into r7;
+    output r7 as u128.public;
+
+constructor:
+    assert.eq true true;
+"#;
+
+    /// Test that resolve_dynamic_imports loads non-statically-imported programs
+    /// into the process, and that resolve_imports alone does NOT.
+    #[wasm_bindgen_test]
+    fn test_resolve_dynamic_imports() {
+        let dd_constants = ProgramNative::from_str(DD_CONSTANTS_PROGRAM).unwrap();
+        let dd_caller = ProgramNative::from_str(DD_CALLER_PROGRAM).unwrap();
+
+        // Build imports object containing the dynamic target.
+        let imports = Object::new();
+        Reflect::set(&imports, &JsValue::from_str("dd_constants.aleo"), &JsValue::from_str(DD_CONSTANTS_PROGRAM))
+            .unwrap();
+
+        // resolve_imports alone should NOT load dd_constants (it's not a static import of dd_caller).
+        let mut process = ProcessNative::load_web().unwrap();
+        ProgramManager::resolve_imports(&mut process, &dd_caller, Some(imports.clone())).unwrap();
+        assert!(
+            !process.contains_program(dd_constants.id()),
+            "resolve_imports should not load dynamically-dispatched programs"
+        );
+
+        // resolve_dynamic_imports should load it.
+        ProgramManager::resolve_dynamic_imports(&mut process, Some(imports)).unwrap();
+        assert!(process.contains_program(dd_constants.id()), "resolve_dynamic_imports should load dd_constants.aleo");
+    }
+
+    /// Test that resolve_dynamic_imports correctly loads multiple dynamic targets
+    /// from a single imports object.
+    #[wasm_bindgen_test]
+    fn test_resolve_multiple_dynamic_imports() {
+        let dd_constants = ProgramNative::from_str(DD_CONSTANTS_PROGRAM).unwrap();
+        let dd_ten = ProgramNative::from_str(DD_TEN_PROGRAM).unwrap();
+        let dd_multi_caller = ProgramNative::from_str(DD_MULTI_CALLER_PROGRAM).unwrap();
+
+        // Build imports object containing both dynamic targets.
+        let imports = Object::new();
+        Reflect::set(&imports, &JsValue::from_str("dd_constants.aleo"), &JsValue::from_str(DD_CONSTANTS_PROGRAM))
+            .unwrap();
+        Reflect::set(&imports, &JsValue::from_str("dd_ten.aleo"), &JsValue::from_str(DD_TEN_PROGRAM)).unwrap();
+
+        let mut process = ProcessNative::load_web().unwrap();
+
+        // resolve_imports should not load either (they are not static imports of dd_multi_caller).
+        ProgramManager::resolve_imports(&mut process, &dd_multi_caller, Some(imports.clone())).unwrap();
+        assert!(!process.contains_program(dd_constants.id()));
+        assert!(!process.contains_program(dd_ten.id()));
+
+        // resolve_dynamic_imports should load both.
+        ProgramManager::resolve_dynamic_imports(&mut process, Some(imports)).unwrap();
+        assert!(process.contains_program(dd_constants.id()), "resolve_dynamic_imports should load dd_constants.aleo");
+        assert!(process.contains_program(dd_ten.id()), "resolve_dynamic_imports should load dd_ten.aleo");
     }
 }
