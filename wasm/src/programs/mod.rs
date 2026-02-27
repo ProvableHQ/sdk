@@ -36,6 +36,9 @@ pub use offline_query::*;
 pub mod program;
 pub use program::*;
 
+pub mod proof;
+pub use proof::*;
+
 pub mod proving_key;
 pub use proving_key::*;
 

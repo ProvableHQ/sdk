@@ -145,6 +145,7 @@ export {
     PrivateKeyCiphertext,
     Program,
     ProgramManager as ProgramManagerBase,
+    Proof,
     ProvingKey,
     ProvingRequest,
     RecordCiphertext,
@@ -164,6 +165,8 @@ export {
     ViewKey,
     initThreadPool,
     getOrInitConsensusVersionTestHeights,
+    snarkVerify,
+    snarkVerifyBatch,
     verifyFunctionExecution,
 } from "./wasm.js";
 
