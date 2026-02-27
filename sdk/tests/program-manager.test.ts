@@ -3,6 +3,7 @@ import {
     AleoKeyProvider,
     Authorization,
     CREDITS_PROGRAM_KEYS,
+    ExecutionRequest,
     ExecutionResponse,
     ImportedPrograms,
     ImportedVerifyingKeys,
@@ -303,6 +304,34 @@ describe('Program Manager', async () => {
 
             const authorization = provingRequest.authorization();
             expect(authorization.transitions().length).equal(3);
+        });
+
+        it('Should build proving request from a pre-signed ExecutionRequest', async () => {
+            const privateKey = new Account().privateKey();
+
+            // Create a simple ExecutionRequest for credits.aleo/transfer_public.
+            const request = ExecutionRequest.sign(
+                privateKey,
+                "credits.aleo",
+                "transfer_public",
+                [beaconAddressString, "10000000u64"],
+                ["address.public", "u64.public"],
+                undefined,
+                undefined,
+                true
+            );
+
+            // Build a ProvingRequest from the pre-signed ExecutionRequest.
+            const provingRequest = await programManager.provingRequest({
+                request,
+                broadcast: false,
+            });
+
+            // Verify the ProvingRequest has the correct structure.
+            expect(provingRequest.broadcast()).equal(false);
+            expect(provingRequest.feeAuthorization()).equal(undefined);
+            const authorization = provingRequest.authorization();
+            expect(authorization.len()).equal(1);
         });
 
         it('Should build correct authorizations', async () => {
