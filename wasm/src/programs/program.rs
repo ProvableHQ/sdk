@@ -184,14 +184,14 @@ impl Program {
                 }
                 ValueType::DynamicRecord => {
                     let input = Object::new();
-                    let value_type = JsValue::from_str("dynamic_record");
+                    let value_type = JsValue::from_str("dynamic.record");
                     Reflect::set(&input, &"type".into(), &value_type).map_err(|_| "Failed to set property")?;
                     Reflect::set(&input, &"register".into(), &register).map_err(|_| "Failed to set property")?;
                     function_inputs.set(index as u32, input.into());
                 }
                 ValueType::DynamicFuture => {
                     let input = Object::new();
-                    let value_type = JsValue::from_str("dynamic_future");
+                    let value_type = JsValue::from_str("dynamic.future");
                     Reflect::set(&input, &"type".into(), &value_type).map_err(|_| "Failed to set property")?;
                     Reflect::set(&input, &"register".into(), &register).map_err(|_| "Failed to set property")?;
                     function_inputs.set(index as u32, input.into());
