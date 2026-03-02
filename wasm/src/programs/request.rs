@@ -327,6 +327,7 @@ mod tests {
     use crate::types::native::CurrentNetwork;
     use snarkvm_console::network::Network;
     use wasm_bindgen_test::*;
+    use wasm_bindgen::convert::TryFromJsValue;
 
     #[wasm_bindgen_test]
     fn test_compute_public_message_payload_returns_correct_structure() {
