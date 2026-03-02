@@ -32,8 +32,11 @@ import {
     ProvingRequest,
     VerifyingKey,
     Transaction,
+    Proof,
     ProgramManager as WasmProgramManager,
     verifyFunctionExecution,
+    snarkVerify,
+    snarkVerifyBatch,
 } from "./wasm.js";
 
 import {
@@ -3112,6 +3115,64 @@ class ProgramManager {
             console.warn(
                 `The execution was not found in the response, cannot verify the execution: ${e}`,
             );
+            return false;
+        }
+    }
+
+    /**
+     * Verify a SNARK proof against a verifying key and public inputs.
+     *
+     * This verifies a proof produced by an Aleo program that may not be deployed on chain.
+     * It directly invokes the Varuna proof verification from snarkVM.
+     *
+     * @param {VerifyingKey} verifyingKey The verifying key for the circuit
+     * @param {string[]} inputs Array of field element strings representing public inputs (e.g. ["1field", "2field"])
+     * @param {Proof} proof The proof to verify
+     * @returns {boolean} True if the proof is valid, false otherwise
+     *
+     * @example
+     * import { ProgramManager, Proof, VerifyingKey } from "@provablehq/sdk/mainnet.js";
+     *
+     * const programManager = new ProgramManager();
+     * const verifyingKey = VerifyingKey.fromString("verifier1...");
+     * const proof = Proof.fromString("proof1...");
+     * const isValid = programManager.verifyProof(verifyingKey, ["1field", "2field"], proof);
+     */
+    verifyProof(verifyingKey: VerifyingKey, inputs: string[], proof: Proof): boolean {
+        try {
+            return snarkVerify(verifyingKey, inputs, proof);
+        } catch (e) {
+            console.warn(`Proof verification failed: ${e}`);
+            return false;
+        }
+    }
+
+    /**
+     * Verify a batch SNARK proof against multiple verifying keys and their corresponding public inputs.
+     *
+     * Each verifying key is paired with one or more sets of public inputs (instances).
+     *
+     * @param {string[]} verifyingKeys Array of verifying key strings, one per circuit
+     * @param {string[][][]} inputs 3D array of field element strings [circuit_idx][instance_idx][field_idx]
+     * @param {Proof} proof The batch proof to verify
+     * @returns {boolean} True if the batch proof is valid, false otherwise
+     *
+     * @example
+     * import { ProgramManager, Proof } from "@provablehq/sdk/mainnet.js";
+     *
+     * const programManager = new ProgramManager();
+     * const proof = Proof.fromString("proof1...");
+     * const isValid = programManager.verifyBatchProof(
+     *     ["verifier1...", "verifier2..."],
+     *     [[["1field", "2field"]], [["3field"]]],
+     *     proof
+     * );
+     */
+    verifyBatchProof(verifyingKeys: string[], inputs: string[][][], proof: Proof): boolean {
+        try {
+            return snarkVerifyBatch(verifyingKeys, inputs, proof);
+        } catch (e) {
+            console.warn(`Batch proof verification failed: ${e}`);
             return false;
         }
     }

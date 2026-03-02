@@ -31,8 +31,7 @@ use crate::{
     },
 };
 use snarkvm_algorithms::snark::varuna::VarunaVersion;
-use snarkvm_console::network::Network;
-use snarkvm_console::prelude::Environment;
+use snarkvm_console::{network::Network, prelude::Environment};
 use snarkvm_synthesizer::prelude::InclusionVersion;
 
 use js_sys::{Array, Object, Reflect};
@@ -208,11 +207,7 @@ pub fn verify_function_execution(
 /// @param {Proof} proof The proof to verify
 /// @returns {boolean} True if the proof is valid, false otherwise
 #[wasm_bindgen(js_name = "snarkVerify")]
-pub fn snark_verify(
-    verifying_key: &VerifyingKey,
-    inputs: Array,
-    proof: &Proof,
-) -> Result<bool, String> {
+pub fn snark_verify(verifying_key: &VerifyingKey, inputs: Array, proof: &Proof) -> Result<bool, String> {
     // Parse the input field elements from strings.
     let raw_inputs = parse_field_inputs(&inputs)?;
 
@@ -232,11 +227,7 @@ pub fn snark_verify(
 /// @param {Proof} proof The batch proof to verify
 /// @returns {boolean} True if the batch proof is valid, false otherwise
 #[wasm_bindgen(js_name = "snarkVerifyBatch")]
-pub fn snark_verify_batch(
-    verifying_keys: Array,
-    inputs: Array,
-    proof: &Proof,
-) -> Result<bool, String> {
+pub fn snark_verify_batch(verifying_keys: Array, inputs: Array, proof: &Proof) -> Result<bool, String> {
     if verifying_keys.length() != inputs.length() {
         return Err(format!(
             "Mismatch: {} verifying keys but {} input groups provided",
@@ -250,10 +241,8 @@ pub fn snark_verify_batch(
 
     for i in 0..verifying_keys.length() {
         // Parse the verifying key from its string representation.
-        let vk_str = verifying_keys
-            .get(i)
-            .as_string()
-            .ok_or_else(|| format!("Expected verifying key string at index {i}"))?;
+        let vk_str =
+            verifying_keys.get(i).as_string().ok_or_else(|| format!("Expected verifying key string at index {i}"))?;
         let vk_native = VerifyingKeyNative::from_str(&vk_str)
             .map_err(|e| format!("Failed to parse verifying key at index {i}: {e}"))?;
 

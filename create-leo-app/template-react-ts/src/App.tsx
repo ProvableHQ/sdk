@@ -11,6 +11,7 @@ function App() {
   const [account, setAccount] = useState(null);
   const [executing, setExecuting] = useState(false);
   const [deploying, setDeploying] = useState(false);
+  const [verifying, setVerifying] = useState(false);
 
   const generateAccount = async () => {
     const key = await aleoWorker.getPrivateKey();
@@ -27,6 +28,21 @@ function App() {
     setExecuting(false);
 
     alert(JSON.stringify(result));
+  }
+
+  async function verifyProof() {
+    setVerifying(true);
+    try {
+      const result = await aleoWorker.verifyProof();
+      alert(
+        `Single verification: ${result.singleVerification}\n` +
+        `Batch verification: ${result.batchVerification}`
+      );
+    } catch (e) {
+      console.log(e);
+      alert("Error with proof verification, please check console for details");
+    }
+    setVerifying(false);
   }
 
   async function deploy() {
@@ -70,6 +86,13 @@ function App() {
             {executing
               ? `Executing...check console for details...`
               : `Execute helloworld.aleo`}
+          </button>
+        </p>
+        <p>
+          <button disabled={verifying} onClick={verifyProof}>
+            {verifying
+              ? `Verifying proof...`
+              : `Verify SNARK proof`}
           </button>
         </p>
         <p>
