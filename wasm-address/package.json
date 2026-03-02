@@ -1,8 +1,8 @@
 {
-  "name": "@provablehq/wasm-address",
-  "version": "0.9.16",
+  "name": "@provablehq/account-tools",
+  "version": "0.1.0",
   "type": "module",
-  "description": "Minimal WebAssembly bindings for Aleo address operations",
+  "description": "Minimal WebAssembly bindings for Aleo account operations",
   "collaborators": [
     "The Provable Team"
   ],
