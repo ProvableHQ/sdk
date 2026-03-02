@@ -26,6 +26,7 @@ import {
     Field,
     OfflineQuery,
     RecordPlaintext,
+    Plaintext,
     PrivateKey,
     Program,
     ProvingKey,
@@ -225,6 +226,32 @@ interface FeeEstimateOptions {
     imports?: ProgramImports;
     edition?: number,
     authorization?: Authorization;
+}
+
+/**
+ * Options for verifying a single Aleo zkSnark proof.
+ *
+ * @property {string} verifyingKey - The verifying key string for the circuit
+ * @property {string[]} inputs - Array of public input strings — either field elements (e.g. "1field") or Aleo types (e.g. "1u32", "{ x: 1u8 }")
+ * @property {string} proof - The proof string to verify
+ */
+interface VerificationOptions {
+    verifyingKey: string;
+    inputs: string[];
+    proof: string;
+}
+
+/**
+ * Options for verifying a batch Aleo zkSnark proof.
+ *
+ * @property {string[]} verifyingKeys - Array of verifying key strings, one per circuit
+ * @property {string[][][]} inputs - 3D array of input strings [circuit_idx][instance_idx][input_idx]
+ * @property {string} proof - The batch proof string to verify
+ */
+interface BatchVerificationOptions {
+    verifyingKeys: string[];
+    inputs: string[][][];
+    proof: string;
 }
 
 /**
@@ -3120,61 +3147,96 @@ class ProgramManager {
     }
 
     /**
-     * Verify a SNARK proof against a verifying key and public inputs.
+     * Convert an array of Aleo type strings to field element strings.
+     *
+     * Inputs that are already field elements (e.g. "1field") are passed through directly.
+     * Other Aleo types (e.g. "1u32", "true", "{ x: 1u8, y: 2u8 }") are parsed via
+     * Plaintext and converted to their field representation.
+     *
+     * @param {string[]} inputs Array of Aleo value strings
+     * @returns {string[]} Array of field element strings
+     */
+    private inputsToFields(inputs: string[]): string[] {
+        const fields: string[] = [];
+        for (const input of inputs) {
+            if (input.endsWith("field")) {
+                fields.push(input);
+            } else {
+                const plaintext = Plaintext.fromString(input);
+                const plaintextFields = plaintext.toFields();
+                for (const f of plaintextFields) {
+                    fields.push(f.toString());
+                }
+            }
+        }
+        return fields;
+    }
+
+    /**
+     * Verify an Aleo zkSnark proof against a verifying key and public inputs.
      *
      * This verifies a proof produced by an Aleo program that may not be deployed on chain.
      * It directly invokes the Varuna proof verification from snarkVM.
      *
-     * @param {VerifyingKey} verifyingKey The verifying key for the circuit
-     * @param {string[]} inputs Array of field element strings representing public inputs (e.g. ["1field", "2field"])
-     * @param {Proof} proof The proof to verify
+     * Inputs can be raw field element strings (e.g. "1field") or Aleo type strings
+     * (e.g. "1u32", "true", "{ x: 1u8, y: 2u8 }"). Non-field inputs are automatically
+     * converted to their field representation via Plaintext.toFields().
+     *
+     * @param {VerificationOptions} options The verification parameters
      * @returns {boolean} True if the proof is valid, false otherwise
      *
      * @example
-     * import { ProgramManager, Proof, VerifyingKey } from "@provablehq/sdk/mainnet.js";
+     * import { ProgramManager } from "@provablehq/sdk/mainnet.js";
      *
      * const programManager = new ProgramManager();
-     * const verifyingKey = VerifyingKey.fromString("verifier1...");
-     * const proof = Proof.fromString("proof1...");
-     * const isValid = programManager.verifyProof(verifyingKey, ["1field", "2field"], proof);
+     *
+     * // Using raw field elements:
+     * const isValid = programManager.verifyProof({
+     *     verifyingKey: "verifier1...",
+     *     inputs: ["1field", "2field"],
+     *     proof: "proof1...",
+     * });
+     *
+     * // Using Aleo types (automatically converted to fields):
+     * const isValid2 = programManager.verifyProof({
+     *     verifyingKey: "verifier1...",
+     *     inputs: ["1u32", "2u32"],
+     *     proof: "proof1...",
+     * });
      */
-    verifyProof(verifyingKey: VerifyingKey, inputs: string[], proof: Proof): boolean {
-        try {
-            return snarkVerify(verifyingKey, inputs, proof);
-        } catch (e) {
-            console.warn(`Proof verification failed: ${e}`);
-            return false;
-        }
+    verifyProof(options: VerificationOptions): boolean {
+        const fieldInputs = this.inputsToFields(options.inputs);
+        const verifyingKey = VerifyingKey.fromString(options.verifyingKey);
+        const proof = Proof.fromString(options.proof);
+        return snarkVerify(verifyingKey, fieldInputs, proof);
     }
 
     /**
-     * Verify a batch SNARK proof against multiple verifying keys and their corresponding public inputs.
+     * Verify a batch Aleo zkSnark proof against multiple verifying keys and their corresponding public inputs.
      *
      * Each verifying key is paired with one or more sets of public inputs (instances).
+     * Inputs can be raw field element strings or Aleo type strings — non-field inputs
+     * are automatically converted to their field representation.
      *
-     * @param {string[]} verifyingKeys Array of verifying key strings, one per circuit
-     * @param {string[][][]} inputs 3D array of field element strings [circuit_idx][instance_idx][field_idx]
-     * @param {Proof} proof The batch proof to verify
+     * @param {BatchVerificationOptions} options The batch verification parameters
      * @returns {boolean} True if the batch proof is valid, false otherwise
      *
      * @example
-     * import { ProgramManager, Proof } from "@provablehq/sdk/mainnet.js";
+     * import { ProgramManager } from "@provablehq/sdk/mainnet.js";
      *
      * const programManager = new ProgramManager();
-     * const proof = Proof.fromString("proof1...");
-     * const isValid = programManager.verifyBatchProof(
-     *     ["verifier1...", "verifier2..."],
-     *     [[["1field", "2field"]], [["3field"]]],
-     *     proof
-     * );
+     * const isValid = programManager.verifyBatchProof({
+     *     verifyingKeys: ["verifier1...", "verifier2..."],
+     *     inputs: [[["1field", "2field"]], [["3field"]]],
+     *     proof: "proof1...",
+     * });
      */
-    verifyBatchProof(verifyingKeys: string[], inputs: string[][][], proof: Proof): boolean {
-        try {
-            return snarkVerifyBatch(verifyingKeys, inputs, proof);
-        } catch (e) {
-            console.warn(`Batch proof verification failed: ${e}`);
-            return false;
-        }
+    verifyBatchProof(options: BatchVerificationOptions): boolean {
+        const fieldInputs = options.inputs.map(
+            circuit => circuit.map(instance => this.inputsToFields(instance))
+        );
+        const proof = Proof.fromString(options.proof);
+        return snarkVerifyBatch(options.verifyingKeys, fieldInputs, proof);
     }
 
     /**
@@ -3818,4 +3880,4 @@ function validateTransferType(transferType: string): string {
         );
 }
 
-export { ProgramManager, AuthorizationOptions, FeeAuthorizationOptions, ExecuteOptions, ProvingRequestOptions, ExternalSigningOptions };
+export { ProgramManager, AuthorizationOptions, FeeAuthorizationOptions, ExecuteOptions, ProvingRequestOptions, ExternalSigningOptions, VerificationOptions, BatchVerificationOptions };

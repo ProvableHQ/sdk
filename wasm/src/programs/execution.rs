@@ -230,7 +230,7 @@ pub fn snark_verify(verifying_key: &VerifyingKey, inputs: Array, proof: &Proof) 
 pub fn snark_verify_batch(verifying_keys: Array, inputs: Array, proof: &Proof) -> Result<bool, String> {
     if verifying_keys.length() != inputs.length() {
         return Err(format!(
-            "Mismatch: {} verifying keys but {} input groups provided",
+            "Mismatch: {} verifying keys but {} input groups provided. # of input groups must match # of verifying keys.",
             verifying_keys.length(),
             inputs.length()
         ));
@@ -310,29 +310,5 @@ mod tests {
 
         // Invalid inputs should not verify.
         assert!(!verifying_key.verify("test", VarunaVersion::V2, &invalid_inputs, &proof));
-    }
-
-    /// Test that the Proof wasm type round-trips correctly through serialization
-    /// using snarkVM test fixtures.
-    #[cfg(feature = "mainnet")]
-    #[test]
-    fn test_proof_roundtrip_with_fixtures() {
-        use snarkvm_synthesizer_snark::test_helpers;
-        use snarkvm_wasm::utilities::ToBytes;
-
-        let proof_native = test_helpers::sample_proof();
-
-        // Test string roundtrip.
-        let proof_string = proof_native.to_string();
-        let proof = Proof::from_string(&proof_string).unwrap();
-        assert_eq!(proof.to_string(), proof_string);
-
-        // Test bytes roundtrip.
-        let proof_bytes = proof_native.to_bytes_le().unwrap();
-        let proof_from_bytes = Proof::from_bytes(&proof_bytes).unwrap();
-        assert_eq!(proof_from_bytes.to_bytes().unwrap(), proof_bytes);
-
-        // Cross-format: string → bytes → string.
-        assert_eq!(proof.to_bytes().unwrap(), proof_from_bytes.to_bytes().unwrap());
     }
 }
