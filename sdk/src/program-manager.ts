@@ -3739,9 +3739,6 @@ class ProgramManager {
         Array<[Field, Field[]]>
         ]> {
         const { programName, functionName, inputs, isRoot, checksum} = options;
-        if (!this.account) {
-            throw new Error("No account set in ProgramManager. Please set an account to sign messages.");
-        }
         try {
             return ExecutionRequest.computePublicMessagePayload(programName, functionName, inputs, isRoot, checksum ?? null) as [Field, Field, Field | null, Array<[Field, Field[]]>];
         } catch (e: unknown) {
