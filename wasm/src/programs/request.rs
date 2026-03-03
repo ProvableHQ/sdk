@@ -31,7 +31,11 @@ use crate::{
         ValueTypeNative,
     },
 };
-use snarkvm_console::{network::Network, prelude::{One, ToFields, Zero}, program::compute_function_id};
+use snarkvm_console::{
+    network::Network,
+    prelude::{One, ToFields, Zero},
+    program::compute_function_id,
+};
 use snarkvm_wasm::utilities::{FromBytes, ToBytes};
 
 use js_sys::{Array, Uint8Array};
@@ -269,12 +273,8 @@ impl ExecutionRequest {
             ));
 
             // Serialize the input as fields.
-            let fields_array: Array = input
-                .to_fields()
-                .map_err(|e| e.to_string())?
-                .iter()
-                .map(|f| JsValue::from(Field::from(f)))
-                .collect();
+            let fields_array: Array =
+                input.to_fields().map_err(|e| e.to_string())?.iter().map(|f| JsValue::from(Field::from(f))).collect();
 
             // Build the [index, fields] pair and add to input_data.
             input_data.push(&Array::of2(&JsValue::from(index_field), &fields_array));
@@ -326,8 +326,8 @@ mod tests {
     use super::*;
     use crate::types::native::CurrentNetwork;
     use snarkvm_console::network::Network;
-    use wasm_bindgen_test::*;
     use wasm_bindgen::convert::TryFromJsValue;
+    use wasm_bindgen_test::*;
 
     #[wasm_bindgen_test]
     fn test_compute_public_message_payload_returns_correct_structure() {
