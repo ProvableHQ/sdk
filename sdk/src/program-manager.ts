@@ -20,6 +20,7 @@ import {
 import {
     Address,
     Authorization,
+    ExecutionRequest,
     ExecutionResponse,
     Execution as FunctionExecution,
     OfflineQuery,
@@ -228,7 +229,7 @@ interface FeeEstimateOptions {
  * @property {boolean} isRoot - Whether this transition is the first transition being executed in a transaction.
  * @property {string} [checksum] - The optional checksum of the program, used to verify the program source code on the network matches the program source code used to generate the proof.
 */
-interface publicMessagePayload {
+interface PublicMessagePayload {
     programName: string;
     functionName: string;
     inputs: string[];
@@ -3728,6 +3729,15 @@ class ProgramManager {
             this.host,
             imports,
         );
+    }
+
+    async signMessage(options: PublicMessagePayload): Promise<Array<string>> {
+        const { programName, functionName, inputs, isRoot, checksum} = options;
+        if (!this.account) {
+            throw new Error("No account set in ProgramManager. Please set an account to sign messages.");
+        }
+        const signedMessage = WasmProgramManager.computePublicMessagePayload(programName, functionName, inputs, isRoot, checksum);
+        return signedMessage;
     }
 }
 
