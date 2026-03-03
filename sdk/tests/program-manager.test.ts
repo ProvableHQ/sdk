@@ -4,6 +4,7 @@ import {
     Authorization,
     CREDITS_PROGRAM_KEYS,
     ExecutionResponse,
+    Field,
     ImportedPrograms,
     ImportedVerifyingKeys,
     OfflineQuery,
@@ -430,4 +431,24 @@ describe('Program Manager', async () => {
             }
         });
     });
+
+    describe('Program Manager public message signing', () => {
+        it('Should sign a public message and return the expected fields', async () => {
+            const signedMessage = await programManager.signMessage({
+                programName: "credits.aleo",
+                functionName: "transfer_public",
+                inputs: ["aleo1rhgdu77hgyqd3xjj8ucu3jj9r2krwz6mnzyd80gncr5fxcwlh5rsvzp9px", "100u64"],
+                isRoot: true,
+                checksum: null
+            });
+            expect(signedMessage).to.be.an("array").with.lengthOf(4);
+            const [functionID, isRoot, checksum, inputData] = signedMessage;
+            expect(functionID).to.be.instanceOf(Field);
+            expect(isRoot).to.be.instanceOf(Field);
+            expect(checksum).to.be.null;
+            expect(inputData).to.be.an("array").with.lengthOf(2);
+
+        });
+    });
+
 });
