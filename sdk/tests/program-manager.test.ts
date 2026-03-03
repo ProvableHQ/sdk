@@ -3,6 +3,7 @@ import {
     AleoKeyProvider,
     Authorization,
     CREDITS_PROGRAM_KEYS,
+    ExecutionRequest,
     ExecutionResponse,
     ImportedPrograms,
     ImportedVerifyingKeys,
@@ -303,6 +304,44 @@ describe('Program Manager', async () => {
 
             const authorization = provingRequest.authorization();
             expect(authorization.transitions().length).equal(3);
+        });
+
+        it('Should build proving request from ExecutionRequest', async () => {
+            const privateKey = PrivateKey.from_string(
+                "APrivateKey1zkp7Vc4xJt8HqW9U7VhY6h32d8Z9Xi5C6ZZX3gtXxbBSJmj"
+            );
+            const inputs = [
+                "aleo1wp5f52cujua034ts029lq96ke2p505sqc0yrt7yx7x0fcel82yxqe867q9",
+                "500u64",
+            ];
+            const inputTypes = ["address.public", "u64.public"];
+            const executionRequest = ExecutionRequest.sign(
+                privateKey,
+                "credits.aleo",
+                "transfer_public",
+                inputs,
+                inputTypes,
+                undefined,
+                undefined,
+                true
+            );
+            
+            // Ensure the execution request is valid.
+            const provingRequest = await programManager.provingRequest({
+                programName: "credits.aleo",
+                functionName: "transfer_public",
+                priorityFee: 0,
+                privateFee: false,
+                inputs,
+                broadcast: false,
+                executionRequest,
+                privateKey,
+            });
+
+            const authorization = provingRequest.authorization();
+            expect(authorization.len()).equal(1);
+            expect(authorization.transitions().length).equal(1);
+            expect(provingRequest.feeAuthorization()).equal(undefined);
         });
 
         it('Should build correct authorizations', async () => {

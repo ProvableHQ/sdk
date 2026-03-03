@@ -139,8 +139,9 @@ impl ProgramManager {
     pub async fn authorize_request(
         request: &ExecutionRequest,
         program: &str,
-        imports: Option<Object>,
         unchecked: bool,
+        edition: Option<u16>,
+        imports: Option<Object>,
         private_key: Option<PrivateKey>,
     ) -> Result<Authorization, String> {
         // Load the process.
@@ -159,6 +160,16 @@ impl ProgramManager {
         log(&format!("Creating proving request for {}:{}", program_native.id(), request.function_name()));
         ProgramManager::resolve_imports(process, &program_native, imports)?;
         let rng = &mut StdRng::from_entropy();
+
+        // Add the program to the process if it is not already there.
+        let edition = edition.unwrap_or(1);
+        let program_id = program_native.id();
+        if program_id.to_string() != "credits.aleo" {
+            if !process.contains_program(program_id) {
+                log("Adding program to the process");
+                process.add_program_with_edition(&program_native, edition).map_err(|e| e.to_string())?;
+            }
+        }
 
         // If a private key is provided, use it to authorize the request, otherwise use authorize_request method.
         let authorization = match private_key_native {
@@ -278,7 +289,9 @@ mod tests {
         let program_str = program.to_string();
 
         let authorization =
-            ProgramManager::authorize_request(&request, &program_str, None, false, Some(private_key)).await.unwrap();
+            ProgramManager::authorize_request(&request, &program_str, false, Some(1), None, Some(private_key))
+                .await
+                .unwrap();
 
         assert_eq!(authorization.len(), 1, "transfer_public authorization should have 1 request");
         assert_eq!(authorization.transitions().length(), 1, "transfer_public authorization should have 1 transition");

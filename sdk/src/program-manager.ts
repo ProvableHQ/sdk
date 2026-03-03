@@ -1492,9 +1492,10 @@ class ProgramManager {
             return await WasmProgramManager.buildProvingRequestFromExecutionRequest(
                 options.executionRequest,
                 program,
-                imports,
                 unchecked,
                 broadcast,
+                edition,
+                imports,
                 executionPrivateKey,
             )
         } else {

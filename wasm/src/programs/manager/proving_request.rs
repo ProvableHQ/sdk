@@ -135,14 +135,16 @@ impl ProgramManager {
     pub async fn proving_request_from_execution_request(
         request: &ExecutionRequest,
         program: &str,
-        imports: Option<Object>,
         unchecked: bool,
         broadcast: bool,
+        edition: Option<u16>,
+        imports: Option<Object>,
         private_key: Option<PrivateKey>,
     ) -> Result<ProvingRequest, String> {
-        let authorization = ProgramManager::authorize_request(request, program, imports, unchecked, private_key)
-            .await
-            .map_err(|e| e.to_string())?;
+        let authorization =
+            ProgramManager::authorize_request(request, program, unchecked, edition, imports, private_key)
+                .await
+                .map_err(|e| e.to_string())?;
 
         // Return the proving request.
         Ok(ProvingRequest::from((AuthorizationNative::from(authorization), None, broadcast)))
@@ -192,9 +194,10 @@ mod tests {
         let proving_request = ProgramManager::proving_request_from_execution_request(
             &request,
             &program_str,
+            false,
+            false,
+            Some(1),
             None,
-            false,
-            false,
             Some(private_key),
         )
         .await
