@@ -152,9 +152,60 @@ impl ProgramManager {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::test::{PUZZLE_SPINNER_V002, generate_puzzle_imports, generate_puzzle_inputs, get_env};
+    use crate::{
+        ExecutionRequest,
+        PrivateKey,
+        Program,
+        array,
+        test::{PUZZLE_SPINNER_V002, generate_puzzle_imports, generate_puzzle_inputs, get_env},
+    };
 
     use wasm_bindgen_test::*;
+
+    /// Build an ExecutionRequest for credits.aleo transfer_public for use in proving_request_from_execution_request test.
+    fn transfer_public_execution_request() -> ExecutionRequest {
+        let private_key =
+            PrivateKey::from_string("APrivateKey1zkp7Vc4xJt8HqW9U7VhY6h32d8Z9Xi5C6ZZX3gtXxbBSJmj").unwrap();
+        let inputs = array!["aleo1wp5f52cujua034ts029lq96ke2p505sqc0yrt7yx7x0fcel82yxqe867q9", "500u64"];
+        let input_types = array!["address.public", "u64.public"];
+        ExecutionRequest::sign(
+            private_key,
+            "credits.aleo".to_string(),
+            "transfer_public".to_string(),
+            inputs,
+            input_types,
+            None,
+            None,
+            true,
+        )
+        .unwrap()
+    }
+
+    #[wasm_bindgen_test]
+    async fn test_proving_request_from_execution_request() {
+        let request = transfer_public_execution_request();
+        let private_key =
+            PrivateKey::from_string("APrivateKey1zkp7Vc4xJt8HqW9U7VhY6h32d8Z9Xi5C6ZZX3gtXxbBSJmj").unwrap();
+        let program = Program::get_credits_program();
+        let program_str = program.to_string();
+
+        let proving_request = ProgramManager::proving_request_from_execution_request(
+            &request,
+            &program_str,
+            None,
+            false,
+            false,
+            Some(private_key),
+        )
+        .await
+        .unwrap();
+
+        let authorization = proving_request.authorization();
+        assert_eq!(authorization.len(), 1, "transfer_public should have 1 request");
+        assert_eq!(authorization.transitions().length(), 1, "transfer_public should have 1 transition");
+        // No fee authorization when built from ExecutionRequest (fee is paid by fee master or handled separately).
+        assert!(proving_request.fee_authorization().is_none());
+    }
 
     #[wasm_bindgen_test]
     async fn test_nested_proving_request() {
