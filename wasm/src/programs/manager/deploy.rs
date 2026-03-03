@@ -90,8 +90,7 @@ impl ProgramManager {
         let program = ProgramNative::from_str(program).map_err(|err| err.to_string())?;
 
         log("Checking program imports are valid and add them to the process");
-        ProgramManager::resolve_imports(process, &program, imports.clone())?;
-        ProgramManager::resolve_dynamic_imports(process, imports)?;
+        ProgramManager::resolve_imports(process, imports)?;
         let rng = &mut StdRng::from_entropy();
 
         log("Creating deployment");
@@ -176,8 +175,7 @@ impl ProgramManager {
         let program = ProgramNative::from_str(program).map_err(|err| err.to_string())?;
 
         log("Check program imports are valid and add them to the process");
-        ProgramManager::resolve_imports(process, &program, imports.clone())?;
-        ProgramManager::resolve_dynamic_imports(process, imports)?;
+        ProgramManager::resolve_imports(process, imports)?;
 
         log("Create sample deployment");
         let mut deployment =
@@ -271,8 +269,7 @@ impl ProgramManager {
         process.add_program_with_edition(&deployed_program, deployed_program_edition).map_err(|err| err.to_string())?;
 
         log("Checking program imports are valid and add them to the process");
-        ProgramManager::resolve_imports(process, &program, imports.clone())?;
-        ProgramManager::resolve_dynamic_imports(process, imports)?;
+        ProgramManager::resolve_imports(process, imports)?;
         let rng = &mut StdRng::from_entropy();
 
         log("Creating deployment");
@@ -369,8 +366,7 @@ impl ProgramManager {
         let program_id = program.id();
 
         log("Checking program imports are valid and add them to the process");
-        ProgramManager::resolve_imports(process, &program, imports.clone())?;
-        ProgramManager::resolve_dynamic_imports(process, imports)?;
+        ProgramManager::resolve_imports(process, imports)?;
         let rng = &mut StdRng::from_entropy();
 
         log("Creating deployment");
@@ -504,8 +500,7 @@ impl ProgramManager {
 
         log("Checking program imports are valid and add them to the process");
         let program = ProgramNative::from_str(&program).map_err(|err| err.to_string())?;
-        ProgramManager::resolve_imports(process, &program, imports.clone())?;
-        ProgramManager::resolve_dynamic_imports(process, imports)?;
+        ProgramManager::resolve_imports(process, imports)?;
         let rng = &mut StdRng::from_entropy();
 
         log("Creating deployment");

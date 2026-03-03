@@ -128,43 +128,8 @@ impl ProgramManager {
         )
     }
 
-    /// Resolve imports for a program in depth first search order
-    pub(crate) fn resolve_imports(
-        process: &mut ProcessNative,
-        program: &ProgramNative,
-        imports: Option<Object>,
-    ) -> Result<(), String> {
-        if let Some(imports) = imports {
-            program.imports().keys().try_for_each(|program_id| {
-                // Get the program string
-                let program_id = program_id.to_string();
-                if let Some(import_string) = Reflect::get(&imports, &program_id.as_str().into())
-                    .map_err(|_| "Program import not found in imports provided".to_string())?
-                    .as_string()
-                {
-                    if &program_id != "credits.aleo" {
-                        let import = ProgramNative::from_str(&import_string).map_err(|err| err.to_string())?;
-                        // Only process if the program is not already in the process
-                        if !process.contains_program(import.id()) {
-                            log(&format!("Importing program: {program_id}"));
-                            // If the program has imports, add them first (depth-first).
-                            Self::resolve_imports(process, &import, Some(imports.clone()))?;
-                            log(&format!("Adding {program_id} to the process"));
-                            process.add_program_with_edition(&import, 1).map_err(|err| err.to_string())?;
-                        }
-                    }
-                }
-                Ok::<(), String>(())
-            })
-        } else {
-            Ok(())
-        }
-    }
-
-    /// Resolve dynamic dispatch imports — loads ALL programs from the imports object
-    /// that are not already in the process. This handles programs called via `call.dynamic`
-    /// which are not declared in the caller's static `import` block.
-    pub(crate) fn resolve_dynamic_imports(process: &mut ProcessNative, imports: Option<Object>) -> Result<(), String> {
+    /// Resolve all imports from the imports object and load them into the process.
+    pub(crate) fn resolve_imports(process: &mut ProcessNative, imports: Option<Object>) -> Result<(), String> {
         if let Some(imports) = imports {
             let keys = Object::keys(&imports);
             for i in 0..keys.length() {
@@ -173,18 +138,43 @@ impl ProgramManager {
                     continue;
                 }
                 if let Some(source) = Reflect::get(&imports, &key.as_str().into()).ok().and_then(|v| v.as_string()) {
-                    let program = ProgramNative::from_str(&source).map_err(|e| e.to_string())?;
-                    if !process.contains_program(program.id()) {
-                        log(&format!("Loading dynamic dispatch target: {key}"));
-                        // Resolve this program's own static imports first.
-                        Self::resolve_imports(process, &program, Some(imports.clone()))?;
-                        log(&format!("Adding dynamic target {key} to the process"));
-                        process.add_program_with_edition(&program, 1).map_err(|e| e.to_string())?;
+                    let import = ProgramNative::from_str(&source).map_err(|e| e.to_string())?;
+                    if !process.contains_program(import.id()) {
+                        log(&format!("Importing program: {key}"));
+                        Self::resolve_program_imports(process, &import, &imports)?;
+                        log(&format!("Adding {key} to the process"));
+                        process.add_program_with_edition(&import, 1).map_err(|e| e.to_string())?;
                     }
                 }
             }
         }
         Ok(())
+    }
+
+    /// Recursively resolve a program's static imports in depth-first order.
+    fn resolve_program_imports(
+        process: &mut ProcessNative,
+        program: &ProgramNative,
+        imports: &Object,
+    ) -> Result<(), String> {
+        program.imports().keys().try_for_each(|program_id| {
+            let program_id = program_id.to_string();
+            if program_id == "credits.aleo" {
+                return Ok(());
+            }
+            if let Some(import_string) =
+                Reflect::get(imports, &program_id.as_str().into()).ok().and_then(|v| v.as_string())
+            {
+                let import = ProgramNative::from_str(&import_string).map_err(|err| err.to_string())?;
+                if !process.contains_program(import.id()) {
+                    log(&format!("Importing program: {program_id}"));
+                    Self::resolve_program_imports(process, &import, imports)?;
+                    log(&format!("Adding {program_id} to the process"));
+                    process.add_program_with_edition(&import, 1).map_err(|err| err.to_string())?;
+                }
+            }
+            Ok::<(), String>(())
+        })
     }
 
     pub(crate) fn validate_fee_record(
@@ -272,12 +262,11 @@ function add_and_double:
             .unwrap();
 
         let mut process = ProcessNative::load_web().unwrap();
-        let program = ProgramNative::from_str(NESTED_IMPORT_PROGRAM).unwrap();
         let add_program = ProgramNative::from_str(ADDITION_PROGRAM).unwrap();
         let multiply_program = ProgramNative::from_str(MULTIPLY_PROGRAM).unwrap();
         let double_program = ProgramNative::from_str(MULTIPLY_IMPORT_PROGRAM).unwrap();
 
-        ProgramManager::resolve_imports(&mut process, &program, Some(imports)).unwrap();
+        ProgramManager::resolve_imports(&mut process, Some(imports)).unwrap();
 
         assert!(process.contains_program(add_program.id()));
         assert!(process.contains_program(multiply_program.id()));
@@ -350,38 +339,32 @@ constructor:
     assert.eq true true;
 "#;
 
-    /// Test that resolve_dynamic_imports loads non-statically-imported programs
-    /// into the process, and that resolve_imports alone does NOT.
+    /// Test that resolve_imports loads programs from the imports object that are
+    /// not statically imported by the caller (i.e. dynamic dispatch targets).
     #[wasm_bindgen_test]
     fn test_resolve_dynamic_imports() {
         let dd_constants = ProgramNative::from_str(DD_CONSTANTS_PROGRAM).unwrap();
-        let dd_caller = ProgramNative::from_str(DD_CALLER_PROGRAM).unwrap();
 
         // Build imports object containing the dynamic target.
         let imports = Object::new();
         Reflect::set(&imports, &JsValue::from_str("dd_constants.aleo"), &JsValue::from_str(DD_CONSTANTS_PROGRAM))
             .unwrap();
 
-        // resolve_imports alone should NOT load dd_constants (it's not a static import of dd_caller).
+        // resolve_imports should load dd_constants even though it's not a static import of dd_caller.
         let mut process = ProcessNative::load_web().unwrap();
-        ProgramManager::resolve_imports(&mut process, &dd_caller, Some(imports.clone())).unwrap();
+        ProgramManager::resolve_imports(&mut process, Some(imports)).unwrap();
         assert!(
-            !process.contains_program(dd_constants.id()),
-            "resolve_imports should not load dynamically-dispatched programs"
+            process.contains_program(dd_constants.id()),
+            "resolve_imports should load all programs from the imports object"
         );
-
-        // resolve_dynamic_imports should load it.
-        ProgramManager::resolve_dynamic_imports(&mut process, Some(imports)).unwrap();
-        assert!(process.contains_program(dd_constants.id()), "resolve_dynamic_imports should load dd_constants.aleo");
     }
 
-    /// Test that resolve_dynamic_imports correctly loads multiple dynamic targets
+    /// Test that resolve_imports correctly loads multiple dynamic targets
     /// from a single imports object.
     #[wasm_bindgen_test]
     fn test_resolve_multiple_dynamic_imports() {
         let dd_constants = ProgramNative::from_str(DD_CONSTANTS_PROGRAM).unwrap();
         let dd_ten = ProgramNative::from_str(DD_TEN_PROGRAM).unwrap();
-        let dd_multi_caller = ProgramNative::from_str(DD_MULTI_CALLER_PROGRAM).unwrap();
 
         // Build imports object containing both dynamic targets.
         let imports = Object::new();
@@ -391,14 +374,9 @@ constructor:
 
         let mut process = ProcessNative::load_web().unwrap();
 
-        // resolve_imports should not load either (they are not static imports of dd_multi_caller).
-        ProgramManager::resolve_imports(&mut process, &dd_multi_caller, Some(imports.clone())).unwrap();
-        assert!(!process.contains_program(dd_constants.id()));
-        assert!(!process.contains_program(dd_ten.id()));
-
-        // resolve_dynamic_imports should load both.
-        ProgramManager::resolve_dynamic_imports(&mut process, Some(imports)).unwrap();
-        assert!(process.contains_program(dd_constants.id()), "resolve_dynamic_imports should load dd_constants.aleo");
-        assert!(process.contains_program(dd_ten.id()), "resolve_dynamic_imports should load dd_ten.aleo");
+        // resolve_imports should load both dynamic targets.
+        ProgramManager::resolve_imports(&mut process, Some(imports)).unwrap();
+        assert!(process.contains_program(dd_constants.id()), "resolve_imports should load dd_constants.aleo");
+        assert!(process.contains_program(dd_ten.id()), "resolve_imports should load dd_ten.aleo");
     }
 }

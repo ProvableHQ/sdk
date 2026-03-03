@@ -131,7 +131,7 @@ pub fn verify_function_execution(
     let program_native = ProgramNative::from(program);
 
     // First resolve the program's imports.
-    ProgramManager::resolve_imports(&mut process, program, imports)?;
+    ProgramManager::resolve_imports(&mut process, imports)?;
 
     // Secondly, get the verifying keys and insert them into the process object.
     if let Some(imported_verifying_keys) = imported_verifying_keys {

@@ -106,8 +106,7 @@ impl ProgramManager {
 
         log("Check program imports are valid and add them to the process");
         let program_native = ProgramNative::from_str(program).map_err(|e| e.to_string())?;
-        ProgramManager::resolve_imports(process, &program_native, imports.clone())?;
-        ProgramManager::resolve_dynamic_imports(process, imports)?;
+        ProgramManager::resolve_imports(process, imports)?;
         let edition = edition.unwrap_or(1);
 
         let (response, mut trace) = execute_program!(
@@ -206,8 +205,7 @@ impl ProgramManager {
         log("Check program imports are valid and add them to the process");
         let program_native = ProgramNative::from_str(program).map_err(|e| e.to_string())?;
         let program_id = program_native.id().to_string();
-        ProgramManager::resolve_imports(process, &program_native, imports.clone())?;
-        ProgramManager::resolve_dynamic_imports(process, imports)?;
+        ProgramManager::resolve_imports(process, imports)?;
         let rng = &mut StdRng::from_entropy();
 
         log(&format!("Executing function: {program_id}/{function} on-chain"));
@@ -342,8 +340,7 @@ impl ProgramManager {
         let program_id = program_native.id().to_string();
 
         // Insert the program and its imports.
-        ProgramManager::resolve_imports(process, &program_native, imports.clone())?;
-        ProgramManager::resolve_dynamic_imports(process, imports)?;
+        ProgramManager::resolve_imports(process, imports)?;
         if program_id != "credits.aleo" && !process.contains_program(program_native.id()) {
             process.add_program(&program_native).map_err(|e| e.to_string())?;
         }
@@ -516,8 +513,7 @@ impl ProgramManager {
         log("Check program imports are valid and add them to the process");
         let program_native = ProgramNative::from_str(program).map_err(|e| e.to_string())?;
         let program_id = program_native.id().to_string();
-        ProgramManager::resolve_imports(process, &program_native, imports.clone())?;
-        ProgramManager::resolve_dynamic_imports(process, imports)?;
+        ProgramManager::resolve_imports(process, imports)?;
         let edition = edition.unwrap_or(1);
 
         let inputs = process_inputs!(inputs);
@@ -628,8 +624,7 @@ impl ProgramManager {
             .map_err(|e| e.to_string())?;
 
         // Resolve program imports.
-        ProgramManager::resolve_imports(process, &program_native, imports.clone())?;
-        ProgramManager::resolve_dynamic_imports(process, imports)?;
+        ProgramManager::resolve_imports(process, imports)?;
 
         // Add the program to the process.
         let program_id = program_native.id();
@@ -702,8 +697,7 @@ impl ProgramManager {
         let program_native = ProgramNative::from_str(program).map_err(|e| e.to_string())?;
 
         // Resolve program imports.
-        ProgramManager::resolve_imports(process, &program_native, imports.clone())?;
-        ProgramManager::resolve_dynamic_imports(process, imports)?;
+        ProgramManager::resolve_imports(process, imports)?;
 
         // Add the program to the process.
         let program_id = program_native.id();
@@ -771,10 +765,10 @@ mod tests {
     }
 
     /// Test that a program using `call.dynamic` can be authorized after
-    /// `resolve_dynamic_imports` loads the target into the process.
+    /// `resolve_imports` loads the target into the process.
     ///
     /// This validates:
-    /// 1. `resolve_dynamic_imports` loads the target program into the process
+    /// 1. `resolve_imports` loads the dynamic dispatch target program into the process
     /// 2. The caller program with `call.dynamic` can be added to the process
     /// 3. `process.authorize()` succeeds for the dynamic dispatch caller
     ///
@@ -805,12 +799,11 @@ mod tests {
         let caller_program = ProgramNative::from_str(DD_CALLER_PROGRAM).unwrap();
         let constants_program = ProgramNative::from_str(DD_CONSTANTS_PROGRAM).unwrap();
 
-        // Build imports object and resolve dynamic imports.
+        // Build imports object and resolve imports.
         let imports = Object::new();
         Reflect::set(&imports, &JsValue::from_str("dd_constants.aleo"), &JsValue::from_str(DD_CONSTANTS_PROGRAM))
             .unwrap();
-        ProgramManager::resolve_imports(&mut process, &caller_program, Some(imports.clone())).unwrap();
-        ProgramManager::resolve_dynamic_imports(&mut process, Some(imports)).unwrap();
+        ProgramManager::resolve_imports(&mut process, Some(imports)).unwrap();
 
         // Add the caller program to the process.
         process.add_program_with_edition(&caller_program, 1).unwrap();
