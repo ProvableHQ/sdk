@@ -230,13 +230,23 @@ interface FeeEstimateOptions {
  * @property {boolean} isRoot - Whether this transition is the first transition being executed in a transaction.
  * @property {string} [checksum] - The optional checksum of the program, used to verify the program source code on the network matches the program source code used to generate the proof.
 */
-interface PublicMessagePayload {
+interface MPCOptions {
     programName: string;
     functionName: string;
     inputs: string[];
     isRoot: boolean;
     checksum?: Field | null;
 }
+
+/**
+ * @pro
+ */
+type MPCInputs = [
+    Field,
+    Field,
+    Field | null,
+    Array<[Field, Field[]]>
+];
 
 /**
  * The ProgramManager class is used to execute and deploy programs on the Aleo network and create value transfers.
@@ -3732,15 +3742,10 @@ class ProgramManager {
         );
     }
 
-    async signMessage(options: PublicMessagePayload): Promise<[
-        Field,
-        Field,
-        Field | null,
-        Array<[Field, Field[]]>
-        ]> {
+    async computeMPCInputs(options: MPCOptions): Promise<MPCInputs> {
         const { programName, functionName, inputs, isRoot, checksum} = options;
         try {
-            return ExecutionRequest.computePublicMessagePayload(programName, functionName, inputs, isRoot, checksum ?? null) as [Field, Field, Field | null, Array<[Field, Field[]]>];
+            return ExecutionRequest.computeMPCInputs(programName, functionName, inputs, isRoot, checksum ?? null) as MPCInputs;
         } catch (e: unknown) {
             const msg = e instanceof Error ? e.message : String(e);
             logAndThrow(`Error computing public message payload: ${msg}`);
@@ -3762,4 +3767,4 @@ function validateTransferType(transferType: string): string {
         );
 }
 
-export { ProgramManager, AuthorizationOptions, FeeAuthorizationOptions, ExecuteOptions, ProvingRequestOptions, PublicMessagePayload };
+export { ProgramManager, AuthorizationOptions, FeeAuthorizationOptions, ExecuteOptions, ProvingRequestOptions, MPCOptions, MPCInputs };

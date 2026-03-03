@@ -237,8 +237,8 @@ impl ExecutionRequest {
     /// @param {string[]} inputs The inputs to the function as strings.
     /// @param {boolean} is_root Flag to indicate if this is the top level function in the call graph.
     /// @param {Field | undefined} program_checksum The program checksum (required if the program has a constructor).
-    #[wasm_bindgen(js_name = "computePublicMessagePayload")]
-    pub fn compute_public_message_payload(
+    #[wasm_bindgen(js_name = "computeMPCInputs")]
+    pub fn compute_mpc_inputs(
         program_id: String,
         function_name: String,
         inputs: Array,
@@ -339,7 +339,7 @@ mod tests {
             inputs.push(&JsValue::from_str("100u64"));
 
             let result =
-                ExecutionRequest::compute_public_message_payload(program_id, function_name, inputs, true, None)
+                ExecutionRequest::compute_mpc_inputs(program_id, function_name, inputs, true, None)
                     .unwrap();
 
             // The result should be an array of 4 elements.
@@ -380,7 +380,7 @@ mod tests {
     #[wasm_bindgen_test]
     fn test_compute_public_message_payload_is_root_false() {
         if CurrentNetwork::ID == 0 {
-            let result = ExecutionRequest::compute_public_message_payload(
+            let result = ExecutionRequest::compute_mpc_inputs(
                 "credits.aleo".to_string(),
                 "transfer_public".to_string(),
                 Array::new(),
@@ -395,10 +395,10 @@ mod tests {
     }
 
     #[wasm_bindgen_test]
-    fn test_compute_public_message_payload_with_checksum() {
+    fn test_compute_mpc_inputs_with_checksum() {
         if CurrentNetwork::ID == 0 {
             let checksum = Field::from_string("1field").unwrap();
-            let result = ExecutionRequest::compute_public_message_payload(
+            let result = ExecutionRequest::compute_mpc_inputs(
                 "credits.aleo".to_string(),
                 "transfer_public".to_string(),
                 Array::new(),
