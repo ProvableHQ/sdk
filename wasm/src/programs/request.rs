@@ -338,9 +338,7 @@ mod tests {
             inputs.push(&JsValue::from_str("aleo1rhgdu77hgyqd3xjj8ucu3jj9r2krwz6mnzyd80gncr5fxcwlh5rsvzp9px"));
             inputs.push(&JsValue::from_str("100u64"));
 
-            let result =
-                ExecutionRequest::compute_mpc_inputs(program_id, function_name, inputs, true, None)
-                    .unwrap();
+            let result = ExecutionRequest::compute_mpc_inputs(program_id, function_name, inputs, true, None).unwrap();
 
             // The result should be an array of 4 elements.
             assert_eq!(result.length(), 4);
