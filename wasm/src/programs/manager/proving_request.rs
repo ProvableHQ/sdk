@@ -128,8 +128,10 @@ impl ProgramManager {
     ///
     /// @param {ExecutionRequest} request The execution request to build the authorization from.
     /// @param {string} program The program source code containing the function to authorize.
-    /// @param {object} imports The imports to the program in the format {"programname.aleo":"aleo instructions source code"}.
     /// @param {boolean} unchecked Whether or not to generate an unchecked authorization.
+    /// @param {boolean} broadcast Whether or not to broadcast the transaction.
+    /// @param {number | undefined} edition The edition of the program.
+    /// @param {object | undefined} imports The imports to the program in the format {"programname.aleo":"aleo instructions source code"}.
     /// @param {PrivateKey | undefined} [private_key] Optional private key of the signer. If not provided, functions which call other programs may not succeed.
     #[wasm_bindgen(js_name = buildProvingRequestFromExecutionRequest)]
     pub async fn proving_request_from_execution_request(
