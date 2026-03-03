@@ -239,7 +239,12 @@ interface MPCOptions {
 }
 
 /**
- * @pro
+ * 
+ * MPCInputs array structure:
+ * 0 → Field representation of the function ID
+ * 1 → Field representation of whether this is the root transition (will be 1field or 0field)
+ * 2 → optional checksum
+ * 3 → array of [index value of the input, [array of field elements representing the input data]]
  */
 type MPCInputs = [
     Field,
