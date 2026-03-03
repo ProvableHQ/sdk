@@ -3762,6 +3762,29 @@ class ProgramManager {
         );
     }
 
+    /**
+     * Computes the function ID and serialized input data for a program function call.
+     * Used by MPC wallets and other applications that need publicly computable inputs
+     * for building a signed execution request (e.g. before calling {@link ExecutionRequest.sign}).
+     *
+     * @param {MPCOptions} options - Program name, function name, inputs, root flag, and optional program checksum.
+     * @returns {Promise<MPCInputs>} A tuple `[functionId, isRootField, checksumOrNull, inputData]` where:
+     *   - `functionId` (Field): The function ID for the program/function pair.
+     *   - `isRootField` (Field): `1field` if this is the root transition, otherwise `0field`.
+     *   - `checksumOrNull` (Field | null): The program checksum when provided, or `null`.
+     *   - `inputData`: Array of `[indexField, fieldsArray]` per input (index and field representation of each input).
+     * @throws Throws if parsing the program ID, function name, or inputs fails.
+     *
+     * @example
+     * const mpcInputs = await programManager.computeMPCInputs({
+     *   programName: "credits.aleo",
+     *   functionName: "transfer_public",
+     *   inputs: ["aleo1...", "100u64"],
+     *   isRoot: true,
+     *   checksum: null,
+     * });
+     * const [functionId, isRoot, checksum, inputData] = mpcInputs;
+     */
     async computeMPCInputs(options: MPCOptions): Promise<MPCInputs> {
         const { programName, functionName, inputs, isRoot, checksum} = options;
         try {
