@@ -221,6 +221,22 @@ interface FeeEstimateOptions {
 }
 
 /**
+ * 
+ * @property {string} programName - The name of the program containing the function to execute.
+ * @property {string} functionName - The name of the function to execute within the program.
+ * @property {string[]} inputs - The inputs to the function being executed.
+ * @property {boolean} isRoot - Whether this transition is the first transition being executed in a transaction.
+ * @property {string} [checksum] - The optional checksum of the program, used to verify the program source code on the network matches the program source code used to generate the proof.
+*/
+interface publicMessagePayload {
+    programName: string;
+    functionName: string;
+    inputs: string[];
+    isRoot: boolean;
+    checksum?: string;
+}
+
+/**
  * The ProgramManager class is used to execute and deploy programs on the Aleo network and create value transfers.
  */
 class ProgramManager {
