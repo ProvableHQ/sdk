@@ -20,6 +20,7 @@ import {
 import {
     Address,
     Authorization,
+    ExecutionRequest,
     ExecutionResponse,
     Execution as FunctionExecution,
     OfflineQuery,
@@ -199,6 +200,7 @@ interface ProvingRequestOptions {
     unchecked?: boolean;
     edition?: number;
     useFeeMaster?: boolean;
+    executionRequest?: ExecutionRequest,
 }
 
 /**
@@ -1353,7 +1355,7 @@ class ProgramManager {
     }
 
     /**
-     * Builds a `ProvingRequest` for submission to a prover for execution.
+     * Builds a `ProvingRequest` for submission to a prover for execution. If building a proving request with an ExecutionRequest, a private key must be explicitly provided.
      *
      * @param {ProvingRequestOptions} options - The options for building the proving request
      * @returns {Promise<ProvingRequest>} - A promise that resolves to the transaction or an error.
@@ -1439,13 +1441,10 @@ class ProgramManager {
         let executionPrivateKey = privateKey;
         if (
             typeof privateKey === "undefined" &&
-            typeof this.account !== "undefined"
+            typeof this.account !== "undefined" &&
+            typeof options.executionRequest === "undefined"
         ) {
             executionPrivateKey = this.account.privateKey();
-        }
-
-        if (typeof executionPrivateKey === "undefined") {
-            throw "No private key provided and no private key set in the ProgramManager";
         }
 
         // Resolve the program imports if they exist.
@@ -1489,21 +1488,37 @@ class ProgramManager {
             );
         }
 
-        // Build and return the `ProvingRequest`.
-        return await WasmProgramManager.buildProvingRequest(
-            executionPrivateKey,
-            program,
-            functionName,
-            inputs,
-            baseFee,
-            priorityFee,
-            feeRecord,
-            imports,
-            broadcast,
-            unchecked,
-            edition,
-            useFeeMaster
-        );
+        if (options.executionRequest instanceof ExecutionRequest) {
+            return await WasmProgramManager.buildProvingRequestFromExecutionRequest(
+                options.executionRequest,
+                program,
+                imports,
+                unchecked,
+                broadcast,
+                executionPrivateKey,
+            )
+        } else {
+            // Ensure the private key exists.
+            if (typeof executionPrivateKey === "undefined") {
+                throw "No private key provided and no private key set in the ProgramManager";
+            }
+
+            // Build and return the `ProvingRequest`.
+            return await WasmProgramManager.buildProvingRequest(
+                executionPrivateKey,
+                program,
+                functionName,
+                inputs,
+                baseFee,
+                priorityFee,
+                feeRecord,
+                imports,
+                broadcast,
+                unchecked,
+                edition,
+                useFeeMaster
+            );
+        }
     }
 
     /**

@@ -17,6 +17,7 @@
 use super::*;
 
 use crate::{
+    ExecutionRequest,
     PrivateKey,
     ProvingRequest,
     RecordPlaintext,
@@ -24,7 +25,14 @@ use crate::{
     authorize_fee,
     log,
     process_inputs,
-    types::native::{CurrentAleo, IdentifierNative, ProcessNative, ProgramNative, RecordPlaintextNative},
+    types::native::{
+        AuthorizationNative,
+        CurrentAleo,
+        IdentifierNative,
+        ProcessNative,
+        ProgramNative,
+        RecordPlaintextNative,
+    },
 };
 
 use js_sys::{Array, Object};
@@ -114,6 +122,30 @@ impl ProgramManager {
 
         // Return the proving request.
         Ok(ProvingRequest::from((authorization, fee_authorization, broadcast)))
+    }
+
+    /// Build a proving request from a `Request` object. By default this method currently uses the feemaster.
+    ///
+    /// @param {ExecutionRequest} request The execution request to build the authorization from.
+    /// @param {string} program The program source code containing the function to authorize.
+    /// @param {object} imports The imports to the program in the format {"programname.aleo":"aleo instructions source code"}.
+    /// @param {boolean} unchecked Whether or not to generate an unchecked authorization.
+    /// @param {PrivateKey | undefined} [private_key] Optional private key of the signer. If not provided, functions which call other programs may not succeed.
+    #[wasm_bindgen(js_name = buildProvingRequestFromExecutionRequest)]
+    pub async fn proving_request_from_execution_request(
+        request: &ExecutionRequest,
+        program: &str,
+        imports: Option<Object>,
+        unchecked: bool,
+        broadcast: bool,
+        private_key: Option<PrivateKey>,
+    ) -> Result<ProvingRequest, String> {
+        let authorization = ProgramManager::authorize_request(request, program, imports, unchecked, private_key)
+            .await
+            .map_err(|e| e.to_string())?;
+
+        // Return the proving request.
+        Ok(ProvingRequest::from((AuthorizationNative::from(authorization), None, broadcast)))
     }
 }
 

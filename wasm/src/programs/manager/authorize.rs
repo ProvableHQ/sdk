@@ -18,13 +18,25 @@ use super::*;
 
 use crate::{
     Authorization,
+    ExecutionRequest,
     PrivateKey,
     RecordPlaintext,
     authorize,
     authorize_fee,
     log,
     process_inputs,
-    types::native::{CurrentAleo, FieldNative, IdentifierNative, ProcessNative, ProgramNative, RecordPlaintextNative},
+    types::native::{
+        AuthorizationNative,
+        CallStackNative,
+        CurrentAleo,
+        FieldNative,
+        IdentifierNative,
+        PrivateKeyNative,
+        ProcessNative,
+        ProgramNative,
+        RecordPlaintextNative,
+        RequestNative,
+    },
 };
 
 use js_sys::{Array, Object};
@@ -114,6 +126,71 @@ impl ProgramManager {
             edition
         ));
         Ok(authorization)
+    }
+
+    /// Build an authorization from a `Request` object.
+    ///
+    /// @param {ExecutionRequest} request The execution request to build the authorization from.
+    /// @param {string} program The program source code containing the function to authorize.
+    /// @param {object} imports The imports to the program in the format {"programname.aleo":"aleo instructions source code"}.
+    /// @param {boolean} unchecked Whether or not to generate an unchecked authorization.
+    /// @param {PrivateKey} [private_key] Optional private key of the signer. If not provided, functions which call other programs may not succeed.
+    #[wasm_bindgen(js_name = buildAuthorizationFromExecutionRequest)]
+    pub async fn authorize_request(
+        request: &ExecutionRequest,
+        program: &str,
+        imports: Option<Object>,
+        unchecked: bool,
+        private_key: Option<PrivateKey>,
+    ) -> Result<Authorization, String> {
+        // Load the process.
+        let mut process_native = ProcessNative::load_web().map_err(|err| err.to_string())?;
+        let process = &mut process_native;
+
+        // Get the private key.
+        let private_key_native = private_key.map(|pk| PrivateKeyNative::from(pk));
+
+        // Get the request from the wasm wrapper.
+        let request_native = RequestNative::from(request);
+
+        log("Check program imports are valid and add them to the process");
+        let program_native = ProgramNative::from_str(program).map_err(|e| e.to_string())?;
+
+        log(&format!("Creating proving request for {}:{}", program_native.id(), request.function_name()));
+        ProgramManager::resolve_imports(process, &program_native, imports)?;
+        let rng = &mut StdRng::from_entropy();
+
+        // If a private key is provided, use it to authorize the request, otherwise use authorize_request method.
+        let authorization = match private_key_native {
+            Some(private_key_native) => {
+                // Initialize the authorization from the request.
+                let authorization = AuthorizationNative::new(request_native.clone());
+
+                // Get the stack.
+                let stack = process.get_stack(program_native.id()).map_err(|e| e.to_string())?;
+
+                // Construct the call stack.
+                let call_stack =
+                    CallStackNative::Authorize(vec![request_native], Some(private_key_native), authorization.clone());
+                let caller = None;
+                let root_tvk = None;
+
+                // Build unchecked or checked authorization depending on the flag.
+                if unchecked {
+                    let _response = stack
+                        .evaluate_function::<CurrentAleo, _>(call_stack, caller, root_tvk, rng)
+                        .map_err(|e| e.to_string())?;
+                } else {
+                    let _response = stack
+                        .execute_function::<CurrentAleo, _>(call_stack, caller, root_tvk, rng)
+                        .map_err(|e| e.to_string())?;
+                }
+                authorization
+            }
+            None => process.authorize_request::<CurrentAleo, _>(request_native, rng).map_err(|e| e.to_string())?,
+        };
+
+        Ok(Authorization::from(authorization))
     }
 
     /// Create an `Authorization` for `credits.aleo/fee_public` or `credits.aleo/fee_private`.
