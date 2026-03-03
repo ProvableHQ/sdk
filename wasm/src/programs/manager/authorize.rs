@@ -18,13 +18,25 @@ use super::*;
 
 use crate::{
     Authorization,
+    ExecutionRequest,
     PrivateKey,
     RecordPlaintext,
     authorize,
     authorize_fee,
     log,
     process_inputs,
-    types::native::{CurrentAleo, FieldNative, IdentifierNative, ProcessNative, ProgramNative, RecordPlaintextNative},
+    types::native::{
+        AuthorizationNative,
+        CallStackNative,
+        CurrentAleo,
+        FieldNative,
+        IdentifierNative,
+        PrivateKeyNative,
+        ProcessNative,
+        ProgramNative,
+        RecordPlaintextNative,
+        RequestNative,
+    },
 };
 
 use js_sys::{Array, Object};
@@ -116,6 +128,92 @@ impl ProgramManager {
         Ok(authorization)
     }
 
+    /// Build an authorization from a `Request` object.
+    ///
+    /// @param {ExecutionRequest} request The execution request to build the authorization from.
+    /// @param {string} program The program source code containing the function to authorize.
+    /// @param {boolean} unchecked Whether or not to generate an unchecked authorization.
+    /// @param {number | undefined} edition The edition of the program.
+    /// @param {object | undefined} imports The imports to the program in the format {"programname.aleo":"aleo instructions source code"}.
+    /// @param {PrivateKey | undefined} [private_key] Optional private key of the signer. If not provided, functions which call other programs may not succeed.
+    #[wasm_bindgen(js_name = buildAuthorizationFromExecutionRequest)]
+    pub async fn authorize_request(
+        request: &ExecutionRequest,
+        program: &str,
+        unchecked: bool,
+        edition: Option<u16>,
+        imports: Option<Object>,
+        private_key: Option<PrivateKey>,
+    ) -> Result<Authorization, String> {
+        // Load the process.
+        let mut process_native = ProcessNative::load_web().map_err(|err| err.to_string())?;
+        let process = &mut process_native;
+
+        // Get the private key.
+        let private_key_native = private_key.map(|pk| PrivateKeyNative::from(pk));
+
+        // Get the request from the wasm wrapper.
+        let request_native = RequestNative::from(request);
+
+        log("Check program imports are valid and add them to the process");
+        let program_native = ProgramNative::from_str(program).map_err(|e| e.to_string())?;
+
+        // Check that the program id matches the program id in the request.
+        let request_program_id = request_native.program_id();
+        if request_program_id != program_native.id() {
+            return Err(format!(
+                "ExecutionRequest program id '{}' does not match provided program source id '{}'",
+                request_program_id,
+                program_native.id()
+            ));
+        }
+
+        log(&format!("Creating proving request for {request_program_id}:{}", request.function_name()));
+        ProgramManager::resolve_imports(process, &program_native, imports)?;
+        let rng = &mut StdRng::from_entropy();
+
+        // Add the program to the process if it is not already there.
+        let edition = edition.unwrap_or(1);
+        if request_program_id.to_string() != "credits.aleo" {
+            if !process.contains_program(request_program_id) {
+                log("Adding program to the process");
+                process.add_program_with_edition(&program_native, edition).map_err(|e| e.to_string())?;
+            }
+        }
+
+        // If a private key is provided, use it to authorize the request, otherwise use authorize_request method.
+        let authorization = match private_key_native {
+            Some(private_key_native) => {
+                // Initialize the authorization from the request.
+                let authorization = AuthorizationNative::new(request_native.clone());
+
+                // Get the stack.
+                let stack = process.get_stack(program_native.id()).map_err(|e| e.to_string())?;
+
+                // Construct the call stack.
+                let call_stack =
+                    CallStackNative::Authorize(vec![request_native], Some(private_key_native), authorization.clone());
+                let caller = None;
+                let root_tvk = None;
+
+                // Build unchecked or checked authorization depending on the flag.
+                if unchecked {
+                    let _response = stack
+                        .evaluate_function::<CurrentAleo, _>(call_stack, caller, root_tvk, rng)
+                        .map_err(|e| e.to_string())?;
+                } else {
+                    let _response = stack
+                        .execute_function::<CurrentAleo, _>(call_stack, caller, root_tvk, rng)
+                        .map_err(|e| e.to_string())?;
+                }
+                authorization
+            }
+            None => process.authorize_request::<CurrentAleo, _>(request_native, rng).map_err(|e| e.to_string())?,
+        };
+
+        Ok(Authorization::from(authorization))
+    }
+
     /// Create an `Authorization` for `credits.aleo/fee_public` or `credits.aleo/fee_private`.
     /// This object requires an associated execution or deployment ID. This can be gained from
     /// any previously created authorization by calling (authorization.toExecutionId()).
@@ -163,9 +261,51 @@ impl ProgramManager {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::utilities::test::{PUZZLE_SPINNER_V002, generate_puzzle_imports, generate_puzzle_inputs, get_env};
+    use crate::{
+        ExecutionRequest,
+        PrivateKey,
+        Program,
+        array,
+        utilities::test::{PUZZLE_SPINNER_V002, generate_puzzle_imports, generate_puzzle_inputs, get_env},
+    };
 
     use wasm_bindgen_test::*;
+
+    /// Build an ExecutionRequest for credits.aleo transfer_public for use in authorize_request / proving_request_from_execution_request tests.
+    fn transfer_public_execution_request() -> ExecutionRequest {
+        let private_key =
+            PrivateKey::from_string("APrivateKey1zkp7Vc4xJt8HqW9U7VhY6h32d8Z9Xi5C6ZZX3gtXxbBSJmj").unwrap();
+        let inputs = array!["aleo1wp5f52cujua034ts029lq96ke2p505sqc0yrt7yx7x0fcel82yxqe867q9", "500u64"];
+        let input_types = array!["address.public", "u64.public"];
+        ExecutionRequest::sign(
+            private_key,
+            "credits.aleo".to_string(),
+            "transfer_public".to_string(),
+            inputs,
+            input_types,
+            None,
+            None,
+            true,
+        )
+        .unwrap()
+    }
+
+    #[wasm_bindgen_test]
+    async fn test_authorize_request_from_execution_request() {
+        let request = transfer_public_execution_request();
+        let private_key =
+            PrivateKey::from_string("APrivateKey1zkp7Vc4xJt8HqW9U7VhY6h32d8Z9Xi5C6ZZX3gtXxbBSJmj").unwrap();
+        let program = Program::get_credits_program();
+        let program_str = program.to_string();
+
+        let authorization =
+            ProgramManager::authorize_request(&request, &program_str, false, Some(1), None, Some(private_key))
+                .await
+                .unwrap();
+
+        assert_eq!(authorization.len(), 1, "transfer_public authorization should have 1 request");
+        assert_eq!(authorization.transitions().length(), 1, "transfer_public authorization should have 1 transition");
+    }
 
     #[wasm_bindgen_test]
     async fn test_authorization() {
