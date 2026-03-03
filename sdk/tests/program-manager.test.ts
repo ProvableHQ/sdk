@@ -448,6 +448,10 @@ describe('Program Manager', async () => {
             expect(checksum).to.be.null;
             expect(inputData).to.be.an("array").with.lengthOf(2);
 
+            expect (inputData[0][0]).to.be.instanceOf(Field);
+            expect (inputData[0][1]).to.be.an("array").with.lengthOf(2);
+
+            expect(isRoot.toString()).equal("1field");
         });
     });
 
