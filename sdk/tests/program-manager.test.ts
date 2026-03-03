@@ -434,15 +434,15 @@ describe('Program Manager', async () => {
 
     describe('Program Manager public message signing', () => {
         it('Should sign a public message and return the expected fields', async () => {
-            const signedMessage = await programManager.signMessage({
+            const mpcInputs = await programManager.computeMPCInputs({
                 programName: "credits.aleo",
                 functionName: "transfer_public",
                 inputs: ["aleo1rhgdu77hgyqd3xjj8ucu3jj9r2krwz6mnzyd80gncr5fxcwlh5rsvzp9px", "100u64"],
                 isRoot: true,
                 checksum: null
             });
-            expect(signedMessage).to.be.an("array").with.lengthOf(4);
-            const [functionID, isRoot, checksum, inputData] = signedMessage;
+            expect(mpcInputs).to.be.an("array").with.lengthOf(4);
+            const [functionID, isRoot, checksum, inputData] = mpcInputs;
             expect(functionID).to.be.instanceOf(Field);
             expect(isRoot).to.be.instanceOf(Field);
             expect(checksum).to.be.null;
