@@ -1463,7 +1463,7 @@ class ProgramManager {
 
         // Get the fee record from the account if it is not provided in the parameters
         try {
-            if (privateFee && !useFeeMaster) {
+            if (privateFee && !useFeeMaster && !options.executionRequest) {
                 let fee = priorityFee;
                 // If a fee record wasn't provided, estimate the fee that needs to be paid.
                 if (!feeRecord) {

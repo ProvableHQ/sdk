@@ -158,15 +158,24 @@ impl ProgramManager {
         log("Check program imports are valid and add them to the process");
         let program_native = ProgramNative::from_str(program).map_err(|e| e.to_string())?;
 
-        log(&format!("Creating proving request for {}:{}", program_native.id(), request.function_name()));
+        // Check that the program id matches the program id in the request.
+        let request_program_id = request_native.program_id();
+        if request_program_id != program_native.id() {
+            return Err(format!(
+                "ExecutionRequest program id '{}' does not match provided program source id '{}'",
+                request_program_id,
+                program_native.id()
+            ));
+        }
+
+        log(&format!("Creating proving request for {request_program_id}:{}", request.function_name()));
         ProgramManager::resolve_imports(process, &program_native, imports)?;
         let rng = &mut StdRng::from_entropy();
 
         // Add the program to the process if it is not already there.
         let edition = edition.unwrap_or(1);
-        let program_id = program_native.id();
-        if program_id.to_string() != "credits.aleo" {
-            if !process.contains_program(program_id) {
+        if request_program_id.to_string() != "credits.aleo" {
+            if !process.contains_program(request_program_id) {
                 log("Adding program to the process");
                 process.add_program_with_edition(&program_native, edition).map_err(|e| e.to_string())?;
             }
