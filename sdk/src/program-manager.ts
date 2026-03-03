@@ -3743,7 +3743,7 @@ class ProgramManager {
             throw new Error("No account set in ProgramManager. Please set an account to sign messages.");
         }
         try {
-            return WasmProgramManager.computePublicMessagePayload(programName, functionName, inputs, isRoot, checksum ?? null);
+            return ExecutionRequest.computePublicMessagePayload(programName, functionName, inputs, isRoot, checksum ?? null) as [Field, Field, Field | null, Array<[Field, Field[]]>];
         } catch (e: unknown) {
             const msg = e instanceof Error ? e.message : String(e);
             logAndThrow(`Error computing public message payload: ${msg}`);
