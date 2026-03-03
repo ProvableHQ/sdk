@@ -23,6 +23,7 @@ import {
     ExecutionRequest,
     ExecutionResponse,
     Execution as FunctionExecution,
+    Field,
     OfflineQuery,
     RecordPlaintext,
     PrivateKey,
@@ -234,7 +235,7 @@ interface PublicMessagePayload {
     functionName: string;
     inputs: string[];
     isRoot: boolean;
-    checksum?: string;
+    checksum?: Field | null;
 }
 
 /**
@@ -3731,13 +3732,22 @@ class ProgramManager {
         );
     }
 
-    async signMessage(options: PublicMessagePayload): Promise<Array<string>> {
+    async signMessage(options: PublicMessagePayload): Promise<[
+        Field,
+        Field,
+        Field | null,
+        Array<[Field, Field[]]>
+        ]> {
         const { programName, functionName, inputs, isRoot, checksum} = options;
         if (!this.account) {
             throw new Error("No account set in ProgramManager. Please set an account to sign messages.");
         }
-        const signedMessage = WasmProgramManager.computePublicMessagePayload(programName, functionName, inputs, isRoot, checksum);
-        return signedMessage;
+        try {
+            return WasmProgramManager.computePublicMessagePayload(programName, functionName, inputs, isRoot, checksum ?? null);
+        } catch (e: unknown) {
+            const msg = e instanceof Error ? e.message : String(e);
+            logAndThrow(`Error computing public message payload: ${msg}`);
+        }
     }
 }
 
