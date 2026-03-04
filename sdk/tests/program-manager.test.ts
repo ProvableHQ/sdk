@@ -1,5 +1,6 @@
 import {
     Account,
+    Address,
     AleoKeyProvider,
     Authorization,
     CREDITS_PROGRAM_KEYS,
@@ -473,10 +474,14 @@ describe('Program Manager', async () => {
 
     describe('Program Manager public message signing', () => {
         it('Should sign a public message and return the expected fields', async () => {
+            const privateKey = PrivateKey.from_string(
+                "APrivateKey1zkp7Vc4xJt8HqW9U7VhY6h32d8Z9Xi5C6ZZX3gtXxbBSJmj"
+            );
+            const inputs = ["aleo1rhgdu77hgyqd3xjj8ucu3jj9r2krwz6mnzyd80gncr5fxcwlh5rsvzp9px", "100u64"];
             const mpcInputs = await programManager.computeMPCInputs({
                 programName: "credits.aleo",
                 functionName: "transfer_public",
-                inputs: ["aleo1rhgdu77hgyqd3xjj8ucu3jj9r2krwz6mnzyd80gncr5fxcwlh5rsvzp9px", "100u64"],
+                inputs,
                 isRoot: true,
                 checksum: null
             });
@@ -491,6 +496,61 @@ describe('Program Manager', async () => {
             expect (inputData[0][1]).to.be.an("array").with.lengthOf(2);
 
             expect(isRoot.toString()).equal("1field");
+
+            // Debug: sign a request, serialize to JSON, and print to compare with dummy format.
+            const signedRequest = ExecutionRequest.sign(
+                privateKey,
+                "credits.aleo",
+                "transfer_public",
+                inputs,
+                ["address.public", "u64.public"],
+                undefined,
+                undefined,
+                true,
+            );
+            const signedRequestJson = signedRequest.toString();
+            console.log("Signed ExecutionRequest JSON:", signedRequestJson);
+            const signedRequestObject = JSON.parse(signedRequestJson);
+
+            // Build a full Request object for fromString (mpcInputs alone is insufficient).
+            const requestObject = {
+                signer: signedRequestObject.signer,
+                network: network === "testnet" ? "0u16" : "1u16",
+                program: "credits.aleo",
+                function: "transfer_public",
+                // input_ids: [],
+                input_ids: inputData.map((entry: [Field, Field[]]) => ({
+                    type: "public",
+                    id: (entry[1].length > 0 ? entry[1][0] : Field.fromString("0field")).toString(),
+                })),
+                inputs,
+                signature: "sign1xf53lt5wp9g88h6s65uct4ps7te4p2a3fxt9lnj4mpuflltw9yqrxn4mslff0z7rehgher4s68pmcar9ul28c97kp2qsr8ar6ftfzpqmvqrdssu9887su5jga24rxwjhf9lt5lhk7zd2uqvc6w4stclkzxgnhkd24nmz0l050ejcf8e4tjugy8hrglglean3rne7c9907usqg287l48",
+                sk_tag: "2144000044487675699943863713399449890250265206946356501814694425669196043682field",
+                tvk: "2144000044487675699943863713399449890250265206946356501814694425669196043682field",
+                tcm: "2144000044487675699943863713399449890250265206946356501814694425669196043682field",
+                scm: "2144000044487675699943863713399449890250265206946356501814694425669196043682field",
+            };
+            console.log("Request Object:", JSON.stringify(requestObject));
+            const executionRequest = ExecutionRequest.fromString(JSON.stringify(requestObject));
+            console.log("1");
+
+            // Ensure the execution request is valid.
+            const provingRequest = await programManager.provingRequest({
+                programName: "credits.aleo",
+                functionName: "transfer_public",
+                priorityFee: 0,
+                privateFee: false,
+                inputs,
+                broadcast: false,
+                executionRequest,
+                privateKey,
+            });
+            console.log("2");
+
+            const authorization = provingRequest.authorization();
+            expect(authorization.len()).equal(1);
+            expect(authorization.transitions().length).equal(1);
+            expect(provingRequest.feeAuthorization()).equal(undefined);
         });
     });
 
