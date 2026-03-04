@@ -472,7 +472,7 @@ describe('Program Manager', async () => {
         });
     });
 
-    describe('Program Manager public message signing', () => {
+    describe('Program Manager public message signing example', () => {
         it('Should sign a public message and return the expected fields', async () => {
             const privateKey = PrivateKey.from_string(
                 "APrivateKey1zkp7Vc4xJt8HqW9U7VhY6h32d8Z9Xi5C6ZZX3gtXxbBSJmj"
@@ -511,6 +511,8 @@ describe('Program Manager', async () => {
             const signedRequestJson = signedRequest.toString();
             console.log("Signed ExecutionRequest JSON:", signedRequestJson);
             const signedRequestObject = JSON.parse(signedRequestJson);
+
+            // *** placeholder: pretend that we emulate MPC computation here which computes the signature ***
 
             // Build a full Request object for fromString (mpcInputs alone is insufficient).
             const requestObject = {
