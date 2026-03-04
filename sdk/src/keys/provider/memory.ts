@@ -38,6 +38,7 @@ class AleoKeyProviderParams implements KeySearchParams {
     name: string | undefined;
     proverUri: string | undefined;
     verifierUri: string | undefined;
+    program: string | undefined;
     cacheKey: string | undefined;
 
     /**
@@ -48,24 +49,33 @@ class AleoKeyProviderParams implements KeySearchParams {
      *
      * @param { AleoKeyProviderInitParams } params - Optional search parameters
      */
-    constructor(params: {proverUri?: string, verifierUri?: string, cacheKey?: string, name?: string}) {
+    constructor(params: {proverUri?: string, verifierUri?: string, cacheKey?: string, name?: string, program?: string}) {
         this.proverUri = params.proverUri;
         this.verifierUri = params.verifierUri;
         this.cacheKey = params.cacheKey;
         this.name = params.name;
+        this.program = params.program;
     }
 }
 
 
+/** Locator suffix for the proving key when storing a pair under a single cache key. */
+const PROVER_LOCATOR_SUFFIX = ".prover";
+/** Locator suffix for the verifying key when storing a pair under a single cache key. */
+const VERIFIER_LOCATOR_SUFFIX = ".verifier";
+
 /**
  * AleoKeyProvider class. Implements the FunctionKeyProvider interface. Enables the retrieval of Aleo program proving and
  * verifying keys for the credits.aleo program over HTTP from official Aleo sources and storing and retrieving function
- * keys from a local memory cache.
+ * keys from a local memory cache. Optionally uses a {@link KeyStore} for persistence; lookups check the in-memory cache
+ * first, then the KeyStore (if set), then remote fetch.
  */
 class AleoKeyProvider implements FunctionKeyProvider {
     cache: Map<string, CachedKeyPair>;
     cacheOption: boolean;
     keyUris: string;
+    /** Optional KeyStore for persistent key storage; used after the in-memory cache when resolving keys. */
+    private _keyStore: KeyStore | undefined;
 
     async fetchBytes(url = "/"): Promise<Uint8Array> {
         try {
@@ -83,8 +93,30 @@ class AleoKeyProvider implements FunctionKeyProvider {
         this.cacheOption = false;
     }
 
+    /**
+     * Create a new AleoKeyProvider from a KeyStore.
+     * 
+     * @param keyStore - The KeyStore to use for persistent key storage.
+     * @returns A new AleoKeyProvider instance.
+     */
+    static fromKeyStore(keyStore: KeyStore): AleoKeyProvider {
+        const provider = new AleoKeyProvider();
+        provider.setKeyStore(keyStore);
+        return provider;
+    }
+
+    /**
+     * Sets the optional KeyStore used for persistent key storage. When set, {@link functionKeys} checks the KeyStore
+     * after the in-memory cache, and {@link cacheKeys} writes to the KeyStore before updating the cache.
+     *
+     * @param {KeyStore | undefined} keyStore - KeyStore instance, or undefined to disable.
+     */
+    setKeyStore(keyStore: KeyStore | undefined) {
+        this._keyStore = keyStore;
+    }
+
     async keyStore(): Promise<KeyStore | undefined> {
-        return undefined;
+        return this._keyStore;
     }
 
     /**
@@ -106,13 +138,21 @@ class AleoKeyProvider implements FunctionKeyProvider {
     /**
      * Cache a set of keys. This will overwrite any existing keys with the same keyId. The user can check if a keyId
      * exists in the cache using the containsKeys method prior to calling this method if overwriting is not desired.
+     * If a KeyStore is set, keys are stored there first, then in the in-memory cache.
      *
-     * @param {string} keyId access key for the cache
+     * @param {string} keyId access key for the cache (and base locator for KeyStore: keyId.prover / keyId.verifier)
      * @param {FunctionKeyPair} keys keys to cache
      */
-    cacheKeys(keyId: string, keys: FunctionKeyPair) {
+    async cacheKeys(keyId: string, keys: FunctionKeyPair): Promise<void> {
         const [provingKey, verifyingKey] = keys;
         this.cache.set(keyId, [provingKey.toBytes(), verifyingKey.toBytes()]);
+        if (this._keyStore) {
+            await this._keyStore.setKeys(
+                { locator: keyId + PROVER_LOCATOR_SUFFIX },
+                { locator: keyId + VERIFIER_LOCATOR_SUFFIX },
+                keys,
+            );
+        }
     }
 
     /**
@@ -157,7 +197,8 @@ class AleoKeyProvider implements FunctionKeyProvider {
     }
 
     /**
-     * Get arbitrary function keys from a provider
+     * Get arbitrary function keys from a provider. Resolves keys in order: in-memory cache, then KeyStore (if set),
+     * then remote fetch (proverUri/verifierUri) or credits keys by name.
      *
      * @param {KeySearchParams} params parameters for the key search in form of: {proverUri: string, verifierUri: string, cacheKey: string}
      * @returns {Promise<FunctionKeyPair>} Proving and verifying keys for the specified program
@@ -178,10 +219,46 @@ class AleoKeyProvider implements FunctionKeyProvider {
      */
     async functionKeys(params?: KeySearchParams): Promise<FunctionKeyPair> {
         if (params) {
-            let proverUrl;
-            let verifierUrl;
-            let cacheKey;
-            if ("name" in params && typeof params["name"] == "string") {
+            let proverUrl: string | undefined;
+            let verifierUrl: string | undefined;
+            let cacheKey: string | undefined;
+
+            // Check to see if a cache key is provided.
+            if ("cacheKey" in params && typeof params["cacheKey"] == "string") {
+                cacheKey = params["cacheKey"];
+            }
+
+            // If the cache key is provided attempt to do a cache and keystorelookup first.
+            if (cacheKey) {
+                // First check the cache.
+                if (this.cache.has(cacheKey)) {
+                    return this.getKeys(cacheKey);
+                }
+                // If the keystore is configured, check it for the keys.
+                if (this._keyStore) {
+                    // Configure the locators.
+                    const proverLocator = { locator: cacheKey + PROVER_LOCATOR_SUFFIX };
+                    const verifierLocator = { locator: cacheKey + VERIFIER_LOCATOR_SUFFIX };
+                    // Attempt to fetch the keys from the keystore.
+                    try {
+                        const [provingKey, verifyingKey] = await Promise.all([
+                            this._keyStore.getProvingKey(proverLocator),
+                            this._keyStore.getVerifyingKey(verifierLocator),
+                        ]);
+                        if (provingKey !== null && verifyingKey !== null) {
+                            const pair: FunctionKeyPair = [provingKey, verifyingKey];
+                            this.cache.set(cacheKey, [provingKey.toBytes(), verifyingKey.toBytes()]);
+                            return pair;
+                        }
+                    }
+                    catch (error: any) {
+                        console.error(`Error fetching keys from configured keystore for cache key: ${cacheKey}, attempting to fetch from remote source.`);
+                    }
+                }
+            }
+
+            // If the name of the key is a credits.aleo function, attempt to fetch the keys from the credits.aleo program.
+            if ("name" in params && typeof params["name"] == "string" && "program" in params && params["program"] == "credits.aleo") {
                 const key = CREDITS_PROGRAM_KEYS.getKey(params["name"]);
                 return this.fetchCreditsKeys(key);
             }
@@ -200,10 +277,6 @@ class AleoKeyProvider implements FunctionKeyProvider {
                 verifierUrl = params["verifierUri"];
             }
 
-            if ("cacheKey" in params && typeof params["cacheKey"] == "string") {
-                cacheKey = params["cacheKey"];
-            }
-
             if (proverUrl && verifierUrl) {
                 return await this.fetchRemoteKeys(
                     proverUrl,
@@ -212,9 +285,6 @@ class AleoKeyProvider implements FunctionKeyProvider {
                 );
             }
 
-            if (cacheKey) {
-                return this.getKeys(cacheKey);
-            }
         }
         throw new Error(
             "Invalid parameters provided, must provide either a cacheKey and/or a proverUrl and a verifierUrl",
@@ -264,9 +334,6 @@ class AleoKeyProvider implements FunctionKeyProvider {
                         VerifyingKey.fromBytes(value[1]),
                     ];
                 } else {
-                    console.debug(
-                        "Fetching proving keys from url " + proverUrl,
-                    );
                     const provingKey = <ProvingKey>(
                         ProvingKey.fromBytes(await this.fetchBytes(proverUrl))
                     );
@@ -274,11 +341,19 @@ class AleoKeyProvider implements FunctionKeyProvider {
                     const verifyingKey = <VerifyingKey>(
                         await this.getVerifyingKey(verifierUrl)
                     );
+                    const pair: FunctionKeyPair = [provingKey, verifyingKey];
+                    if (this._keyStore) {
+                        await this._keyStore.setKeys(
+                            { locator: cacheKey + PROVER_LOCATOR_SUFFIX },
+                            { locator: cacheKey + VERIFIER_LOCATOR_SUFFIX },
+                            pair,
+                        );
+                    }
                     this.cache.set(cacheKey, [
                         provingKey.toBytes(),
                         verifyingKey.toBytes(),
                     ]);
-                    return [provingKey, verifyingKey];
+                    return pair;
                 }
             } else {
                 // If cache is disabled, fetch the keys and return them
@@ -288,6 +363,13 @@ class AleoKeyProvider implements FunctionKeyProvider {
                 const verifyingKey = <VerifyingKey>(
                     await this.getVerifyingKey(verifierUrl)
                 );
+                if (this._keyStore) {
+                    await this._keyStore.setKeys(
+                        { locator: cacheKey + PROVER_LOCATOR_SUFFIX },
+                        { locator: cacheKey + VERIFIER_LOCATOR_SUFFIX },
+                        [provingKey.clone(), verifyingKey.clone()],
+                    );
+                }
                 return [provingKey, verifyingKey];
             }
         } catch (error: any) {
@@ -298,7 +380,8 @@ class AleoKeyProvider implements FunctionKeyProvider {
     }
 
     /***
-     * Fetches the proving key from a remote source.
+     * Fetches the proving key from a remote source. When cache is enabled, resolves in order: in-memory cache,
+     * then KeyStore (if set), then network.
      *
      * @param proverUrl
      * @param cacheKey
@@ -310,27 +393,44 @@ class AleoKeyProvider implements FunctionKeyProvider {
         cacheKey?: string,
     ): Promise<ProvingKey> {
         try {
-            // If cache is enabled, check if the keys have already been fetched and return them if they have
+            // If cache is enabled, check cache then KeyStore before fetching
             if (this.cacheOption) {
                 if (!cacheKey) {
                     cacheKey = proverUrl;
                 }
+                // If the key is in the cache, return it.
                 const value = this.cache.get(cacheKey);
                 if (typeof value !== "undefined") {
                     return ProvingKey.fromBytes(value[0]);
-                } else {
-                    console.debug(
-                        "Fetching proving keys from url " + proverUrl,
-                    );
-                    const provingKey = <ProvingKey>(
-                        ProvingKey.fromBytes(await this.fetchBytes(proverUrl))
-                    );
-                    return provingKey;
                 }
-            } else {
+                // If the keystore is configured and the key is already in the keystore, return it.
+                if (this._keyStore && (await this._keyStore.has(cacheKey + PROVER_LOCATOR_SUFFIX))) {
+                    await this._keyStore.getKeyBytes({ locator: cacheKey + PROVER_LOCATOR_SUFFIX });
+                }
+                console.debug(
+                    "Fetching proving keys from url " + proverUrl,
+                );
                 const provingKey = <ProvingKey>(
                     ProvingKey.fromBytes(await this.fetchBytes(proverUrl))
                 );
+                // If they keystore is configured and the key is not already in the keystore, store it.
+                if (this._keyStore && !(await this._keyStore.has(cacheKey + PROVER_LOCATOR_SUFFIX))) {
+                    await this._keyStore.setKeyBytes(provingKey.toBytes(), { locator: cacheKey + PROVER_LOCATOR_SUFFIX });
+                }
+                return provingKey;
+            } else {
+                // If the keystore is configured and the key is already in the keystore, return it.
+                if (this._keyStore && (await this._keyStore.has(cacheKey + PROVER_LOCATOR_SUFFIX))) {
+                    await this._keyStore.getKeyBytes({ locator: cacheKey + PROVER_LOCATOR_SUFFIX });
+                }
+                // If not fetch the bytes.
+                const provingKey = <ProvingKey>(
+                    ProvingKey.fromBytes(await this.fetchBytes(proverUrl))
+                );
+                // If they keystore is configured and the key is not already in the keystore, store it.
+                if (this._keyStore && !(await this._keyStore.has(cacheKey + PROVER_LOCATOR_SUFFIX))) {
+                    await this._keyStore.setKeyBytes(provingKey.toBytes(), { locator: cacheKey + PROVER_LOCATOR_SUFFIX });
+                }
                 return provingKey;
             }
         } catch (error: any) {
@@ -342,25 +442,42 @@ class AleoKeyProvider implements FunctionKeyProvider {
 
     async fetchCreditsKeys(key: Key): Promise<FunctionKeyPair> {
         try {
-            if (!this.cache.has(key.locator) || !this.cacheOption) {
-                const verifying_key = key.verifyingKey();
-                const proving_key = <ProvingKey>(
-                    await this.fetchProvingKey(key.prover, key.locator)
-                );
-                if (this.cacheOption) {
-                    this.cache.set(
-                        CREDITS_PROGRAM_KEYS.getKey(key.name).locator,
-                        [proving_key.toBytes(), verifying_key.toBytes()],
-                    );
-                }
-                return [proving_key, verifying_key];
-            } else {
-                const keyPair = <CachedKeyPair>this.cache.get(key.locator);
+            // First check the cache.
+            if (this.cache.has(key.locator)) {
+                const keyPair = this.cache.get(key.locator)!;
                 return [
                     ProvingKey.fromBytes(keyPair[0]),
                     VerifyingKey.fromBytes(keyPair[1]),
                 ];
             }
+            // If the key is not in the cache, check the keystore.
+            if (this._keyStore) {
+                const verifyingKey = key.verifyingKey();
+                const provingKey = await this._keyStore.getProvingKey({ locator: key.locator });
+                if (provingKey !== null && verifyingKey !== null) {
+                    const pair: FunctionKeyPair = [provingKey, verifyingKey];
+                    if (this.cacheOption && !this.cache.has(key.locator)) {
+                        this.cache.set(key.locator, [
+                            provingKey.toBytes(),
+                            verifyingKey.toBytes(),
+                        ]);
+                    }
+                    return pair;
+                }
+            }
+            // Otherwise fetch the proving key from the network.
+            const verifying_key = key.verifyingKey();
+            const proving_key = <ProvingKey>(
+                await this.fetchProvingKey(key.prover, key.locator)
+            );
+            if (this.cacheOption) {
+                const locator = CREDITS_PROGRAM_KEYS.getKey(key.name).locator;
+                this.cache.set(locator, [
+                    proving_key.toBytes(),
+                    verifying_key.toBytes(),
+                ]);
+            }
+            return [proving_key, verifying_key];
         } catch (error: any) {
             throw new Error(
                 `Error: fetching credits.aleo keys: ${error.message}`,
