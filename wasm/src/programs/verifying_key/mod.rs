@@ -91,6 +91,14 @@ impl VerifyingKey {
     pub fn num_constraints(&self) -> u32 {
         self.0.circuit_info.num_constraints as u32
     }
+
+    /// Clone the VerifyingKey object.
+    ///
+    /// @returns {VerifyingKey}
+    #[wasm_bindgen(js_name = "clone")]
+    pub fn clone(&self) -> VerifyingKey {
+        VerifyingKey::from(self.0.clone())
+    }
 }
 
 impl Deref for VerifyingKey {

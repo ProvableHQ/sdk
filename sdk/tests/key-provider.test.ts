@@ -159,6 +159,88 @@ describe("KeyProvider", () => {
     });
 });
 
+describe("AleoKeyProvider with LocalFileKeyStore", () => {
+    const tempDir = `${process.cwd()}/.keystore-provider-test-${Date.now()}-${Math.floor(Math.random() * 1e6)}`;
+
+    afterEach(async () => {
+        await $fs.rm(tempDir, { recursive: true, force: true }).catch(() => {});
+    });
+
+    it("keyStore() returns the configured LocalFileKeyStore", async () => {
+        const keystore = new LocalFileKeyStore(tempDir);
+        const provider = AleoKeyProvider.fromKeyStore(keystore);
+        const resolved = await provider.keyStore();
+        expect(resolved).equal(keystore);
+    });
+
+    it("setKeyStore configures keystore and keyStore() returns it", async () => {
+        const provider = new AleoKeyProvider();
+        expect(await provider.keyStore()).equal(undefined);
+        const keystore = new LocalFileKeyStore(tempDir);
+        provider.setKeyStore(keystore);
+        expect(await provider.keyStore()).equal(keystore);
+    });
+
+    it("cacheKeys persists keys to LocalFileKeyStore; functionKeys resolves from keystore after clearCache", async () => {
+        const keystore = new LocalFileKeyStore(tempDir);
+        const provider = AleoKeyProvider.fromKeyStore(keystore);
+        provider.useCache(true);
+
+        const [provingKey, verifyingKey] = <FunctionKeyPair>await provider.feePublicKeys();
+        const cacheKey = "credits.aleo.fee_public.persisted";
+        await provider.cacheKeys(cacheKey, [provingKey, verifyingKey]);
+
+        expect(await keystore.has(cacheKey + ".prover")).equal(true);
+        expect(await keystore.has(cacheKey + ".verifier")).equal(true);
+
+        provider.clearCache();
+        expect(provider.cache.size).equal(0);
+
+        const [fromStoreProving, fromStoreVerifier] = <FunctionKeyPair>await provider.functionKeys({
+            cacheKey,
+        });
+        expect(fromStoreProving.checksum()).equal(provingKey.checksum());
+        expect(fromStoreVerifier.checksum()).equal(verifyingKey.checksum());
+    });
+
+    it("second provider instance with same LocalFileKeyStore directory resolves keys without network", async () => {
+        const keystore1 = new LocalFileKeyStore(tempDir);
+        const provider1 = AleoKeyProvider.fromKeyStore(keystore1);
+        provider1.useCache(true);
+
+        const [provingKey, verifyingKey] = <FunctionKeyPair>await provider1.feePublicKeys();
+        const cacheKey = "credits.aleo.fee_public.shared";
+        await provider1.cacheKeys(cacheKey, [provingKey, verifyingKey]);
+
+        const keystore2 = new LocalFileKeyStore(tempDir);
+        const provider2 = AleoKeyProvider.fromKeyStore(keystore2);
+        provider2.useCache(false);
+
+        const [p2, v2] = <FunctionKeyPair>await provider2.functionKeys({ cacheKey });
+        expect(p2.checksum()).equal(provingKey.checksum());
+        expect(v2.checksum()).equal(verifyingKey.checksum());
+    });
+
+    it("fetchCreditsKeys returns keys from LocalFileKeyStore when present and cache empty", async () => {
+        const kp = new AleoKeyProvider();
+        const [prov, ver] = <FunctionKeyPair>await kp.feePublicKeys();
+        const key = CREDITS_PROGRAM_KEYS.fee_public;
+        const keystore = new LocalFileKeyStore(tempDir);
+        await keystore.setKeys(
+            locator(key.locator),
+            locator(key.locator + ".verifier"),
+            [prov, ver]
+        );
+
+        const provider = AleoKeyProvider.fromKeyStore(keystore);
+        provider.useCache(false);
+
+        const [fromStoreProving, fromStoreVerifier] = <FunctionKeyPair>await provider.fetchCreditsKeys(key);
+        expect(fromStoreProving.checksum()).equal(prov.checksum());
+        expect(fromStoreVerifier.checksum()).equal(ver.checksum());
+    });
+});
+
 describe("KeyStore (file) – LocalFileKeyStore", () => {
     it("getProvingKey and getVerifyingKey return null when key does not exist", async () => {
         const tempDir = `${process.cwd()}/.keystore-test-${Date.now()}-${Math.floor(Math.random() * 1e6)}`;

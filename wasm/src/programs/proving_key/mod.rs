@@ -79,6 +79,14 @@ impl ProvingKey {
     pub fn to_string(&self) -> String {
         self.0.to_string()
     }
+
+    /// Clone the ProvingKey object.
+    ///
+    /// @returns {ProvingKey}
+    #[wasm_bindgen(js_name = "clone")]
+    pub fn clone(&self) -> ProvingKey {
+        ProvingKey::from(self.0.clone())
+    }
 }
 
 impl Deref for ProvingKey {
