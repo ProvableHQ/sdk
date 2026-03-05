@@ -22,6 +22,7 @@ use crate::{
 
 use core::{convert::TryFrom, ops::Deref};
 use wasm_bindgen::prelude::*;
+use zeroize::Zeroize;
 
 #[wasm_bindgen]
 #[derive(Clone, Debug, PartialEq, Eq)]
@@ -64,6 +65,22 @@ impl ComputeKey {
     /// @returns {Group} pr_sig
     pub fn pr_sig(&self) -> Group {
         Group::from(self.0.pr_sig())
+    }
+}
+
+impl Drop for ComputeKey {
+    fn drop(&mut self) {
+        // Safety: ComputeKeyNative is Copy (no internal pointers or heap allocations),
+        // composed entirely of plain field elements (2x Group + Scalar), so byte-level
+        // zeroing is sound. ComputeKeyNative does not derive Zeroize, so we zero the
+        // raw bytes directly using the zeroize crate's volatile-write implementation.
+        let bytes: &mut [u8] = unsafe {
+            core::slice::from_raw_parts_mut(
+                &mut self.0 as *mut ComputeKeyNative as *mut u8,
+                core::mem::size_of::<ComputeKeyNative>(),
+            )
+        };
+        bytes.zeroize();
     }
 }
 
@@ -133,5 +150,27 @@ mod tests {
         assert_eq!(address, compute_key.address());
         assert_eq!(address, derived_address);
         assert_eq!(address, compute_key_address);
+    }
+
+    #[test]
+    fn test_zeroize_clears_compute_key_material() {
+        let private_key = PrivateKey::new();
+        let mut compute_key = ComputeKey::from_private_key(&private_key);
+
+        let ptr = &compute_key.0 as *const ComputeKeyNative as *const u8;
+        let size = core::mem::size_of::<ComputeKeyNative>();
+
+        // Verify the compute key contains non-zero data before zeroization.
+        let bytes_before: Vec<u8> = unsafe { core::slice::from_raw_parts(ptr, size).to_vec() };
+        assert!(bytes_before.iter().any(|&b| b != 0), "Compute key should contain non-zero data");
+
+        // Zeroize the raw bytes (same operation our Drop impl performs).
+        let bytes: &mut [u8] =
+            unsafe { core::slice::from_raw_parts_mut(&mut compute_key.0 as *mut ComputeKeyNative as *mut u8, size) };
+        bytes.zeroize();
+
+        // Verify all bytes are now zero.
+        let bytes_after: Vec<u8> = unsafe { core::slice::from_raw_parts(ptr, size).to_vec() };
+        assert!(bytes_after.iter().all(|&b| b == 0), "Compute key material should be zeroed");
     }
 }

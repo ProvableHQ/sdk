@@ -62,7 +62,38 @@ export function encryptRegistrationRequest(publicKey: string, viewKey: ViewKey, 
     view.setUint32(vk_bytes.length, start, true);
 
     // Encrypt the encoded bytes.
-    return encryptMessage(publicKey, bytes);
+    const result = encryptMessage(publicKey, bytes);
+
+    // Zeroize sensitive intermediate byte arrays.
+    vk_bytes.fill(0);
+    bytes.fill(0);
+
+    return result;
+}
+
+/**
+ * Best-effort zeroization of a byte array by overwriting all bytes with zeros.
+ * Use this to clear sensitive data (e.g., key bytes) from memory when working
+ * with Uint8Array representations of keys or other secrets.
+ *
+ * This is best-effort in JavaScript — the JIT compiler could theoretically
+ * elide the fill if the array is never read again (though current engines
+ * do not). For cryptographic zeroization guarantees, use the Rust-side
+ * zeroization via `Account.destroy()` or calling `.free()` on WASM objects.
+ *
+ * Note: This cannot zeroize JavaScript strings, which are immutable and managed
+ * by the garbage collector. Prefer using byte array representations of sensitive
+ * data over strings whenever possible.
+ *
+ * @param {Uint8Array} bytes The byte array to zeroize
+ *
+ * @example
+ * const keyBytes = privateKey.toBytesLe();
+ * // ... use keyBytes ...
+ * zeroizeBytes(keyBytes); // Overwrite with zeros when done
+ */
+export function zeroizeBytes(bytes: Uint8Array): void {
+    bytes.fill(0);
 }
 
 /**
