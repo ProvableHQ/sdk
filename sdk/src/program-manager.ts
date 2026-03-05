@@ -2406,7 +2406,7 @@ class ProgramManager {
             keySearchParams = new AleoKeyProviderParams({
                 proverUri: CREDITS_PROGRAM_KEYS.bond_public.prover,
                 verifierUri: CREDITS_PROGRAM_KEYS.bond_public.verifier,
-                cacheKey: "credits.aleo/bond_public",
+                cacheKey: CREDITS_PROGRAM_KEYS.bond_public.fileLocator,
             }),
             program = this.creditsProgram(),
             ...additionalOptions
@@ -2549,7 +2549,7 @@ class ProgramManager {
             keySearchParams = new AleoKeyProviderParams({
                 proverUri: CREDITS_PROGRAM_KEYS.bond_validator.prover,
                 verifierUri: CREDITS_PROGRAM_KEYS.bond_validator.verifier,
-                cacheKey: "credits.aleo/bond_validator",
+                cacheKey: CREDITS_PROGRAM_KEYS.bond_validator.fileLocator,
             }),
             program = this.creditsProgram(),
             ...additionalOptions
@@ -2682,7 +2682,7 @@ class ProgramManager {
             keySearchParams = new AleoKeyProviderParams({
                 proverUri: CREDITS_PROGRAM_KEYS.unbond_public.prover,
                 verifierUri: CREDITS_PROGRAM_KEYS.unbond_public.verifier,
-                cacheKey: "credits.aleo/unbond_public",
+                cacheKey: CREDITS_PROGRAM_KEYS.unbond_public.fileLocator,
             }),
             program = this.creditsProgram(),
             ...additionalOptions
@@ -2812,7 +2812,7 @@ class ProgramManager {
             keySearchParams = new AleoKeyProviderParams({
                 proverUri: CREDITS_PROGRAM_KEYS.claim_unbond_public.prover,
                 verifierUri: CREDITS_PROGRAM_KEYS.claim_unbond_public.verifier,
-                cacheKey: "credits.aleo/claim_unbond_public",
+                cacheKey: CREDITS_PROGRAM_KEYS.claim_unbond_public.fileLocator,
             }),
             program = this.creditsProgram(),
             ...additionalOptions
@@ -2944,7 +2944,7 @@ class ProgramManager {
             keySearchParams = new AleoKeyProviderParams({
                 proverUri: CREDITS_PROGRAM_KEYS.set_validator_state.prover,
                 verifierUri: CREDITS_PROGRAM_KEYS.set_validator_state.verifier,
-                cacheKey: "credits.aleo/set_validator_state",
+                cacheKey: CREDITS_PROGRAM_KEYS.set_validator_state.fileLocator,
             }),
             program = this.creditsProgram(),
             ...additionalOptions

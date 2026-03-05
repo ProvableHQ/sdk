@@ -8,6 +8,7 @@ export interface Key {
     prover: string,
     verifier: string,
     verifyingKey: () => VerifyingKey,
+    fileLocator: string,
 }
 
 function convert(metadata: Metadata): Key {
@@ -24,6 +25,7 @@ function convert(metadata: Metadata): Key {
         prover: metadata.prover,
         verifier: metadata.verifier,
         verifyingKey,
+        fileLocator: metadata.locator.replace("/", "."),
     };
 }
 

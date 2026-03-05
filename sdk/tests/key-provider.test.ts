@@ -227,8 +227,8 @@ describe("AleoKeyProvider with LocalFileKeyStore", () => {
         const key = CREDITS_PROGRAM_KEYS.fee_public;
         const keystore = new LocalFileKeyStore(tempDir);
         await keystore.setKeys(
-            locator(key.locator),
-            locator(key.locator + ".verifier"),
+            locator(key.fileLocator),
+            locator(key.fileLocator + ".verifier"),
             [prov, ver]
         );
 

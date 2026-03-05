@@ -443,8 +443,8 @@ class AleoKeyProvider implements FunctionKeyProvider {
     async fetchCreditsKeys(key: Key): Promise<FunctionKeyPair> {
         try {
             // First check the cache.
-            if (this.cache.has(key.locator)) {
-                const keyPair = this.cache.get(key.locator)!;
+            if (this.cache.has(key.fileLocator)) {
+                const keyPair = this.cache.get(key.fileLocator)!;
                 return [
                     ProvingKey.fromBytes(keyPair[0]),
                     VerifyingKey.fromBytes(keyPair[1]),
@@ -453,11 +453,11 @@ class AleoKeyProvider implements FunctionKeyProvider {
             // If the key is not in the cache, check the keystore.
             if (this._keyStore) {
                 const verifyingKey = key.verifyingKey();
-                const provingKey = await this._keyStore.getProvingKey({ locator: key.locator });
+                const provingKey = await this._keyStore.getProvingKey({ locator: key.fileLocator + PROVER_LOCATOR_SUFFIX });
                 if (provingKey !== null && verifyingKey !== null) {
                     const pair: FunctionKeyPair = [provingKey, verifyingKey];
-                    if (this.cacheOption && !this.cache.has(key.locator)) {
-                        this.cache.set(key.locator, [
+                    if (this.cacheOption && !this.cache.has(key.fileLocator)) {
+                        this.cache.set(key.fileLocator, [
                             provingKey.toBytes(),
                             verifyingKey.toBytes(),
                         ]);
@@ -468,10 +468,10 @@ class AleoKeyProvider implements FunctionKeyProvider {
             // Otherwise fetch the proving key from the network.
             const verifying_key = key.verifyingKey();
             const proving_key = <ProvingKey>(
-                await this.fetchProvingKey(key.prover, key.locator)
+                await this.fetchProvingKey(key.prover, key.fileLocator)
             );
             if (this.cacheOption) {
-                const locator = CREDITS_PROGRAM_KEYS.getKey(key.name).locator;
+                const locator = CREDITS_PROGRAM_KEYS.getKey(key.name).fileLocator;
                 this.cache.set(locator, [
                     proving_key.toBytes(),
                     verifying_key.toBytes(),
