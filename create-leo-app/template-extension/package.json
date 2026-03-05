@@ -10,6 +10,6 @@
     "@provablehq/sdk": "^0.9.16",
     "@web/rollup-plugin-import-meta-assets": "^2.2.1",
     "rimraf": "^6.0.1",
-    "rollup": "^4.32.0"
+    "rollup": "^4.59.0"
   }
 }
