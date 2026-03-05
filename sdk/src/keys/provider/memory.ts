@@ -35,10 +35,10 @@ type AleoKeyProviderInitParams = {
  * verifierUri to fetch keys via HTTP from a remote resource as well as a unique cacheKey to store the keys in memory.
  */
 class AleoKeyProviderParams implements KeySearchParams {
-    name: string | undefined;
+    functionName: string | undefined;
     proverUri: string | undefined;
     verifierUri: string | undefined;
-    program: string | undefined;
+    programName: string | undefined;
     cacheKey: string | undefined;
 
     /**
@@ -49,12 +49,12 @@ class AleoKeyProviderParams implements KeySearchParams {
      *
      * @param { AleoKeyProviderInitParams } params - Optional search parameters
      */
-    constructor(params: {proverUri?: string, verifierUri?: string, cacheKey?: string, name?: string, program?: string}) {
+    constructor(params: {proverUri?: string, verifierUri?: string, cacheKey?: string, name?: string, programName?: string}) {
         this.proverUri = params.proverUri;
         this.verifierUri = params.verifierUri;
         this.cacheKey = params.cacheKey;
-        this.name = params.name;
-        this.program = params.program;
+        this.functionName = params.name;
+        this.programName = params.programName;
     }
 }
 
@@ -138,14 +138,16 @@ class AleoKeyProvider implements FunctionKeyProvider {
     /**
      * Cache a set of keys. This will overwrite any existing keys with the same keyId. The user can check if a keyId
      * exists in the cache using the containsKeys method prior to calling this method if overwriting is not desired.
-     * If a KeyStore is set, keys are stored there first, then in the in-memory cache.
+     * This stores the keys in the in-memory cache first if the cache option is enabled, and then in the KeyStore if it is set.
      *
      * @param {string} keyId access key for the cache (and base locator for KeyStore: keyId.prover / keyId.verifier)
      * @param {FunctionKeyPair} keys keys to cache
      */
     async cacheKeys(keyId: string, keys: FunctionKeyPair): Promise<void> {
         const [provingKey, verifyingKey] = keys;
-        this.cache.set(keyId, [provingKey.toBytes(), verifyingKey.toBytes()]);
+        if (this.cacheOption) {
+            this.cache.set(keyId, [provingKey.toBytes(), verifyingKey.toBytes()]);
+        }
         if (this._keyStore) {
             await this._keyStore.setKeys(
                 { locator: keyId + PROVER_LOCATOR_SUFFIX },
@@ -226,6 +228,8 @@ class AleoKeyProvider implements FunctionKeyProvider {
             // Check to see if a cache key is provided.
             if ("cacheKey" in params && typeof params["cacheKey"] == "string") {
                 cacheKey = params["cacheKey"];
+            } else if ("programName" in params && "functionName" in params) {
+                cacheKey = `${params["programName"]}.${params["functionName"]}`;
             }
 
             // If the cache key is provided attempt to do a cache and keystorelookup first.
@@ -252,14 +256,14 @@ class AleoKeyProvider implements FunctionKeyProvider {
                         }
                     }
                     catch (error: any) {
-                        console.error(`Error fetching keys from configured keystore for cache key: ${cacheKey}, attempting to fetch from remote source.`);
+                        console.error(`Error fetching keys from configured keystore for cache key: ${cacheKey}. Error: ${error.message}. Attempting to fetch from remote source.`);
                     }
                 }
             }
 
             // If the name of the key is a credits.aleo function, attempt to fetch the keys from the credits.aleo program.
-            if ("name" in params && typeof params["name"] == "string" && "program" in params && params["program"] == "credits.aleo") {
-                const key = CREDITS_PROGRAM_KEYS.getKey(params["name"]);
+            if ("functionName" in params && typeof params["functionName"] == "string" && "programName" in params && params["programName"] == "credits.aleo") {
+                const key = CREDITS_PROGRAM_KEYS.getKey(params["functionName"]);
                 return this.fetchCreditsKeys(key);
             }
 
@@ -287,7 +291,7 @@ class AleoKeyProvider implements FunctionKeyProvider {
 
         }
         throw new Error(
-            "Invalid parameters provided, must provide either a cacheKey and/or a proverUrl and a verifierUrl",
+            "Invalid parameters provided to the KeyProvider, must provide either a cacheKey, `programName` & `name` keys to identify program/function pair, and/or a proverUrl and a verifierUrl",
         );
     }
 
@@ -323,12 +327,9 @@ class AleoKeyProvider implements FunctionKeyProvider {
     ): Promise<FunctionKeyPair> {
         try {
             // If cache is enabled, check if the keys have already been fetched and return them if they have
-            if (this.cacheOption) {
-                if (!cacheKey) {
-                    cacheKey = proverUrl;
-                }
+            if (this.cacheOption && cacheKey) {
                 const value = this.cache.get(cacheKey);
-                if (typeof value !== "undefined") {
+                if (Array.isArray(value) && value.length === 2) {
                     return [
                         ProvingKey.fromBytes(value[0]),
                         VerifyingKey.fromBytes(value[1]),
@@ -343,11 +344,16 @@ class AleoKeyProvider implements FunctionKeyProvider {
                     );
                     const pair: FunctionKeyPair = [provingKey, verifyingKey];
                     if (this._keyStore) {
-                        await this._keyStore.setKeys(
-                            { locator: cacheKey + PROVER_LOCATOR_SUFFIX },
-                            { locator: cacheKey + VERIFIER_LOCATOR_SUFFIX },
-                            pair,
-                        );
+                        try {
+                            await this._keyStore.setKeys(
+                                { locator: cacheKey + PROVER_LOCATOR_SUFFIX },
+                                { locator: cacheKey + VERIFIER_LOCATOR_SUFFIX },
+                                pair,
+                            );
+                        }
+                        catch (error: any) {
+                            console.error(`Error storing keys in keystore for cache key: ${cacheKey}. Error: ${error.message}.`);
+                        }
                     }
                     this.cache.set(cacheKey, [
                         provingKey.toBytes(),
@@ -363,12 +369,17 @@ class AleoKeyProvider implements FunctionKeyProvider {
                 const verifyingKey = <VerifyingKey>(
                     await this.getVerifyingKey(verifierUrl)
                 );
-                if (this._keyStore) {
-                    await this._keyStore.setKeys(
-                        { locator: cacheKey + PROVER_LOCATOR_SUFFIX },
-                        { locator: cacheKey + VERIFIER_LOCATOR_SUFFIX },
-                        [provingKey.clone(), verifyingKey.clone()],
-                    );
+                if (this._keyStore && cacheKey) {
+                    try {
+                        await this._keyStore.setKeys(
+                            { locator: cacheKey + PROVER_LOCATOR_SUFFIX },
+                            { locator: cacheKey + VERIFIER_LOCATOR_SUFFIX },
+                            [provingKey.clone(), verifyingKey.clone()],
+                        );
+                    }
+                    catch (error: any) {
+                        console.error(`Error storing keys in keystore for cache key: ${cacheKey}. Error: ${error.message}.`);
+                    }
                 }
                 return [provingKey, verifyingKey];
             }
@@ -394,18 +405,23 @@ class AleoKeyProvider implements FunctionKeyProvider {
     ): Promise<ProvingKey> {
         try {
             // If cache is enabled, check cache then KeyStore before fetching
-            if (this.cacheOption) {
-                if (!cacheKey) {
-                    cacheKey = proverUrl;
-                }
+            if (this.cacheOption && cacheKey) {
                 // If the key is in the cache, return it.
                 const value = this.cache.get(cacheKey);
                 if (typeof value !== "undefined") {
                     return ProvingKey.fromBytes(value[0]);
                 }
                 // If the keystore is configured and the key is already in the keystore, return it.
-                if (this._keyStore && (await this._keyStore.has(cacheKey + PROVER_LOCATOR_SUFFIX))) {
-                    await this._keyStore.getKeyBytes({ locator: cacheKey + PROVER_LOCATOR_SUFFIX });
+                if (this._keyStore && cacheKey && (await this._keyStore.has(cacheKey + PROVER_LOCATOR_SUFFIX))) {
+                    try {
+                        const keyBytes = await this._keyStore.getKeyBytes({ locator: cacheKey + PROVER_LOCATOR_SUFFIX });
+                        if (keyBytes !== null) {
+                            return ProvingKey.fromBytes(keyBytes);
+                        }
+                    }
+                    catch (error: any) {
+                        console.error(`Error fetching proving key from keystore for cache key: ${cacheKey}. Error: ${error.message}. Attempting to fetch from remote source.`);
+                    }
                 }
                 console.debug(
                     "Fetching proving keys from url " + proverUrl,
@@ -414,22 +430,41 @@ class AleoKeyProvider implements FunctionKeyProvider {
                     ProvingKey.fromBytes(await this.fetchBytes(proverUrl))
                 );
                 // If they keystore is configured and the key is not already in the keystore, store it.
-                if (this._keyStore && !(await this._keyStore.has(cacheKey + PROVER_LOCATOR_SUFFIX))) {
+                if (cacheKey && this._keyStore && !(await this._keyStore.has(cacheKey + PROVER_LOCATOR_SUFFIX))) {
+                    try {
+                        await this._keyStore.setKeyBytes(provingKey.toBytes(), { locator: cacheKey + PROVER_LOCATOR_SUFFIX });
+                    }
+                    catch (error: any) {
+                        console.error(`Error storing proving key in keystore for cache key: ${cacheKey}. Error: ${error.message}.`);
+                    }
                     await this._keyStore.setKeyBytes(provingKey.toBytes(), { locator: cacheKey + PROVER_LOCATOR_SUFFIX });
                 }
                 return provingKey;
             } else {
                 // If the keystore is configured and the key is already in the keystore, return it.
-                if (this._keyStore && (await this._keyStore.has(cacheKey + PROVER_LOCATOR_SUFFIX))) {
-                    await this._keyStore.getKeyBytes({ locator: cacheKey + PROVER_LOCATOR_SUFFIX });
+                if (cacheKey && this._keyStore && (await this._keyStore.has(cacheKey + PROVER_LOCATOR_SUFFIX))) {
+                    try {
+                        const keyBytes = await this._keyStore.getKeyBytes({ locator: cacheKey + PROVER_LOCATOR_SUFFIX });
+                        if (keyBytes !== null) {
+                            return ProvingKey.fromBytes(keyBytes);
+                        }
+                    }
+                    catch (error: any) {
+                        console.error(`Error fetching proving key from keystore for cache key: ${cacheKey}. Error: ${error.message}. Attempting to fetch from remote source.`);
+                    }
                 }
                 // If not fetch the bytes.
                 const provingKey = <ProvingKey>(
                     ProvingKey.fromBytes(await this.fetchBytes(proverUrl))
                 );
                 // If they keystore is configured and the key is not already in the keystore, store it.
-                if (this._keyStore && !(await this._keyStore.has(cacheKey + PROVER_LOCATOR_SUFFIX))) {
-                    await this._keyStore.setKeyBytes(provingKey.toBytes(), { locator: cacheKey + PROVER_LOCATOR_SUFFIX });
+                if (cacheKey && this._keyStore && !(await this._keyStore.has(cacheKey + PROVER_LOCATOR_SUFFIX))) {
+                    try {
+                        await this._keyStore.setKeyBytes(provingKey.toBytes(), { locator: cacheKey + PROVER_LOCATOR_SUFFIX });
+                    }
+                    catch (error: any) {
+                        console.error(`Error storing proving key in keystore for cache key: ${cacheKey}. Error: ${error.message}.`);
+                    }
                 }
                 return provingKey;
             }

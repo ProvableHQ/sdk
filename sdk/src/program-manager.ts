@@ -282,6 +282,16 @@ class ProgramManager {
     }
 
     /**
+     * Add the programName to the key search params.
+     */
+    private identifyProgram(programName: string, functionName: string, keySearchParams?: KeySearchParams): KeySearchParams {
+        if (keySearchParams === undefined) {
+            return { programName, functionName };
+        }
+        return { ...keySearchParams, programName, functionName };
+    }
+
+    /**
      * Set the host peer to use for transaction submission to the Aleo network
      *
      * @param host {string} Peer url to use for transaction submission
@@ -879,7 +889,7 @@ class ProgramManager {
         if (!provingKey || !verifyingKey) {
             try {
                 [provingKey, verifyingKey] = <FunctionKeyPair>(
-                    await this.keyProvider.functionKeys(keySearchParams)
+                    await this.keyProvider.functionKeys(this.identifyProgram(programName, functionName, keySearchParams))
                 );
             } catch (e) {
                 console.log(
@@ -1079,7 +1089,7 @@ class ProgramManager {
         if (!provingKey || !verifyingKey) {
             try {
                 [provingKey, verifyingKey] = <FunctionKeyPair>(
-                    await this.keyProvider.functionKeys(keySearchParams)
+                    await this.keyProvider.functionKeys(this.identifyProgram(programName, authorization.functionName(), keySearchParams))
                 );
             } catch (e) {
                 console.log(
@@ -1634,7 +1644,7 @@ class ProgramManager {
      * Run an Aleo program in offline mode
      *
      * @param {string} program Program source code containing the function to be executed
-     * @param {string} function_name Function name to execute
+     * @param {string} functionName Function name to execute
      * @param {string[]} inputs Inputs to the function
      * @param {number} proveExecution Whether to prove the execution of the function and return an execution transcript that contains the proof.
      * @param {string[] | undefined} imports Optional imports to the program
@@ -1664,7 +1674,7 @@ class ProgramManager {
      */
     async run(
         program: string,
-        function_name: string,
+        functionName: string,
         inputs: string[],
         proveExecution: boolean,
         imports?: ProgramImports,
@@ -1688,11 +1698,12 @@ class ProgramManager {
             throw "No private key provided and no private key set in the ProgramManager";
         }
 
+        const programName = Program.fromString(program).id();
         // If the function proving and verifying keys are not provided, attempt to find them using the key provider
         if (!provingKey || !verifyingKey) {
             try {
                 [provingKey, verifyingKey] = <FunctionKeyPair>(
-                    await this.keyProvider.functionKeys(keySearchParams)
+                    await this.keyProvider.functionKeys(this.identifyProgram(programName, functionName, keySearchParams))
                 );
             } catch (e) {
                 console.log(
@@ -1708,7 +1719,7 @@ class ProgramManager {
         return WasmProgramManager.executeFunctionOffline(
             executionPrivateKey,
             program,
-            function_name,
+            functionName,
             inputs,
             proveExecution,
             false,
