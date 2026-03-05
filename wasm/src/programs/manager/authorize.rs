@@ -41,6 +41,8 @@ impl ProgramManager {
     /// @param function_name The function to authorize.
     /// @param inputs A javascript array of inputs to the function.
     /// @param imports The imports to the program in the format {"programname.aleo":"aleo instructions source code"}.
+    /// @param {ProgramImports | undefined} program_imports (optional) A ProgramImports builder with
+    /// pre-computed proving and verifying keys for imported programs.
     pub async fn authorize(
         private_key: &PrivateKey,
         program: &str,
@@ -48,6 +50,7 @@ impl ProgramManager {
         inputs: Array,
         imports: Option<Object>,
         edition: Option<u16>,
+        program_imports: Option<ProgramImports>,
     ) -> Result<Authorization, String> {
         let mut process_native = ProcessNative::load_web().map_err(|err| err.to_string())?;
         let process = &mut process_native;
@@ -55,7 +58,7 @@ impl ProgramManager {
         log("Check program imports are valid and add them to the process");
         let program_native = ProgramNative::from_str(program).map_err(|e| e.to_string())?;
         log(&format!("Creating proving request for {}:{function_name}", program_native.id()));
-        ProgramManager::resolve_imports(process, imports)?;
+        ProgramManager::resolve_imports_or_builder(process, imports, program_imports.as_ref())?;
         let rng = &mut StdRng::from_entropy();
 
         // Authorize the main program.
@@ -82,6 +85,8 @@ impl ProgramManager {
     /// @param function_name The function to authorize.
     /// @param inputs A javascript array of inputs to the function.
     /// @param imports The imports to the program in the format {"programname.aleo":"aleo instructions source code"}.
+    /// @param {ProgramImports | undefined} program_imports (optional) A ProgramImports builder with
+    /// pre-computed proving and verifying keys for imported programs.
     #[wasm_bindgen(js_name = buildAuthorizationUnchecked)]
     pub async fn authorize_unchecked(
         private_key: &PrivateKey,
@@ -90,6 +95,7 @@ impl ProgramManager {
         inputs: Array,
         imports: Option<Object>,
         edition: Option<u16>,
+        program_imports: Option<ProgramImports>,
     ) -> Result<Authorization, String> {
         let mut process_native = ProcessNative::load_web().map_err(|err| err.to_string())?;
         let process = &mut process_native;
@@ -97,7 +103,7 @@ impl ProgramManager {
         log("Check program imports are valid and add them to the process");
         let program_native = ProgramNative::from_str(program).map_err(|e| e.to_string())?;
         log(&format!("Creating proving request for {}:{function_name}", program_native.id()));
-        ProgramManager::resolve_imports(process, imports)?;
+        ProgramManager::resolve_imports_or_builder(process, imports, program_imports.as_ref())?;
         let rng = &mut StdRng::from_entropy();
 
         // Authorize the main program.
@@ -177,7 +183,7 @@ mod tests {
 
         // Create the puzzle spinner authorization and ensure it has the correct amount of transitions.
         let authorization =
-            ProgramManager::authorize(&private_key, PUZZLE_SPINNER_V002, function_name, inputs, imports, None)
+            ProgramManager::authorize(&private_key, PUZZLE_SPINNER_V002, function_name, inputs, imports, None, None)
                 .await
                 .unwrap();
         console_log!("{authorization:?}");

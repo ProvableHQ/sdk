@@ -32,6 +32,8 @@ export {
     PrivateKey,
     PrivateKeyCiphertext,
     Program,
+    // Aliased to avoid collision with the SDK's ProgramImports type (network-client.ts).
+    ProgramImports as ProgramImportsBuilder,
     ProgramManager,
     ProvingKey,
     ProvingRequest,

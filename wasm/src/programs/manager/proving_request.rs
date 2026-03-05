@@ -47,6 +47,8 @@ impl ProgramManager {
     /// @param imports The imports to the program in the format {"programname.aleo":"aleo instructions source code"}.
     /// @param url The url of the Aleo network node to send the transaction to
     /// @param broadcast (optional) Flag to indicate if the transaction should be broadcast
+    /// @param {ProgramImports | undefined} program_imports (optional) A ProgramImports builder with
+    /// pre-computed proving and verifying keys for imported programs.
     /// @returns {Authorization}
     #[wasm_bindgen(js_name = buildProvingRequest)]
     #[allow(clippy::too_many_arguments)]
@@ -63,6 +65,7 @@ impl ProgramManager {
         unchecked: bool,
         edition: Option<u16>,
         use_fee_master: bool,
+        program_imports: Option<ProgramImports>,
     ) -> Result<ProvingRequest, String> {
         log(&format!("Creating proving request for {function_name}"));
         let mut process_native = ProcessNative::load_web().map_err(|err| err.to_string())?;
@@ -70,7 +73,7 @@ impl ProgramManager {
 
         log("Check program imports are valid and add them to the process");
         let program_native = ProgramNative::from_str(program).map_err(|e| e.to_string())?;
-        ProgramManager::resolve_imports(process, imports.clone())?;
+        ProgramManager::resolve_imports_or_builder(process, imports.clone(), program_imports.as_ref())?;
         let rng = &mut StdRng::from_entropy();
 
         // Convert the fee to microcredits.
@@ -88,6 +91,7 @@ impl ProgramManager {
             program,
             imports,
             Some(edition),
+            program_imports,
         )?;
 
         // Authorize the fee.
@@ -144,6 +148,7 @@ mod tests {
             false,
             Some(1),
             false, // use_fee_master: expect fee authorization
+            None,
         )
         .await
         .unwrap();
@@ -198,6 +203,7 @@ mod tests {
             false,
             Some(1),
             true, // use_fee_master: no fee authorization
+            None,
         )
         .await
         .unwrap();

@@ -81,6 +81,9 @@ impl ProgramManager {
     /// are a string representing the program source code \{ "hello.aleo": "hello.aleo source code" \}
     /// @param {ProvingKey | undefined} proving_key (optional) Provide a verifying key to use for the function execution
     /// @param {VerifyingKey | undefined} verifying_key (optional) Provide a verifying key to use for the function execution
+    /// @param {ProgramImports | undefined} program_imports (optional) A ProgramImports builder with
+    /// pre-computed proving and verifying keys for imported programs. When provided, this takes
+    /// precedence over the `imports` parameter and avoids key serialization overhead.
     #[wasm_bindgen(js_name = executeFunctionOffline)]
     #[allow(clippy::too_many_arguments)]
     pub async fn execute_function_offline(
@@ -96,6 +99,7 @@ impl ProgramManager {
         url: Option<String>,
         offline_query: Option<OfflineQuery>,
         edition: Option<u16>,
+        program_imports: Option<ProgramImports>,
     ) -> Result<ExecutionResponse, String> {
         let node_url = url.as_deref().unwrap_or(DEFAULT_URL);
         let inputs = inputs.to_vec();
@@ -106,7 +110,7 @@ impl ProgramManager {
 
         log("Check program imports are valid and add them to the process");
         let program_native = ProgramNative::from_str(program).map_err(|e| e.to_string())?;
-        ProgramManager::resolve_imports(process, imports)?;
+        ProgramManager::resolve_imports_or_builder(process, imports, program_imports.as_ref())?;
         let edition = edition.unwrap_or(1);
 
         let (response, mut trace) = execute_program!(
@@ -179,6 +183,8 @@ impl ProgramManager {
     /// @param fee_verifying_key (optional) Provide a verifying key to use for the fee execution
     /// @param offline_query An offline query object to use if building a transaction without an internet connection.
     /// @param edition The edition of the program to execute. Defaults to the latest found on the network, or 1 if the program does not exist on the network.
+    /// @param {ProgramImports | undefined} program_imports (optional) A ProgramImports builder with
+    /// pre-computed proving and verifying keys for imported programs.
     /// @returns {Transaction}
     #[wasm_bindgen(js_name = buildExecutionTransaction)]
     #[allow(clippy::too_many_arguments)]
@@ -197,6 +203,7 @@ impl ProgramManager {
         fee_verifying_key: Option<VerifyingKey>,
         offline_query: Option<OfflineQuery>,
         edition: Option<u16>,
+        program_imports: Option<ProgramImports>,
     ) -> Result<Transaction, String> {
         let mut process_native = ProcessNative::load_web().map_err(|err| err.to_string())?;
         let process = &mut process_native;
@@ -205,7 +212,7 @@ impl ProgramManager {
         log("Check program imports are valid and add them to the process");
         let program_native = ProgramNative::from_str(program).map_err(|e| e.to_string())?;
         let program_id = program_native.id().to_string();
-        ProgramManager::resolve_imports(process, imports)?;
+        ProgramManager::resolve_imports_or_builder(process, imports, program_imports.as_ref())?;
         let rng = &mut StdRng::from_entropy();
 
         log(&format!("Executing function: {program_id}/{function} on-chain"));
@@ -303,7 +310,10 @@ impl ProgramManager {
     /// @param imports The imports of the program being executed.
     /// @param url The url to get the inclusion proving information from.
     /// @param offline_query Optional offline query object if building a Transaction offline.
+    /// @param {ProgramImports | undefined} program_imports (optional) A ProgramImports builder with
+    /// pre-computed proving and verifying keys for imported programs.
     #[wasm_bindgen(js_name = executeAuthorization)]
+    #[allow(clippy::too_many_arguments)]
     pub async fn execute_authorization(
         authorization: Authorization,
         fee_authorization: Option<Authorization>,
@@ -315,6 +325,7 @@ impl ProgramManager {
         imports: Option<Object>,
         url: Option<String>,
         offline_query: Option<OfflineQuery>,
+        program_imports: Option<ProgramImports>,
     ) -> Result<Transaction, String> {
         // Create a process and insert the program and its imports.
         log("Loading the SnarkVM process");
@@ -340,7 +351,7 @@ impl ProgramManager {
         let program_id = program_native.id().to_string();
 
         // Insert the program and its imports.
-        ProgramManager::resolve_imports(process, imports)?;
+        ProgramManager::resolve_imports_or_builder(process, imports, program_imports.as_ref())?;
         if program_id != "credits.aleo" && !process.contains_program(program_native.id()) {
             process.add_program(&program_native).map_err(|e| e.to_string())?;
         }
@@ -488,6 +499,8 @@ impl ProgramManager {
     /// @param fee_verifying_key (optional) Provide a verifying key to use for the fee execution
     /// @param offline_query An offline query object to use if building a transaction without an internet connection.
     /// @param edition The edition of the program to execute. Defaults to the latest found on the network, or 1 if the program does not exist on the network.
+    /// @param {ProgramImports | undefined} program_imports (optional) A ProgramImports builder with
+    /// pre-computed proving and verifying keys for imported programs.
     /// @returns {Transaction}
     #[wasm_bindgen(js_name = buildDevnodeExecutionTransaction)]
     #[allow(clippy::too_many_arguments)]
@@ -501,6 +514,7 @@ impl ProgramManager {
         url: Option<String>,
         imports: Option<Object>,
         edition: Option<u16>,
+        program_imports: Option<ProgramImports>,
     ) -> Result<Transaction, String> {
         log("Loading the SnarkVM process");
         let mut process_native = ProcessNative::load_web().map_err(|err| err.to_string())?;
@@ -513,7 +527,7 @@ impl ProgramManager {
         log("Check program imports are valid and add them to the process");
         let program_native = ProgramNative::from_str(program).map_err(|e| e.to_string())?;
         let program_id = program_native.id().to_string();
-        ProgramManager::resolve_imports(process, imports)?;
+        ProgramManager::resolve_imports_or_builder(process, imports, program_imports.as_ref())?;
         let edition = edition.unwrap_or(1);
 
         let inputs = process_inputs!(inputs);
@@ -597,6 +611,8 @@ impl ProgramManager {
     /// form of a javascript object where the keys are a string of the program name and the values
     /// are a string representing the program source code \{ "hello.aleo": "hello.aleo source code" \}
     /// @param edition {
+    /// @param {ProgramImports | undefined} program_imports (optional) A ProgramImports builder with
+    /// pre-computed proving and verifying keys for imported programs.
     /// @returns {u64} Fee in microcredits
     #[wasm_bindgen(js_name = estimateExecutionFee)]
     #[allow(clippy::too_many_arguments)]
@@ -605,6 +621,7 @@ impl ProgramManager {
         function: &str,
         imports: Option<Object>,
         edition: Option<u16>,
+        program_imports: Option<ProgramImports>,
     ) -> Result<u64, String> {
         let mut process_native = ProcessNative::load_web().map_err(|err| err.to_string())?;
         let process = &mut process_native;
@@ -624,7 +641,7 @@ impl ProgramManager {
             .map_err(|e| e.to_string())?;
 
         // Resolve program imports.
-        ProgramManager::resolve_imports(process, imports)?;
+        ProgramManager::resolve_imports_or_builder(process, imports, program_imports.as_ref())?;
 
         // Add the program to the process.
         let program_id = program_native.id();
@@ -681,6 +698,8 @@ impl ProgramManager {
     /// @param offline_query The offline query object used to insert the global state root and state paths needed to create
     /// a valid inclusion proof offline.
     /// @param edition: Optional edition to estimate the fee for.
+    /// @param {ProgramImports | undefined} program_imports (optional) A ProgramImports builder with
+    /// pre-computed proving and verifying keys for imported programs.
     /// @returns {u64} Fee in microcredits
     #[wasm_bindgen(js_name = estimateFeeForAuthorization)]
     #[allow(clippy::too_many_arguments)]
@@ -689,6 +708,7 @@ impl ProgramManager {
         program: &str,
         imports: Option<Object>,
         edition: Option<u16>,
+        program_imports: Option<ProgramImports>,
     ) -> Result<u64, String> {
         let mut process_native = ProcessNative::load_web().map_err(|err| err.to_string())?;
         let process = &mut process_native;
@@ -697,7 +717,7 @@ impl ProgramManager {
         let program_native = ProgramNative::from_str(program).map_err(|e| e.to_string())?;
 
         // Resolve program imports.
-        ProgramManager::resolve_imports(process, imports)?;
+        ProgramManager::resolve_imports_or_builder(process, imports, program_imports.as_ref())?;
 
         // Add the program to the process.
         let program_id = program_native.id();
@@ -758,7 +778,7 @@ mod tests {
             let program = ProgramNative::credits().unwrap();
 
             let authorization_estimate =
-                ProgramManager::estimate_execution_fee(&program.to_string(), function, None, None).unwrap();
+                ProgramManager::estimate_execution_fee(&program.to_string(), function, None, None, None).unwrap();
 
             assert_eq!(authorization_estimate, cost);
         }

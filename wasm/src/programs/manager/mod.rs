@@ -17,10 +17,14 @@
 mod authorize;
 mod deploy;
 mod execute;
+pub mod imports;
 mod join;
 mod proving_request;
 mod split;
 mod transfer;
+
+pub use imports::ProgramImports;
+use imports::extract_source;
 
 pub const DEFAULT_URL: &str = "https://api.provable.com/v2";
 pub const LOCAL_URL: &str = "http://localhost:3030";
@@ -70,6 +74,8 @@ impl ProgramManager {
     /// @param {string} function_id The function to synthesize keys for
     /// @param {Array} inputs The inputs to the function
     /// @param {Object | undefined} imports The imports for the program
+    /// @param {ProgramImports | undefined} program_imports (optional) A ProgramImports builder with
+    /// pre-computed proving and verifying keys for imported programs.
     #[wasm_bindgen(js_name = "synthesizeKeyPair")]
     pub async fn synthesize_keypair(
         private_key: &PrivateKey,
@@ -78,6 +84,7 @@ impl ProgramManager {
         inputs: js_sys::Array,
         imports: Option<Object>,
         edition: Option<u16>,
+        program_imports: Option<ProgramImports>,
     ) -> Result<KeyPair, String> {
         ProgramManager::execute_function_offline(
             private_key,
@@ -92,6 +99,7 @@ impl ProgramManager {
             None,
             None,
             edition,
+            program_imports,
         )
         .await?
         .get_keys()
@@ -129,6 +137,11 @@ impl ProgramManager {
     }
 
     /// Resolve all imports from the imports object and load them into the process.
+    /// Accepts plain string values (`{ "name.aleo": "source" }`) or objects with a
+    /// `source` property (`{ "name.aleo": { source: "..." } }`).
+    ///
+    /// To provide proving/verifying keys for imported programs, use `ProgramImports`
+    /// (the builder) instead of this legacy Object path.
     pub(crate) fn resolve_imports(process: &mut ProcessNative, imports: Option<Object>) -> Result<(), String> {
         if let Some(imports) = imports {
             let keys = Object::keys(&imports);
@@ -137,7 +150,8 @@ impl ProgramManager {
                 if key == "credits.aleo" {
                     continue;
                 }
-                if let Some(source) = Reflect::get(&imports, &key.as_str().into()).ok().and_then(|v| v.as_string()) {
+                let value = Reflect::get(&imports, &key.as_str().into()).ok();
+                if let Some(source) = extract_source(&value) {
                     let import = ProgramNative::from_str(&source).map_err(|e| e.to_string())?;
                     if !process.contains_program(import.id()) {
                         log(&format!("Importing program: {key}"));
@@ -162,10 +176,9 @@ impl ProgramManager {
             if program_id == "credits.aleo" {
                 return Ok(());
             }
-            if let Some(import_string) =
-                Reflect::get(imports, &program_id.as_str().into()).ok().and_then(|v| v.as_string())
-            {
-                let import = ProgramNative::from_str(&import_string).map_err(|err| err.to_string())?;
+            let value = Reflect::get(imports, &program_id.as_str().into()).ok();
+            if let Some(source) = extract_source(&value) {
+                let import = ProgramNative::from_str(&source).map_err(|err| err.to_string())?;
                 if !process.contains_program(import.id()) {
                     log(&format!("Importing program: {program_id}"));
                     Self::resolve_program_imports(process, &import, imports)?;
@@ -175,6 +188,17 @@ impl ProgramManager {
             }
             Ok::<(), String>(())
         })
+    }
+
+    /// Resolve imports using either the zero-cost `ProgramImports` builder or the
+    /// legacy `Object` format. If `program_imports` is provided, it takes precedence
+    /// over `imports`.
+    pub(crate) fn resolve_imports_or_builder(
+        process: &mut ProcessNative,
+        imports: Option<Object>,
+        program_imports: Option<&ProgramImports>,
+    ) -> Result<(), String> {
+        if let Some(pi) = program_imports { pi.resolve_into(process) } else { Self::resolve_imports(process, imports) }
     }
 
     pub(crate) fn validate_fee_record(
@@ -378,5 +402,135 @@ constructor:
         ProgramManager::resolve_imports(&mut process, Some(imports)).unwrap();
         assert!(process.contains_program(dd_constants.id()), "resolve_imports should load dd_constants.aleo");
         assert!(process.contains_program(dd_ten.id()), "resolve_imports should load dd_ten.aleo");
+    }
+
+    /// Test that resolve_imports correctly handles structured import entries
+    /// (objects with a `source` property) alongside plain string entries.
+    #[wasm_bindgen_test]
+    fn test_resolve_structured_imports() {
+        let multiply_program = ProgramNative::from_str(MULTIPLY_PROGRAM).unwrap();
+        let addition_program = ProgramNative::from_str(ADDITION_PROGRAM).unwrap();
+
+        let imports = Object::new();
+
+        // Structured entry: object with `source` field.
+        let structured_entry = Object::new();
+        Reflect::set(&structured_entry, &JsValue::from_str("source"), &JsValue::from_str(MULTIPLY_PROGRAM)).unwrap();
+        Reflect::set(&imports, &JsValue::from_str("multiply_test.aleo"), &structured_entry.into()).unwrap();
+
+        // Plain string entry (backward compat).
+        Reflect::set(&imports, &JsValue::from_str("addition_test.aleo"), &JsValue::from_str(ADDITION_PROGRAM)).unwrap();
+
+        let mut process = ProcessNative::load_web().unwrap();
+        ProgramManager::resolve_imports(&mut process, Some(imports)).unwrap();
+
+        assert!(process.contains_program(multiply_program.id()), "Structured import entry should load the program");
+        assert!(process.contains_program(addition_program.id()), "Plain string import entry should still work");
+    }
+
+    /// Test that resolve_imports handles mixed structured and transitive imports.
+    #[wasm_bindgen_test]
+    fn test_resolve_structured_imports_with_transitive_deps() {
+        let multiply_program = ProgramNative::from_str(MULTIPLY_PROGRAM).unwrap();
+        let double_program = ProgramNative::from_str(MULTIPLY_IMPORT_PROGRAM).unwrap();
+
+        let imports = Object::new();
+
+        // multiply_test.aleo as plain string (will be resolved as transitive dep).
+        Reflect::set(&imports, &JsValue::from_str("multiply_test.aleo"), &JsValue::from_str(MULTIPLY_PROGRAM)).unwrap();
+
+        // double_test.aleo as structured entry (imports multiply_test.aleo statically).
+        let structured_entry = Object::new();
+        Reflect::set(&structured_entry, &JsValue::from_str("source"), &JsValue::from_str(MULTIPLY_IMPORT_PROGRAM))
+            .unwrap();
+        Reflect::set(&imports, &JsValue::from_str("double_test.aleo"), &structured_entry.into()).unwrap();
+
+        let mut process = ProcessNative::load_web().unwrap();
+        ProgramManager::resolve_imports(&mut process, Some(imports)).unwrap();
+
+        assert!(process.contains_program(multiply_program.id()), "Transitive dependency should be loaded");
+        assert!(process.contains_program(double_program.id()), "Structured import should be loaded");
+    }
+
+    // ───────────────────────────────────────────────────────────────────
+    // ProgramImports builder tests
+    // ───────────────────────────────────────────────────────────────────
+
+    /// Test basic ProgramImports builder operations: new, add_program, has_programs, has_program.
+    #[wasm_bindgen_test]
+    fn test_program_imports_builder_basic() {
+        let mut builder = ProgramImports::new();
+        assert!(!builder.has_programs(), "New builder should have no programs");
+        assert!(!builder.has_program("multiply_test.aleo"));
+
+        builder.add_program("multiply_test.aleo", MULTIPLY_PROGRAM);
+        assert!(builder.has_programs(), "Builder should have programs after add");
+        assert!(builder.has_program("multiply_test.aleo"));
+        assert!(!builder.has_program("addition_test.aleo"));
+
+        builder.add_program("addition_test.aleo", ADDITION_PROGRAM);
+        assert!(builder.has_program("addition_test.aleo"));
+    }
+
+    /// Test that resolve_into loads programs into the process via the builder path.
+    #[wasm_bindgen_test]
+    fn test_program_imports_resolve_into() {
+        let mut builder = ProgramImports::new();
+        builder.add_program("multiply_test.aleo", MULTIPLY_PROGRAM);
+        builder.add_program("addition_test.aleo", ADDITION_PROGRAM);
+
+        let multiply_program = ProgramNative::from_str(MULTIPLY_PROGRAM).unwrap();
+        let addition_program = ProgramNative::from_str(ADDITION_PROGRAM).unwrap();
+
+        let mut process = ProcessNative::load_web().unwrap();
+        builder.resolve_into(&mut process).unwrap();
+
+        assert!(process.contains_program(multiply_program.id()), "multiply_test.aleo should be in process");
+        assert!(process.contains_program(addition_program.id()), "addition_test.aleo should be in process");
+    }
+
+    /// Test that resolve_into handles transitive dependencies via the builder's own recursive resolution.
+    #[wasm_bindgen_test]
+    fn test_program_imports_resolve_into_transitive() {
+        let mut builder = ProgramImports::new();
+        builder.add_program("multiply_test.aleo", MULTIPLY_PROGRAM);
+        builder.add_program("double_test.aleo", MULTIPLY_IMPORT_PROGRAM);
+
+        let multiply_program = ProgramNative::from_str(MULTIPLY_PROGRAM).unwrap();
+        let double_program = ProgramNative::from_str(MULTIPLY_IMPORT_PROGRAM).unwrap();
+
+        let mut process = ProcessNative::load_web().unwrap();
+        builder.resolve_into(&mut process).unwrap();
+
+        assert!(process.contains_program(multiply_program.id()), "Transitive dep should be loaded");
+        assert!(process.contains_program(double_program.id()), "Direct import should be loaded");
+    }
+
+    /// Test that resolve_imports_or_builder prefers the builder when both are provided.
+    #[wasm_bindgen_test]
+    fn test_resolve_imports_or_builder_prefers_builder() {
+        // Legacy Object has only multiply_test.aleo.
+        let legacy = Object::new();
+        Reflect::set(&legacy, &JsValue::from_str("multiply_test.aleo"), &JsValue::from_str(MULTIPLY_PROGRAM)).unwrap();
+
+        // Builder has only addition_test.aleo.
+        let mut builder = ProgramImports::new();
+        builder.add_program("addition_test.aleo", ADDITION_PROGRAM);
+
+        let multiply_program = ProgramNative::from_str(MULTIPLY_PROGRAM).unwrap();
+        let addition_program = ProgramNative::from_str(ADDITION_PROGRAM).unwrap();
+
+        let mut process = ProcessNative::load_web().unwrap();
+        ProgramManager::resolve_imports_or_builder(&mut process, Some(legacy), Some(&builder)).unwrap();
+
+        // Builder should win — addition_test loaded, multiply_test NOT loaded.
+        assert!(
+            process.contains_program(addition_program.id()),
+            "Builder's program should be loaded when both are provided"
+        );
+        assert!(
+            !process.contains_program(multiply_program.id()),
+            "Legacy Object's program should NOT be loaded when builder is provided"
+        );
     }
 }

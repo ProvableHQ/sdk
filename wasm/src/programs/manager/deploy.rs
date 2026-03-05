@@ -68,6 +68,8 @@ impl ProgramManager {
     /// are a string representing the program source code \{ "hello.aleo": "hello.aleo source code" \}
     /// @param fee_proving_key (optional) Provide a proving key to use for the fee execution
     /// @param fee_verifying_key (optional) Provide a verifying key to use for the fee execution
+    /// @param {ProgramImports | undefined} program_imports (optional) A ProgramImports builder with
+    /// pre-computed proving and verifying keys for imported programs.
     /// @returns {Transaction}
     #[wasm_bindgen(js_name = buildDeploymentTransaction)]
     #[allow(clippy::too_many_arguments)]
@@ -81,6 +83,7 @@ impl ProgramManager {
         fee_proving_key: Option<ProvingKey>,
         fee_verifying_key: Option<VerifyingKey>,
         offline_query: Option<OfflineQuery>,
+        program_imports: Option<ProgramImports>,
     ) -> Result<Transaction, String> {
         log("Creating deployment transaction");
         let mut process_native = ProcessNative::load_web().map_err(|err| err.to_string())?;
@@ -90,7 +93,7 @@ impl ProgramManager {
         let program = ProgramNative::from_str(program).map_err(|err| err.to_string())?;
 
         log("Checking program imports are valid and add them to the process");
-        ProgramManager::resolve_imports(process, imports)?;
+        ProgramManager::resolve_imports_or_builder(process, imports, program_imports.as_ref())?;
         let rng = &mut StdRng::from_entropy();
 
         log("Creating deployment");
@@ -162,9 +165,15 @@ impl ProgramManager {
     /// @param imports (optional) Provide a list of imports to use for the deployment fee estimation
     /// in the form of a javascript object where the keys are a string of the program name and the values
     /// are a string representing the program source code \{ "hello.aleo": "hello.aleo source code" \}
+    /// @param {ProgramImports | undefined} program_imports (optional) A ProgramImports builder with
+    /// pre-computed proving and verifying keys for imported programs.
     /// @returns {u64}
     #[wasm_bindgen(js_name = estimateDeploymentFee)]
-    pub async fn estimate_deployment_fee(program: &str, imports: Option<Object>) -> Result<u64, String> {
+    pub async fn estimate_deployment_fee(
+        program: &str,
+        imports: Option<Object>,
+        program_imports: Option<ProgramImports>,
+    ) -> Result<u64, String> {
         log(
             "Disclaimer: Fee estimation is experimental and may not represent a correct estimate on any current or future network",
         );
@@ -175,7 +184,7 @@ impl ProgramManager {
         let program = ProgramNative::from_str(program).map_err(|err| err.to_string())?;
 
         log("Check program imports are valid and add them to the process");
-        ProgramManager::resolve_imports(process, imports)?;
+        ProgramManager::resolve_imports_or_builder(process, imports, program_imports.as_ref())?;
 
         log("Create sample deployment");
         let mut deployment =
@@ -237,6 +246,8 @@ impl ProgramManager {
     /// for the deployment to succeed
     /// @param fee_proving_key (optional) Provide a proving key to use for the fee execution
     /// @param fee_verifying_key (optional) Provide a verifying key to use for the fee execution
+    /// @param {ProgramImports | undefined} program_imports (optional) A ProgramImports builder with
+    /// pre-computed proving and verifying keys for imported programs.
     /// @returns {Transaction}
     #[wasm_bindgen(js_name = buildUpgradeTransaction)]
     #[allow(clippy::too_many_arguments)]
@@ -250,6 +261,7 @@ impl ProgramManager {
         fee_proving_key: Option<ProvingKey>,
         fee_verifying_key: Option<VerifyingKey>,
         offline_query: Option<OfflineQuery>,
+        program_imports: Option<ProgramImports>,
     ) -> Result<Transaction, String> {
         log("Creating deployment transaction");
         let mut process_native = ProcessNative::load_web().map_err(|err| err.to_string())?;
@@ -269,7 +281,7 @@ impl ProgramManager {
         process.add_program_with_edition(&deployed_program, deployed_program_edition).map_err(|err| err.to_string())?;
 
         log("Checking program imports are valid and add them to the process");
-        ProgramManager::resolve_imports(process, imports)?;
+        ProgramManager::resolve_imports_or_builder(process, imports, program_imports.as_ref())?;
         let rng = &mut StdRng::from_entropy();
 
         log("Creating deployment");
@@ -346,6 +358,8 @@ impl ProgramManager {
     /// are a string representing the program source code \{ "hello.aleo": "hello.aleo source code" \}
     /// @param fee_proving_key (optional) Provide a proving key to use for the fee execution
     /// @param fee_verifying_key (optional) Provide a verifying key to use for the fee execution
+    /// @param {ProgramImports | undefined} program_imports (optional) A ProgramImports builder with
+    /// pre-computed proving and verifying keys for imported programs.
     /// @returns {Transaction}
     #[wasm_bindgen(js_name = buildDevnodeDeploymentTransaction)]
     #[allow(clippy::too_many_arguments)]
@@ -356,6 +370,7 @@ impl ProgramManager {
         fee_record: Option<RecordPlaintext>,
         url: Option<String>,
         imports: Option<Object>,
+        program_imports: Option<ProgramImports>,
     ) -> Result<Transaction, String> {
         log("Creating deployment transaction");
         let mut process_native = ProcessNative::load_web().map_err(|err| err.to_string())?;
@@ -366,7 +381,7 @@ impl ProgramManager {
         let program_id = program.id();
 
         log("Checking program imports are valid and add them to the process");
-        ProgramManager::resolve_imports(process, imports)?;
+        ProgramManager::resolve_imports_or_builder(process, imports, program_imports.as_ref())?;
         let rng = &mut StdRng::from_entropy();
 
         log("Creating deployment");
@@ -483,6 +498,8 @@ impl ProgramManager {
     /// are a string representing the program source code \{ "hello.aleo": "hello.aleo source code" \}
     /// @param fee_proving_key (optional) Provide a proving key to use for the fee execution
     /// @param fee_verifying_key (optional) Provide a verifying key to use for the fee execution
+    /// @param {ProgramImports | undefined} program_imports (optional) A ProgramImports builder with
+    /// pre-computed proving and verifying keys for imported programs.
     /// @returns {Transaction}
     #[wasm_bindgen(js_name = buildDevnodeUpgradeTransaction)]
     #[allow(clippy::too_many_arguments)]
@@ -493,6 +510,7 @@ impl ProgramManager {
         fee_record: Option<RecordPlaintext>,
         url: Option<String>,
         imports: Option<Object>,
+        program_imports: Option<ProgramImports>,
     ) -> Result<Transaction, String> {
         log("Creating deployment transaction");
         let mut process_native = ProcessNative::load_web().map_err(|err| err.to_string())?;
@@ -500,7 +518,7 @@ impl ProgramManager {
 
         log("Checking program imports are valid and add them to the process");
         let program = ProgramNative::from_str(&program).map_err(|err| err.to_string())?;
-        ProgramManager::resolve_imports(process, imports)?;
+        ProgramManager::resolve_imports_or_builder(process, imports, program_imports.as_ref())?;
         let rng = &mut StdRng::from_entropy();
 
         log("Creating deployment");

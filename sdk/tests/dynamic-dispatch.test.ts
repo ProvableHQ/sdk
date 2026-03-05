@@ -3,6 +3,9 @@ import {
     Account,
     AleoKeyProvider,
     Authorization,
+    PrivateKey,
+    ProgramImportsBuilder,
+    ProgramManagerBase,
     ProgramManager,
     ProvingRequest,
     Transaction,
@@ -356,6 +359,74 @@ describe("Dynamic Dispatch", () => {
             });
 
             // The authorization should have 2 transitions: dd_constants/get_value + dd_caller/call_and_increment.
+            expect(authorization.transitions().length).equal(2);
+
+            // Verify serialization round-trips.
+            const fromString = Authorization.fromString(authorization.toString());
+            const fromBytes = Authorization.fromBytesLe(authorization.toBytesLe());
+            expect(fromString.equals(authorization)).equal(true);
+            expect(fromBytes.equals(authorization)).equal(true);
+        });
+
+        it("should build an authorization using ProgramImportsBuilder instead of plain object", async () => {
+            // Create a ProgramImportsBuilder and add the import via the builder API.
+            const builder = new ProgramImportsBuilder();
+            builder.addProgram("dd_constants.aleo", DD_CONSTANTS_PROGRAM);
+
+            const authorization = await programManager.buildAuthorization({
+                programName: "dd_caller.aleo",
+                functionName: "call_and_increment",
+                inputs: [DD_CONSTANTS_FIELD, DD_ALEO_FIELD, DD_GET_VALUE_FIELD],
+                programSource: DD_CALLER_PROGRAM,
+                programImportsBuilder: builder,
+                edition: 0,
+            });
+
+            // Same result as the plain-object path: 2 transitions.
+            expect(authorization.transitions().length).equal(2);
+
+            // Verify serialization round-trips.
+            const fromString = Authorization.fromString(authorization.toString());
+            const fromBytes = Authorization.fromBytesLe(authorization.toBytesLe());
+            expect(fromString.equals(authorization)).equal(true);
+            expect(fromBytes.equals(authorization)).equal(true);
+        });
+
+        it("should build an authorization with pre-computed keys via ProgramImportsBuilder", async function() {
+            // This test synthesizes keys which is expensive.
+            this.timeout(120_000);
+
+            // Synthesize keys for the imported program's function.
+            const privateKey = new PrivateKey();
+            const keyPair = await ProgramManagerBase.synthesizeKeyPair(
+                privateKey,
+                DD_CONSTANTS_PROGRAM,
+                "get_value",
+                [],        // get_value takes no inputs
+                undefined, // no legacy imports
+                0,         // edition
+                undefined, // no program_imports builder
+            );
+            const provingKey = keyPair.provingKey();
+            const verifyingKey = keyPair.verifyingKey();
+
+            // Build a ProgramImportsBuilder with the program source AND pre-computed keys.
+            const builder = new ProgramImportsBuilder();
+            builder.addProgram("dd_constants.aleo", DD_CONSTANTS_PROGRAM);
+            builder.addProvingKey("dd_constants.aleo", "get_value", provingKey);
+            builder.addVerifyingKey("dd_constants.aleo", "get_value", verifyingKey);
+
+            // Build the authorization using the builder with keys.
+            const authorization = await programManager.buildAuthorization({
+                programName: "dd_caller.aleo",
+                functionName: "call_and_increment",
+                inputs: [DD_CONSTANTS_FIELD, DD_ALEO_FIELD, DD_GET_VALUE_FIELD],
+                programSource: DD_CALLER_PROGRAM,
+                programImportsBuilder: builder,
+                edition: 0,
+            });
+
+            // Same result as the plain-object path: 2 transitions.
             expect(authorization.transitions().length).equal(2);
 
             // Verify serialization round-trips.

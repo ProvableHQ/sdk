@@ -26,6 +26,7 @@ import {
     RecordPlaintext,
     PrivateKey,
     Program,
+    ProgramImportsBuilder,
     ProvingKey,
     ProvingRequest,
     VerifyingKey,
@@ -81,6 +82,19 @@ interface DeployOptions {
  * @property {string | Program} [program] - Program source code to use for the transaction.
  * @property {ProgramImports} [imports] - Programs that the program being executed imports.
  * @property {number} [edition] - Edition of the program to execute the function in.
+ * @property {ProgramImportsBuilder} [programImportsBuilder] - A builder carrying imported programs
+ *   with optional pre-computed proving/verifying keys. When provided, takes precedence over `imports`
+ *   and avoids key serialization overhead.
+ *
+ *   Example — providing keys for an imported program:
+ *   ```ts
+ *   const [provingKey, verifyingKey] = await pm.synthesizeKeys(importSource, "fn_name", sampleInputs);
+ *   const builder = new ProgramImportsBuilder();
+ *   builder.addProgram("my_import.aleo", importSource);
+ *   builder.addProvingKey("my_import.aleo", "fn_name", provingKey);
+ *   builder.addVerifyingKey("my_import.aleo", "fn_name", verifyingKey);
+ *   await pm.buildExecutionTransaction({ ..., programImportsBuilder: builder });
+ *   ```
  */
 interface ExecuteOptions {
     programName: string;
@@ -98,6 +112,7 @@ interface ExecuteOptions {
     program?: string | Program;
     imports?: ProgramImports;
     edition?: number,
+    programImportsBuilder?: ProgramImportsBuilder;
 }
 
 /**
@@ -110,6 +125,9 @@ interface ExecuteOptions {
  * @property {PrivateKey} [privateKey] Optional private key to use to build the authorization.
  * @property {ProgramImports} [programImports] The other programs the program imports.
  * @property {edition} [edition]
+ * @property {ProgramImportsBuilder} [programImportsBuilder] A builder carrying imported programs
+ *   with optional pre-computed proving/verifying keys. Takes precedence over `programImports`.
+ *   See {@link ExecuteOptions.programImportsBuilder} for a usage example.
  */
 interface AuthorizationOptions {
     programName: string;
@@ -119,6 +137,7 @@ interface AuthorizationOptions {
     privateKey?: PrivateKey;
     programImports?: ProgramImports;
     edition?: number,
+    programImportsBuilder?: ProgramImportsBuilder;
 }
 
 /**
@@ -159,6 +178,7 @@ interface ExecuteAuthorizationOptions {
     offlineQuery?: OfflineQuery;
     program?: string | Program;
     imports?: ProgramImports;
+    programImportsBuilder?: ProgramImportsBuilder;
 }
 
 /**
@@ -199,6 +219,7 @@ interface ProvingRequestOptions {
     unchecked?: boolean;
     edition?: number;
     useFeeMaster?: boolean;
+    programImportsBuilder?: ProgramImportsBuilder;
 }
 
 /**
@@ -218,6 +239,7 @@ interface FeeEstimateOptions {
     imports?: ProgramImports;
     edition?: number,
     authorization?: Authorization;
+    programImportsBuilder?: ProgramImportsBuilder;
 }
 
 /**
@@ -808,6 +830,7 @@ class ProgramManager {
         let programName = options.programName;
         let imports = options.imports;
         let edition = options.edition;
+        const programImportsBuilder = options.programImportsBuilder;
 
         let programObject;
         // Ensure the function exists on the network
@@ -955,7 +978,8 @@ class ProgramManager {
             feeProvingKey,
             feeVerifyingKey,
             offlineQuery,
-            edition
+            edition,
+            programImportsBuilder,
         );
     }
 
@@ -1041,6 +1065,7 @@ class ProgramManager {
         const feeAuthorization = options.feeAuthorization;
         const keySearchParams = options.keySearchParams;
         const offlineQuery = options.offlineQuery;
+        const programImportsBuilder = options.programImportsBuilder;
         let provingKey = options.provingKey;
         let verifyingKey = options.verifyingKey;
         let program = options.program;
@@ -1128,7 +1153,8 @@ class ProgramManager {
             feeVerifyingKey,
             imports,
             this.host,
-            offlineQuery
+            offlineQuery,
+            programImportsBuilder,
         )
     }
 
@@ -1170,6 +1196,7 @@ class ProgramManager {
         } = options;
 
         const privateKey = options.privateKey;
+        const programImportsBuilder = options.programImportsBuilder;
         let program = options.programSource;
         let programName = options.programName;
         let imports = options.programImports;
@@ -1238,7 +1265,8 @@ class ProgramManager {
             functionName,
             inputs,
             imports,
-            edition
+            edition,
+            programImportsBuilder,
         );
     }
 
@@ -1280,6 +1308,7 @@ class ProgramManager {
         } = options;
 
         const privateKey = options.privateKey;
+        const programImportsBuilder = options.programImportsBuilder;
         let program = options.programSource;
         let programName = options.programName;
         let imports = options.programImports;
@@ -1348,7 +1377,8 @@ class ProgramManager {
             functionName,
             inputs,
             imports,
-            edition
+            edition,
+            programImportsBuilder,
         );
     }
 
@@ -1400,6 +1430,7 @@ class ProgramManager {
         const baseFee = options.baseFee ? options.baseFee : 0;
         const privateKey = options.privateKey;
         const useFeeMaster = options.useFeeMaster ? options.useFeeMaster : false;
+        const programImportsBuilder = options.programImportsBuilder;
         let program = options.programSource;
         let programName = options.programName;
         let feeRecord = options.feeRecord;
@@ -1502,7 +1533,8 @@ class ProgramManager {
             broadcast,
             unchecked,
             edition,
-            useFeeMaster
+            useFeeMaster,
+            programImportsBuilder,
         );
     }
 
@@ -1673,7 +1705,8 @@ class ProgramManager {
         verifyingKey?: VerifyingKey,
         privateKey?: PrivateKey,
         offlineQuery?: OfflineQuery,
-        edition?: number
+        edition?: number,
+        programImportsBuilder?: ProgramImportsBuilder,
     ): Promise<ExecutionResponse> {
         // Get the private key from the account if it is not provided in the parameters
         let executionPrivateKey = privateKey;
@@ -1717,7 +1750,8 @@ class ProgramManager {
             verifyingKey,
             this.host,
             offlineQuery,
-            edition
+            edition,
+            programImportsBuilder,
         );
     }
 
@@ -3182,7 +3216,8 @@ class ProgramManager {
             programName,
             program,
             imports,
-            edition
+            edition,
+            programImportsBuilder,
         } = options;
         if (!authorization) {
             throw new Error("Authorization must be provided if estimating fee for Authorization.")
@@ -3191,9 +3226,9 @@ class ProgramManager {
         const programImports = imports ? imports : await this.networkClient.getProgramImports(programSource);
         console.log(JSON.stringify(programImports));
         if (Object.keys(programImports)) {
-            return WasmProgramManager.estimateFeeForAuthorization(authorization, programSource, programImports, edition);
+            return WasmProgramManager.estimateFeeForAuthorization(authorization, programSource, programImports, edition, programImportsBuilder);
         }
-        return WasmProgramManager.estimateFeeForAuthorization(authorization, programSource, imports, edition);
+        return WasmProgramManager.estimateFeeForAuthorization(authorization, programSource, imports, edition, programImportsBuilder);
     }
 
     /**
@@ -3230,7 +3265,8 @@ class ProgramManager {
             programName,
             program,
             imports,
-            edition
+            edition,
+            programImportsBuilder,
         } = options;
         if (!functionName) {
             throw new Error("Function name must be specified when estimating fee.");
@@ -3238,9 +3274,9 @@ class ProgramManager {
         const programSource = program ? program.toString() : await this.networkClient.getProgram(programName, edition);
         const programImports = imports ? imports : await this.networkClient.getProgramImports(programSource);
         if (Object.keys(programImports)) {
-            return WasmProgramManager.estimateExecutionFee(programSource, functionName, programImports, edition);
+            return WasmProgramManager.estimateExecutionFee(programSource, functionName, programImports, edition, programImportsBuilder);
         }
-        return WasmProgramManager.estimateExecutionFee(programSource, functionName, imports, edition);
+        return WasmProgramManager.estimateExecutionFee(programSource, functionName, imports, edition, programImportsBuilder);
     }
 
     // Internal utility function for getting a credits.aleo record
@@ -3336,6 +3372,7 @@ class ProgramManager {
         let programName = options.programName;
         let imports = options.imports;
         let edition = options.edition;
+        const programImportsBuilder = options.programImportsBuilder;
 
         let programObject;
         // Ensure the function exists on the network
@@ -3444,10 +3481,11 @@ class ProgramManager {
             feeRecord,
             this.host,
             imports,
-            edition
+            edition,
+            programImportsBuilder,
         );
     }
-    
+
     /**
      * Builds a deployment transaction with placeholder certificates and verifying keys for each function in the program.
      * Intended for use with a local devnode.
@@ -3729,4 +3767,4 @@ function validateTransferType(transferType: string): string {
         );
 }
 
-export { ProgramManager, AuthorizationOptions, FeeAuthorizationOptions, ExecuteOptions, ProvingRequestOptions };
+export { ProgramManager, AuthorizationOptions, FeeAuthorizationOptions, FeeEstimateOptions, ExecuteOptions, ExecuteAuthorizationOptions, ProvingRequestOptions };
