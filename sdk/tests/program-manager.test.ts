@@ -10,6 +10,7 @@ import {
     ImportedPrograms,
     ImportedVerifyingKeys,
     OfflineQuery,
+    Plaintext,
     PrivateKey,
     Program,
     ProgramManager,
@@ -334,10 +335,8 @@ describe('Program Manager', async () => {
                 functionName: "transfer_public",
                 priorityFee: 0,
                 privateFee: false,
-                inputs,
                 broadcast: false,
                 executionRequest,
-                privateKey,
             });
 
             const authorization = provingRequest.authorization();
@@ -509,6 +508,18 @@ describe('Program Manager', async () => {
             expect(secondInput).to.have.property("outputType", "public");
             expect(secondInput).to.have.property("index", "1field");
             expect(secondInput).to.have.property("data").that.is.an("array");
+
+            // Assert each request input's field representation round-trips through Plaintext (fromFields -> toFields -> string).
+            const assertFieldsRoundTripThroughPlaintext = (fieldStrings: string[], expectedString: string) => {
+                const fields = fieldStrings.map((s: string) => Field.fromString(s));
+                const plaintext = Plaintext.fromFields(fields);
+                const backFields = plaintext.toFields();
+                const backStrings = Array.from(backFields).map((f: Field) => f.toString());
+                expect(backStrings).to.deep.equal(fieldStrings);
+                expect(plaintext.toString()).to.equal(expectedString);
+            };
+            assertFieldsRoundTripThroughPlaintext(firstInput.data, transferPublicInputs[0]);
+            assertFieldsRoundTripThroughPlaintext(secondInput.data, transferPublicInputs[1]);
         });
 
         it('Should match ExecutionRequest.sign for same program/function/inputs', async () => {
