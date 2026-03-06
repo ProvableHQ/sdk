@@ -43,6 +43,7 @@ import {
 } from "./constants.js";
 
 import { logAndThrow } from "./utils.js";
+import { MPCInput, MPCOptions } from "./models/MPCInputs.js";
 
 /**
  * Represents the options for deploying and upgrading a transaction in the Aleo network.
@@ -222,37 +223,6 @@ interface FeeEstimateOptions {
     edition?: number,
     authorization?: Authorization;
 }
-
-/**
- * 
- * @property {string} programName - The name of the program containing the function to execute.
- * @property {string} functionName - The name of the function to execute within the program.
- * @property {string[]} inputs - The inputs to the function being executed.
- * @property {boolean} isRoot - Whether this transition is the first transition being executed in a transaction.
- * @property {string} [checksum] - The optional checksum of the program, used to verify the program source code on the network matches the program source code used to generate the proof.
-*/
-interface MPCOptions {
-    programName: string;
-    functionName: string;
-    inputs: string[];
-    isRoot: boolean;
-    checksum?: Field | null;
-}
-
-/**
- * 
- * MPCInputs array structure:
- * 0 → Field representation of the function ID
- * 1 → Field representation of whether this is the root transition (will be 1field or 0field)
- * 2 → optional checksum
- * 3 → array of [index value of the input, [array of field elements representing the input data]]
- */
-type MPCInputs = [
-    Field,
-    Field,
-    Field | null,
-    Array<[Field, Field[]]>
-];
 
 /**
  * The ProgramManager class is used to execute and deploy programs on the Aleo network and create value transfers.
@@ -3767,13 +3737,8 @@ class ProgramManager {
      * Used by MPC wallets and other applications that need publicly computable inputs
      * for building a signed execution request (e.g. before calling {@link ExecutionRequest.sign}).
      *
-     * @param {MPCOptions} options - Program name, function name, inputs, root flag, and optional program checksum.
-     * @returns {Promise<MPCInputs>} A tuple `[functionId, isRootField, checksumOrNull, inputData]` where:
-     *   - `functionId` (Field): The function ID for the program/function pair.
-     *   - `isRootField` (Field): `1field` if this is the root transition, otherwise `0field`.
-     *   - `checksumOrNull` (Field | null): The program checksum when provided, or `null`.
-     *   - `inputData`: Array of `[indexField, fieldsArray]` per input (index and field representation of each input).
-     * @throws Throws if parsing the program ID, function name, or inputs fails.
+     * @param {MPCOptions} options - Program name, function name, inputs, input_types, root flag, an optional program checksum, and an optional view key.
+     * @throws Throws if parsing the program ID, function name, or inputs fails or if the inputs do not match the type signatures passed in the input_types parameter.
      *
      * @example
      * const mpcInputs = await programManager.computeMPCInputs({
@@ -3783,12 +3748,13 @@ class ProgramManager {
      *   isRoot: true,
      *   checksum: null,
      * });
-     * const [functionId, isRoot, checksum, inputData] = mpcInputs;
+     *
+     * @returns {MPCInput} A JSON object for inputs to MPC signing algorithms.
      */
-    async computeMPCInputs(options: MPCOptions): Promise<MPCInputs> {
-        const { programName, functionName, inputs, isRoot, checksum} = options;
+    async computeMPCInputs(options: MPCOptions): Promise<MPCInput> {
+        const { programName, functionName, inputs, inputTypes, isRoot, checksum, viewKey} = options;
         try {
-            return ExecutionRequest.computeMPCInputs(programName, functionName, inputs, isRoot, checksum ?? null) as MPCInputs;
+            return <MPCInput>(await ExecutionRequest.computeMPCInputs(programName, functionName, inputs, inputTypes, isRoot, checksum ?? null, viewKey ?? null));
         } catch (e: unknown) {
             const msg = e instanceof Error ? e.message : String(e);
             logAndThrow(`Error computing public message payload: ${msg}`);

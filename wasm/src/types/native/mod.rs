@@ -19,30 +19,14 @@ use snarkvm_console::{
     account::{Address, ComputeKey, GraphKey, PrivateKey, Signature, ViewKey},
     algorithms::{BHP256, BHP512, BHP768, BHP1024, Pedersen64, Pedersen128, Poseidon2, Poseidon4, Poseidon8},
     program::{
-        Argument,
-        Ciphertext,
-        Entry,
-        Future,
-        Identifier,
-        Literal,
-        Locator,
-        Plaintext,
-        ProgramID,
-        ProgramOwner,
-        Record,
-        Request,
-        Response,
-        StatePath,
-        Value,
-        ValueType,
+        Argument, Ciphertext, Entry, Future, Identifier, Literal, Locator, Plaintext, ProgramID, ProgramOwner, Record,
+        Request, Response, StatePath, Value, ValueType,
     },
     types::{Boolean, Field, Group, I8, I16, I32, I64, I128, Scalar, U8, U16, U32, U64, U128},
 };
 use snarkvm_ledger_block::{Deployment, Execution, Fee, Input, Output, Transaction, Transition};
 use snarkvm_synthesizer::{
-    Authorization,
-    Process,
-    Program,
+    Authorization, Process, Program,
     process::CallStack,
     snark::{Certificate, ProvingKey, VerifyingKey},
 };

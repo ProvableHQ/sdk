@@ -17,24 +17,10 @@
 use super::*;
 
 use crate::{
-    OfflineQuery,
-    PrivateKey,
-    RecordPlaintext,
-    SnapshotQuery,
-    Transaction,
-    calculate_minimum_fee,
-    execute_fee,
-    execute_program,
-    latest_block_height,
-    log,
-    process_inputs,
+    OfflineQuery, PrivateKey, RecordPlaintext, SnapshotQuery, Transaction, calculate_minimum_fee, execute_fee,
+    execute_program, latest_block_height, log, process_inputs,
     types::native::{
-        CurrentAleo,
-        CurrentNetwork,
-        IdentifierNative,
-        ProcessNative,
-        ProgramNative,
-        RecordPlaintextNative,
+        CurrentAleo, CurrentNetwork, IdentifierNative, ProcessNative, ProgramNative, RecordPlaintextNative,
         TransactionNative,
     },
 };

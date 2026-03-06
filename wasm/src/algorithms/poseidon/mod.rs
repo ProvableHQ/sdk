@@ -27,13 +27,7 @@ pub use poseidon8::Poseidon8;
 mod tests {
     use super::*;
     use crate::{
-        Address,
-        Field,
-        Group,
-        Plaintext,
-        Scalar,
-        Signature,
-        js_array_from_fields,
+        Address, Field, Group, Plaintext, Scalar, Signature, js_array_from_fields,
         native::{GroupNative, LiteralNative, PlaintextNative, ScalarNative, SignatureNative},
         types::native::{FieldNative, Poseidon2Native, Poseidon4Native, Poseidon8Native},
         utilities::test::{TEST_STRUCT, create_native_field_vector},

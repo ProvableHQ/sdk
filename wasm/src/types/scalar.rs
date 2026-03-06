@@ -15,10 +15,7 @@
 // along with the Provable SDK library. If not, see <https://www.gnu.org/licenses/>.
 
 use crate::{
-    Field,
-    Plaintext,
-    from_js_typed_array,
-    to_bits_array_le,
+    Field, Plaintext, from_js_typed_array, to_bits_array_le,
     types::native::{LiteralNative, PlaintextNative, ScalarNative},
 };
 use snarkvm_console::prelude::{Double, FromBits, FromBytes, One, Pow, ToBits, ToBytes, ToField, Uniform, Zero};

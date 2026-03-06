@@ -15,11 +15,7 @@
 // along with the Provable SDK library. If not, see <https://www.gnu.org/licenses/>.
 
 use crate::{
-    Address,
-    Encryptor,
-    PrivateKeyCiphertext,
-    Signature,
-    ViewKey,
+    Address, Encryptor, PrivateKeyCiphertext, Signature, ViewKey,
     types::native::{CurrentNetwork, PrivateKeyNative},
 };
 use snarkvm_console::network::Environment;

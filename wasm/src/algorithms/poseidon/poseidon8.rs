@@ -15,10 +15,7 @@
 // along with the Provable SDK library. If not, see <https://www.gnu.org/licenses/>.
 
 use crate::{
-    Field,
-    Group,
-    Scalar,
-    from_wasm_object_array,
+    Field, Group, Scalar, from_wasm_object_array,
     types::native::{FieldNative, Poseidon8Native},
 };
 use snarkvm_console::algorithms::{Hash, HashMany, HashToGroup, HashToScalar};

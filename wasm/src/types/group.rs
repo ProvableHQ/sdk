@@ -15,12 +15,7 @@
 // along with the Provable SDK library. If not, see <https://www.gnu.org/licenses/>.
 
 use crate::{
-    Address,
-    Field,
-    Plaintext,
-    Scalar,
-    from_js_typed_array,
-    js_array_from_fields,
+    Address, Field, Plaintext, Scalar, from_js_typed_array, js_array_from_fields,
     native::AddressNative,
     to_bits_array_le,
     types::native::{GroupNative, LiteralNative, PlaintextNative},

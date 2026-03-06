@@ -17,31 +17,11 @@
 use super::*;
 
 use crate::{
-    OfflineQuery,
-    PrivateKey,
-    RecordPlaintext,
-    SnapshotQuery,
-    Transaction,
-    execute_fee,
-    get_program_from_network,
-    latest_block_height,
-    latest_program_edition,
-    latest_stateroot,
-    log,
+    OfflineQuery, PrivateKey, RecordPlaintext, SnapshotQuery, Transaction, execute_fee, get_program_from_network,
+    latest_block_height, latest_program_edition, latest_stateroot, log,
     types::native::{
-        AddressNative,
-        CertificateNative,
-        CurrentAleo,
-        CurrentNetwork,
-        DeploymentNative,
-        FeeNative,
-        PrivateKeyNative,
-        ProcessNative,
-        ProgramNative,
-        ProgramOwnerNative,
-        RecordPlaintextNative,
-        TransactionNative,
-        ViewKeyNative,
+        AddressNative, CertificateNative, CurrentAleo, CurrentNetwork, DeploymentNative, FeeNative, PrivateKeyNative,
+        ProcessNative, ProgramNative, ProgramOwnerNative, RecordPlaintextNative, TransactionNative, ViewKeyNative,
     },
 };
 use snarkvm_console::prelude::{ConsensusVersion, Network};
