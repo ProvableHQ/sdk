@@ -61,14 +61,14 @@ export function encryptRegistrationRequest(publicKey: string, viewKey: ViewKey, 
     const view = new DataView(bytes.buffer);
     view.setUint32(vk_bytes.length, start, true);
 
-    // Encrypt the encoded bytes.
-    const result = encryptMessage(publicKey, bytes);
-
-    // Zeroize sensitive intermediate byte arrays.
-    vk_bytes.fill(0);
-    bytes.fill(0);
-
-    return result;
+    // Encrypt the encoded bytes, ensuring sensitive intermediate
+    // byte arrays are zeroized regardless of success or failure.
+    try {
+        return encryptMessage(publicKey, bytes);
+    } finally {
+        zeroizeBytes(vk_bytes);
+        zeroizeBytes(bytes);
+    }
 }
 
 /**
@@ -78,8 +78,10 @@ export function encryptRegistrationRequest(publicKey: string, viewKey: ViewKey, 
  *
  * This is best-effort in JavaScript — the JIT compiler could theoretically
  * elide the fill if the array is never read again (though current engines
- * do not). For cryptographic zeroization guarantees, use the Rust-side
- * zeroization via `Account.destroy()` or calling `.free()` on WASM objects.
+ * do not). For deterministic zeroization of key material, use
+ * `Account.destroy()` or call `.free()` on key objects (PrivateKey, ViewKey,
+ * ComputeKey, GraphKey) whose Rust Drop implementations zeroize memory
+ * before deallocation.
  *
  * Note: This cannot zeroize JavaScript strings, which are immutable and managed
  * by the garbage collector. Prefer using byte array representations of sensitive

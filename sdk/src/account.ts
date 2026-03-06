@@ -11,6 +11,7 @@ import {
   RecordCiphertext,
   RecordPlaintext,
 } from "./wasm.js";
+import { zeroizeBytes } from "./security.js";
 
 interface AccountParam {
   privateKey?: string | PrivateKey;
@@ -88,7 +89,11 @@ export class Account {
     try {
       ciphertext = (typeof ciphertext === "string") ? PrivateKeyCiphertext.fromString(ciphertext) : ciphertext;
       const _privateKey = PrivateKey.fromPrivateKeyCiphertext(ciphertext, password);
-      return new Account({ privateKey: _privateKey });
+      try {
+        return new Account({ privateKey: _privateKey });
+      } finally {
+        _privateKey.free(); // Zeroize + free the temporary; Account owns its own clone
+      }
     } catch(e) {
       throw new Error("Wrong password or invalid ciphertext");
     }
@@ -128,9 +133,11 @@ export class Account {
       // Clone the PrivateKey WASM object via byte serialization to avoid
       // creating an immutable JS string of the private key.
       const bytes = params.privateKey.toBytesLe();
-      const pk = PrivateKey.fromBytesLe(bytes);
-      bytes.fill(0); // Zeroize the intermediate byte array
-      return pk;
+      try {
+        return PrivateKey.fromBytesLe(bytes);
+      } finally {
+        zeroizeBytes(bytes);
+      }
     }
     return new PrivateKey();
   }

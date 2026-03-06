@@ -125,8 +125,9 @@ mod tests {
     };
 
     use snarkvm_console::network::Network;
+    use wasm_bindgen_test::*;
 
-    #[test]
+    #[wasm_bindgen_test]
     fn test_compute_key_conversions() {
         // Create a new private key.
         let private_key = PrivateKey::new();
@@ -152,7 +153,7 @@ mod tests {
         assert_eq!(address, compute_key_address);
     }
 
-    #[test]
+    #[wasm_bindgen_test]
     fn test_zeroize_clears_compute_key_material() {
         let private_key = PrivateKey::new();
         let mut compute_key = ComputeKey::from_private_key(&private_key);
