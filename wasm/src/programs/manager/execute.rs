@@ -17,33 +17,11 @@
 use super::*;
 
 use crate::{
-    Address,
-    Authorization,
-    ExecutionResponse,
-    OfflineQuery,
-    PrivateKey,
-    RecordPlaintext,
-    SnapshotQuery,
-    Transaction,
-    calculate_minimum_fee,
-    execute_fee,
-    execute_program,
-    latest_block_height,
-    latest_stateroot,
-    log,
-    process_inputs,
+    Address, Authorization, ExecutionResponse, OfflineQuery, PrivateKey, RecordPlaintext, SnapshotQuery, Transaction,
+    calculate_minimum_fee, execute_fee, execute_program, latest_block_height, latest_stateroot, log, process_inputs,
     types::native::{
-        AuthorizationNative,
-        CurrentAleo,
-        CurrentNetwork,
-        ExecutionNative,
-        FeeNative,
-        IdentifierNative,
-        LocatorNative,
-        ProcessNative,
-        ProgramNative,
-        RecordPlaintextNative,
-        TransactionNative,
+        AuthorizationNative, CurrentAleo, CurrentNetwork, ExecutionNative, FeeNative, IdentifierNative, LocatorNative,
+        ProcessNative, ProgramNative, RecordPlaintextNative, TransactionNative,
     },
 };
 use snarkvm_algorithms::snark::varuna::VarunaVersion;

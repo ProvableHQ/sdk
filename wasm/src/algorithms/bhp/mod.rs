@@ -30,12 +30,7 @@ pub use bhp1024::BHP1024;
 mod tests {
     use super::*;
     use crate::{
-        Address,
-        Field,
-        Group,
-        Plaintext,
-        Scalar,
-        Signature,
+        Address, Field, Group, Plaintext, Scalar, Signature,
         native::{FieldNative, GroupNative, LiteralNative, PlaintextNative, ScalarNative, SignatureNative},
         types::native::{BHP256Native, BHP512Native, BHP768Native, BHP1024Native},
         utilities::test::{TEST_STRUCT, create_native_field_vector},

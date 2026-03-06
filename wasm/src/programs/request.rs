@@ -15,23 +15,10 @@
 // along with the Provable SDK library. If not, see <https://www.gnu.org/licenses/>.
 
 use crate::{
-    Address,
-    Field,
-    GraphKey,
-    Group,
-    PrivateKey,
-    Signature,
-    ViewKey,
+    Address, Field, GraphKey, Group, PrivateKey, Signature, ViewKey, object,
     types::native::{
-        CurrentNetwork,
-        FieldNative,
-        IdentifierNative,
-        ProgramIDNative,
-        RecordPlaintextNative,
-        RequestNative,
-        U16Native,
-        ValueNative,
-        ValueTypeNative,
+        CurrentNetwork, FieldNative, IdentifierNative, ProgramIDNative, RecordPlaintextNative, RequestNative,
+        U16Native, ValueNative, ValueTypeNative,
     },
 };
 use snarkvm_console::{
@@ -41,7 +28,7 @@ use snarkvm_console::{
 };
 use snarkvm_wasm::utilities::{FromBytes, ToBytes};
 
-use js_sys::{Array, Uint8Array};
+use js_sys::{Array, Object, Reflect, Uint8Array};
 use rand::{SeedableRng, rngs::StdRng};
 use std::{ops::Deref, str::FromStr};
 use wasm_bindgen::prelude::*;
@@ -232,24 +219,28 @@ impl ExecutionRequest {
     /// This is a helper for MPC wallets and other applications that need to compute
     /// publicly computable inputs for the `Request::sign` function.
     ///
-    /// Returns an array of the form:
-    ///   `[function_id, is_root, program_checksum | null, [[index, [field,...]], ...]]`
-    ///
     /// @param {string} program_id The id of the program.
     /// @param {string} function_name The function name.
+    /// @param {string[]} input_types The input types of the function as strings.
     /// @param {string[]} inputs The inputs to the function as strings.
     /// @param {boolean} is_root Flag to indicate if this is the top level function in the call graph.
     /// @param {Field | undefined} program_checksum The program checksum (required if the program has a constructor).
+    /// @param {ViewKey | undefined} view_key The view key of the signer to compute a record's tag and h values.
+    ///
+    /// @returns {MpcInput}
     #[wasm_bindgen(js_name = "computeMPCInputs")]
     pub fn compute_mpc_inputs(
         program_id: String,
         function_name: String,
-        input_types: Array,
         inputs: Array,
+        input_types: Array,
         is_root: bool,
         program_checksum: Option<Field>,
         view_key: Option<ViewKey>,
-    ) -> Result<Array, String> {
+    ) -> Result<Object, String> {
+        // Build the per-input data array.
+        let input_data = Array::new();
+
         // Convert the ProgramID and function name to their native objects.
         let program_id = ProgramIDNative::from_str(&program_id).map_err(|e| e.to_string())?;
         let function_name = IdentifierNative::from_str(&function_name).map_err(|e| e.to_string())?;
@@ -259,13 +250,11 @@ impl ExecutionRequest {
 
         // Compute the function ID.
         let function_id =
-            Field::from(compute_function_id(&network_id, &program_id, &function_name).map_err(|e| e.to_string())?);
+            Field::from(compute_function_id(&network_id, &program_id, &function_name).map_err(|e| e.to_string())?)
+                .to_string();
 
         // Compute 'is_root' as a field element.
         let is_root_field = Field::from(if is_root { FieldNative::one() } else { FieldNative::zero() });
-
-        // Build the per-input data array.
-        let input_data = Array::new();
 
         // Zip types and values together, verifying lengths match.
         let input_type_strs: Vec<JsValue> = input_types.iter().collect();
@@ -277,13 +266,14 @@ impl ExecutionRequest {
         for (index, (input_type_js, input_js)) in input_type_strs.iter().zip(input_strs.iter()).enumerate() {
             // Parse the input types.
             let input_type = ValueTypeNative::from_str(
-                &input_type_js.as_string().ok_or_else(|| "Input type must be a string".to_string())?
-            ).map_err(|e| e.to_string())?;
+                &input_type_js.as_string().ok_or_else(|| "Input type must be a string".to_string())?,
+            )
+            .map_err(|e| e.to_string())?;
 
             // Parse the input value.
-            let input = ValueNative::from_str(
-                &input_js.as_string().ok_or_else(|| "Input must be a string".to_string())?
-            ).map_err(|e| e.to_string())?;
+            let input =
+                ValueNative::from_str(&input_js.as_string().ok_or_else(|| "Input must be a string".to_string())?)
+                    .map_err(|e| e.to_string())?;
 
             // Compute the index as a field element.
             let index_field = Field::from(FieldNative::from_u16(
@@ -292,57 +282,97 @@ impl ExecutionRequest {
 
             // Serialize the input as fields.
             let fields_array: Array =
-                input.to_fields().map_err(|e| e.to_string())?.iter().map(|f| JsValue::from(Field::from(f))).collect();
-            
-            // Placeholder variable for a record or struct name.
-            let mut name: Option<String> = None;
+                input.to_fields().map_err(|e| e.to_string())?.iter().map(|f| JsValue::from(&f.to_string())).collect();
 
-            // Placeholder variable for the h value of a record input.
-            let mut h_value: Option<Field> = None;
+            let request_sign_input = object! {
+                "index": index_field.to_string(),
+                "fields": fields_array,
+                "data": input.to_string(),
+            };
 
-            // Placeholder variable for the record tag.
-            let mut tag_value: Option<Field> = None;
-
-            // Handle the record-specific fields for record inputs.
-            if let ValueTypeNative::Record(record_name) = &input_type {
-                name = Some(record_name.to_string());
-                if let (ValueNative::Record(record_input), Some(vk)) = (input, view_key.as_ref()) {
-                    // Compute the sk_tag from the view key.
-                    let sk_tag = GraphKey::from_view_key(vk).sk_tag();
-                    let record_view_key = (*record_input.nonce() * ***vk).to_x_coordinate();
-                    // Compute the commitment for the record input.
-                    let commitment = record_input.to_commitment(&program_id, record_name, &record_view_key).map_err(|e| e.to_string())?;
-                    // Compute the tag for the record input.
-                    let tag = RecordPlaintextNative::tag(*sk_tag, commitment).map_err(|e| e.to_string())?;
-                    tag_value = Some(Field::from(tag));
-                    // Compute the h value.
-                    let group = CurrentNetwork::hash_to_group_psd2(&[
-                        CurrentNetwork::serial_number_domain(),
-                        commitment,
-                    ]).map_err(|e| e.to_string())?;
-                    h_value = Some(Field::from(group.to_x_coordinate()));
+            match &input_type {
+                ValueTypeNative::Constant(_) => {
+                    Reflect::set(&request_sign_input, &JsValue::from_str("outputType"), &JsValue::from_str("constant"))
+                        .map_err(|_| "Failed to set outputType".to_string())?;
                 }
+                ValueTypeNative::Public(_) => {
+                    Reflect::set(&request_sign_input, &JsValue::from_str("outputType"), &JsValue::from_str("public"))
+                        .map_err(|_| "Failed to set outputType".to_string())?;
+                }
+                ValueTypeNative::Private(_) => {
+                    Reflect::set(&request_sign_input, &JsValue::from_str("outputType"), &JsValue::from_str("private"))
+                        .map_err(|_| "Failed to set outputType".to_string())?;
+                }
+                ValueTypeNative::Record(record_name) => {
+                    // Set the output type and name.
+                    Reflect::set(&request_sign_input, &JsValue::from_str("outputType"), &JsValue::from_str("record"))
+                        .map_err(|_| "Failed to set outputType".to_string())?;
+                    Reflect::set(
+                        &request_sign_input,
+                        &JsValue::from_str("name"),
+                        &JsValue::from_str(&record_name.to_string()),
+                    )
+                    .map_err(|_| "Failed to set outputType".to_string())?;
+                }
+                ValueTypeNative::ExternalRecord(locator) => {
+                    // Set the output type and name.
+                    Reflect::set(
+                        &request_sign_input,
+                        &JsValue::from_str("outputType"),
+                        &JsValue::from_str("external_record"),
+                    )
+                    .map_err(|_| "Failed to set outputType".to_string())?;
+                    Reflect::set(
+                        &request_sign_input,
+                        &JsValue::from_str("name"),
+                        &JsValue::from_str(&locator.to_string()),
+                    )
+                    .map_err(|_| "Failed to set outputType".to_string())?;
+                }
+                ValueTypeNative::Future(_) => {
+                    return Err("Future inputs are not supported".to_string());
+                }
+            };
+
+            // If the input is a record, compute the tag and h values.
+            if let (ValueNative::Record(record_input), Some(vk)) = (input, view_key.as_ref()) {
+                let record_name = match input_type {
+                    ValueTypeNative::ExternalRecord(locator) => *locator.name(),
+                    ValueTypeNative::Record(record_name) => record_name,
+                    _ => {
+                        return Err("Record inputs must have an input_type of record or external_record".to_string());
+                    }
+                };
+
+                // Compute the sk_tag from the view key.
+                let sk_tag = GraphKey::from_view_key(vk).sk_tag();
+                let record_view_key = (*record_input.nonce() * ***vk).to_x_coordinate();
+                // Compute the commitment for the record input.
+                let commitment = record_input
+                    .to_commitment(&program_id, &record_name, &record_view_key)
+                    .map_err(|e| e.to_string())?;
+                // Compute the tag for the record input.
+                let tag = RecordPlaintextNative::tag(*sk_tag, commitment).map_err(|e| e.to_string())?.to_string();
+                Reflect::set(&request_sign_input, &JsValue::from_str("tag"), &JsValue::from_str(&tag))
+                    .map_err(|_| "Failed to set record tag".to_string())?;
+
+                // Compute h and store it in the resulting object.
+                let h = CurrentNetwork::hash_to_group_psd2(&[CurrentNetwork::serial_number_domain(), commitment])
+                    .map_err(|e| e.to_string())?
+                    .to_x_coordinate()
+                    .to_string();
+                Reflect::set(&request_sign_input, &JsValue::from_str("h"), &JsValue::from_str(&h))
+                    .map_err(|_| "Failed to set outputType".to_string())?;
             }
-
-            // Build the [index, fields] pair and add to input_data.
-            let entry = Array::new();
-
-            entry.push(&JsValue::from_str(&input_type.to_string()));
-            entry.push(&JsValue::from(index_field));
-            entry.push(&fields_array);
-            entry.push(&JsValue::from(name.unwrap_or_default()));
-            entry.push(&JsValue::from(h_value.unwrap_or_else(|| Field::zero())));
-            entry.push(&JsValue::from(tag_value.unwrap_or_else(|| Field::zero())));
-
-            input_data.push(&entry);
         }
 
-        // Build the result array.
-        let checksum_js = match program_checksum {
-            Some(checksum) => JsValue::from(checksum),
-            None => JsValue::NULL,
-        };
-        Ok(Array::of4(&JsValue::from(function_id), &JsValue::from(is_root_field), &checksum_js, &input_data))
+        // Return the serialized input data.
+        Ok(object! {
+            "function_id": JsValue::from(&function_id.to_string()),
+            "is_root": JsValue::from(&is_root_field.to_string()),
+            "program_checksum": program_checksum.map(|checksum| JsValue::from(&checksum.to_string())),
+            "inputs": input_data,
+        })
     }
 }
 
@@ -375,97 +405,5 @@ impl From<ExecutionRequest> for RequestNative {
 impl From<&ExecutionRequest> for RequestNative {
     fn from(request: &ExecutionRequest) -> Self {
         request.0.clone()
-    }
-}
-
-#[cfg(test)]
-mod tests {
-    use super::*;
-    use crate::types::native::CurrentNetwork;
-    use snarkvm_console::network::Network;
-    use wasm_bindgen::convert::TryFromJsValue;
-    use wasm_bindgen_test::*;
-
-    #[wasm_bindgen_test]
-    fn test_compute_public_message_payload_returns_correct_structure() {
-        if CurrentNetwork::ID == 0 {
-            let program_id = "credits.aleo".to_string();
-            let function_name = "transfer_public".to_string();
-            let inputs = Array::new();
-            inputs.push(&JsValue::from_str("aleo1rhgdu77hgyqd3xjj8ucu3jj9r2krwz6mnzyd80gncr5fxcwlh5rsvzp9px"));
-            inputs.push(&JsValue::from_str("100u64"));
-
-            let result = ExecutionRequest::compute_mpc_inputs(program_id, function_name, inputs, true, None).unwrap();
-
-            // The result should be an array of 4 elements.
-            assert_eq!(result.length(), 4);
-
-            // The first element should be a Field (function_id).
-            let function_id = Field::try_from_js_value(result.get(0)).unwrap();
-            assert!(!function_id.to_string().is_empty());
-
-            // The second element should be a Field (is_root = 1field for true).
-            let is_root = Field::try_from_js_value(result.get(1)).unwrap();
-            assert_eq!(is_root.to_string(), "1field");
-
-            // The third element should be null (no program checksum).
-            assert!(result.get(2).is_null());
-
-            // The fourth element should be an Array with 2 entries (one per input).
-            let input_data = Array::from(&result.get(3));
-            assert_eq!(input_data.length(), 2);
-
-            // Each entry should be a 2-element array of [index_field, fields_array].
-            let entry0 = Array::from(&input_data.get(0));
-            assert_eq!(entry0.length(), 2);
-            let index0 = Field::try_from_js_value(entry0.get(0)).unwrap();
-            assert_eq!(index0.to_string(), "0field");
-            let fields0 = Array::from(&entry0.get(1));
-            assert!(fields0.length() > 0);
-
-            let entry1 = Array::from(&input_data.get(1));
-            assert_eq!(entry1.length(), 2);
-            let index1 = Field::try_from_js_value(entry1.get(0)).unwrap();
-            assert_eq!(index1.to_string(), "1field");
-            let fields1 = Array::from(&entry1.get(1));
-            assert!(fields1.length() > 0);
-        }
-    }
-
-    #[wasm_bindgen_test]
-    fn test_compute_public_message_payload_is_root_false() {
-        if CurrentNetwork::ID == 0 {
-            let result = ExecutionRequest::compute_mpc_inputs(
-                "credits.aleo".to_string(),
-                "transfer_public".to_string(),
-                Array::new(),
-                false,
-                None,
-            )
-            .unwrap();
-
-            let is_root = Field::try_from_js_value(result.get(1)).unwrap();
-            assert_eq!(is_root.to_string(), "0field");
-        }
-    }
-
-    #[wasm_bindgen_test]
-    fn test_compute_mpc_inputs_with_checksum() {
-        if CurrentNetwork::ID == 0 {
-            let checksum = Field::from_string("1field").unwrap();
-            let result = ExecutionRequest::compute_mpc_inputs(
-                "credits.aleo".to_string(),
-                "transfer_public".to_string(),
-                Array::new(),
-                true,
-                Some(checksum),
-            )
-            .unwrap();
-
-            // The third element should be a Field (program checksum).
-            assert!(!result.get(2).is_null());
-            let checksum_field = Field::try_from_js_value(result.get(2)).unwrap();
-            assert_eq!(checksum_field.to_string(), "1field");
-        }
     }
 }

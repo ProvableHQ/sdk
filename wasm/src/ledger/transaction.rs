@@ -15,20 +15,8 @@
 // along with the Provable SDK library. If not, see <https://www.gnu.org/licenses/>.
 
 use crate::{
-    Address,
-    Execution,
-    Field,
-    Group,
-    Program,
-    RecordCiphertext,
-    RecordPlaintext,
-    Signature,
-    Transition,
-    VerifyingKey,
-    ViewKey,
-    input_to_js_value,
-    object,
-    output_to_js_value,
+    Address, Execution, Field, Group, Program, RecordCiphertext, RecordPlaintext, Signature, Transition, VerifyingKey,
+    ViewKey, input_to_js_value, object, output_to_js_value,
     types::native::{TransactionNative, U64Native},
 };
 use snarkvm_wasm::utilities::{FromBytes, ToBytes};

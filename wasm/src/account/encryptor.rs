@@ -15,13 +15,7 @@
 // along with the Provable SDK library. If not, see <https://www.gnu.org/licenses/>.
 
 use crate::types::native::{
-    CiphertextNative,
-    CurrentNetwork,
-    FieldNative,
-    IdentifierNative,
-    LiteralNative,
-    PlaintextNative,
-    PrivateKeyNative,
+    CiphertextNative, CurrentNetwork, FieldNative, IdentifierNative, LiteralNative, PlaintextNative, PrivateKeyNative,
 };
 use snarkvm_console::network::Network;
 use snarkvm_wasm::utilities::Uniform;

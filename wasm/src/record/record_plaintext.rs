@@ -15,28 +15,13 @@
 // along with the Provable SDK library. If not, see <https://www.gnu.org/licenses/>.
 
 use crate::{
-    Address,
-    Credits,
-    EncryptionToolkit,
-    GraphKey,
-    Plaintext,
-    PrivateKey,
-    ViewKey,
-    js_array_from_fields,
-    record_to_js_object,
-    to_bits_array_le,
+    Address, Credits, EncryptionToolkit, GraphKey, Plaintext, PrivateKey, ViewKey, js_array_from_fields,
+    record_to_js_object, to_bits_array_le,
     types::{
-        Field,
-        Group,
+        Field, Group,
         native::{
-            CurrentNetwork,
-            FieldNative,
-            IdentifierNative,
-            LiteralNative,
-            PlaintextEntryNative,
-            PlaintextNative,
-            ProgramIDNative,
-            RecordPlaintextNative,
+            CurrentNetwork, FieldNative, IdentifierNative, LiteralNative, PlaintextEntryNative, PlaintextNative,
+            ProgramIDNative, RecordPlaintextNative,
         },
     },
 };

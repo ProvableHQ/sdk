@@ -15,13 +15,7 @@
 // along with the Provable SDK library. If not, see <https://www.gnu.org/licenses/>.
 
 use crate::{
-    Ciphertext,
-    Field,
-    Plaintext,
-    RecordCiphertext,
-    future_to_js_value,
-    object,
-    plaintext_to_js_value,
+    Ciphertext, Field, Plaintext, RecordCiphertext, future_to_js_value, object, plaintext_to_js_value,
     types::native::OutputNative,
 };
 
