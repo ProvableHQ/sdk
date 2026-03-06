@@ -15,10 +15,23 @@
 // along with the Provable SDK library. If not, see <https://www.gnu.org/licenses/>.
 
 use crate::{
-    Address, Field, Group, RecordCiphertext, RecordPlaintext, Transition, ViewKey,
+    Address,
+    Field,
+    Group,
+    RecordCiphertext,
+    RecordPlaintext,
+    Transition,
+    ViewKey,
     types::native::{
-        AddressNative, CiphertextEntryNative, CurrentNetwork, FieldNative, GroupNative, PlaintextEntryNative,
-        PlaintextNative, RecordPlaintextNative, U8Native,
+        AddressNative,
+        CiphertextEntryNative,
+        CurrentNetwork,
+        FieldNative,
+        GroupNative,
+        PlaintextEntryNative,
+        PlaintextNative,
+        RecordPlaintextNative,
+        U8Native,
     },
 };
 use rayon::iter::{IntoParallelIterator, IntoParallelRefIterator, ParallelIterator};
@@ -289,7 +302,10 @@ mod tests {
         test::get_env,
         types::native::{PrivateKeyNative, ViewKeyNative},
         utilities::test::records::{
-            CREDITS_RECORD_V1, CREDITS_RECORD_VIEW_KEY, CREDITS_SENDER_CIPHERTEXT, CREDITS_SENDER_PLAINTEXT,
+            CREDITS_RECORD_V1,
+            CREDITS_RECORD_VIEW_KEY,
+            CREDITS_SENDER_CIPHERTEXT,
+            CREDITS_SENDER_PLAINTEXT,
         },
     };
     use std::str::FromStr;

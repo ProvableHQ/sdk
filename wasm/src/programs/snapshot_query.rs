@@ -15,11 +15,21 @@
 // along with the Provable SDK library. If not, see <https://www.gnu.org/licenses/>.
 
 use crate::{
-    DEFAULT_URL, get_statepath_for_commitment, get_statepaths_for_commitments, latest_block_height, latest_stateroot,
+    DEFAULT_URL,
+    get_statepath_for_commitment,
+    get_statepaths_for_commitments,
+    latest_block_height,
+    latest_stateroot,
     log,
     types::native::{
-        CurrentNetwork, FieldNative, IdentifierNative, ProgramNative, RecordPlaintextNative, StatePathNative,
-        ValueTypeNative, ViewKeyNative,
+        CurrentNetwork,
+        FieldNative,
+        IdentifierNative,
+        ProgramNative,
+        RecordPlaintextNative,
+        StatePathNative,
+        ValueTypeNative,
+        ViewKeyNative,
     },
 };
 use anyhow::{Result, anyhow, bail, ensure};

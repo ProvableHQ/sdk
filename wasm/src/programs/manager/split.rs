@@ -17,10 +17,23 @@
 use super::*;
 
 use crate::{
-    OfflineQuery, PrivateKey, RecordPlaintext, SnapshotQuery, Transaction, execute_program, log, process_inputs,
+    OfflineQuery,
+    PrivateKey,
+    RecordPlaintext,
+    SnapshotQuery,
+    Transaction,
+    execute_program,
+    log,
+    process_inputs,
     types::native::{
-        CurrentAleo, CurrentNetwork, IdentifierNative, PrivateKeyNative, ProcessNative, ProgramNative,
-        TransactionNative, ViewKeyNative,
+        CurrentAleo,
+        CurrentNetwork,
+        IdentifierNative,
+        PrivateKeyNative,
+        ProcessNative,
+        ProgramNative,
+        TransactionNative,
+        ViewKeyNative,
     },
 };
 use js_sys::Array;

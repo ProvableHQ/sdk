@@ -17,10 +17,25 @@
 use super::*;
 
 use crate::{
-    Authorization, ExecutionRequest, PrivateKey, RecordPlaintext, authorize, authorize_fee, log, process_inputs,
+    Authorization,
+    ExecutionRequest,
+    PrivateKey,
+    RecordPlaintext,
+    authorize,
+    authorize_fee,
+    log,
+    process_inputs,
     types::native::{
-        AuthorizationNative, CallStackNative, CurrentAleo, FieldNative, IdentifierNative, PrivateKeyNative,
-        ProcessNative, ProgramNative, RecordPlaintextNative, RequestNative,
+        AuthorizationNative,
+        CallStackNative,
+        CurrentAleo,
+        FieldNative,
+        IdentifierNative,
+        PrivateKeyNative,
+        ProcessNative,
+        ProgramNative,
+        RecordPlaintextNative,
+        RequestNative,
     },
 };
 
@@ -247,7 +262,10 @@ impl ProgramManager {
 mod tests {
     use super::*;
     use crate::{
-        ExecutionRequest, PrivateKey, Program, array,
+        ExecutionRequest,
+        PrivateKey,
+        Program,
+        array,
         utilities::test::{PUZZLE_SPINNER_V002, generate_puzzle_imports, generate_puzzle_inputs, get_env},
     };
 

@@ -3754,7 +3754,15 @@ class ProgramManager {
     async computeMPCInputs(options: MPCOptions): Promise<MPCInput> {
         const { programName, functionName, inputs, inputTypes, isRoot, checksum, viewKey} = options;
         try {
-            return <MPCInput>(await ExecutionRequest.computeMPCInputs(programName, functionName, inputs, inputTypes, isRoot, checksum ?? null, viewKey ?? null));
+            const raw = <MPCInput>(await ExecutionRequest.computeMPCInputs(programName, functionName, inputs, inputTypes, isRoot, checksum ?? null, viewKey ?? null));
+            // Normalize to MPCInput (camelCase): WASM may return function_id
+            const functionId = (raw as { functionId?: string }).functionId ?? (raw as { function_id?: string }).function_id;
+            return {
+                functionId: functionId!,
+                isRoot: raw.isRoot,
+                requestInputs: raw.requestInputs,
+                checksum: raw.checksum ?? undefined,
+            };
         } catch (e: unknown) {
             const msg = e instanceof Error ? e.message : String(e);
             logAndThrow(`Error computing public message payload: ${msg}`);
@@ -3776,4 +3784,4 @@ function validateTransferType(transferType: string): string {
         );
 }
 
-export { ProgramManager, AuthorizationOptions, FeeAuthorizationOptions, ExecuteOptions, ProvingRequestOptions, MPCOptions, MPCInputs };
+export { ProgramManager, AuthorizationOptions, FeeAuthorizationOptions, ExecuteOptions, ProvingRequestOptions, MPCOptions };

@@ -15,7 +15,9 @@
 // along with the Provable SDK library. If not, see <https://www.gnu.org/licenses/>.
 
 use crate::{
-    ExecutionRequest, Field, Transition,
+    ExecutionRequest,
+    Field,
+    Transition,
     types::native::{AuthorizationNative, RequestNative, TransitionNative},
 };
 use snarkvm_wasm::utilities::{FromBytes, ToBytes};

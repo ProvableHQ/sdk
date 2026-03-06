@@ -18,6 +18,7 @@ import { FunctionObject } from "./models/functionObject.js";
 import { ImportedVerifyingKeys, ImportedPrograms } from "./models/imports.js";
 import { InputJSON } from "./models/input/inputJSON.js";
 import { InputObject } from "./models/input/inputObject.js";
+import { MPCInput, MPCOptions, RequestSignInput } from "./models/MPCInputs";
 import { OutputJSON } from "./models/output/outputJSON.js";
 import { OutputObject } from "./models/output/outputObject.js";
 import { OwnedFilter } from "./models/record-scanner/ownedFilter.js";
@@ -185,6 +186,7 @@ export {
     CachedKeyPair,
     ConfirmedTransactionJSON,
     CryptoBoxPubKey,
+    DecryptionNotEnabledError,
     DeploymentJSON,
     DeploymentObject,
     EncryptedProvingRequest,
@@ -219,6 +221,8 @@ export {
     MemKeyVerifier,
     KeySearchParams,
     Metadata,
+    MPCInput,
+    MPCOptions,
     NetworkRecordProvider,
     OfflineKeyProvider,
     OfflineSearchParams,
@@ -252,9 +256,9 @@ export {
     RecordScannerFailure,
     RecordScannerJWTData,
     RecordScannerOptions,
-    DecryptionNotEnabledError,
     RecordNotFoundError,
     RecordScannerRequestError,
+    RequestSignInput,
     ViewKeyNotStoredError,
     RecordSearchParams,
     RegisterResult,

@@ -15,7 +15,8 @@
 // along with the Provable SDK library. If not, see <https://www.gnu.org/licenses/>.
 
 use crate::{
-    insert_plaintext, object,
+    insert_plaintext,
+    object,
     types::native::{PlaintextEntryNative, RecordPlaintextNative},
 };
 use js_sys::Object;

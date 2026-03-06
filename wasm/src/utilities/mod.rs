@@ -22,8 +22,14 @@ pub use encrypt::EncryptionToolkit;
 
 pub mod rest;
 pub use rest::{
-    get, get_network, get_program_from_network, get_statepath_for_commitment, get_statepaths_for_commitments,
-    latest_block_height, latest_program_edition, latest_stateroot,
+    get,
+    get_network,
+    get_program_from_network,
+    get_statepath_for_commitment,
+    get_statepaths_for_commitments,
+    latest_block_height,
+    latest_program_edition,
+    latest_stateroot,
 };
 
 #[cfg(test)]
