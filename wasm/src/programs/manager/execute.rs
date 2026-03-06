@@ -610,7 +610,7 @@ impl ProgramManager {
     /// @param imports (optional) Provide a list of imports to use for the fee estimation in the
     /// form of a javascript object where the keys are a string of the program name and the values
     /// are a string representing the program source code \{ "hello.aleo": "hello.aleo source code" \}
-    /// @param edition {
+    /// @param {number | undefined} edition (optional) The edition of the program to use for fee estimation.
     /// @param {ProgramImports | undefined} program_imports (optional) A ProgramImports builder with
     /// pre-computed proving and verifying keys for imported programs.
     /// @returns {u64} Fee in microcredits

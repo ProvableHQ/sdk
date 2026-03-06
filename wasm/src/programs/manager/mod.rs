@@ -146,7 +146,9 @@ impl ProgramManager {
         if let Some(imports) = imports {
             let keys = Object::keys(&imports);
             for i in 0..keys.length() {
-                let key = keys.get(i).as_string().unwrap_or_default();
+                let Some(key) = keys.get(i).as_string() else {
+                    continue;
+                };
                 if key == "credits.aleo" {
                     continue;
                 }

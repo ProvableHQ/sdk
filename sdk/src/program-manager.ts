@@ -3224,8 +3224,7 @@ class ProgramManager {
         }
         const programSource = program ? program.toString() : await this.networkClient.getProgram(programName, edition);
         const programImports = imports ? imports : await this.networkClient.getProgramImports(programSource);
-        console.log(JSON.stringify(programImports));
-        if (Object.keys(programImports)) {
+        if (Object.keys(programImports).length > 0) {
             return WasmProgramManager.estimateFeeForAuthorization(authorization, programSource, programImports, edition, programImportsBuilder);
         }
         return WasmProgramManager.estimateFeeForAuthorization(authorization, programSource, imports, edition, programImportsBuilder);
@@ -3273,7 +3272,7 @@ class ProgramManager {
         }
         const programSource = program ? program.toString() : await this.networkClient.getProgram(programName, edition);
         const programImports = imports ? imports : await this.networkClient.getProgramImports(programSource);
-        if (Object.keys(programImports)) {
+        if (Object.keys(programImports).length > 0) {
             return WasmProgramManager.estimateExecutionFee(programSource, functionName, programImports, edition, programImportsBuilder);
         }
         return WasmProgramManager.estimateExecutionFee(programSource, functionName, imports, edition, programImportsBuilder);

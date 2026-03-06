@@ -225,6 +225,10 @@ impl ProgramImports {
                 continue;
             }
             let program_id = ProgramIDNative::from_str(name).map_err(|e| e.to_string())?;
+            if !process.contains_program(&program_id) {
+                log(&format!("Program {name} not in process, skipping key insertion"));
+                continue;
+            }
 
             for (fn_name, pk) in &entry.proving_keys {
                 let fn_id = IdentifierNative::from_str(fn_name).map_err(|e| e.to_string())?;
