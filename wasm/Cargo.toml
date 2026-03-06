@@ -22,14 +22,17 @@ crate-type = [ "cdylib", "rlib" ]
 doctest = false
 
 [dependencies.snarkvm-algorithms]
-version = "4.4.0"
+git = "https://github.com/ProvableHQ/snarkVM.git"
+rev = "9a76d30158dbd70e30b538154eb982058b603570"
 
 [dependencies.snarkvm-circuit-network]
-version = "4.4.0"
+git = "https://github.com/ProvableHQ/snarkVM.git"
+rev = "9a76d30158dbd70e30b538154eb982058b603570"
 features = ["wasm"]
 
 [dependencies.snarkvm-console]
-version = "4.4.0"
+git = "https://github.com/ProvableHQ/snarkVM.git"
+rev = "9a76d30158dbd70e30b538154eb982058b603570"
 default-features = false
 features = [
     "account",
@@ -42,31 +45,38 @@ features = [
 ]
 
 [dependencies.snarkvm-ledger-block]
-version = "4.4.0"
+git = "https://github.com/ProvableHQ/snarkVM.git"
+rev = "9a76d30158dbd70e30b538154eb982058b603570"
 features = ["wasm"]
 
 [dependencies.snarkvm-ledger-query]
-version = "4.4.0"
+git = "https://github.com/ProvableHQ/snarkVM.git"
+rev = "9a76d30158dbd70e30b538154eb982058b603570"
 features = ["async", "wasm"]
 
 [dependencies.snarkvm-ledger-store]
-version = "4.4.0"
+git = "https://github.com/ProvableHQ/snarkVM.git"
+rev = "9a76d30158dbd70e30b538154eb982058b603570"
 
 [dependencies.snarkvm-parameters]
-version = "4.4.0"
+git = "https://github.com/ProvableHQ/snarkVM.git"
+rev = "9a76d30158dbd70e30b538154eb982058b603570"
 default-features = false
 features = ["wasm"]
 
 [dependencies.snarkvm-synthesizer-program]
-version = "4.4.0"
+git = "https://github.com/ProvableHQ/snarkVM.git"
+rev = "9a76d30158dbd70e30b538154eb982058b603570"
 features = ["wasm"]
 
 [dependencies.snarkvm-synthesizer]
-version = "4.4.0"
+git = "https://github.com/ProvableHQ/snarkVM.git"
+rev = "9a76d30158dbd70e30b538154eb982058b603570"
 features = ["async", "wasm"]
 
 [dependencies.snarkvm-wasm]
-version = "4.4.0"
+git = "https://github.com/ProvableHQ/snarkVM.git"
+rev = "9a76d30158dbd70e30b538154eb982058b603570"
 features = ["fields", "utilities"]
 
 [dependencies.anyhow]
@@ -161,58 +171,3 @@ strip = true
 opt-level = 3
 lto = "thin"
 incremental = true
-
-[patch.crates-io]
-snarkvm-algorithms = { git = "https://github.com/ProvableHQ/snarkVM.git", tag = "canary-v4.5.4" }
-snarkvm-circuit = { git = "https://github.com/ProvableHQ/snarkVM.git", tag = "canary-v4.5.4" }
-snarkvm-circuit-account = { git = "https://github.com/ProvableHQ/snarkVM.git", tag = "canary-v4.5.4" }
-snarkvm-circuit-algorithms = { git = "https://github.com/ProvableHQ/snarkVM.git", tag = "canary-v4.5.4" }
-snarkvm-circuit-collections = { git = "https://github.com/ProvableHQ/snarkVM.git", tag = "canary-v4.5.4" }
-snarkvm-circuit-environment = { git = "https://github.com/ProvableHQ/snarkVM.git", tag = "canary-v4.5.4" }
-snarkvm-circuit-environment-witness = { git = "https://github.com/ProvableHQ/snarkVM.git", tag = "canary-v4.5.4" }
-snarkvm-circuit-network = { git = "https://github.com/ProvableHQ/snarkVM.git", tag = "canary-v4.5.4" }
-snarkvm-circuit-program = { git = "https://github.com/ProvableHQ/snarkVM.git", tag = "canary-v4.5.4" }
-snarkvm-circuit-types = { git = "https://github.com/ProvableHQ/snarkVM.git", tag = "canary-v4.5.4" }
-snarkvm-circuit-types-address = { git = "https://github.com/ProvableHQ/snarkVM.git", tag = "canary-v4.5.4" }
-snarkvm-circuit-types-boolean = { git = "https://github.com/ProvableHQ/snarkVM.git", tag = "canary-v4.5.4" }
-snarkvm-circuit-types-field = { git = "https://github.com/ProvableHQ/snarkVM.git", tag = "canary-v4.5.4" }
-snarkvm-circuit-types-group = { git = "https://github.com/ProvableHQ/snarkVM.git", tag = "canary-v4.5.4" }
-snarkvm-circuit-types-integers = { git = "https://github.com/ProvableHQ/snarkVM.git", tag = "canary-v4.5.4" }
-snarkvm-circuit-types-scalar = { git = "https://github.com/ProvableHQ/snarkVM.git", tag = "canary-v4.5.4" }
-snarkvm-circuit-types-string = { git = "https://github.com/ProvableHQ/snarkVM.git", tag = "canary-v4.5.4" }
-snarkvm-console = { git = "https://github.com/ProvableHQ/snarkVM.git", tag = "canary-v4.5.4" }
-snarkvm-console-account = { git = "https://github.com/ProvableHQ/snarkVM.git", tag = "canary-v4.5.4" }
-snarkvm-console-algorithms = { git = "https://github.com/ProvableHQ/snarkVM.git", tag = "canary-v4.5.4" }
-snarkvm-console-collections = { git = "https://github.com/ProvableHQ/snarkVM.git", tag = "canary-v4.5.4" }
-snarkvm-console-network = { git = "https://github.com/ProvableHQ/snarkVM.git", tag = "canary-v4.5.4" }
-snarkvm-console-network-environment = { git = "https://github.com/ProvableHQ/snarkVM.git", tag = "canary-v4.5.4" }
-snarkvm-console-program = { git = "https://github.com/ProvableHQ/snarkVM.git", tag = "canary-v4.5.4" }
-snarkvm-console-types = { git = "https://github.com/ProvableHQ/snarkVM.git", tag = "canary-v4.5.4" }
-snarkvm-console-types-address = { git = "https://github.com/ProvableHQ/snarkVM.git", tag = "canary-v4.5.4" }
-snarkvm-console-types-boolean = { git = "https://github.com/ProvableHQ/snarkVM.git", tag = "canary-v4.5.4" }
-snarkvm-console-types-field = { git = "https://github.com/ProvableHQ/snarkVM.git", tag = "canary-v4.5.4" }
-snarkvm-console-types-group = { git = "https://github.com/ProvableHQ/snarkVM.git", tag = "canary-v4.5.4" }
-snarkvm-console-types-integers = { git = "https://github.com/ProvableHQ/snarkVM.git", tag = "canary-v4.5.4" }
-snarkvm-console-types-scalar = { git = "https://github.com/ProvableHQ/snarkVM.git", tag = "canary-v4.5.4" }
-snarkvm-console-types-string = { git = "https://github.com/ProvableHQ/snarkVM.git", tag = "canary-v4.5.4" }
-snarkvm-curves = { git = "https://github.com/ProvableHQ/snarkVM.git", tag = "canary-v4.5.4" }
-snarkvm-fields = { git = "https://github.com/ProvableHQ/snarkVM.git", tag = "canary-v4.5.4" }
-snarkvm-ledger-authority = { git = "https://github.com/ProvableHQ/snarkVM.git", tag = "canary-v4.5.4" }
-snarkvm-ledger-block = { git = "https://github.com/ProvableHQ/snarkVM.git", tag = "canary-v4.5.4" }
-snarkvm-ledger-committee = { git = "https://github.com/ProvableHQ/snarkVM.git", tag = "canary-v4.5.4" }
-snarkvm-ledger-narwhal-batch-certificate = { git = "https://github.com/ProvableHQ/snarkVM.git", tag = "canary-v4.5.4" }
-snarkvm-ledger-narwhal-batch-header = { git = "https://github.com/ProvableHQ/snarkVM.git", tag = "canary-v4.5.4" }
-snarkvm-ledger-narwhal-data = { git = "https://github.com/ProvableHQ/snarkVM.git", tag = "canary-v4.5.4" }
-snarkvm-ledger-narwhal-subdag = { git = "https://github.com/ProvableHQ/snarkVM.git", tag = "canary-v4.5.4" }
-snarkvm-ledger-narwhal-transmission-id = { git = "https://github.com/ProvableHQ/snarkVM.git", tag = "canary-v4.5.4" }
-snarkvm-ledger-puzzle = { git = "https://github.com/ProvableHQ/snarkVM.git", tag = "canary-v4.5.4" }
-snarkvm-ledger-puzzle-epoch = { git = "https://github.com/ProvableHQ/snarkVM.git", tag = "canary-v4.5.4" }
-snarkvm-ledger-query = { git = "https://github.com/ProvableHQ/snarkVM.git", tag = "canary-v4.5.4" }
-snarkvm-ledger-store = { git = "https://github.com/ProvableHQ/snarkVM.git", tag = "canary-v4.5.4" }
-snarkvm-parameters = { git = "https://github.com/ProvableHQ/snarkVM.git", tag = "canary-v4.5.4" }
-snarkvm-synthesizer = { git = "https://github.com/ProvableHQ/snarkVM.git", tag = "canary-v4.5.4" }
-snarkvm-synthesizer-process = { git = "https://github.com/ProvableHQ/snarkVM.git", tag = "canary-v4.5.4" }
-snarkvm-synthesizer-program = { git = "https://github.com/ProvableHQ/snarkVM.git", tag = "canary-v4.5.4" }
-snarkvm-synthesizer-snark = { git = "https://github.com/ProvableHQ/snarkVM.git", tag = "canary-v4.5.4" }
-snarkvm-utilities = { git = "https://github.com/ProvableHQ/snarkVM.git", tag = "canary-v4.5.4" }
-snarkvm-wasm = { git = "https://github.com/ProvableHQ/snarkVM.git", tag = "canary-v4.5.4" }
