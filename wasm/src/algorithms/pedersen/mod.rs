@@ -24,7 +24,9 @@ pub use pedersen128::Pedersen128;
 mod tests {
     use super::*;
     use crate::{
-        Field, Group, Scalar,
+        Field,
+        Group,
+        Scalar,
         types::native::{Pedersen64Native, Pedersen128Native},
     };
     use snarkvm_console::algorithms::{Commit, CommitUncompressed, Hash, ToBits};

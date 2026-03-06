@@ -30,9 +30,19 @@ const DEVNODE_CERTIFICATE: &str =
     "certificate1qyqsqqqqqqqqqqxvwszp09v860w62s2l4g6eqf0kzppyax5we36957ywqm2dplzwvvlqg0kwlnmhzfatnax7uaqt7yqqqw0sc4u";
 
 use crate::{
-    KeyPair, PrivateKey, ProvingKey, RecordPlaintext, VerifyingKey, log,
+    KeyPair,
+    PrivateKey,
+    ProvingKey,
+    RecordPlaintext,
+    VerifyingKey,
+    log,
     types::native::{
-        CurrentNetwork, IdentifierNative, ProcessNative, ProgramIDNative, ProgramNative, ProvingKeyNative,
+        CurrentNetwork,
+        IdentifierNative,
+        ProcessNative,
+        ProgramIDNative,
+        ProgramNative,
+        ProvingKeyNative,
         VerifyingKeyNative,
     },
 };

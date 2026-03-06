@@ -22,16 +22,16 @@ export interface RequestSignInput {
 /**
  * Type representing the input to a MPC request.
  *
- * @property {string} function_id - The ID of the function the request is for serialized to Ed/BLS-377 base field elements.
- * @property {string} is_root - Field representation of a boolean indicating whether this is a top-level transition (i.e. "0field" or "1field").
+ * @property {string} functionId - The ID of the function the request is for serialized to Ed/BLS-377 base field elements.
+ * @property {string} isRoot - Field representation of a boolean indicating whether this is a top-level transition (i.e. "0field" or "1field").
  * @property {RequestSignInput[]} requestInputs - The inputs to the function being executed.
- * @property {string} [program_checksum] - The Ed/BLS-377 base field representation of the program checksum (for programs that contain constructors).
+ * @property {string} [checksum] - The Ed/BLS-377 base field representation of the program checksum (for programs that contain constructors).
  */
-export interface MPCInput{
-    function_id: string;
-    is_root: string;
+export interface MPCInput {
+    functionId: string;
+    isRoot: string;
     requestInputs: RequestSignInput[]
-    program_checksum?: string;
+    checksum?: string;
 }
 
 /**
@@ -40,6 +40,7 @@ export interface MPCInput{
  * @property {string} programName - The name of the program containing the function to execute.
  * @property {string} functionName - The name of the function to execute within the program.
  * @property {string[]} inputs - The inputs to the function being executed.
+ * @property {string[]} inputTypes - The input types of the function (e.g. ["address.public", "u64.public"]).
  * @property {boolean} isRoot - Whether this transition is the first transition being executed in a transaction.
  * @property {string} [checksum] - The optional checksum of the program, used to verify the program source code on the network matches the program source code used to generate the proof.
  */
@@ -47,7 +48,7 @@ export interface MPCOptions {
     programName: string;
     functionName: string;
     inputs: string[];
-    inputTypes: string,
+    inputTypes: string[],
     isRoot: boolean;
     checksum?: Field | null;
     viewKey?: ViewKey;

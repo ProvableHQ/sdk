@@ -15,7 +15,13 @@
 // along with the Provable SDK library. If not, see <https://www.gnu.org/licenses/>.
 
 use crate::{
-    Field, Group, Plaintext, ViewKey, from_js_typed_array, from_wasm_object_array, js_array_from_fields,
+    Field,
+    Group,
+    Plaintext,
+    ViewKey,
+    from_js_typed_array,
+    from_wasm_object_array,
+    js_array_from_fields,
     native::{CiphertextNative, CurrentNetwork, FieldNative, IdentifierNative, ProgramIDNative},
     to_bits_array_le,
 };
@@ -243,7 +249,9 @@ impl From<&Ciphertext> for CiphertextNative {
 mod tests {
     use super::*;
     use crate::{
-        PrivateKey, Transition, plaintext_to_js_value,
+        PrivateKey,
+        Transition,
+        plaintext_to_js_value,
         types::native::{CurrentNetwork, FieldNative, IdentifierNative},
         utilities::test::get_env,
     };

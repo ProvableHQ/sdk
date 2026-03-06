@@ -19,8 +19,21 @@ use crate::{from_js_typed_array, to_bits_array_le, types::native::*};
 use crate::Plaintext;
 use js_sys::{Array, Uint8Array};
 use snarkvm_console::prelude::{
-    AbsChecked, AbsWrapped, AddWrapped, DivWrapped, FromBits, FromBytes, FromField, FromFields, MulWrapped, Pow, Rem,
-    RemWrapped, SubWrapped, ToBits, ToBytes,
+    AbsChecked,
+    AbsWrapped,
+    AddWrapped,
+    DivWrapped,
+    FromBits,
+    FromBytes,
+    FromField,
+    FromFields,
+    MulWrapped,
+    Pow,
+    Rem,
+    RemWrapped,
+    SubWrapped,
+    ToBits,
+    ToBytes,
 };
 use std::{ops::Deref, str::FromStr};
 use wasm_bindgen::prelude::*;

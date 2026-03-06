@@ -15,9 +15,16 @@
 // along with the Provable SDK library. If not, see <https://www.gnu.org/licenses/>.
 
 use crate::{
-    Address, Ciphertext, Field, Scalar, from_js_typed_array, from_wasm_object_array, js_array_from_fields,
+    Address,
+    Ciphertext,
+    Field,
+    Scalar,
+    from_js_typed_array,
+    from_wasm_object_array,
+    js_array_from_fields,
     native::{FieldNative, LiteralNative, U8Native},
-    plaintext_to_js_value, to_bits_array_le,
+    plaintext_to_js_value,
+    to_bits_array_le,
     types::native::{IdentifierNative, PlaintextNative},
 };
 use snarkvm_console::prelude::{FromBits, FromBytes, FromFields, ToBits, ToBitsRaw, ToBytes, ToFields, ToFieldsRaw};

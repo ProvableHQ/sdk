@@ -15,10 +15,24 @@
 // along with the Provable SDK library. If not, see <https://www.gnu.org/licenses/>.
 
 use crate::{
-    Address, Field, GraphKey, Group, PrivateKey, Signature, ViewKey, object,
+    Address,
+    Field,
+    GraphKey,
+    Group,
+    PrivateKey,
+    Signature,
+    ViewKey,
+    object,
     types::native::{
-        CurrentNetwork, FieldNative, IdentifierNative, ProgramIDNative, RecordPlaintextNative, RequestNative,
-        U16Native, ValueNative, ValueTypeNative,
+        CurrentNetwork,
+        FieldNative,
+        IdentifierNative,
+        ProgramIDNative,
+        RecordPlaintextNative,
+        RequestNative,
+        U16Native,
+        ValueNative,
+        ValueTypeNative,
     },
 };
 use snarkvm_console::{
@@ -286,8 +300,7 @@ impl ExecutionRequest {
 
             let request_sign_input = object! {
                 "index": index_field.to_string(),
-                "fields": fields_array,
-                "data": input.to_string(),
+                "data": fields_array,
             };
 
             match &input_type {
@@ -364,14 +377,15 @@ impl ExecutionRequest {
                 Reflect::set(&request_sign_input, &JsValue::from_str("h"), &JsValue::from_str(&h))
                     .map_err(|_| "Failed to set outputType".to_string())?;
             }
+            input_data.push(&request_sign_input);
         }
 
         // Return the serialized input data.
         Ok(object! {
             "function_id": JsValue::from(&function_id.to_string()),
-            "is_root": JsValue::from(&is_root_field.to_string()),
-            "program_checksum": program_checksum.map(|checksum| JsValue::from(&checksum.to_string())),
-            "inputs": input_data,
+            "isRoot": JsValue::from(&is_root_field.to_string()),
+            "checksum": program_checksum.map(|checksum| JsValue::from(&checksum.to_string())),
+            "requestInputs": input_data,
         })
     }
 }
@@ -405,5 +419,173 @@ impl From<ExecutionRequest> for RequestNative {
 impl From<&ExecutionRequest> for RequestNative {
     fn from(request: &ExecutionRequest) -> Self {
         request.0.clone()
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use js_sys::Reflect;
+    use wasm_bindgen::JsValue;
+    use wasm_bindgen_test::*;
+
+    /// Test vectors from program-manager.test.ts: transfer_public with address + u64.
+    const PRIVATE_KEY_STR: &str = "APrivateKey1zkp7Vc4xJt8HqW9U7VhY6h32d8Z9Xi5C6ZZX3gtXxbBSJmj";
+    const TRANSFER_PUBLIC_INPUTS: [&str; 2] =
+        ["aleo1rhgdu77hgyqd3xjj8ucu3jj9r2krwz6mnzyd80gncr5fxcwlh5rsvzp9px", "100u64"];
+    const TRANSFER_PUBLIC_INPUT_TYPES: [&str; 2] = ["address.public", "u64.public"];
+
+    #[wasm_bindgen_test]
+    fn test_execution_request_sign_and_accessors() {
+        let private_key = PrivateKey::from_string(PRIVATE_KEY_STR).unwrap();
+        let inputs = crate::array![TRANSFER_PUBLIC_INPUTS[0].to_string(), TRANSFER_PUBLIC_INPUTS[1].to_string()];
+        let input_types =
+            crate::array![TRANSFER_PUBLIC_INPUT_TYPES[0].to_string(), TRANSFER_PUBLIC_INPUT_TYPES[1].to_string()];
+
+        let request = ExecutionRequest::sign(
+            private_key,
+            "credits.aleo".to_string(),
+            "transfer_public".to_string(),
+            inputs,
+            input_types,
+            None,
+            None,
+            true,
+        )
+        .expect("sign should succeed");
+
+        assert_eq!(request.program_id(), "credits.aleo");
+        assert_eq!(request.function_name(), "transfer_public");
+        assert_eq!(request.network_id(), CurrentNetwork::ID);
+        assert_eq!(request.inputs().length(), 2);
+        assert_eq!(request.input_ids().length(), 2);
+    }
+
+    #[wasm_bindgen_test]
+    fn test_execution_request_verify() {
+        let private_key = PrivateKey::from_string(PRIVATE_KEY_STR).unwrap();
+        let inputs = crate::array![TRANSFER_PUBLIC_INPUTS[0].to_string(), TRANSFER_PUBLIC_INPUTS[1].to_string()];
+        let input_types =
+            crate::array![TRANSFER_PUBLIC_INPUT_TYPES[0].to_string(), TRANSFER_PUBLIC_INPUT_TYPES[1].to_string()];
+
+        let request = ExecutionRequest::sign(
+            private_key,
+            "credits.aleo".to_string(),
+            "transfer_public".to_string(),
+            inputs,
+            input_types.clone(),
+            None,
+            None,
+            true,
+        )
+        .expect("sign should succeed");
+
+        let valid = request.verify(input_types, true, None);
+        assert!(valid, "verify should pass for matching input types and is_root");
+    }
+
+    #[wasm_bindgen_test]
+    fn test_compute_mpc_inputs_transfer_public() {
+        // Build the inputs and input types.
+        let inputs = crate::array![TRANSFER_PUBLIC_INPUTS[0].to_string(), TRANSFER_PUBLIC_INPUTS[1].to_string()];
+        let input_types =
+            crate::array![TRANSFER_PUBLIC_INPUT_TYPES[0].to_string(), TRANSFER_PUBLIC_INPUT_TYPES[1].to_string()];
+
+        // Compute the MPC inputs.
+        let result = ExecutionRequest::compute_mpc_inputs(
+            "credits.aleo".to_string(),
+            "transfer_public".to_string(),
+            inputs,
+            input_types,
+            true,
+            None,
+            None,
+        )
+        .expect("compute_mpc_inputs should succeed");
+
+        // Check the function ID.
+        let function_id = Reflect::get(&result, &JsValue::from_str("function_id"))
+            .ok()
+            .and_then(|v| v.as_string())
+            .expect("function_id should be a string");
+        assert!(!function_id.is_empty());
+        let expected_function_id = compute_function_id(
+            &U16Native::new(CurrentNetwork::ID),
+            &ProgramIDNative::from_str("credits.aleo").unwrap(),
+            &IdentifierNative::from_str("transfer_public").unwrap(),
+        )
+        .unwrap();
+        assert_eq!(function_id, expected_function_id.to_string());
+
+        // Check the isRoot is correct.
+        let is_root = Reflect::get(&result, &JsValue::from_str("isRoot"))
+            .ok()
+            .and_then(|v| v.as_string())
+            .expect("isRoot should be a string");
+        assert_eq!(is_root, "1field", "isRoot should be 1field when true");
+
+        // Check the checksum is correct.
+        let checksum = Reflect::get(&result, &JsValue::from_str("checksum")).ok();
+        assert!(checksum.is_some());
+        let checksum = checksum.unwrap();
+        assert!(checksum.is_undefined() || checksum.is_null());
+
+        // Check the request inputs.
+        let request_inputs =
+            Reflect::get(&result, &JsValue::from_str("requestInputs")).expect("requestInputs should be present");
+        let request_inputs_array = js_sys::Array::from(&request_inputs);
+        assert_eq!(request_inputs_array.length(), 2, "requestInputs should have length 2 for two inputs");
+
+        // Check the output type of the first input.
+        let first_input = Reflect::get(&request_inputs_array, &JsValue::from(0u32)).unwrap();
+        let second_input = Reflect::get(&request_inputs_array, &JsValue::from(1u32)).unwrap();
+        let output_type = Reflect::get(&first_input, &JsValue::from_str("outputType"))
+            .ok()
+            .and_then(|v| v.as_string())
+            .expect("outputType should be present");
+        assert_eq!(output_type, "public");
+        let index = Reflect::get(&first_input, &JsValue::from_str("index"))
+            .ok()
+            .and_then(|v| v.as_string())
+            .expect("index should be present");
+        assert_eq!(index, "0field");
+        let data = Reflect::get(&first_input, &JsValue::from_str("data")).unwrap();
+        let data_array = js_sys::Array::from(&data);
+        assert!(data_array.length() >= 1, "data should be a non-empty array of fields");
+
+        // Check the output type of the second input.
+        let output_type = Reflect::get(&second_input, &JsValue::from_str("outputType"))
+            .ok()
+            .and_then(|v| v.as_string())
+            .expect("outputType should be present");
+        assert_eq!(output_type, "public");
+        let index = Reflect::get(&second_input, &JsValue::from_str("index"))
+            .ok()
+            .and_then(|v| v.as_string())
+            .expect("index should be present");
+        assert_eq!(index, "1field");
+        let data = Reflect::get(&second_input, &JsValue::from_str("data")).unwrap();
+        let data_array = js_sys::Array::from(&data);
+        assert!(data_array.length() >= 1, "data should be a non-empty array of fields");
+    }
+
+    #[wasm_bindgen_test]
+    fn test_compute_mpc_inputs_input_types_inputs_length_mismatch() {
+        let inputs = crate::array!["aleo1rhgdu77hgyqd3xjj8ucu3jj9r2krwz6mnzyd80gncr5fxcwlh5rsvzp9px"];
+        let input_types = crate::array!["address.public", "u64.public"];
+
+        let result = ExecutionRequest::compute_mpc_inputs(
+            "credits.aleo".to_string(),
+            "transfer_public".to_string(),
+            inputs,
+            input_types,
+            true,
+            None,
+            None,
+        );
+
+        assert!(result.is_err());
+        let err = result.unwrap_err();
+        assert!(err.contains("same length"), "expected error about input_types and inputs length");
     }
 }

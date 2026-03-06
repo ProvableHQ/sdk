@@ -15,7 +15,14 @@
 // along with the Provable SDK library. If not, see <https://www.gnu.org/licenses/>.
 
 use crate::{
-    Field, Group, RecordCiphertext, RecordPlaintext, ViewKey, input_to_js_value, object, output_to_js_value,
+    Field,
+    Group,
+    RecordCiphertext,
+    RecordPlaintext,
+    ViewKey,
+    input_to_js_value,
+    object,
+    output_to_js_value,
     types::native::{CurrentNetwork, FieldNative, InputNative, OutputNative, TransitionNative, U16Native},
 };
 use snarkvm_console::{

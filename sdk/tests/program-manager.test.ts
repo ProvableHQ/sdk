@@ -472,84 +472,70 @@ describe('Program Manager', async () => {
         });
     });
 
-    describe('Program Manager public message signing example', () => {
-        it('Should sign a public message and return the expected fields', async () => {
-            const privateKey = PrivateKey.from_string(
-                "APrivateKey1zkp7Vc4xJt8HqW9U7VhY6h32d8Z9Xi5C6ZZX3gtXxbBSJmj"
-            );
-            const inputs = ["aleo1rhgdu77hgyqd3xjj8ucu3jj9r2krwz6mnzyd80gncr5fxcwlh5rsvzp9px", "100u64"];
+    describe('Program Manager public message signing (computeMPCInputs)', () => {
+        const privateKeyStr = "APrivateKey1zkp7Vc4xJt8HqW9U7VhY6h32d8Z9Xi5C6ZZX3gtXxbBSJmj";
+        const transferPublicInputs = [
+            "aleo1rhgdu77hgyqd3xjj8ucu3jj9r2krwz6mnzyd80gncr5fxcwlh5rsvzp9px",
+            "100u64",
+        ];
+        const transferPublicInputTypes = ["address.public", "u64.public"];
+
+        it('Should compute MPC inputs and return MPCInput shape (functionId, isRoot, requestInputs, checksum)', async () => {
             const mpcInputs = await programManager.computeMPCInputs({
                 programName: "credits.aleo",
                 functionName: "transfer_public",
-                inputs,
+                inputs: transferPublicInputs,
+                inputTypes: transferPublicInputTypes,
                 isRoot: true,
-                checksum: null
+                checksum: null,
             });
-            expect(mpcInputs).to.be.an("array").with.lengthOf(4);
-            const [functionID, isRoot, checksum, inputData] = mpcInputs;
-            expect(functionID).to.be.instanceOf(Field);
-            expect(isRoot).to.be.instanceOf(Field);
-            expect(checksum).to.be.null;
-            expect(inputData).to.be.an("array").with.lengthOf(2);
 
-            expect (inputData[0][0]).to.be.instanceOf(Field);
-            expect (inputData[0][1]).to.be.an("array").with.lengthOf(2);
+            expect(mpcInputs).to.be.an("object");
+            expect(mpcInputs).to.have.property("functionId");
+            expect(mpcInputs).to.have.property("isRoot");
+            expect(mpcInputs).to.have.property("requestInputs");
+            expect(mpcInputs.functionId).to.be.a("string");
+            expect(mpcInputs.functionId.length).to.be.greaterThan(0);
+            expect(mpcInputs.functionId).to.match(/field$/);
+            expect(mpcInputs.isRoot).to.equal("1field");
+            expect(mpcInputs.checksum).to.satisfy((v: unknown) => v === null || v === undefined);
+            expect(mpcInputs.requestInputs).to.be.an("array").with.lengthOf(2);
 
-            expect(isRoot.toString()).equal("1field");
+            const [firstInput, secondInput] = mpcInputs.requestInputs;
+            expect(firstInput).to.have.property("outputType", "public");
+            expect(firstInput).to.have.property("index", "0field");
+            expect(firstInput).to.have.property("data").that.is.an("array");
+            expect(firstInput.data.length).to.be.greaterThan(0);
+            expect(secondInput).to.have.property("outputType", "public");
+            expect(secondInput).to.have.property("index", "1field");
+            expect(secondInput).to.have.property("data").that.is.an("array");
+        });
 
-            // Debug: sign a request, serialize to JSON, and print to compare with dummy format.
+        it('Should match ExecutionRequest.sign for same program/function/inputs', async () => {
+            const privateKey = PrivateKey.from_string(privateKeyStr);
+            const mpcInputs = await programManager.computeMPCInputs({
+                programName: "credits.aleo",
+                functionName: "transfer_public",
+                inputs: transferPublicInputs,
+                inputTypes: transferPublicInputTypes,
+                isRoot: true,
+                checksum: null,
+            });
+
             const signedRequest = ExecutionRequest.sign(
                 privateKey,
                 "credits.aleo",
                 "transfer_public",
-                inputs,
-                ["address.public", "u64.public"],
+                transferPublicInputs,
+                transferPublicInputTypes,
                 undefined,
                 undefined,
                 true,
             );
-            const signedRequestJson = signedRequest.toString();
-            // console.log("Signed ExecutionRequest JSON:", signedRequestJson);
-            const signedRequestObject = JSON.parse(signedRequestJson);
-
-            // *** placeholder: call into MPC backend to compute the actual signature ***
-
-            // Build a full Request object for fromString (mpcInputs alone is insufficient).
-            const requestObject = {
-                signer: signedRequestObject.signer,
-                network: "1u16",
-                program: "credits.aleo",
-                function: "transfer_public",
-                input_ids: inputData.map((entry: [Field, Field[]]) => ({
-                    type: "public",
-                    id: (entry[1].length > 0 ? entry[1][0] : Field.fromString("0field")).toString(),
-                })),
-                inputs,
-                signature: "sign1xf53lt5wp9g88h6s65uct4ps7te4p2a3fxt9lnj4mpuflltw9yqrxn4mslff0z7rehgher4s68pmcar9ul28c97kp2qsr8ar6ftfzpqmvqrdssu9887su5jga24rxwjhf9lt5lhk7zd2uqvc6w4stclkzxgnhkd24nmz0l050ejcf8e4tjugy8hrglglean3rne7c9907usqg287l48",
-                sk_tag: "2144000044487675699943863713399449890250265206946356501814694425669196043682field",
-                tvk: "2144000044487675699943863713399449890250265206946356501814694425669196043682field",
-                tcm: "2144000044487675699943863713399449890250265206946356501814694425669196043682field",
-                scm: "2144000044487675699943863713399449890250265206946356501814694425669196043682field",
-            };
-            console.log("Request Object:", JSON.stringify(requestObject));
-            const executionRequest = ExecutionRequest.fromString(JSON.stringify(requestObject));
-
-            // TODO: this will only pass with an actual valid signature.
-            // Ensure the execution request is valid.
-            // const provingRequest = await programManager.provingRequest({
-            //     programName: "credits.aleo",
-            //     functionName: "transfer_public",
-            //     priorityFee: 0,
-            //     privateFee: false,
-            //     inputs,
-            //     broadcast: false,
-            //     executionRequest,
-            //     privateKey,
-            // });
-            // const authorization = provingRequest.authorization();
-            // expect(authorization.len()).equal(1);
-            // expect(authorization.transitions().length).equal(1);
-            // expect(provingRequest.feeAuthorization()).equal(undefined);
+            expect(signedRequest.program_id()).to.equal("credits.aleo");
+            expect(signedRequest.function_name()).to.equal("transfer_public");
+            expect(signedRequest.inputs().length).to.equal(2);
+            expect(mpcInputs.requestInputs.length).to.equal(signedRequest.inputs().length);
         });
     });
 
