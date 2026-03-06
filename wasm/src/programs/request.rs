@@ -17,14 +17,17 @@
 use crate::{
     Address,
     Field,
+    GraphKey,
     Group,
     PrivateKey,
     Signature,
+    ViewKey,
     types::native::{
         CurrentNetwork,
         FieldNative,
         IdentifierNative,
         ProgramIDNative,
+        RecordPlaintextNative,
         RequestNative,
         U16Native,
         ValueNative,
@@ -241,9 +244,11 @@ impl ExecutionRequest {
     pub fn compute_mpc_inputs(
         program_id: String,
         function_name: String,
+        input_types: Array,
         inputs: Array,
         is_root: bool,
         program_checksum: Option<Field>,
+        view_key: Option<ViewKey>,
     ) -> Result<Array, String> {
         // Convert the ProgramID and function name to their native objects.
         let program_id = ProgramIDNative::from_str(&program_id).map_err(|e| e.to_string())?;
@@ -261,11 +266,24 @@ impl ExecutionRequest {
 
         // Build the per-input data array.
         let input_data = Array::new();
-        for (index, input_js) in inputs.iter().enumerate() {
+
+        // Zip types and values together, verifying lengths match.
+        let input_type_strs: Vec<JsValue> = input_types.iter().collect();
+        let input_strs: Vec<JsValue> = inputs.iter().collect();
+        if input_type_strs.len() != input_strs.len() {
+            return Err("input_types and inputs must have the same length".to_string());
+        }
+
+        for (index, (input_type_js, input_js)) in input_type_strs.iter().zip(input_strs.iter()).enumerate() {
+            // Parse the input types.
+            let input_type = ValueTypeNative::from_str(
+                &input_type_js.as_string().ok_or_else(|| "Input type must be a string".to_string())?
+            ).map_err(|e| e.to_string())?;
+
             // Parse the input value.
-            let input =
-                ValueNative::from_str(&input_js.as_string().ok_or_else(|| "Input must be a string".to_string())?)
-                    .map_err(|e| e.to_string())?;
+            let input = ValueNative::from_str(
+                &input_js.as_string().ok_or_else(|| "Input must be a string".to_string())?
+            ).map_err(|e| e.to_string())?;
 
             // Compute the index as a field element.
             let index_field = Field::from(FieldNative::from_u16(
@@ -275,9 +293,48 @@ impl ExecutionRequest {
             // Serialize the input as fields.
             let fields_array: Array =
                 input.to_fields().map_err(|e| e.to_string())?.iter().map(|f| JsValue::from(Field::from(f))).collect();
+            
+            // Placeholder variable for a record or struct name.
+            let mut name: Option<String> = None;
+
+            // Placeholder variable for the h value of a record input.
+            let mut h_value: Option<Field> = None;
+
+            // Placeholder variable for the record tag.
+            let mut tag_value: Option<Field> = None;
+
+            // Handle the record-specific fields for record inputs.
+            if let ValueTypeNative::Record(record_name) = &input_type {
+                name = Some(record_name.to_string());
+                if let (ValueNative::Record(record_input), Some(vk)) = (input, view_key.as_ref()) {
+                    // Compute the sk_tag from the view key.
+                    let sk_tag = GraphKey::from_view_key(vk).sk_tag();
+                    let record_view_key = (*record_input.nonce() * ***vk).to_x_coordinate();
+                    // Compute the commitment for the record input.
+                    let commitment = record_input.to_commitment(&program_id, record_name, &record_view_key).map_err(|e| e.to_string())?;
+                    // Compute the tag for the record input.
+                    let tag = RecordPlaintextNative::tag(*sk_tag, commitment).map_err(|e| e.to_string())?;
+                    tag_value = Some(Field::from(tag));
+                    // Compute the h value.
+                    let group = CurrentNetwork::hash_to_group_psd2(&[
+                        CurrentNetwork::serial_number_domain(),
+                        commitment,
+                    ]).map_err(|e| e.to_string())?;
+                    h_value = Some(Field::from(group.to_x_coordinate()));
+                }
+            }
 
             // Build the [index, fields] pair and add to input_data.
-            input_data.push(&Array::of2(&JsValue::from(index_field), &fields_array));
+            let entry = Array::new();
+
+            entry.push(&JsValue::from_str(&input_type.to_string()));
+            entry.push(&JsValue::from(index_field));
+            entry.push(&fields_array);
+            entry.push(&JsValue::from(name.unwrap_or_default()));
+            entry.push(&JsValue::from(h_value.unwrap_or_else(|| Field::zero())));
+            entry.push(&JsValue::from(tag_value.unwrap_or_else(|| Field::zero())));
+
+            input_data.push(&entry);
         }
 
         // Build the result array.
