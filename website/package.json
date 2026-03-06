@@ -19,7 +19,7 @@
         "@codemirror/language": "^6.10.8",
         "@codemirror/legacy-modes": "^6.4.2",
         "@codemirror/stream-parser": "^0.19.9",
-        "@provablehq/sdk": "^0.9.16",
+        "@provablehq/sdk": "^0.9.17",
         "@uiw/codemirror-theme-noctis-lilac": "^4.23.7",
         "@uiw/codemirror-theme-okaidia": "^4.23.7",
         "@uiw/react-codemirror": "^4.23.7",
