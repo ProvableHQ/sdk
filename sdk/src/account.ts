@@ -11,6 +11,7 @@ import {
   RecordCiphertext,
   RecordPlaintext,
 } from "./wasm.js";
+import { zeroizeBytes } from "./security.js";
 
 interface AccountParam {
   privateKey?: string | PrivateKey;
@@ -129,7 +130,7 @@ export class Account {
       // creating an immutable JS string of the private key.
       const bytes = params.privateKey.toBytesLe();
       const pk = PrivateKey.fromBytesLe(bytes);
-      bytes.fill(0); // Zeroize the intermediate byte array
+      zeroizeBytes(bytes);
       return pk;
     }
     return new PrivateKey();

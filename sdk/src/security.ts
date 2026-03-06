@@ -65,8 +65,8 @@ export function encryptRegistrationRequest(publicKey: string, viewKey: ViewKey, 
     const result = encryptMessage(publicKey, bytes);
 
     // Zeroize sensitive intermediate byte arrays.
-    vk_bytes.fill(0);
-    bytes.fill(0);
+    zeroizeBytes(vk_bytes);
+    zeroizeBytes(bytes);
 
     return result;
 }
