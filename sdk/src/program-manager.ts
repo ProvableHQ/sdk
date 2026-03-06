@@ -191,7 +191,7 @@ interface ProvingRequestOptions {
     functionName: string;
     priorityFee: number;
     privateFee: boolean;
-    inputs: string[];
+    inputs?: string[];
     baseFee?: number;
     recordSearchParams?: RecordSearchParams;
     feeRecord?: string | RecordPlaintext;
@@ -1410,6 +1410,10 @@ class ProgramManager {
         let imports = options.programImports;
         let edition = options.edition;
 
+        if (!inputs && !options.executionRequest) {
+            throw new Error("Either function inputs or an execution request must be provided to form a proving request");
+        }
+
         // Ensure the function exists on the network.
         if (program === undefined) {
             try {
@@ -1502,8 +1506,13 @@ class ProgramManager {
             )
         } else {
             // Ensure the private key exists.
-            if (typeof executionPrivateKey === "undefined") {
-                throw "No private key provided and no private key set in the ProgramManager";
+            if (!executionPrivateKey) {
+                throw new Error("No private key provided and no private key set in the ProgramManager");
+            }
+
+            // Ensure the inputs exist.
+            if (!inputs) {
+                throw new Error("No inputs provided to build a proving request");
             }
 
             // Build and return the `ProvingRequest`.
