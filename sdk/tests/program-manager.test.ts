@@ -31,7 +31,7 @@ import {
     stateRootv0,
 } from "./data/account-data.js";
 import { IMPORT_1, IMPORT_2, MINT_VERIFYING_KEY, PROGRAM, SPEND_VERIFYING_KEY, SPIN_VERIFYING_KEY } from "./data/program.js";
-import { RECORD_PLAINTEXT_V1_STRING } from "./data/records";
+import { RECORD_PLAINTEXT_V1_STRING, CREDITS_RECORD_V1 } from "./data/records";
 import { expect } from "chai";
 import {
     PUZZLE_SPINNER_PROGRAM_ID,
@@ -547,6 +547,48 @@ describe('Program Manager', async () => {
             expect(signedRequest.function_name()).to.equal("transfer_public");
             expect(signedRequest.inputs().length).to.equal(2);
             expect(mpcInputs.requestInputs.length).to.equal(signedRequest.inputs().length);
+        });
+
+        it('Should compute MPC inputs and return MPCInput shape for private transfer', async () => {
+            const record = CREDITS_RECORD_V1;
+            const transferPrivateInputs = [
+            record,
+            "aleo1rhgdu77hgyqd3xjj8ucu3jj9r2krwz6mnzyd80gncr5fxcwlh5rsvzp9px",
+            "100u64",
+            ];
+            const transferPrivateInputTypes = ["credits.record", "address.private", "u64.private"];
+            const mpcInputs = await programManager.computeMPCInputs({
+                programName: "credits.aleo",
+                functionName: "transfer_private",
+                inputs: transferPrivateInputs,
+                inputTypes: transferPrivateInputTypes,
+                isRoot: true,
+                checksum: null,
+            })
+
+            expect(mpcInputs).to.be.an("object");
+            expect(mpcInputs).to.have.property("functionId");
+            expect(mpcInputs).to.have.property("isRoot");
+            expect(mpcInputs).to.have.property("requestInputs");
+            expect(mpcInputs.functionId).to.be.a("string");
+            expect(mpcInputs.functionId.length).to.be.greaterThan(0);
+            expect(mpcInputs.functionId).to.match(/field$/);
+            expect(mpcInputs.isRoot).to.equal("1field");
+            expect(mpcInputs.checksum).to.satisfy((v: unknown) => v === null || v === undefined);
+            expect(mpcInputs.requestInputs).to.be.an("array").with.lengthOf(3);
+
+            const [firstInput, secondInput, thirdInput] = mpcInputs.requestInputs;
+            expect(firstInput).to.have.property("outputType", "record");
+            expect(firstInput).to.have.property("index", "0field");
+            expect(firstInput).to.have.property("data").that.is.an("array");
+            expect(firstInput.data.length).to.be.greaterThan(0);
+            expect(secondInput).to.have.property("outputType", "private");
+            expect(secondInput).to.have.property("index", "1field");
+            expect(secondInput).to.have.property("data").that.is.an("array");
+            expect(thirdInput).to.have.property("outputType", "private");
+            expect(thirdInput).to.have.property("index", "2field");
+            expect(thirdInput).to.have.property("data").that.is.an("array");
+
         });
     });
 
