@@ -589,7 +589,27 @@ describe('Program Manager', async () => {
             expect(thirdInput).to.have.property("index", "2field");
             expect(thirdInput).to.have.property("data").that.is.an("array");
 
+            // Assert each request input's field representation round-trips through Plaintext (fromFields -> toFields -> string).
+            const assertFieldsRoundTripThroughPlaintext = (fieldStrings: string[], expectedString: string) => {
+                const fields = fieldStrings.map((s: string) => Field.fromString(s));
+                const plaintext = Plaintext.fromFields(fields);
+                const backFields = plaintext.toFields();
+                const backStrings = Array.from(backFields).map((f: Field) => f.toString());
+                expect(backStrings).to.deep.equal(fieldStrings);
+                expect(plaintext.toString()).to.equal(expectedString);
+            };
+            // // Assert each request input's field representation round-trips through RecordPlaintext (fromFields -> toFields -> string).
+            // const assertFieldsRoundTripThroughRecordPlaintext = (fieldStrings: string[], expectedString: string) => {
+            //     const fields = fieldStrings.map((s: string) => Field.fromString(s));
+            //     const plaintext = RecordPlaintext.fromFields(fields);
+            //     const backFields = plaintext.toFields();
+            //     const backStrings = Array.from(backFields).map((f: Field) => f.toString());
+            //     expect(backStrings).to.deep.equal(fieldStrings);
+            //     expect(plaintext.toString()).to.equal(expectedString);
+            // };
+            // assertFieldsRoundTripThroughRecordPlaintext(firstInput.data, transferPrivateInputs[0]);
+            assertFieldsRoundTripThroughPlaintext(secondInput.data, transferPrivateInputs[1]);
+            assertFieldsRoundTripThroughPlaintext(thirdInput.data, transferPrivateInputs[2]);
         });
     });
-
 });
