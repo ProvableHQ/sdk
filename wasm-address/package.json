@@ -10,7 +10,10 @@
   "main": "./dist/aleo_wasm_address.js",
   "types": "./dist/index.d.ts",
   "exports": {
-    ".": "./dist/aleo_wasm_address.js"
+    ".": {
+      "types": "./dist/index.d.ts",
+      "default": "./dist/aleo_wasm_address.js"
+    }
   },
   "files": [
     "dist",

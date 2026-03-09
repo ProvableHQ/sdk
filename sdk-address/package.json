@@ -7,10 +7,15 @@
   ],
   "license": "GPL-3.0",
   "type": "module",
-  "main": "./dist/address.js",
-  "types": "./dist/address.d.ts",
+  "main": "./dist/node/address.js",
+  "types": "./dist/browser/address.d.ts",
   "exports": {
-    ".": "./dist/address.js"
+    ".": {
+      "browser": "./dist/browser/address.js",
+      "deno": "./dist/browser/address.js",
+      "node": "./dist/node/address.js",
+      "default": "./dist/browser/address.js"
+    }
   },
   "files": [
     "dist",

@@ -44,10 +44,10 @@ async function build() {
         entryFileNames: "[name].js",
     });
 
-    await $fs.writeFile("dist/index.d.ts", `export * from "./aleo_wasm_address.js";\n`);
+    await $fs.writeFile("dist/index.d.ts", `export * from "./account_tools";\n`);
+
 }
 
-
-console.time("Building wasm-address");
+console.time("Building wasm-account-tools");
 await build();
-console.timeEnd("Building wasm-address");
+console.timeEnd("Building-account-tools");

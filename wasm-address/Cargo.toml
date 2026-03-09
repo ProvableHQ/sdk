@@ -1,5 +1,5 @@
 [package]
-name = "account-tools-wasm"
+name = "account-tools"
 version = "0.9.16"
 authors = ["The Provable Team"]
 description = "Minimal WebAssembly bindings for Aleo address operations"
