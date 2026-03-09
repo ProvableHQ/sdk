@@ -30,15 +30,17 @@ use crate::{
         ProgramIDNative,
         RecordPlaintextNative,
         RequestNative,
+        SignatureNative,
         U16Native,
         ValueNative,
         ValueTypeNative,
+        ViewKeyNative,
     },
 };
 use snarkvm_console::{
     network::Network,
     prelude::{One, ToFields, Zero},
-    program::compute_function_id,
+    program::{compute_function_id, InputID},
 };
 use snarkvm_wasm::utilities::{FromBytes, ToBytes};
 
@@ -212,6 +214,229 @@ impl ExecutionRequest {
         .map_err(|e| e.to_string())?;
 
         // Return the execution request.
+        Ok(ExecutionRequest(request))
+    }
+
+    /// Builds a request from MPC options and MPC-signed fields, computing `sk_tag` and `scm` internally.
+    ///
+    /// For record inputs, the caller must provide the record input IDs (which require `sk_sig` to compute).
+    /// These can be obtained from a signed request's `input_ids()` or from the MPC output.
+    ///
+    /// @param {string} program_id The id of the program.
+    /// @param {string} function_name The function name.
+    /// @param {string[]} inputs The inputs to the function.
+    /// @param {string[]} input_types The input types of the function.
+    /// @param {boolean} is_root Flag to indicate if this is the top level function in the call graph.
+    /// @param {Field | undefined} program_checksum The program checksum (required if the program has a constructor).
+    /// @param {Signature} signature The MPC-computed signature.
+    /// @param {Field} tvk The transition view key.
+    /// @param {Field} tcm The transition commitment.
+    /// @param {ViewKey} view_key The view key of the signer.
+    /// @param {string | undefined} record_input_ids_json JSON string of record input ID array (one per record input, in order).
+    ///        Required when inputs include records. E.g. '["{\"type\":\"record\",...}"]'. Each element is the JSON representation of InputID::Record.
+    #[wasm_bindgen(js_name = "fromMPC")]
+    #[allow(clippy::too_many_arguments)]
+    pub fn from_mpc(
+        program_id: String,
+        function_name: String,
+        inputs: Array,
+        input_types: Array,
+        _is_root: bool,
+        _program_checksum: Option<Field>,
+        signature: Signature,
+        tvk: Field,
+        tcm: Field,
+        view_key: ViewKey,
+        record_input_ids_json: Option<String>,
+    ) -> Result<ExecutionRequest, String> {
+        let signature_native = *signature;
+        let tvk_native = FieldNative::from(tvk);
+        let tcm_native = FieldNative::from(tcm);
+        let view_key_native = *view_key;
+        Self::from_mpc_impl(
+            program_id,
+            function_name,
+            inputs,
+            input_types,
+            _is_root,
+            _program_checksum,
+            signature_native,
+            tvk_native,
+            tcm_native,
+            view_key_native,
+            record_input_ids_json,
+        )
+    }
+
+    /// Same as fromMPC but takes string representations for signature, tvk, tcm, and view_key.
+    /// Use this when passing wasm objects causes "null pointer passed to rust" (e.g. across worker boundaries).
+    #[wasm_bindgen(js_name = "fromMPCWithStrings")]
+    #[allow(clippy::too_many_arguments)]
+    pub fn from_mpc_with_strings(
+        program_id: String,
+        function_name: String,
+        inputs: Array,
+        input_types: Array,
+        _is_root: bool,
+        _program_checksum: Option<Field>,
+        signature_str: String,
+        tvk_str: String,
+        tcm_str: String,
+        view_key_str: String,
+        record_input_ids_json: Option<String>,
+    ) -> Result<ExecutionRequest, String> {
+        let signature_native = SignatureNative::from_str(&signature_str).map_err(|e| e.to_string())?;
+        let tvk_native = FieldNative::from_str(&tvk_str).map_err(|e| e.to_string())?;
+        let tcm_native = FieldNative::from_str(&tcm_str).map_err(|e| e.to_string())?;
+        let view_key_native = ViewKeyNative::from_str(&view_key_str).map_err(|e| e.to_string())?;
+        Self::from_mpc_impl(
+            program_id,
+            function_name,
+            inputs,
+            input_types,
+            _is_root,
+            _program_checksum,
+            signature_native,
+            tvk_native,
+            tcm_native,
+            view_key_native,
+            record_input_ids_json,
+        )
+    }
+
+    fn from_mpc_impl(
+        program_id: String,
+        function_name: String,
+        inputs: Array,
+        input_types: Array,
+        _is_root: bool,
+        _program_checksum: Option<Field>,
+        signature_native: SignatureNative,
+        tvk_native: FieldNative,
+        tcm_native: FieldNative,
+        view_key_native: ViewKeyNative,
+        record_input_ids_json: Option<String>,
+    ) -> Result<ExecutionRequest, String> {
+        let program_id = ProgramIDNative::from_str(&program_id).map_err(|e| e.to_string())?;
+        let function_name = IdentifierNative::from_str(&function_name).map_err(|e| e.to_string())?;
+
+        let inputs: Vec<ValueNative> = inputs
+            .iter()
+            .map(|input| {
+                ValueNative::from_str(&input.as_string().unwrap()).map_err(|e| e.to_string())
+            })
+            .collect::<Result<Vec<_>, _>>()?;
+
+        let input_types: Vec<ValueTypeNative> = input_types
+            .iter()
+            .map(|input_type| {
+                ValueTypeNative::from_str(&input_type.as_string().unwrap()).map_err(|e| e.to_string())
+            })
+            .collect::<Result<Vec<_>, _>>()?;
+
+        if input_types.len() != inputs.len() {
+            return Err("input_types and inputs must have the same length".to_string());
+        }
+
+        let signer = crate::types::native::AddressNative::try_from(&view_key_native).map_err(|e| e.to_string())?;
+        let sk_tag = crate::types::native::GraphKeyNative::try_from(view_key_native).map_err(|e| e.to_string())?.sk_tag();
+        let root_tvk = tvk_native;
+        let signer_x = signer.to_x_coordinate();
+        let scm = CurrentNetwork::hash_psd2(&[signer_x, root_tvk]).map_err(|e| e.to_string())?;
+
+        let network_id = U16Native::new(CurrentNetwork::ID);
+        let function_id = compute_function_id(&network_id, &program_id, &function_name).map_err(|e| e.to_string())?;
+
+        let record_input_id_strs: Vec<String> = record_input_ids_json
+            .as_ref()
+            .map(|json| {
+                serde_json::from_str::<Vec<String>>(json).map_err(|e| format!("record_input_ids_json must be JSON array of strings: {e}"))
+            })
+            .transpose()?
+            .unwrap_or_default();
+
+        let record_count = input_types
+            .iter()
+            .filter(|t| matches!(t, ValueTypeNative::Record(_)))
+            .count();
+        if record_count != record_input_id_strs.len() {
+            return Err(format!(
+                "record_input_ids must have length {} for {} record input(s), got {}",
+                record_count,
+                record_count,
+                record_input_id_strs.len()
+            ));
+        }
+
+        let mut record_input_idx = 0;
+        let mut input_ids = Vec::with_capacity(inputs.len());
+        for (index, (input, input_type)) in inputs.iter().zip(&input_types).enumerate() {
+            let index_field = FieldNative::from_u16(
+                u16::try_from(index).map_err(|_| format!("Input index {index} exceeds maximum allowed value"))?,
+            );
+
+            match input_type {
+                ValueTypeNative::Constant(_) | ValueTypeNative::Public(_) => {
+                    let mut preimage = vec![function_id];
+                    preimage.extend(input.to_fields().map_err(|e| e.to_string())?);
+                    preimage.push(tcm_native);
+                    preimage.push(index_field);
+                    let input_hash = CurrentNetwork::hash_psd8(&preimage).map_err(|e| e.to_string())?;
+                    input_ids.push(match input_type {
+                        ValueTypeNative::Constant(_) => InputID::Constant(input_hash),
+                        _ => InputID::Public(input_hash),
+                    });
+                }
+                ValueTypeNative::Private(_) => {
+                    let input_view_key =
+                        CurrentNetwork::hash_psd4(&[function_id, tvk_native, index_field]).map_err(|e| e.to_string())?;
+                    let ciphertext = match input {
+                        ValueNative::Plaintext(plaintext) => {
+                            plaintext.encrypt_symmetric(input_view_key).map_err(|e| e.to_string())?
+                        }
+                        _ => return Err("Expected a plaintext input for private type".to_string()),
+                    };
+                    let input_hash =
+                        CurrentNetwork::hash_psd8(&ciphertext.to_fields().map_err(|e| e.to_string())?)
+                            .map_err(|e| e.to_string())?;
+                    input_ids.push(InputID::Private(input_hash));
+                }
+                ValueTypeNative::Record(_) => {
+                    let record_input_id_str = record_input_id_strs
+                        .get(record_input_idx)
+                        .ok_or_else(|| "record_input_ids index out of bounds".to_string())?;
+                    let input_id = InputID::<CurrentNetwork>::from_str(record_input_id_str)
+                        .map_err(|e| format!("Failed to parse record input ID: {e}"))?;
+                    let input_id = match input_id {
+                        InputID::Record(..) => input_id,
+                        _ => return Err("record_input_ids must contain record-type input IDs".to_string()),
+                    };
+                    input_ids.push(input_id);
+                    record_input_idx += 1;
+                }
+                ValueTypeNative::ExternalRecord(_) => {
+                    return Err("external_record inputs are not yet supported in fromMPC".to_string());
+                }
+                ValueTypeNative::Future(_) => {
+                    return Err("Future inputs are not supported".to_string());
+                }
+            }
+        }
+
+        let request = RequestNative::from((
+            signer,
+            network_id,
+            program_id,
+            function_name,
+            input_ids,
+            inputs,
+            signature_native,
+            sk_tag,
+            tvk_native,
+            tcm_native,
+            scm,
+        ));
+
         Ok(ExecutionRequest(request))
     }
 
@@ -431,6 +656,8 @@ mod tests {
 
     /// Test vectors from program-manager.test.ts: transfer_public with address + u64.
     const PRIVATE_KEY_STR: &str = "APrivateKey1zkp7Vc4xJt8HqW9U7VhY6h32d8Z9Xi5C6ZZX3gtXxbBSJmj";
+    /// Beacon private key (produces aleo1rhgdu77hgyqd3xjj8ucu3jj9r2krwz6mnzyd80gncr5fxcwlh5rsvzp9px).
+    const BEACON_PRIVATE_KEY_STR: &str = "APrivateKey1zkp8CZNn3yeCseEtxuVPbDCwSyhGW6yZKUYKfgXmcpoGPWH";
     const TRANSFER_PUBLIC_INPUTS: [&str; 2] =
         ["aleo1rhgdu77hgyqd3xjj8ucu3jj9r2krwz6mnzyd80gncr5fxcwlh5rsvzp9px", "100u64"];
     const TRANSFER_PUBLIC_INPUT_TYPES: [&str; 2] = ["address.public", "u64.public"];
@@ -459,6 +686,104 @@ mod tests {
         assert_eq!(request.network_id(), CurrentNetwork::ID);
         assert_eq!(request.inputs().length(), 2);
         assert_eq!(request.input_ids().length(), 2);
+    }
+
+    #[wasm_bindgen_test]
+    fn test_execution_request_from_mpc_matches_sign() {
+        let private_key = PrivateKey::from_string(PRIVATE_KEY_STR).unwrap();
+        let view_key = ViewKey::from_private_key(&private_key);
+        let inputs = crate::array![TRANSFER_PUBLIC_INPUTS[0].to_string(), TRANSFER_PUBLIC_INPUTS[1].to_string()];
+        let input_types =
+            crate::array![TRANSFER_PUBLIC_INPUT_TYPES[0].to_string(), TRANSFER_PUBLIC_INPUT_TYPES[1].to_string()];
+
+        let signed_request = ExecutionRequest::sign(
+            private_key,
+            "credits.aleo".to_string(),
+            "transfer_public".to_string(),
+            inputs.clone(),
+            input_types.clone(),
+            None,
+            None,
+            true,
+        )
+        .expect("sign should succeed");
+
+        let mpc_request = ExecutionRequest::from_mpc(
+            "credits.aleo".to_string(),
+            "transfer_public".to_string(),
+            inputs,
+            input_types,
+            true,
+            None,
+            signed_request.signature(),
+            signed_request.tvk(),
+            signed_request.tcm(),
+            view_key,
+            None, // no record inputs
+        )
+        .expect("from_mpc should succeed");
+
+        assert_eq!(mpc_request.program_id(), signed_request.program_id());
+        assert_eq!(mpc_request.function_name(), signed_request.function_name());
+        assert_eq!(mpc_request.inputs().length(), signed_request.inputs().length());
+        assert_eq!(mpc_request.input_ids().length(), signed_request.input_ids().length());
+        assert_eq!(mpc_request.to_string(), signed_request.to_string());
+    }
+
+    #[wasm_bindgen_test]
+    fn test_execution_request_from_mpc_matches_sign_transfer_private() {
+        let private_key = PrivateKey::from_string(BEACON_PRIVATE_KEY_STR).unwrap();
+        let view_key = ViewKey::from_private_key(&private_key);
+        let record_beacon_owned = "{ owner: aleo1rhgdu77hgyqd3xjj8ucu3jj9r2krwz6mnzyd80gncr5fxcwlh5rsvzp9px.private, microcredits: 1000000u64.private, _nonce: 3634848344765318974603121890869676775499130077229666060613233255327643175219group.public, _version: 1u8.public }";
+        let inputs = crate::array![
+            record_beacon_owned.to_string(),
+            "aleo1rhgdu77hgyqd3xjj8ucu3jj9r2krwz6mnzyd80gncr5fxcwlh5rsvzp9px".to_string(),
+            "100u64".to_string(),
+        ];
+        let input_types = crate::array![
+            "credits.record".to_string(),
+            "address.private".to_string(),
+            "u64.private".to_string(),
+        ];
+
+        let signed_request = ExecutionRequest::sign(
+            private_key,
+            "credits.aleo".to_string(),
+            "transfer_private".to_string(),
+            inputs.clone(),
+            input_types.clone(),
+            None,
+            None,
+            true,
+        )
+        .expect("sign should succeed");
+
+        let record_input_id_0 = signed_request
+            .input_ids()
+            .get(0)
+            .as_string()
+            .expect("record input id should be string");
+        let record_input_ids_json = serde_json::to_string(&[record_input_id_0]).expect("JSON serialize");
+        let mpc_request = ExecutionRequest::from_mpc(
+            "credits.aleo".to_string(),
+            "transfer_private".to_string(),
+            inputs,
+            input_types,
+            true,
+            None,
+            signed_request.signature(),
+            signed_request.tvk(),
+            signed_request.tcm(),
+            view_key,
+            Some(record_input_ids_json),
+        )
+        .expect("from_mpc should succeed");
+
+        assert_eq!(mpc_request.program_id(), signed_request.program_id());
+        assert_eq!(mpc_request.function_name(), signed_request.function_name());
+        assert_eq!(mpc_request.inputs().length(), signed_request.inputs().length());
+        assert_eq!(mpc_request.input_ids().length(), signed_request.input_ids().length());
+        assert_eq!(mpc_request.to_string(), signed_request.to_string());
     }
 
     #[wasm_bindgen_test]
