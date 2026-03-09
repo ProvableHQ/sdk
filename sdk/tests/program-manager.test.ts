@@ -23,6 +23,7 @@ import {
 } from "@provablehq/sdk/%%NETWORK%%.js";
 import {
     beaconAddressString,
+    beaconPrivateKeyString,
     helloProgram,
     recordStatePathv0,
     statePathRecordv0,
@@ -31,7 +32,7 @@ import {
     stateRootv0,
 } from "./data/account-data.js";
 import { IMPORT_1, IMPORT_2, MINT_VERIFYING_KEY, PROGRAM, SPEND_VERIFYING_KEY, SPIN_VERIFYING_KEY } from "./data/program.js";
-import { RECORD_PLAINTEXT_V1_STRING, CREDITS_RECORD_V1 } from "./data/records";
+import { RECORD_PLAINTEXT_V1_STRING } from "./data/records";
 import { expect } from "chai";
 import {
     PUZZLE_SPINNER_PROGRAM_ID,
@@ -473,11 +474,20 @@ describe('Program Manager', async () => {
 
     describe('Program Manager public message signing (computeMPCInputs)', () => {
         const privateKeyStr = "APrivateKey1zkp7Vc4xJt8HqW9U7VhY6h32d8Z9Xi5C6ZZX3gtXxbBSJmj";
+        const beaconAddress = "aleo1rhgdu77hgyqd3xjj8ucu3jj9r2krwz6mnzyd80gncr5fxcwlh5rsvzp9px";
         const transferPublicInputs = [
-            "aleo1rhgdu77hgyqd3xjj8ucu3jj9r2krwz6mnzyd80gncr5fxcwlh5rsvzp9px",
+            beaconAddress,
             "100u64",
         ];
         const transferPublicInputTypes = ["address.public", "u64.public"];
+        // Record owned by beacon address (required for ExecutionRequest.sign - record must belong to signer)
+        const recordBeaconOwned = `{ owner: ${beaconAddress}.private, microcredits: 1000000u64.private, _nonce: 3634848344765318974603121890869676775499130077229666060613233255327643175219group.public, _version: 1u8.public }`;
+        const transferPrivateInputs = [
+            recordBeaconOwned,
+            "aleo1rhgdu77hgyqd3xjj8ucu3jj9r2krwz6mnzyd80gncr5fxcwlh5rsvzp9px",
+            "100u64",
+        ];
+        const transferPrivateInputTypes = ["credits.record", "address.private", "u64.private"];
 
         it('Should compute MPC inputs and return MPCInput shape (functionId, isRoot, requestInputs, checksum)', async () => {
             const mpcInputs = await programManager.computeMPCInputs({
@@ -522,8 +532,9 @@ describe('Program Manager', async () => {
             assertFieldsRoundTripThroughPlaintext(secondInput.data, transferPublicInputs[1]);
         });
 
-        it('Should match ExecutionRequest.sign for same program/function/inputs', async () => {
+        it('Should match ExecutionRequest.sign for transfer_public', async () => {
             const privateKey = PrivateKey.from_string(privateKeyStr);
+            const viewKey = ViewKey.from_private_key(privateKey);
             const mpcInputs = await programManager.computeMPCInputs({
                 programName: "credits.aleo",
                 functionName: "transfer_public",
@@ -547,16 +558,84 @@ describe('Program Manager', async () => {
             expect(signedRequest.function_name()).to.equal("transfer_public");
             expect(signedRequest.inputs().length).to.equal(2);
             expect(mpcInputs.requestInputs.length).to.equal(signedRequest.inputs().length);
+
+            // Build the same request via fromMPC using MPC-signed fields from the signed request.
+            const mpcRequest = ExecutionRequest.fromMPC(
+                "credits.aleo",
+                "transfer_public",
+                transferPublicInputs,
+                transferPublicInputTypes,
+                true,
+                undefined,
+                signedRequest.signature(),
+                signedRequest.tvk(),
+                signedRequest.tcm(),
+                viewKey,
+                undefined, // no record inputs
+            );
+            expect(mpcRequest.program_id()).to.equal(signedRequest.program_id());
+            expect(mpcRequest.function_name()).to.equal(signedRequest.function_name());
+            expect(mpcRequest.inputs().length).to.equal(signedRequest.inputs().length);
+            expect(mpcRequest.input_ids().length).to.equal(signedRequest.input_ids().length);
+            expect(mpcRequest.toString()).to.equal(signedRequest.toString());
+        });
+
+        it('Should match ExecutionRequest.sign for transfer_private', async () => {
+            // Use beacon private key - record is owned by beacon address
+            const privateKey = PrivateKey.from_string(beaconPrivateKeyString);
+            const viewKey = ViewKey.from_private_key(privateKey);
+            const mpcInputs = await programManager.computeMPCInputs({
+                programName: "credits.aleo",
+                functionName: "transfer_private",
+                inputs: transferPrivateInputs,
+                inputTypes: transferPrivateInputTypes,
+                isRoot: true,
+                checksum: null,
+                viewKey,
+            });
+            const signedRequest = ExecutionRequest.sign(
+                privateKey,
+                "credits.aleo",
+                "transfer_private",
+                transferPrivateInputs,
+                transferPrivateInputTypes,
+                undefined,
+                undefined,
+                true,
+            );
+            expect(signedRequest.program_id()).to.equal("credits.aleo");
+            expect(signedRequest.function_name()).to.equal("transfer_private");
+            expect(signedRequest.inputs().length).to.equal(3);
+            expect(mpcInputs.requestInputs.length).to.equal(signedRequest.inputs().length);
+
+            // Build the same request via fromMPCWithStrings - pass strings to avoid "null pointer passed to rust"
+            // when passing wasm objects (Signature, Field, ViewKey) across the boundary.
+            const inputIds = Array.from(signedRequest.input_ids());
+            const recordId0 = inputIds[0];
+            if (recordId0 == null) throw new Error("Expected record input ID at index 0");
+            const recordInputIdsJson = JSON.stringify([String(recordId0)]); // first input is the record
+            console.log(recordInputIdsJson);
+            const mpcRequest = ExecutionRequest.fromMPCWithStrings(
+                "credits.aleo",
+                "transfer_private",
+                transferPrivateInputs,
+                transferPrivateInputTypes,
+                true,
+                undefined,
+                signedRequest.signature().toString(),
+                signedRequest.tvk().toString(),
+                signedRequest.tcm().toString(),
+                viewKey.toString(),
+                recordInputIdsJson,
+            );
+            expect(mpcRequest.program_id()).to.equal(signedRequest.program_id());
+            expect(mpcRequest.function_name()).to.equal(signedRequest.function_name());
+            expect(mpcRequest.inputs().length).to.equal(signedRequest.inputs().length);
+            expect(mpcRequest.input_ids().length).to.equal(signedRequest.input_ids().length);
+            expect(mpcRequest.toString()).to.equal(signedRequest.toString());
         });
 
         it('Should compute MPC inputs and return MPCInput shape for private transfer', async () => {
-            const record = CREDITS_RECORD_V1;
-            const transferPrivateInputs = [
-            record,
-            "aleo1rhgdu77hgyqd3xjj8ucu3jj9r2krwz6mnzyd80gncr5fxcwlh5rsvzp9px",
-            "100u64",
-            ];
-            const transferPrivateInputTypes = ["credits.record", "address.private", "u64.private"];
             const mpcInputs = await programManager.computeMPCInputs({
                 programName: "credits.aleo",
                 functionName: "transfer_private",
