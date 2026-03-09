@@ -176,6 +176,7 @@ impl ExecutionRequest {
         program_checksum: Option<Field>,
         is_root: bool,
     ) -> Result<ExecutionRequest, String> {
+        crate::log("signing");
         // Convert the ProgramID and function name to their native objects.
         let program_id = ProgramIDNative::from_str(&program_id).map_err(|e| e.to_string())?;
         let function_name = IdentifierNative::from_str(&function_name).map_err(|e| e.to_string())?;
@@ -249,12 +250,12 @@ impl ExecutionRequest {
         view_key: ViewKey,
         record_input_ids_json: Option<String>,
     ) -> Result<ExecutionRequest, String> {
-        println!("test1");
+        crate::log("test1");
         let signature_native = *signature;
         let tvk_native = FieldNative::from(tvk);
         let tcm_native = FieldNative::from(tcm);
         let view_key_native = *view_key;
-        println!("test2");
+        crate::log("test2");
         Self::from_mpc_impl(
             program_id,
             function_name,
@@ -287,10 +288,15 @@ impl ExecutionRequest {
         view_key_str: String,
         record_input_ids_json: Option<String>,
     ) -> Result<ExecutionRequest, String> {
+        crate::log(&format!("testa: {:?}", signature_str));
         let signature_native = SignatureNative::from_str(&signature_str).map_err(|e| e.to_string())?;
+        crate::log("testb");
         let tvk_native = FieldNative::from_str(&tvk_str).map_err(|e| e.to_string())?;
+        crate::log("testc");
         let tcm_native = FieldNative::from_str(&tcm_str).map_err(|e| e.to_string())?;
+        crate::log("testd");
         let view_key_native = ViewKeyNative::from_str(&view_key_str).map_err(|e| e.to_string())?;
+        crate::log("teste");
         Self::from_mpc_impl(
             program_id,
             function_name,
@@ -319,10 +325,10 @@ impl ExecutionRequest {
         view_key_native: ViewKeyNative,
         record_input_ids_json: Option<String>,
     ) -> Result<ExecutionRequest, String> {
-        println!("test3");
+        crate::log("test3");
         let program_id = ProgramIDNative::from_str(&program_id).map_err(|e| e.to_string())?;
         let function_name = IdentifierNative::from_str(&function_name).map_err(|e| e.to_string())?;
-        println!("test4");
+        crate::log("test4");
 
         let inputs: Vec<ValueNative> = inputs
             .iter()

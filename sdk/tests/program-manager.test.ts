@@ -620,6 +620,7 @@ describe('Program Manager', async () => {
             const tcm = signedRequest.tcm().toString();
             const viewKeyString = viewKey.toString();
             console.log(2);
+            console.log(signature);
             const mpcRequest = ExecutionRequest.fromMPCWithStrings(
                 "credits.aleo",
                 "transfer_private",
@@ -631,7 +632,7 @@ describe('Program Manager', async () => {
                 tvk,
                 tcm,
                 viewKeyString,
-                undefined, //recordInputIdsJson,
+                recordInputIdsJson,
             );
             console.log(3);
             expect(mpcRequest.program_id()).to.equal(signedRequest.program_id());
