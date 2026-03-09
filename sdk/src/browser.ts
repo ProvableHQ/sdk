@@ -99,7 +99,7 @@ async function initializeWasm() {
     console.warn("initializeWasm is deprecated, you no longer need to use it");
 }
 
-export { ProgramManager, ProvingRequestOptions, ExecuteOptions, FeeAuthorizationOptions, AuthorizationOptions } from "./program-manager.js";
+export { ProgramManager, ProvingRequestOptions, ExecuteOptions, ExecutionTransactionResult, FeeAuthorizationOptions, AuthorizationOptions } from "./program-manager.js";
 
 export { logAndThrow } from "./utils.js";
 
@@ -116,6 +116,7 @@ export {
     Execution as FunctionExecution,
     ExecutionRequest,
     ExecutionResponse,
+    ExecutionTransactionResponse,
     EncryptionToolkit,
     Field,
     GraphKey,

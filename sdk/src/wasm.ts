@@ -12,6 +12,7 @@ export {
     ExecutionRequest,
     Execution,
     ExecutionResponse,
+    ExecutionTransactionResponse,
     Field,
     GraphKey,
     Group,

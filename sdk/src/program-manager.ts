@@ -12,6 +12,7 @@ import {
     AleoKeyProvider,
     AleoKeyProviderParams,
 } from "./keys/provider/memory.js";
+import { KeyLocator } from "./keys/keystore/interface.js";
 
 import {
     FunctionKeyPair
@@ -21,6 +22,7 @@ import {
     Address,
     Authorization,
     ExecutionResponse,
+    ExecutionTransactionResponse,
     Execution as FunctionExecution,
     OfflineQuery,
     RecordPlaintext,
@@ -81,6 +83,7 @@ interface DeployOptions {
  * @property {string | Program} [program] - Program source code to use for the transaction.
  * @property {ProgramImports} [imports] - Programs that the program being executed imports.
  * @property {number} [edition] - Edition of the program to execute the function in.
+ * @property {boolean} [cacheKeys] - If true, the proving and verifying keys synthesized during execution will be returned and auto-persisted to the configured KeyStore.
  */
 interface ExecuteOptions {
     programName: string;
@@ -97,7 +100,22 @@ interface ExecuteOptions {
     offlineQuery?: OfflineQuery;
     program?: string | Program;
     imports?: ProgramImports;
-    edition?: number,
+    edition?: number;
+    cacheKeys?: boolean;
+}
+
+/**
+ * Result from building an execution transaction with key caching enabled.
+ * Contains the transaction and the proving/verifying keys that were synthesized during execution.
+ *
+ * @property {Transaction} transaction - The execution transaction.
+ * @property {ProvingKey} provingKey - The proving key synthesized during execution.
+ * @property {VerifyingKey} verifyingKey - The verifying key synthesized during execution.
+ */
+interface ExecutionTransactionResult {
+    transaction: Transaction;
+    provingKey: ProvingKey;
+    verifyingKey: VerifyingKey;
 }
 
 /**
@@ -317,6 +335,43 @@ class ProgramManager {
      */
     setHeader(headerName: string, value: string) {
         this.networkClient.headers[headerName] = value;
+    }
+
+    /**
+     * Persist proving and verifying keys to the configured KeyStore, if available.
+     * Uses the locator convention: "{programName}.{functionName}.prover" and
+     * "{programName}.{functionName}.verifier" (dots instead of slashes to comply
+     * with LocalFileKeyStore's validateLocator).
+     *
+     * @param {string} programName The name of the program
+     * @param {string} functionName The name of the function
+     * @param {ProvingKey} [provingKey] The proving key to persist
+     * @param {VerifyingKey} [verifyingKey] The verifying key to persist
+     */
+    private async persistKeysToStore(
+        programName: string,
+        functionName: string,
+        provingKey?: ProvingKey,
+        verifyingKey?: VerifyingKey,
+    ): Promise<void> {
+        if (!provingKey || !verifyingKey) return;
+
+        try {
+            const keyStore = await this.keyProvider.keyStore();
+            if (!keyStore) return;
+
+            const proverLocator: KeyLocator = {
+                locator: `${programName}.${functionName}.prover`,
+            };
+            const verifierLocator: KeyLocator = {
+                locator: `${programName}.${functionName}.verifier`,
+            };
+
+            await keyStore.setKeys(proverLocator, verifierLocator, [provingKey, verifyingKey]);
+            console.debug(`Keys persisted to KeyStore for ${programName}/${functionName}`);
+        } catch (e) {
+            console.warn(`Failed to persist keys to KeyStore: ${e}`);
+        }
     }
 
     /**
@@ -786,9 +841,15 @@ class ProgramManager {
      *  assert(transaction.id() === tx.id());
      * }, 10000);
      */
+    buildExecutionTransaction(
+        options: ExecuteOptions & { cacheKeys: true },
+    ): Promise<ExecutionTransactionResult>;
+    buildExecutionTransaction(
+        options: ExecuteOptions,
+    ): Promise<Transaction>;
     async buildExecutionTransaction(
         options: ExecuteOptions,
-    ): Promise<Transaction> {
+    ): Promise<Transaction | ExecutionTransactionResult> {
         // Destructure the options object to access the parameters
         const {
             functionName,
@@ -941,6 +1002,53 @@ class ProgramManager {
         }
 
         // Build an execution transaction
+        if (options.cacheKeys) {
+            const response: ExecutionTransactionResponse = await WasmProgramManager.buildExecutionTransactionWithKeys(
+                executionPrivateKey,
+                program,
+                functionName,
+                inputs,
+                priorityFee,
+                feeRecord,
+                this.host,
+                imports,
+                provingKey,
+                verifyingKey,
+                feeProvingKey,
+                feeVerifyingKey,
+                offlineQuery,
+                edition,
+                true,
+            );
+
+            const transaction = response.getTransaction();
+
+            if (!response.hasKeys()) {
+                throw new Error("Key caching was requested but no keys were returned from execution");
+            }
+
+            const resultProvingKey = response.getProvingKey();
+            const resultVerifyingKey = response.getVerifyingKey();
+
+            if (!resultProvingKey || !resultVerifyingKey) {
+                throw new Error("Key caching was requested but keys could not be extracted from execution response");
+            }
+
+            // Cache in memory for subsequent calls
+            const cacheKey = `${programName}.${functionName}`;
+            this.keyProvider.cacheKeys(cacheKey, [resultProvingKey, resultVerifyingKey]);
+
+            // Auto-persist to KeyStore if configured
+            await this.persistKeysToStore(
+                programName,
+                functionName,
+                resultProvingKey,
+                resultVerifyingKey,
+            );
+
+            return { transaction, provingKey: resultProvingKey, verifyingKey: resultVerifyingKey };
+        }
+
         return await WasmProgramManager.buildExecutionTransaction(
             executionPrivateKey,
             program,
@@ -1608,7 +1716,13 @@ class ProgramManager {
      * }, 10000);
      */
     async execute(options: ExecuteOptions): Promise<string> {
-        const tx = <Transaction>await this.buildExecutionTransaction(options);
+        let tx: Transaction;
+        if (options.cacheKeys) {
+            const result = await this.buildExecutionTransaction({ ...options, cacheKeys: true });
+            tx = result.transaction;
+        } else {
+            tx = await this.buildExecutionTransaction(options);
+        }
 
         let feeAddress;
 
@@ -1643,6 +1757,8 @@ class ProgramManager {
      * @param {VerifyingKey | undefined} verifyingKey Optional verifying key to use for the transaction
      * @param {PrivateKey | undefined} privateKey Optional private key to use for the transaction
      * @param {OfflineQuery | undefined} offlineQuery Optional offline query if creating transactions in an offline environment
+     * @param {number | undefined} edition Optional edition of the program to execute
+     * @param {boolean | undefined} cacheKeys If true, keys are extracted from the execution, persisted to the configured KeyStore, and cached in the key provider's memory. Note: this consumes the proving key from the response (response.getProvingKey() will return null afterward).
      * @returns {Promise<ExecutionResponse>} The execution response containing the outputs of the function and the proof if the program is proved.
      *
      * @example
@@ -1673,7 +1789,8 @@ class ProgramManager {
         verifyingKey?: VerifyingKey,
         privateKey?: PrivateKey,
         offlineQuery?: OfflineQuery,
-        edition?: number
+        edition?: number,
+        cacheKeys?: boolean,
     ): Promise<ExecutionResponse> {
         // Get the private key from the account if it is not provided in the parameters
         let executionPrivateKey = privateKey;
@@ -1705,13 +1822,13 @@ class ProgramManager {
         console.log("Running program offline");
         console.log("Proving key: ", provingKey);
         console.log("Verifying key: ", verifyingKey);
-        return WasmProgramManager.executeFunctionOffline(
+        const response = await WasmProgramManager.executeFunctionOffline(
             executionPrivateKey,
             program,
             function_name,
             inputs,
             proveExecution,
-            false,
+            cacheKeys ?? false,
             imports,
             provingKey,
             verifyingKey,
@@ -1719,6 +1836,30 @@ class ProgramManager {
             offlineQuery,
             edition
         );
+
+        // Auto-persist keys to KeyStore if cacheKeys is enabled.
+        // Note: getProvingKey() uses .take() semantics and consumes the key from the response.
+        // After this block, response.getProvingKey() will return null. The keys are persisted
+        // to the KeyStore and cached in the key provider's memory for subsequent access.
+        if (cacheKeys) {
+            try {
+                const programObj = Program.fromString(program);
+                const programName = programObj.id();
+                const pk = response.getProvingKey() ?? undefined;
+                const vk = response.getVerifyingKey();
+                if (pk && vk) {
+                    // Cache in the key provider's memory so keys are accessible without re-synthesis
+                    const cacheKey = `${programName}.${function_name}`;
+                    this.keyProvider.cacheKeys(cacheKey, [pk, vk]);
+
+                    await this.persistKeysToStore(programName, function_name, pk, vk);
+                }
+            } catch (e) {
+                console.warn(`Could not auto-persist keys from run(): ${e}`);
+            }
+        }
+
+        return response;
     }
 
     /**
@@ -3729,4 +3870,4 @@ function validateTransferType(transferType: string): string {
         );
 }
 
-export { ProgramManager, AuthorizationOptions, FeeAuthorizationOptions, ExecuteOptions, ProvingRequestOptions };
+export { ProgramManager, AuthorizationOptions, FeeAuthorizationOptions, ExecuteOptions, ExecutionTransactionResult, ProvingRequestOptions };

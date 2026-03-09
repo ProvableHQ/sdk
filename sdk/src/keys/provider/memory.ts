@@ -22,7 +22,7 @@ import {
 } from "../../wasm.js";
 
 import { get } from "../../utils.js";
-import { KeyStore } from "../keystore/interface.js";
+import { KeyLocator, KeyStore } from "../keystore/interface.js";
 
 type AleoKeyProviderInitParams = {
     proverUri?: string;
@@ -66,6 +66,7 @@ class AleoKeyProvider implements FunctionKeyProvider {
     cache: Map<string, CachedKeyPair>;
     cacheOption: boolean;
     keyUris: string;
+    private _keyStore: KeyStore | undefined;
 
     async fetchBytes(url = "/"): Promise<Uint8Array> {
         try {
@@ -77,14 +78,24 @@ class AleoKeyProvider implements FunctionKeyProvider {
         }
     }
 
-    constructor() {
+    constructor(keyStore?: KeyStore) {
         this.keyUris = KEY_STORE;
         this.cache = new Map<string, CachedKeyPair>();
         this.cacheOption = false;
+        this._keyStore = keyStore;
     }
 
     async keyStore(): Promise<KeyStore | undefined> {
-        return undefined;
+        return this._keyStore;
+    }
+
+    /**
+     * Set the key store for persistent key storage
+     *
+     * @param {KeyStore | undefined} keyStore The key store to use for persistent storage
+     */
+    setKeyStore(keyStore: KeyStore | undefined) {
+        this._keyStore = keyStore;
     }
 
     /**
@@ -213,7 +224,34 @@ class AleoKeyProvider implements FunctionKeyProvider {
             }
 
             if (cacheKey) {
-                return this.getKeys(cacheKey);
+                // Check memory cache first
+                if (this.containsKeys(cacheKey)) {
+                    return this.getKeys(cacheKey);
+                }
+
+                // Fall back to KeyStore if configured
+                if (this._keyStore) {
+                    try {
+                        const proverLocator: KeyLocator = { locator: `${cacheKey}.prover` };
+                        const verifierLocator: KeyLocator = { locator: `${cacheKey}.verifier` };
+                        const provingKey = await this._keyStore.getProvingKey(proverLocator);
+                        const verifyingKey = await this._keyStore.getVerifyingKey(verifierLocator);
+                        if (provingKey && verifyingKey) {
+                            console.debug(`Keys loaded from KeyStore for ${cacheKey}`);
+                            // Cache in memory for faster subsequent access
+                            if (this.cacheOption) {
+                                this.cacheKeys(cacheKey, [provingKey, verifyingKey]);
+                            }
+                            return [provingKey, verifyingKey];
+                        }
+                    } catch (e) {
+                        console.debug(`KeyStore lookup failed for ${cacheKey}: ${e}`);
+                    }
+                }
+
+                throw new Error(
+                    `Keys not found for '${cacheKey}' in memory cache or KeyStore`,
+                );
             }
         }
         throw new Error(

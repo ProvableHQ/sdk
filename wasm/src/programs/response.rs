@@ -25,7 +25,7 @@ use crate::types::native::{
     VerifyingKeyNative,
 };
 
-use crate::{Execution, KeyPair, Program, ProvingKey, VerifyingKey};
+use crate::{Execution, KeyPair, Program, ProvingKey, Transaction, VerifyingKey, types::native::TransactionNative};
 use std::{ops::Deref, str::FromStr};
 use wasm_bindgen::{JsValue, prelude::wasm_bindgen};
 
@@ -146,5 +146,73 @@ impl Deref for ExecutionResponse {
 
     fn deref(&self) -> &Self::Target {
         &self.response
+    }
+}
+
+/// Response from building an execution transaction, containing the transaction
+/// and optionally the proving/verifying keys that were synthesized or used.
+#[wasm_bindgen]
+pub struct ExecutionTransactionResponse {
+    transaction: TransactionNative,
+    proving_key: Option<ProvingKeyNative>,
+    verifying_key: Option<VerifyingKeyNative>,
+}
+
+#[wasm_bindgen]
+impl ExecutionTransactionResponse {
+    pub(crate) fn new(
+        transaction: TransactionNative,
+        proving_key: Option<ProvingKeyNative>,
+        verifying_key: Option<VerifyingKeyNative>,
+    ) -> Self {
+        Self { transaction, proving_key, verifying_key }
+    }
+
+    /// Get the transaction from the response
+    ///
+    /// @returns {Transaction} The execution transaction
+    #[wasm_bindgen(js_name = "getTransaction")]
+    pub fn get_transaction(&self) -> Transaction {
+        Transaction::from(self.transaction.clone())
+    }
+
+    /// Returns true if keys are available in this response
+    ///
+    /// @returns {boolean} Whether keys were cached in this response
+    #[wasm_bindgen(js_name = "hasKeys")]
+    pub fn has_keys(&self) -> bool {
+        self.proving_key.is_some() && self.verifying_key.is_some()
+    }
+
+    /// Returns the key pair if cached, consuming both keys.
+    /// Returns an error if keys were not cached.
+    /// Note: calling getProvingKey() or getVerifyingKey() before this method will cause it to fail.
+    ///
+    /// @returns {KeyPair} The proving and verifying key pair
+    #[wasm_bindgen(js_name = "getKeys")]
+    pub fn get_keys(&mut self) -> Result<KeyPair, String> {
+        if let (Some(pk), Some(vk)) = (self.proving_key.take(), self.verifying_key.take()) {
+            Ok(KeyPair::new(ProvingKey::from(pk), VerifyingKey::from(vk)))
+        } else {
+            Err("No keys cached in this response".to_string())
+        }
+    }
+
+    /// Returns the proving key if available (consuming it).
+    /// Note the proving key is removed from the response after the first call.
+    /// Subsequent calls will return null.
+    ///
+    /// @returns {ProvingKey | undefined} The proving key
+    #[wasm_bindgen(js_name = "getProvingKey")]
+    pub fn get_proving_key(&mut self) -> Option<ProvingKey> {
+        self.proving_key.take().map(ProvingKey::from)
+    }
+
+    /// Returns the verifying key if available (consuming it).
+    ///
+    /// @returns {VerifyingKey | undefined} The verifying key
+    #[wasm_bindgen(js_name = "getVerifyingKey")]
+    pub fn get_verifying_key(&mut self) -> Option<VerifyingKey> {
+        self.verifying_key.take().map(VerifyingKey::from)
     }
 }

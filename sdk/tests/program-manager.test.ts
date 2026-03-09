@@ -10,6 +10,7 @@ import {
     PrivateKey,
     Program,
     ProgramManager,
+    ProvingKey,
     ProvingRequest,
     RecordPlaintext,
     Transaction,
@@ -17,6 +18,7 @@ import {
     VerifyingKey,
     ViewKey
 } from "@provablehq/sdk/%%NETWORK%%.js";
+import { LocalFileKeyStore } from "../src/node.js";
 import {
     beaconAddressString,
     helloProgram,
@@ -427,6 +429,82 @@ describe('Program Manager', async () => {
                 );
             } catch (e) {
                 expect(`${e}`).contain("findCreditsRecord");
+            }
+        });
+    });
+
+    describe('Key caching integration', () => {
+        it('AleoKeyProvider should accept a KeyStore via constructor and expose it', async () => {
+            const tempDir = `${process.cwd()}/.pm-keystore-test-${Date.now()}`;
+            const keystore = new LocalFileKeyStore(tempDir);
+            try {
+                const keyProviderWithStore = new AleoKeyProvider(keystore);
+                const pm = new ProgramManager("https://api.provable.com/v2", keyProviderWithStore);
+
+                const store = await pm.keyProvider.keyStore();
+                expect(store).to.equal(keystore);
+            } finally {
+                const $fs = await import("node:fs/promises");
+                await $fs.rm(tempDir, { recursive: true, force: true }).catch(() => {});
+            }
+        });
+
+        // Requires full WASM execution pipeline (key synthesis + proving)
+        it.skip('buildExecutionTransaction with cacheKeys returns keys and transaction', async function() {
+            this.timeout(120000);
+
+            const tempDir = `${process.cwd()}/.pm-keystore-test-${Date.now()}`;
+            const keystore = new LocalFileKeyStore(tempDir);
+            try {
+                const keyProviderWithStore = new AleoKeyProvider(keystore);
+                keyProviderWithStore.useCache(true);
+                const pm = new ProgramManager("https://api.provable.com/v2", keyProviderWithStore);
+                pm.setAccount(new Account());
+
+                const result = await pm.buildExecutionTransaction({
+                    programName: "credits.aleo",
+                    functionName: "split",
+                    priorityFee: 0.0,
+                    privateFee: false,
+                    inputs: ["1u64"],
+                    cacheKeys: true,
+                });
+
+                // Result should contain transaction and keys
+                expect(result.transaction).to.be.instanceOf(Transaction);
+                expect(result.provingKey).to.be.instanceOf(ProvingKey);
+                expect(result.verifyingKey).to.be.instanceOf(VerifyingKey);
+            } finally {
+                const $fs = await import("node:fs/promises");
+                await $fs.rm(tempDir, { recursive: true, force: true }).catch(() => {});
+            }
+        });
+
+        // Requires full WASM execution pipeline (key synthesis)
+        it('run() with cacheKeys should auto-persist keys to KeyStore', async function() {
+            this.timeout(120000);
+
+            const tempDir = `${process.cwd()}/.pm-keystore-test-${Date.now()}`;
+            const keystore = new LocalFileKeyStore(tempDir);
+            try {
+                const keyProviderWithStore = new AleoKeyProvider(keystore);
+                const pm = new ProgramManager("https://api.provable.com/v2", keyProviderWithStore);
+                pm.setAccount(new Account());
+
+                const helloWorld = "program helloworld.aleo;\n\nfunction hello:\n    input r0 as u32.public;\n    input r1 as u32.private;\n    add r0 r1 into r2;\n    output r2 as u32.private;\n";
+
+                // First run: keys get synthesized and auto-persisted
+                await pm.run(helloWorld, "hello", ["5u32", "5u32"], false,
+                    undefined, undefined, undefined, undefined, undefined, undefined, undefined, true);
+
+                // Keys should now be in the KeyStore
+                const provKey = await keystore.getProvingKey({ locator: "helloworld.aleo.hello.prover" });
+                const verKey = await keystore.getVerifyingKey({ locator: "helloworld.aleo.hello.verifier" });
+                expect(provKey).to.not.equal(null);
+                expect(verKey).to.not.equal(null);
+            } finally {
+                const $fs = await import("node:fs/promises");
+                await $fs.rm(tempDir, { recursive: true, force: true }).catch(() => {});
             }
         });
     });

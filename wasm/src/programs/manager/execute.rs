@@ -20,6 +20,7 @@ use crate::{
     Address,
     Authorization,
     ExecutionResponse,
+    ExecutionTransactionResponse,
     OfflineQuery,
     PrivateKey,
     RecordPlaintext,
@@ -293,6 +294,159 @@ impl ProgramManager {
         log("Creating execution transaction");
         let transaction = TransactionNative::from_execution(execution, fee).map_err(|err| err.to_string())?;
         Ok(Transaction::from(transaction))
+    }
+
+    /// Execute Aleo function and create an Aleo execution transaction, optionally caching the
+    /// proving and verifying keys in the response.
+    ///
+    /// This method is identical to `buildExecutionTransaction` but returns an
+    /// `ExecutionTransactionResponse` which contains the transaction and optionally the
+    /// proving/verifying keys that were synthesized during execution.
+    ///
+    /// @param private_key The private key of the sender
+    /// @param program The source code of the program being executed
+    /// @param function The name of the function to execute
+    /// @param inputs A javascript array of inputs to the function
+    /// @param priority_fee_credits The optional priority fee to be paid for the transaction
+    /// @param fee_record The record to spend the fee from
+    /// @param url The url of the Aleo network node to send the transaction to
+    /// @param imports (optional) Provide a list of imports to use for the function execution
+    /// @param proving_key (optional) Provide a proving key to use for the function execution
+    /// @param verifying_key (optional) Provide a verifying key to use for the function execution
+    /// @param fee_proving_key (optional) Provide a proving key to use for the fee execution
+    /// @param fee_verifying_key (optional) Provide a verifying key to use for the fee execution
+    /// @param offline_query An offline query object to use if building a transaction without an internet connection.
+    /// @param edition The edition of the program to execute.
+    /// @param cache If true, the proving and verifying keys will be included in the response.
+    /// @returns {ExecutionTransactionResponse}
+    #[wasm_bindgen(js_name = buildExecutionTransactionWithKeys)]
+    #[allow(clippy::too_many_arguments)]
+    pub async fn execute_with_keys(
+        private_key: &PrivateKey,
+        program: &str,
+        function: &str,
+        inputs: Array,
+        priority_fee_credits: f64,
+        fee_record: Option<RecordPlaintext>,
+        url: Option<String>,
+        imports: Option<Object>,
+        proving_key: Option<ProvingKey>,
+        verifying_key: Option<VerifyingKey>,
+        fee_proving_key: Option<ProvingKey>,
+        fee_verifying_key: Option<VerifyingKey>,
+        offline_query: Option<OfflineQuery>,
+        edition: Option<u16>,
+        cache: bool,
+    ) -> Result<ExecutionTransactionResponse, String> {
+        let mut process_native = ProcessNative::load_web().map_err(|err| err.to_string())?;
+        let process = &mut process_native;
+        let node_url = url.as_deref().unwrap_or(DEFAULT_URL);
+
+        log("Check program imports are valid and add them to the process");
+        let program_native = ProgramNative::from_str(program).map_err(|e| e.to_string())?;
+        let program_id = program_native.id().to_string();
+        ProgramManager::resolve_imports(process, &program_native, imports)?;
+        let rng = &mut StdRng::from_entropy();
+
+        log(&format!("Executing function: {program_id}/{function} on-chain"));
+        let edition = edition.unwrap_or(1);
+        let (_, mut trace) = execute_program!(
+            process,
+            process_inputs!(inputs),
+            program,
+            function,
+            private_key,
+            proving_key,
+            verifying_key,
+            rng,
+            edition
+        );
+
+        // Extract keys from process if caching is requested (must happen before process is dropped)
+        let cached_keys = if cache {
+            let function_name = IdentifierNative::from_str(function).map_err(|err| err.to_string())?;
+            let pk = process
+                .get_proving_key(program_native.id(), &function_name)
+                .map_err(|_| format!("Could not find proving key for {}/{}", program_native.id(), function))?;
+            let vk = process
+                .get_verifying_key(program_native.id(), &function_name)
+                .map_err(|_| format!("Could not find verifying key for {}/{}", program_native.id(), function))?;
+            (Some(pk), Some(vk))
+        } else {
+            (None, None)
+        };
+
+        log("Preparing inclusion proofs for execution");
+        let latest_height = if let Some(offline_query) = offline_query.as_ref() {
+            trace.prepare_async(offline_query).await.map_err(|err| err.to_string())?;
+            offline_query.current_block_height().map_err(|e| e.to_string())?
+        } else {
+            let function_name = IdentifierNative::from_str(function).map_err(|err| err.to_string())?;
+            let view_key =
+                ViewKeyNative::try_from(PrivateKeyNative::from(private_key)).map_err(|err| err.to_string())?;
+            let query =
+                SnapshotQuery::try_from_inputs(node_url, &program_native, &function_name, &view_key, &inputs.to_vec())
+                    .await
+                    .map_err(|err| err.to_string())?;
+            trace.prepare_async(&query).await.map_err(|err| err.to_string())?;
+            query.current_block_height().map_err(|e| e.to_string())?
+        };
+
+        log("Proving execution");
+        let locator = program_native.id().to_string().add("/").add(function);
+        let execution = trace
+            .prove_execution::<CurrentAleo, _>(&locator, VarunaVersion::V2, &mut StdRng::from_entropy())
+            .map_err(|e| e.to_string())?;
+
+        // If the function is anything other than credits.aleo/split or credits.aleo/upgrade, execute a fee.
+        let fee = match (program_id.as_str(), function) {
+            ("credits.aleo", "split")
+            | ("credits.aleo", "upgrade")
+            | ("credits.aleo", "fee_private")
+            | ("credits.aleo", "fee_public") => None,
+            _ => {
+                log("Calculating the minimum execution fee");
+                let minimum_execution_cost = calculate_minimum_fee!(offline_query, node_url, process, &execution);
+
+                // Check to see if the fee record has enough microcredits to pay for the deployment.
+                let priority_fee_microcredits = (priority_fee_credits * 1_000_000.0) as u64;
+                Self::validate_fee_record(&fee_record, minimum_execution_cost, priority_fee_microcredits)?;
+
+                // Calculate the execution id.
+                let execution_id = execution.to_execution_id().map_err(|e| e.to_string())?;
+
+                log("Executing fee");
+                let fee = execute_fee!(
+                    process,
+                    private_key,
+                    fee_record,
+                    priority_fee_microcredits,
+                    node_url,
+                    fee_proving_key,
+                    fee_verifying_key,
+                    execution_id,
+                    rng,
+                    offline_query,
+                    minimum_execution_cost
+                );
+                Some(fee)
+            }
+        };
+
+        // Verify the execution
+        let consensus_version =
+            <CurrentNetwork as Network>::CONSENSUS_VERSION(latest_height).map_err(|err| err.to_string())?;
+        let inclusion_upgrade_height =
+            <CurrentNetwork as Network>::INCLUSION_UPGRADE_HEIGHT().map_err(|err| err.to_string())?;
+        let inclusion_version =
+            if latest_height >= inclusion_upgrade_height { InclusionVersion::V1 } else { InclusionVersion::V0 };
+        process
+            .verify_execution(consensus_version, VarunaVersion::V2, inclusion_version, &execution)
+            .map_err(|err| err.to_string())?;
+
+        log("Creating execution transaction");
+        let transaction = TransactionNative::from_execution(execution, fee).map_err(|err| err.to_string())?;
+        Ok(ExecutionTransactionResponse::new(transaction, cached_keys.0, cached_keys.1))
     }
 
     /// Execute an authorization.

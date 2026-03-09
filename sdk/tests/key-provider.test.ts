@@ -1,6 +1,7 @@
 import { expect } from "chai";
 import {
     AleoKeyProvider,
+    AleoKeyProviderParams,
     CachedKeyPair,
     CREDITS_PROGRAM_KEYS,
     FunctionKeyPair,
@@ -784,6 +785,160 @@ describe("Key verifier with LocalFileKeyStore (checksum verification on read)", 
             expect(thrown!.field).to.equal("checksum");
         } finally {
             await $fs.rm(tempDir, { recursive: true, force: true }).catch(() => {});
+        }
+    });
+});
+
+describe("AleoKeyProvider – KeyStore integration", () => {
+    it("constructor accepts a KeyStore and keyStore() returns it", async () => {
+        const tempDir = `${process.cwd()}/.keystore-test-${Date.now()}-${Math.floor(Math.random() * 1e6)}`;
+        const keystore = new LocalFileKeyStore(tempDir);
+        try {
+            const provider = new AleoKeyProvider(keystore);
+            const retrieved = await provider.keyStore();
+            expect(retrieved).to.equal(keystore);
+        } finally {
+            await $fs.rm(tempDir, { recursive: true, force: true }).catch(() => {});
+        }
+    });
+
+    it("constructor without KeyStore returns undefined from keyStore()", async () => {
+        const provider = new AleoKeyProvider();
+        expect(await provider.keyStore()).to.equal(undefined);
+    });
+
+    it("setKeyStore() updates the KeyStore and keyStore() reflects the change", async () => {
+        const tempDir = `${process.cwd()}/.keystore-test-${Date.now()}-${Math.floor(Math.random() * 1e6)}`;
+        const keystore = new LocalFileKeyStore(tempDir);
+        try {
+            const provider = new AleoKeyProvider();
+            expect(await provider.keyStore()).to.equal(undefined);
+
+            provider.setKeyStore(keystore);
+            expect(await provider.keyStore()).to.equal(keystore);
+
+            provider.setKeyStore(undefined);
+            expect(await provider.keyStore()).to.equal(undefined);
+        } finally {
+            await $fs.rm(tempDir, { recursive: true, force: true }).catch(() => {});
+        }
+    });
+
+    it("functionKeys() loads keys from KeyStore when not in memory cache", async function () {
+        this.timeout(20000);
+
+        const tempDir = `${process.cwd()}/.keystore-test-${Date.now()}-${Math.floor(Math.random() * 1e6)}`;
+        const keystore = new LocalFileKeyStore(tempDir);
+        try {
+            // Fetch real keys and store them in the KeyStore
+            const fetcher = new AleoKeyProvider();
+            const [prov, ver] = <FunctionKeyPair>await fetcher.fetchCreditsKeys(CREDITS_PROGRAM_KEYS.fee_public);
+            const cacheKey = "my_program.aleo.my_function";
+
+            await keystore.setKeys(
+                locator(`${cacheKey}.prover`),
+                locator(`${cacheKey}.verifier`),
+                [prov, ver],
+            );
+
+            // Create a fresh provider with the KeyStore but empty memory cache
+            const provider = new AleoKeyProvider(keystore);
+
+            // functionKeys should find keys in KeyStore (not in memory)
+            expect(provider.containsKeys(cacheKey)).to.equal(false);
+            const [loadedProv, loadedVer] = await provider.functionKeys(
+                new AleoKeyProviderParams({ cacheKey }),
+            );
+
+            expect(loadedProv).to.be.instanceOf(ProvingKey);
+            expect(loadedVer).to.be.instanceOf(VerifyingKey);
+            expect(loadedProv.checksum()).to.equal(prov.checksum());
+            expect(loadedVer.checksum()).to.equal(ver.checksum());
+        } finally {
+            await $fs.rm(tempDir, { recursive: true, force: true }).catch(() => {});
+        }
+    });
+
+    it("functionKeys() caches KeyStore results in memory when cacheOption is enabled", async function () {
+        this.timeout(20000);
+
+        const tempDir = `${process.cwd()}/.keystore-test-${Date.now()}-${Math.floor(Math.random() * 1e6)}`;
+        const keystore = new LocalFileKeyStore(tempDir);
+        try {
+            const fetcher = new AleoKeyProvider();
+            const [prov, ver] = <FunctionKeyPair>await fetcher.fetchCreditsKeys(CREDITS_PROGRAM_KEYS.fee_public);
+            const cacheKey = "cached_program.aleo.cached_function";
+
+            await keystore.setKeys(
+                locator(`${cacheKey}.prover`),
+                locator(`${cacheKey}.verifier`),
+                [prov, ver],
+            );
+
+            const provider = new AleoKeyProvider(keystore);
+            provider.useCache(true);
+
+            // Memory cache should be empty before the call
+            expect(provider.containsKeys(cacheKey)).to.equal(false);
+
+            await provider.functionKeys(new AleoKeyProviderParams({ cacheKey }));
+
+            // After loading from KeyStore, keys should be in memory cache
+            expect(provider.containsKeys(cacheKey)).to.equal(true);
+
+            // Subsequent call should work from memory cache even without KeyStore
+            provider.setKeyStore(undefined);
+            const [cachedProv, cachedVer] = provider.getKeys(cacheKey);
+            expect(cachedProv.checksum()).to.equal(prov.checksum());
+            expect(cachedVer.checksum()).to.equal(ver.checksum());
+        } finally {
+            await $fs.rm(tempDir, { recursive: true, force: true }).catch(() => {});
+        }
+    });
+
+    it("functionKeys() prefers memory cache over KeyStore", async function () {
+        this.timeout(60000);
+
+        const tempDir = `${process.cwd()}/.keystore-test-${Date.now()}-${Math.floor(Math.random() * 1e6)}`;
+        const keystore = new LocalFileKeyStore(tempDir);
+        try {
+            const fetcher = new AleoKeyProvider();
+            const [provFee, verFee] = <FunctionKeyPair>await fetcher.fetchCreditsKeys(CREDITS_PROGRAM_KEYS.fee_public);
+            const [provJoin, verJoin] = <FunctionKeyPair>await fetcher.fetchCreditsKeys(CREDITS_PROGRAM_KEYS.join);
+            const cacheKey = "priority_test.aleo.my_func";
+
+            // Put "join" keys in KeyStore
+            await keystore.setKeys(
+                locator(`${cacheKey}.prover`),
+                locator(`${cacheKey}.verifier`),
+                [provJoin, verJoin],
+            );
+
+            // Put "fee" keys in memory cache
+            const provider = new AleoKeyProvider(keystore);
+            provider.useCache(true);
+            provider.cacheKeys(cacheKey, [provFee, verFee]);
+
+            // functionKeys should return the memory-cached "fee" keys, not the KeyStore "join" keys
+            const [loadedProv, loadedVer] = await provider.functionKeys(
+                new AleoKeyProviderParams({ cacheKey }),
+            );
+            expect(loadedProv.checksum()).to.equal(provFee.checksum());
+            expect(loadedVer.checksum()).to.equal(verFee.checksum());
+        } finally {
+            await $fs.rm(tempDir, { recursive: true, force: true }).catch(() => {});
+        }
+    });
+
+    it("functionKeys() throws when cacheKey not in memory or KeyStore", async () => {
+        const provider = new AleoKeyProvider();
+        try {
+            await provider.functionKeys(
+                new AleoKeyProviderParams({ cacheKey: "nonexistent.aleo.func" }),
+            );
+            expect.fail("should throw");
+        } catch (e) {
+            expect(e).to.be.instanceOf(Error);
         }
     });
 });
