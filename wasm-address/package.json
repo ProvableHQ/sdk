@@ -1,6 +1,6 @@
 {
-  "name": "@provablehq/account-tools",
-  "version": "0.1.0",
+  "name": "@provablehq/account-tools-wasm",
+  "version": "0.1.1",
   "type": "module",
   "description": "Minimal WebAssembly bindings for Aleo account operations",
   "collaborators": [

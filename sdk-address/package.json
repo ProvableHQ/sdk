@@ -1,5 +1,5 @@
 {
-  "name": "@provablehq/sdk-address",
+  "name": "@provablehq/account-tools",
   "version": "0.9.16",
   "description": "Minimal TypeScript bindings for Aleo address operations",
   "collaborators": [
@@ -36,7 +36,7 @@
   },
   "homepage": "https://github.com/ProvableHQ/sdk#readme",
   "dependencies": {
-    "@provablehq/wasm-address": "^0.9.16"
+    "@provablehq/account-tools-wasm": "^0.1.1"
   },
   "devDependencies": {
     "@types/chai": "^5.0.1",
