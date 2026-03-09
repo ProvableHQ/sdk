@@ -249,10 +249,12 @@ impl ExecutionRequest {
         view_key: ViewKey,
         record_input_ids_json: Option<String>,
     ) -> Result<ExecutionRequest, String> {
+        println!("test1");
         let signature_native = *signature;
         let tvk_native = FieldNative::from(tvk);
         let tcm_native = FieldNative::from(tcm);
         let view_key_native = *view_key;
+        println!("test2");
         Self::from_mpc_impl(
             program_id,
             function_name,
@@ -317,8 +319,10 @@ impl ExecutionRequest {
         view_key_native: ViewKeyNative,
         record_input_ids_json: Option<String>,
     ) -> Result<ExecutionRequest, String> {
+        println!("test3");
         let program_id = ProgramIDNative::from_str(&program_id).map_err(|e| e.to_string())?;
         let function_name = IdentifierNative::from_str(&function_name).map_err(|e| e.to_string())?;
+        println!("test4");
 
         let inputs: Vec<ValueNative> = inputs
             .iter()
