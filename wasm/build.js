@@ -17,6 +17,8 @@ async function buildRollup(input, output) {
 }
 
 
+const isDebugBuild = process.env.BUILD_DEBUG === "1";
+
 async function buildWasm(network) {
     await buildRollup({
         input: {
@@ -25,6 +27,7 @@ async function buildWasm(network) {
         },
         plugins: [
             rust({
+                optimize: isDebugBuild ? { release: false, wasmOpt: false, rustc: false } : undefined,
                 extraArgs: {
                     cargo: [
                         "--no-default-features",
