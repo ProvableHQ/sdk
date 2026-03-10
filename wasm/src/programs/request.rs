@@ -366,7 +366,7 @@ impl ExecutionRequest {
                     let tag = RecordNative::<CurrentNetwork, PlaintextNative<CurrentNetwork>::tag(sk_tag, commitment);
                     // Add the input ID to the input_id vector and increment the count.
                     input_ids.push(InputIDNative::Record(commitment, gamma, record_view_key, serial_number, tag));
-                    record_input_ix += 1;
+                    record_input_idx += 1;
                 }
                 ValueTypeNative::ExternalRecord(_) => {
                     return Err("external_record inputs are not yet supported in fromMPC".to_string());
@@ -386,8 +386,8 @@ impl ExecutionRequest {
             inputs,
             signature_native,
             sk_tag,
-            tvk_native,
-            tcm_native,
+            tvk,
+            tcm,
             scm,
         ));
 
