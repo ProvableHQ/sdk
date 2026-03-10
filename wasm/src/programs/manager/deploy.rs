@@ -97,6 +97,8 @@ impl ProgramManager {
         log("Creating deployment");
         let node_url = url.as_deref().unwrap_or(DEFAULT_URL);
         let mut deployment = process.deploy::<CurrentAleo, _>(&program, rng).map_err(|err| err.to_string())?;
+
+        // Ensure the deployment is not empty.
         if deployment.program().functions().is_empty() {
             return Err("Attempted to create an empty transaction deployment".to_string());
         }
@@ -104,6 +106,8 @@ impl ProgramManager {
         log("Setting program checksum and owner");
         let latest_height = latest_block_height(node_url).await.map_err(|err| err.to_string())?;
         let consensus_version = CurrentNetwork::CONSENSUS_VERSION(latest_height).map_err(|err| err.to_string())?;
+
+        // Set the program owner for programs above consensus version V8.
         let private_key_native = PrivateKeyNative::from(private_key);
         if consensus_version < ConsensusVersion::V9 {
             deployment.set_program_checksum_raw(None);
@@ -114,17 +118,23 @@ impl ProgramManager {
                 .set_program_owner_raw(Some(AddressNative::try_from(private_key_native).map_err(|e| e.to_string())?));
         }
 
+        // Before V14: remove record verifying keys from the deployment.
+        if consensus_version < ConsensusVersion::V14 {
+            let record_names: Vec<_> = deployment.program().records().keys().cloned().collect();
+            deployment.remove_verifying_keys(&record_names);
+        }
+
         log("Ensuring the fee is sufficient to pay for the deployment");
-        let (minimum_deployment_cost, (_, _, _, _)) =
-            deployment_cost::<CurrentNetwork>(process, &deployment, consensus_version)
-                .map_err(|err| err.to_string())?;
+        let (minimum_deployment_cost, _) = deployment_cost::<CurrentNetwork>(process, &deployment, consensus_version)
+            .map_err(|err| err.to_string())?;
 
         // Check to see if the fee record has enough microcredits to pay for the deployment.
         let priority_fee_microcredits = (priority_fee_credits * 1_000_000.0) as u64;
         Self::validate_fee_record(&fee_record, minimum_deployment_cost, priority_fee_microcredits)?;
 
+        // Execute the fee.
         let deployment_id = deployment.to_deployment_id().map_err(|e| e.to_string())?;
-
+        let owner = ProgramOwnerNative::new(private_key, deployment_id, rng).map_err(|err| err.to_string())?;
         let fee = execute_fee!(
             process,
             private_key,
@@ -138,9 +148,6 @@ impl ProgramManager {
             offline_query,
             minimum_deployment_cost
         );
-
-        // Create the program owner
-        let owner = ProgramOwnerNative::new(private_key, deployment_id, rng).map_err(|err| err.to_string())?;
 
         log("Creating deployment transaction");
         Ok(Transaction::from(
@@ -173,7 +180,7 @@ impl ProgramManager {
         ProgramManager::resolve_imports(process, imports, Some(program_id.as_str()))?;
 
         log("Create sample deployment");
-        let deployment =
+        let mut deployment =
             process.deploy::<CurrentAleo, _>(&program, &mut StdRng::from_entropy()).map_err(|err| err.to_string())?;
         if deployment.program().functions().is_empty() {
             return Err("Attempted to create an empty transaction deployment".to_string());
@@ -183,10 +190,16 @@ impl ProgramManager {
         let latest_height = latest_block_height(DEFAULT_URL).await.map_err(|err| err.to_string())?;
         let consensus_version =
             <CurrentNetwork as Network>::CONSENSUS_VERSION(latest_height).map_err(|err| err.to_string())?;
+
+        // Before V14: remove record verifying keys from the deployment.
+        if consensus_version < ConsensusVersion::V14 {
+            let record_names: Vec<_> = deployment.program().records().keys().cloned().collect();
+            deployment.remove_verifying_keys(&record_names);
+        }
+
         log("Estimate the deployment fee");
-        let (minimum_deployment_cost, (_, _, _, _)) =
-            deployment_cost::<CurrentNetwork>(process, &deployment, consensus_version)
-                .map_err(|err| err.to_string())?;
+        let (minimum_deployment_cost, _) = deployment_cost::<CurrentNetwork>(process, &deployment, consensus_version)
+            .map_err(|err| err.to_string())?;
 
         Ok(minimum_deployment_cost)
     }
@@ -267,6 +280,7 @@ impl ProgramManager {
             return Err("Attempted to create an empty transaction deployment".to_string());
         }
 
+        // Set the program owner for programs above consensus version V8.
         log("Setting program checksum and owner");
         let latest_height = latest_block_height(node_url).await.map_err(|err| err.to_string())?;
         let consensus_version = CurrentNetwork::CONSENSUS_VERSION(latest_height).map_err(|err| err.to_string())?;
@@ -280,17 +294,23 @@ impl ProgramManager {
                 .set_program_owner_raw(Some(AddressNative::try_from(private_key_native).map_err(|e| e.to_string())?));
         }
 
+        // Before V14: remove record verifying keys from the deployment.
+        if consensus_version < ConsensusVersion::V14 {
+            let record_names: Vec<_> = deployment.program().records().keys().cloned().collect();
+            deployment.remove_verifying_keys(&record_names);
+        }
+
         log("Ensuring the fee is sufficient to pay for the deployment");
-        let (minimum_deployment_cost, (_, _, _, _)) =
-            deployment_cost::<CurrentNetwork>(process, &deployment, consensus_version)
-                .map_err(|err| err.to_string())?;
+        let (minimum_deployment_cost, _) = deployment_cost::<CurrentNetwork>(process, &deployment, consensus_version)
+            .map_err(|err| err.to_string())?;
 
         // Check to see if the fee record has enough microcredits to pay for the deployment.
         let priority_fee_microcredits = (priority_fee_credits * 1_000_000.0) as u64;
         Self::validate_fee_record(&fee_record, minimum_deployment_cost, priority_fee_microcredits)?;
 
+        // Execute the fee.
         let deployment_id = deployment.to_deployment_id().map_err(|e| e.to_string())?;
-
+        let owner = ProgramOwnerNative::new(private_key, deployment_id, rng).map_err(|err| err.to_string())?;
         let fee = execute_fee!(
             process,
             private_key,
@@ -304,9 +324,6 @@ impl ProgramManager {
             offline_query,
             minimum_deployment_cost
         );
-
-        // Create the program owner
-        let owner = ProgramOwnerNative::new(private_key, deployment_id, rng).map_err(|err| err.to_string())?;
 
         log("Creating deployment transaction");
         Ok(Transaction::from(
@@ -377,18 +394,20 @@ impl ProgramManager {
             verifying_keys.push((*function_name, (verifying_key, certificate)));
         }
 
+        // Attempt to set the edition.
         let edition_response = latest_program_edition(node_url, &program_id.to_string()).await;
         let edition = match edition_response {
             Ok(edition) => edition + 1,
             Err(_) => 0,
         };
 
+        // Construct the deployment without running all proofs.
         let mut deployment = DeploymentNative::new(edition, program.clone(), verifying_keys, None, None)
             .map_err(|err| err.to_string())?;
 
+        // Set the program owner for programs above consensus version V8.
         let latest_height = latest_block_height(node_url).await.map_err(|err| err.to_string())?;
         let consensus_version = CurrentNetwork::CONSENSUS_VERSION(latest_height).map_err(|err| err.to_string())?;
-
         let private_key_native = PrivateKeyNative::from(private_key);
         if consensus_version < ConsensusVersion::V9 {
             deployment.set_program_checksum_raw(None);
@@ -399,9 +418,11 @@ impl ProgramManager {
                 .set_program_owner_raw(Some(AddressNative::try_from(private_key_native).map_err(|e| e.to_string())?));
         }
 
-        let deployment_id = deployment.to_deployment_id().map_err(|e| e.to_string())?;
-
-        let owner = ProgramOwnerNative::new(private_key, deployment_id, rng).map_err(|err| err.to_string())?;
+        // Before V14: remove record verifying keys from the deployment.
+        if consensus_version < ConsensusVersion::V14 {
+            let record_names: Vec<_> = deployment.program().records().keys().cloned().collect();
+            deployment.remove_verifying_keys(&record_names);
+        }
 
         // Construct the fee authorization for the deployment
         let (minimum_deployment_cost, _) = deployment_cost::<CurrentNetwork>(process, &deployment, consensus_version)
@@ -412,6 +433,9 @@ impl ProgramManager {
         Self::validate_fee_record(&fee_record, minimum_deployment_cost, priority_fee_microcredits)
             .map_err(|e| e.to_string())?;
 
+        // Execute the fee.
+        let deployment_id = deployment.to_deployment_id().map_err(|e| e.to_string())?;
+        let owner = ProgramOwnerNative::new(private_key, deployment_id, rng).map_err(|err| err.to_string())?;
         let fee_authorization = match fee_record {
             Some(record) => process
                 .authorize_fee_private::<CurrentAleo, _>(
@@ -435,8 +459,7 @@ impl ProgramManager {
         };
 
         // Get the state root.
-        let state_root = latest_stateroot(node_url).await.map_err(|e| e.to_string()).map_err(|e| e.to_string())?;
-
+        let state_root = latest_stateroot(node_url).await.map_err(|e| e.to_string())?;
         let fee = FeeNative::from(fee_authorization.transitions().into_iter().next().unwrap().1, state_root, None)
             .map_err(|err| err.to_string())?;
 
@@ -519,18 +542,20 @@ impl ProgramManager {
             verifying_keys.push((*function_name, (verifying_key, certificate)));
         }
 
+        // Attempt to get the latest program edition.
         let edition_response = latest_program_edition(node_url, &program_id.to_string()).await;
         let edition = match edition_response {
             Ok(edition) => edition + 1,
             Err(_) => 0,
         };
 
+        // Construct the deployment without running all proofs.
         let mut deployment = DeploymentNative::new(edition, program.clone(), verifying_keys, None, None)
             .map_err(|err| err.to_string())?;
 
+        // Set the program owner for programs above consensus version V8.
         let latest_height = latest_block_height(node_url).await.map_err(|err| err.to_string())?;
         let consensus_version = CurrentNetwork::CONSENSUS_VERSION(latest_height).map_err(|err| err.to_string())?;
-
         let private_key_native = PrivateKeyNative::from(private_key);
         if consensus_version < ConsensusVersion::V9 {
             deployment.set_program_checksum_raw(None);
@@ -541,9 +566,11 @@ impl ProgramManager {
                 .set_program_owner_raw(Some(AddressNative::try_from(private_key_native).map_err(|e| e.to_string())?));
         }
 
-        let deployment_id = deployment.to_deployment_id().map_err(|e| e.to_string())?;
-
-        let owner = ProgramOwnerNative::new(private_key, deployment_id, rng).map_err(|err| err.to_string())?;
+        // Before V14: remove record verifying keys from the deployment.
+        if consensus_version < ConsensusVersion::V14 {
+            let record_names: Vec<_> = deployment.program().records().keys().cloned().collect();
+            deployment.remove_verifying_keys(&record_names);
+        }
 
         // Construct the fee authorization for the deployment
         let (minimum_deployment_cost, _) = deployment_cost::<CurrentNetwork>(process, &deployment, consensus_version)
@@ -554,6 +581,9 @@ impl ProgramManager {
         Self::validate_fee_record(&fee_record, minimum_deployment_cost, priority_fee_microcredits)
             .map_err(|e| e.to_string())?;
 
+        // Execute the fee.
+        let deployment_id = deployment.to_deployment_id().map_err(|e| e.to_string())?;
+        let owner = ProgramOwnerNative::new(private_key, deployment_id, rng).map_err(|err| err.to_string())?;
         let fee_authorization = match fee_record {
             Some(record) => process
                 .authorize_fee_private::<CurrentAleo, _>(
@@ -577,8 +607,7 @@ impl ProgramManager {
         };
 
         // Get the state root.
-        let state_root = latest_stateroot(node_url).await.map_err(|e| e.to_string()).map_err(|e| e.to_string())?;
-
+        let state_root = latest_stateroot(node_url).await.map_err(|e| e.to_string())?;
         let fee = FeeNative::from(fee_authorization.transitions().into_iter().next().unwrap().1, state_root, None)
             .map_err(|err| err.to_string())?;
 
