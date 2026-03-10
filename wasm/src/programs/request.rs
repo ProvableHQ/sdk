@@ -243,9 +243,8 @@ impl ExecutionRequest {
         input_types: Array,
         signature: Signature,
         tvk: Field,
-        tcm: Field,
         view_key: ViewKey,
-        record_input_ids_json: Option<String>,
+        gammas: Option<Array>
     ) -> Result<ExecutionRequest, String> {
         let signature_native = *signature;
         let tvk_native = FieldNative::from(tvk);
@@ -256,11 +255,10 @@ impl ExecutionRequest {
             function_name,
             inputs,
             input_types,
-            signature_native,
-            tvk_native,
-            tcm_native,
-            view_key_native,
-            record_input_ids_json,
+            signature,
+            tvk,
+            view_key,
+            gammas,
         )
     }
 
@@ -269,11 +267,10 @@ impl ExecutionRequest {
         function_name: String,
         inputs: Array,
         input_types: Array,
-        signature_native: SignatureNative,
-        tvk_native: FieldNative,
-        tcm_native: FieldNative,
-        view_key_native: ViewKeyNative,
-        record_input_ids_json: Option<String>,
+        signature_native: Signature,
+        tvk: Field,
+        view_key: ViewKey,
+        record_gamma: Option<Array>, // Optional array of gammas.  One gamma per input record.
     ) -> Result<ExecutionRequest, String> {
         let program_id = ProgramIDNative::from_str(&program_id).map_err(|e| e.to_string())?;
         let function_name = IdentifierNative::from_str(&function_name).map_err(|e| e.to_string())?;
@@ -296,33 +293,26 @@ impl ExecutionRequest {
             return Err("input_types and inputs must have the same length".to_string());
         }
 
-        let signer = crate::types::native::AddressNative::try_from(&view_key_native).map_err(|e| e.to_string())?;
-        let sk_tag = crate::types::native::GraphKeyNative::try_from(view_key_native).map_err(|e| e.to_string())?.sk_tag();
+        let signer = Address::from_view_key(view_key.as_ref());
+        let sk_tag = GraphKey::from_view_key(view_key.as_ref()).tag();
         let root_tvk = tvk_native;
-        let signer_x = signer.to_x_coordinate();
-        let scm = CurrentNetwork::hash_psd2(&[signer_x, root_tvk]).map_err(|e| e.to_string())?;
+        let signer_x = *signer.to_x_coordinate();
+        let scm = CurrentNetwork::hash_psd2(&[signer_x, *root_tvk]).map_err(|e| e.to_string())?;
+        let tcm = CurrentNetwork::hash_psd2(&[*tvk])?;
 
         let network_id = U16Native::new(CurrentNetwork::ID);
         let function_id = compute_function_id(&network_id, &program_id, &function_name).map_err(|e| e.to_string())?;
-
-        let record_input_id_strs: Vec<String> = record_input_ids_json
-            .as_ref()
-            .map(|json| {
-                serde_json::from_str::<Vec<String>>(json).map_err(|e| format!("record_input_ids_json must be JSON array of strings: {e}"))
-            })
-            .transpose()?
-            .unwrap_or_default();
 
         let record_count = input_types
             .iter()
             .filter(|t| matches!(t, ValueTypeNative::Record(_)))
             .count();
-        if record_count != record_input_id_strs.len() {
+        if record_count != gammas.len() {
             return Err(format!(
                 "record_input_ids must have length {} for {} record input(s), got {}",
                 record_count,
                 record_count,
-                record_input_id_strs.len()
+                gammas.len()
             ));
         }
 
@@ -347,7 +337,7 @@ impl ExecutionRequest {
                 }
                 ValueTypeNative::Private(_) => {
                     let input_view_key =
-                        CurrentNetwork::hash_psd4(&[function_id, tvk_native, index_field]).map_err(|e| e.to_string())?;
+                        CurrentNetwork::hash_psd4(&[function_id, tvk.as_rev(), index_field]).map_err(|e| e.to_string())?;
                     let ciphertext = match input {
                         ValueNative::Plaintext(plaintext) => {
                             plaintext.encrypt_symmetric(input_view_key).map_err(|e| e.to_string())?
@@ -359,18 +349,24 @@ impl ExecutionRequest {
                             .map_err(|e| e.to_string())?;
                     input_ids.push(InputID::Private(input_hash));
                 }
-                ValueTypeNative::Record(_) => {
-                    let record_input_id_str = record_input_id_strs
-                        .get(record_input_idx)
-                        .ok_or_else(|| "record_input_ids index out of bounds".to_string())?;
-                    let input_id = InputID::<CurrentNetwork>::from_str(record_input_id_str)
-                        .map_err(|e| format!("Failed to parse record input ID: {e}"))?;
-                    let input_id = match input_id {
-                        InputID::Record(..) => input_id,
-                        _ => return Err("record_input_ids must contain record-type input IDs".to_string()),
-                    };
-                    input_ids.push(input_id);
-                    record_input_idx += 1;
+                ValueTypeNative::Record(record_name) => {
+                    // Deserialize the record input
+                    let ValueNative::Record(record_input) = input;
+                    // Compute the record input ID from the gamma, record commitment, h, and h_r.
+                    let record_view_key = (*record_input.nonce() * ***vk).to_x_coordinate();
+                    // Compute the commitment for the record input.
+                    let commitment = record_input
+                        .to_commitment(&program_id, &record_name, &record_view_key)
+                        .map_err(|e| e.to_string())?;
+                    // Pop the gamma value and deserialize to group element.
+                    let gamma = Group::from(Array.shift());
+                    // Compute the serial number
+                    let serial_number = RecordNative::<CurrentNetwork, PlaintextNative<CurrentNetwork>>::serial_number_from_gamma(&gamma, commitment).map_err(|e| e.to_string())?;
+                    // Compute the tag
+                    let tag = RecordNative::<CurrentNetwork, PlaintextNative<CurrentNetwork>::tag(sk_tag, commitment);
+                    // Add the input ID to the input_id vector and increment the count.
+                    input_ids.push(InputIDNative::Record(commitment, gamma, record_view_key, serial_number, tag));
+                    record_input_ix += 1;
                 }
                 ValueTypeNative::ExternalRecord(_) => {
                     return Err("external_record inputs are not yet supported in fromMPC".to_string());
