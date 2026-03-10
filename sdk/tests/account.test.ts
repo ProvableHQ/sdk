@@ -1,6 +1,6 @@
 import sinon from "sinon";
 import { expect } from "chai";
-import { Account, Address, ComputeKey, PrivateKey, RecordCiphertext, ViewKey } from "../src/node.js";
+import { Account, Address, ComputeKey, PrivateKey, RecordCiphertext, ViewKey, zeroizeBytes } from "../src/node.js";
 import { seed, message, beaconPrivateKeyString, beaconViewKeyString, beaconAddressString, recordCiphertextString, foreignCiphertextString, recordPlaintextString } from "./data/account-data.js";
 
 describe('Account', () => {
@@ -209,6 +209,90 @@ describe('Account', () => {
             expect(isSigValidForMultipleMessages).equal(true);
             // Ensure a signature & message mismatch is invalid
             expect(isSigValidForWrongMessage).equal(false);
+        });
+    });
+
+    describe('Account Lifecycle & Zeroization', () => {
+        it('destroy prevents further use of the account', () => {
+            const account = new Account();
+            account.destroy();
+
+            expect(() => account.privateKey()).to.throw(/destroyed/);
+            expect(() => account.viewKey()).to.throw(/destroyed/);
+            expect(() => account.computeKey()).to.throw(/destroyed/);
+            expect(() => account.address()).to.throw(/destroyed/);
+            expect(() => account.sign(message)).to.throw(/destroyed/);
+            expect(() => account.verify(message, new Account().sign(message))).to.throw(/destroyed/);
+            expect(() => account.clone()).to.throw(/destroyed/);
+            expect(() => account.toString()).to.throw(/destroyed/);
+            expect(() => account.encryptAccount("password")).to.throw(/destroyed/);
+            expect(() => account.decryptRecord("ciphertext")).to.throw(/destroyed/);
+            expect(() => account.decryptRecords(["ciphertext"])).to.throw(/destroyed/);
+        });
+
+        it('destroy is idempotent', () => {
+            const account = new Account();
+            account.destroy();
+            expect(() => account.destroy()).to.not.throw();
+        });
+
+        it('Symbol.dispose triggers destroy', () => {
+            const account = new Account();
+            account[Symbol.dispose]();
+
+            expect(() => account.privateKey()).to.throw(/destroyed/);
+        });
+
+        it('clone produces a working independent copy', () => {
+            const account = new Account({seed: seed});
+            const cloned = account.clone();
+
+            // Verify the clone has the same keys
+            expect(cloned.privateKey().to_string()).to.equal(account.privateKey().to_string());
+            expect(cloned.viewKey().to_string()).to.equal(account.viewKey().to_string());
+            expect(cloned.address().to_string()).to.equal(account.address().to_string());
+
+            // Destroying the original should not affect the clone
+            account.destroy();
+            expect(() => cloned.privateKey()).to.not.throw();
+            expect(cloned.privateKey().to_string()).to.equal(beaconPrivateKeyString);
+
+            cloned.destroy();
+        });
+
+        it('fromCiphertext produces a working account', () => {
+            const account = new Account();
+            const ciphertext = account.encryptAccount("testpassword");
+            const recovered = Account.fromCiphertext(ciphertext, "testpassword");
+
+            expect(recovered.privateKey().to_string()).to.equal(account.privateKey().to_string());
+            expect(recovered.viewKey().to_string()).to.equal(account.viewKey().to_string());
+            expect(recovered.address().to_string()).to.equal(account.address().to_string());
+
+            account.destroy();
+            recovered.destroy();
+        });
+
+        it('accepts a PrivateKey object in AccountParam', () => {
+            const original = new Account({seed: seed});
+            const pk = original.privateKey();
+
+            // Create account from PrivateKey object (byte-serialization path, no string leak)
+            const fromPk = new Account({privateKey: pk});
+            expect(fromPk.privateKey().to_string()).to.equal(beaconPrivateKeyString);
+            expect(fromPk.viewKey().to_string()).to.equal(beaconViewKeyString);
+            expect(fromPk.address().to_string()).to.equal(beaconAddressString);
+
+            original.destroy();
+            fromPk.destroy();
+        });
+
+        it('zeroizeBytes clears a byte array', () => {
+            const bytes = new Uint8Array([1, 2, 3, 4, 5, 6, 7, 8]);
+            expect(bytes.some(b => b !== 0)).to.equal(true);
+
+            zeroizeBytes(bytes);
+            expect(bytes.every(b => b === 0)).to.equal(true);
         });
     });
 });
