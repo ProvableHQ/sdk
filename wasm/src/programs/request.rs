@@ -241,8 +241,6 @@ impl ExecutionRequest {
         function_name: String,
         inputs: Array,
         input_types: Array,
-        _is_root: bool,
-        _program_checksum: Option<Field>,
         signature: Signature,
         tvk: Field,
         tcm: Field,
@@ -258,44 +256,6 @@ impl ExecutionRequest {
             function_name,
             inputs,
             input_types,
-            _is_root,
-            _program_checksum,
-            signature_native,
-            tvk_native,
-            tcm_native,
-            view_key_native,
-            record_input_ids_json,
-        )
-    }
-
-    /// Same as fromMPC but takes string representations for signature, tvk, tcm, and view_key.
-    /// Use this when passing wasm objects causes "null pointer passed to rust" (e.g. across worker boundaries).
-    #[wasm_bindgen(js_name = "fromMPCWithStrings")]
-    #[allow(clippy::too_many_arguments)]
-    pub fn from_mpc_with_strings(
-        program_id: String,
-        function_name: String,
-        inputs: Array,
-        input_types: Array,
-        _is_root: bool,
-        _program_checksum: Option<Field>,
-        signature_str: String,
-        tvk_str: String,
-        tcm_str: String,
-        view_key_str: String,
-        record_input_ids_json: Option<String>,
-    ) -> Result<ExecutionRequest, String> {
-        let signature_native = SignatureNative::from_str(&signature_str).map_err(|e| e.to_string())?;
-        let tvk_native = FieldNative::from_str(&tvk_str).map_err(|e| e.to_string())?;
-        let tcm_native = FieldNative::from_str(&tcm_str).map_err(|e| e.to_string())?;
-        let view_key_native = ViewKeyNative::from_str(&view_key_str).map_err(|e| e.to_string())?;
-        Self::from_mpc_impl(
-            program_id,
-            function_name,
-            inputs,
-            input_types,
-            _is_root,
-            _program_checksum,
             signature_native,
             tvk_native,
             tcm_native,
@@ -309,8 +269,6 @@ impl ExecutionRequest {
         function_name: String,
         inputs: Array,
         input_types: Array,
-        _is_root: bool,
-        _program_checksum: Option<Field>,
         signature_native: SignatureNative,
         tvk_native: FieldNative,
         tcm_native: FieldNative,
