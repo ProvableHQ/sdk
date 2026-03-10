@@ -458,7 +458,7 @@ impl ProgramManager {
         };
 
         // Get the state root.
-        let state_root = latest_stateroot(node_url).await.map_err(|e| e.to_string()).map_err(|e| e.to_string())?;
+        let state_root = latest_stateroot(node_url).await.map_err(|e| e.to_string())?;
         let fee = FeeNative::from(fee_authorization.transitions().into_iter().next().unwrap().1, state_root, None)
             .map_err(|err| err.to_string())?;
 
@@ -605,8 +605,7 @@ impl ProgramManager {
         };
 
         // Get the state root.
-        let state_root = latest_stateroot(node_url).await.map_err(|e| e.to_string()).map_err(|e| e.to_string())?;
-
+        let state_root = latest_stateroot(node_url).await.map_err(|e| e.to_string())?;
         let fee = FeeNative::from(fee_authorization.transitions().into_iter().next().unwrap().1, state_root, None)
             .map_err(|err| err.to_string())?;
 
