@@ -615,12 +615,10 @@ describe('Program Manager', async () => {
             const recordId0 = inputIds[0];
             if (recordId0 == null) throw new Error("Expected record input ID at index 0");
             const recordInputIdsJson = JSON.stringify([String(recordId0)]); // first input is the record
-            console.log(recordInputIdsJson);
+            // console.log(recordInputIdsJson);
             const signature = signedRequest.signature().to_string();
             const tvk = signedRequest.tvk().toString();
             const tcm = signedRequest.tcm().toString();
-            console.log(2);
-            console.log(signature);
             const mpcRequest = ExecutionRequest.fromMPCWithStrings(
                 "credits.aleo",
                 "transfer_private",
@@ -634,7 +632,6 @@ describe('Program Manager', async () => {
                 viewKeyString,
                 recordInputIdsJson,
             );
-            console.log(3);
             expect(mpcRequest.program_id()).to.equal(signedRequest.program_id());
             expect(mpcRequest.function_name()).to.equal(signedRequest.function_name());
             expect(mpcRequest.inputs().length).to.equal(signedRequest.inputs().length);
