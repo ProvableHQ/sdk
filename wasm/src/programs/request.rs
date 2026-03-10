@@ -315,7 +315,7 @@ impl ExecutionRequest {
                 }
                 ValueTypeNative::Private(_) => {
                     let input_view_key =
-                        CurrentNetwork::hash_psd4(&[function_id, tvk, index_field]).map_err(|e| e.to_string())?;
+                        CurrentNetwork::hash_psd4(&[function_id, *tvk, index_field]).map_err(|e| e.to_string())?;
                     let ciphertext = match input {
                         ValueNative::Plaintext(plaintext) => {
                             plaintext.encrypt_symmetric(input_view_key).map_err(|e| e.to_string())?
@@ -331,19 +331,19 @@ impl ExecutionRequest {
                     // Deserialize the record input
                     let ValueNative::Record(record_input) = input;
                     // Compute the record input ID from the gamma, record commitment, h, and h_r.
-                    let record_view_key = (*record_input.nonce() * ***view_key).to_x_coordinate();
+                    let record_view_key = (**record_input.nonce() * ***view_key).to_x_coordinate();
                     // Compute the commitment for the record input.
                     let commitment = record_input
                         .to_commitment(&program_id, &record_name, &record_view_key)
                         .map_err(|e| e.to_string())?;
-                    // Pop the gamma value and deserialize to group element.
-                    let gamma = Group::from(gammas[record_input_idx]);
+                    // Obtain the correct gamme from the Option<Array> deserialize to group element.
+                    let gamma = Group::from(gammas.as_ref().unwrap().get(record_input_idx as u32)); // Not great to use unwrap()...even though the existence of the array is valid at this point.
                     // Compute the serial number
-                    let serial_number = RecordPlaintextNative::<CurrentNetwork, PlaintextNative<CurrentNetwork>>::serial_number_from_gamma(&gamma, commitment).map_err(|e| e.to_string())?;
+                    let serial_number = RecordPlaintextNative::serial_number_from_gamma(&gamma, commitment).map_err(|e| e.to_string())?;
                     // Compute the tag
-                    let tag = RecordPlaintextNative::<CurrentNetwork, PlaintextNative<CurrentNetwork>>::tag(sk_tag, commitment);
+                    let tag = RecordPlaintextNative::tag(*sk_tag, commitment).map_err(|e| e.to_string())?;
                     // Add the input ID to the input_id vector and increment the count.
-                    input_ids.push(InputIDNative::Record(commitment, gamma, record_view_key, serial_number, tag));
+                    input_ids.push(InputIDNative::Record(commitment, *gamma, record_view_key, serial_number, tag));
                     record_input_idx += 1;
                 }
                 ValueTypeNative::ExternalRecord(_) => {
