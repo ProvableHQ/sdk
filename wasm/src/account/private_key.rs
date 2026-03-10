@@ -31,6 +31,7 @@ use snarkvm_wasm::{
 use core::{convert::TryInto, fmt, ops::Deref, str::FromStr};
 use rand::{SeedableRng, rngs::StdRng};
 use wasm_bindgen::prelude::*;
+use zeroize::Zeroize;
 
 /// Private key of an Aleo account
 #[wasm_bindgen]
@@ -75,6 +76,16 @@ impl PrivateKey {
     /// @returns {string} String representation of a private key
     #[allow(clippy::inherent_to_string_shadow_display)]
     pub fn to_string(&self) -> String {
+        self.0.to_string()
+    }
+
+    /// Get a string representation of the private key. This function should be used very carefully
+    /// as it exposes the private key plaintext
+    ///
+    /// @returns {string} String representation of a private key
+    #[wasm_bindgen(js_name = "toString")]
+    #[allow(clippy::inherent_to_string)]
+    pub fn to_string_js(&self) -> String {
         self.0.to_string()
     }
 
@@ -144,6 +155,29 @@ impl PrivateKey {
         let private_key = Encryptor::decrypt_private_key_with_secret(ciphertext, secret)
             .map_err(|_| "Decryption failed".to_string())?;
         Ok(Self::from(private_key))
+    }
+
+    /// Get the byte representation of a private key
+    ///
+    /// @returns {Uint8Array} Byte representation of a private key
+    #[wasm_bindgen(js_name = "toBytesLe")]
+    pub fn to_bytes_le(&self) -> Result<Vec<u8>, String> {
+        self.0.to_bytes_le().map_err(|e| e.to_string())
+    }
+
+    /// Get a private key from a byte representation
+    ///
+    /// @param {Uint8Array} bytes Byte representation of a private key
+    /// @returns {PrivateKey} Private key
+    #[wasm_bindgen(js_name = "fromBytesLe")]
+    pub fn from_bytes_le(bytes: Vec<u8>) -> Result<PrivateKey, String> {
+        Ok(Self(FromBytes::read_le(&bytes[..]).map_err(|e| e.to_string())?))
+    }
+}
+
+impl Drop for PrivateKey {
+    fn drop(&mut self) {
+        self.0.zeroize();
     }
 }
 
@@ -269,6 +303,37 @@ mod tests {
             // Check the signature is valid (natively).
             assert!(signature.verify_bytes(&private_key.to_address(), &message));
         }
+    }
+
+    #[wasm_bindgen_test]
+    pub fn test_byte_serialization_roundtrip() {
+        for _ in 0..ITERATIONS {
+            let private_key = PrivateKey::new();
+            let bytes = private_key.to_bytes_le().unwrap();
+            let recovered = PrivateKey::from_bytes_le(bytes).unwrap();
+            assert_eq!(private_key, recovered);
+        }
+    }
+
+    #[wasm_bindgen_test]
+    pub fn test_zeroize_clears_key_material() {
+        use zeroize::Zeroize;
+
+        let mut private_key = PrivateKey::new();
+        // Get a raw pointer to the inner key bytes to inspect after zeroize.
+        let ptr = &private_key.0 as *const PrivateKeyNative as *const u8;
+        let size = core::mem::size_of::<PrivateKeyNative>();
+
+        // Verify the key contains non-zero data before zeroization.
+        let bytes_before: Vec<u8> = unsafe { core::slice::from_raw_parts(ptr, size).to_vec() };
+        assert!(bytes_before.iter().any(|&b| b != 0), "Key should contain non-zero data");
+
+        // Zeroize the inner key material (same operation our Drop impl performs).
+        private_key.0.zeroize();
+
+        // Verify all bytes are now zero.
+        let bytes_after: Vec<u8> = unsafe { core::slice::from_raw_parts(ptr, size).to_vec() };
+        assert!(bytes_after.iter().all(|&b| b == 0), "Key material should be zeroed after zeroize");
     }
 
     #[wasm_bindgen_test]

@@ -18,6 +18,7 @@ use crate::{Address, Field, PrivateKey, RecordCiphertext, Scalar, types::native:
 use core::{convert::TryFrom, fmt, ops::Deref, str::FromStr};
 use snarkvm_console::prelude::{FromBytes, ToBytes, ToField};
 use wasm_bindgen::prelude::*;
+use zeroize::Zeroize;
 
 #[wasm_bindgen]
 #[derive(Clone, Debug, PartialEq, Eq)]
@@ -46,6 +47,15 @@ impl ViewKey {
     /// @returns {string} String representation of a view key
     #[allow(clippy::inherent_to_string_shadow_display)]
     pub fn to_string(&self) -> String {
+        self.0.to_string()
+    }
+
+    /// Get a string representation of a view key
+    ///
+    /// @returns {string} String representation of a view key
+    #[wasm_bindgen(js_name = "toString")]
+    #[allow(clippy::inherent_to_string)]
+    pub fn to_string_js(&self) -> String {
         self.0.to_string()
     }
 
@@ -96,6 +106,12 @@ impl ViewKey {
             Ok(plaintext) => Ok(plaintext.to_string()),
             Err(error) => Err(error),
         }
+    }
+}
+
+impl Drop for ViewKey {
+    fn drop(&mut self) {
+        self.0.zeroize();
     }
 }
 
@@ -193,5 +209,28 @@ mod tests {
         let bytes = vk.to_bytes_le().unwrap();
         let vk_from_bytes = ViewKey::from_bytes_le(bytes).unwrap();
         assert_eq!(vk, vk_from_bytes);
+    }
+
+    #[wasm_bindgen_test]
+    pub fn test_zeroize_clears_view_key_material() {
+        use zeroize::Zeroize;
+
+        let private_key =
+            PrivateKey::from_string("APrivateKey1zkp4RyQ8Utj7aRcJgPQGEok8RMzWwUZzBhhgX6rhmBT8dcP").unwrap();
+        let mut view_key = ViewKey::from_private_key(&private_key);
+
+        let ptr = &view_key.0 as *const ViewKeyNative as *const u8;
+        let size = core::mem::size_of::<ViewKeyNative>();
+
+        // Verify the view key contains non-zero data before zeroization.
+        let bytes_before: Vec<u8> = unsafe { core::slice::from_raw_parts(ptr, size).to_vec() };
+        assert!(bytes_before.iter().any(|&b| b != 0), "View key should contain non-zero data");
+
+        // Zeroize the inner view key material (same operation our Drop impl performs).
+        view_key.0.zeroize();
+
+        // Verify all bytes are now zero.
+        let bytes_after: Vec<u8> = unsafe { core::slice::from_raw_parts(ptr, size).to_vec() };
+        assert!(bytes_after.iter().all(|&b| b == 0), "View key material should be zeroed after zeroize");
     }
 }

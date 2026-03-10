@@ -5,16 +5,16 @@ import {
   Field,
   Group,
   PrivateKey,
-  Transition,
   Signature,
   ViewKey,
   PrivateKeyCiphertext,
   RecordCiphertext,
   RecordPlaintext,
 } from "./wasm.js";
+import { zeroizeBytes } from "./security.js";
 
 interface AccountParam {
-  privateKey?: string;
+  privateKey?: string | PrivateKey;
   seed?: Uint8Array;
 }
 
@@ -27,6 +27,9 @@ interface AccountParam {
  * of a user's activity on the blockchain. The Address is the public address to which other users of Aleo can send Aleo
  * credits and other records to. This class should only be used in environments where the safety of the underlying key
  * material can be assured.
+ *
+ * When an Account is no longer needed, call {@link destroy} to securely zeroize and free all sensitive key material
+ * from WASM memory. Alternatively, use `[Symbol.dispose]()` with the `using` declaration in ES2024+ environments.
  *
  * @example
  * import { Account } from "@provablehq/sdk/testnet.js";
@@ -47,12 +50,16 @@ interface AccountParam {
  *
  * // Verify a signature
  * assert(myRandomAccount.verify(hello_world, signature));
+ *
+ * // Securely destroy the account when done
+ * myRandomAccount.destroy();
  */
 export class Account {
   _privateKey: PrivateKey;
   _viewKey: ViewKey;
   _computeKey: ComputeKey;
   _address: Address;
+  private _destroyed = false;
 
   constructor(params: AccountParam = {}) {
     try {
@@ -82,7 +89,11 @@ export class Account {
     try {
       ciphertext = (typeof ciphertext === "string") ? PrivateKeyCiphertext.fromString(ciphertext) : ciphertext;
       const _privateKey = PrivateKey.fromPrivateKeyCiphertext(ciphertext, password);
-      return new Account({ privateKey: _privateKey.to_string() });
+      try {
+        return new Account({ privateKey: _privateKey });
+      } finally {
+        _privateKey.free(); // Zeroize + free the temporary; Account owns its own clone
+      }
     } catch(e) {
       throw new Error("Wrong password or invalid ciphertext");
     }
@@ -108,7 +119,7 @@ export class Account {
 
   /**
    * Creates a PrivateKey from the provided parameters.
-   * @param {AccountParam} params The parameters containing either a private key string or a seed
+   * @param {AccountParam} params The parameters containing either a private key string, PrivateKey object, or a seed
    * @returns {PrivateKey} A PrivateKey instance derived from the provided parameters
    */
   private privateKeyFromParams(params: AccountParam): PrivateKey {
@@ -116,9 +127,28 @@ export class Account {
       return PrivateKey.from_seed_unchecked(params.seed);
     }
     if (params.privateKey) {
-      return PrivateKey.from_string(params.privateKey);
+      if (typeof params.privateKey === 'string') {
+        return PrivateKey.from_string(params.privateKey);
+      }
+      // Clone the PrivateKey WASM object via byte serialization to avoid
+      // creating an immutable JS string of the private key.
+      const bytes = params.privateKey.toBytesLe();
+      try {
+        return PrivateKey.fromBytesLe(bytes);
+      } finally {
+        zeroizeBytes(bytes);
+      }
     }
     return new PrivateKey();
+  }
+
+  /**
+   * Throws an error if this account has been destroyed.
+   */
+  private assertNotDestroyed(): void {
+    if (this._destroyed) {
+      throw new Error("Account has been destroyed. Create a new Account instance.");
+    }
   }
 
   /**
@@ -132,6 +162,7 @@ export class Account {
    * const privateKey = account.privateKey();
    */
   privateKey(): PrivateKey {
+    this.assertNotDestroyed();
     return this._privateKey;
   }
 
@@ -146,6 +177,7 @@ export class Account {
    * const viewKey = account.viewKey();
    */
   viewKey(): ViewKey {
+    this.assertNotDestroyed();
     return this._viewKey;
   }
 
@@ -160,6 +192,7 @@ export class Account {
    * const computeKey = account.computeKey();
    */
   computeKey(): ComputeKey {
+    this.assertNotDestroyed();
     return this._computeKey;
   }
 
@@ -174,11 +207,13 @@ export class Account {
    * const address = account.address();
    */
   address(): Address {
+    this.assertNotDestroyed();
     return this._address;
   }
 
   /**
-   * Deep clones the Account.
+   * Deep clones the Account via byte serialization of the private key,
+   * avoiding creation of immutable JS string representations of the private key.
    * @returns {Account} A new Account instance with the same private key
    *
    * @example
@@ -188,7 +223,8 @@ export class Account {
    * const clonedAccount = account.clone();
    */
   clone(): Account {
-    return new Account({ privateKey: this._privateKey.to_string() });
+    this.assertNotDestroyed();
+    return new Account({ privateKey: this._privateKey });
   }
 
   /**
@@ -197,6 +233,7 @@ export class Account {
    * @returns {string} The string representation of the account address
    */
   toString(): string {
+    this.assertNotDestroyed();
     return this.address().to_string()
   }
 
@@ -214,6 +251,7 @@ export class Account {
    * process.env.ciphertext = ciphertext.toString();
    */
   encryptAccount(password: string): PrivateKeyCiphertext {
+    this.assertNotDestroyed();
     return this._privateKey.toCiphertext(password);
   }
 
@@ -244,6 +282,7 @@ export class Account {
    * }
    */
   decryptRecord(ciphertext: string): RecordPlaintext {
+    this.assertNotDestroyed();
     return this._viewKey.decrypt(ciphertext);
   }
 
@@ -269,6 +308,7 @@ export class Account {
    * const decryptedRecords = account.decryptRecords(records);
    */
   decryptRecords(ciphertexts: string[]): RecordPlaintext[] {
+    this.assertNotDestroyed();
     return ciphertexts.map((ciphertext) => this._viewKey.decrypt(ciphertext));
   }
 
@@ -277,19 +317,20 @@ export class Account {
    * This key can be used to decrypt the record without revealing the account's view key.
    * @param {RecordCiphertext | string} recordCiphertext The record ciphertext to generate the view key for
    * @returns {Field} The record view key
-   * 
+   *
    * @example
    * // Import the Account class
    * import { Account } from "@provablehq/sdk/testnet.js";
-   * 
+   *
    * // Create an account object from a previously encrypted ciphertext and password.
    * const account = Account.fromCiphertext(process.env.ciphertext!, process.env.password!);
-   * 
+   *
    * // Generate a record view key from the account's view key and a record ciphertext
    * const recordCiphertext = RecordCiphertext.fromString("your_record_ciphertext_here");
    * const recordViewKey = account.generateRecordViewKey(recordCiphertext);
    */
   generateRecordViewKey(recordCiphertext: RecordCiphertext | string): Field {
+    this.assertNotDestroyed();
     if (typeof recordCiphertext === 'string') {
       recordCiphertext = RecordCiphertext.fromString(recordCiphertext);
     }
@@ -301,21 +342,22 @@ export class Account {
 
   /**
    * Generates a transition view key from the account owner's view key and the transition public key.
-   * This key can be used to decrypt the private inputs and outputs of a the transition without 
+   * This key can be used to decrypt the private inputs and outputs of a the transition without
    * revealing the account's view key.
    * @param {string | Group} tpk The transition public key
    * @returns {Field} The transition view key
-   * 
+   *
    * @example
    * // Import the Account class
    * import { Account } from "@provablehq/sdk/testnet.js";
-   * 
+   *
    * // Generate a transition view key from the account's view key and a transition public key
    * const tpk = Group.fromString("your_transition_public_key_here");
-   * 
+   *
    * const transitionViewKey = account.generateTransitionViewKey(tpk);
    */
   generateTransitionViewKey(tpk: string | Group): Field {
+    this.assertNotDestroyed();
     if (typeof tpk === 'string') {
       tpk = Group.fromString(tpk);
     }
@@ -348,6 +390,7 @@ export class Account {
    * }
    */
   ownsRecordCiphertext(ciphertext: RecordCiphertext | string): boolean {
+    this.assertNotDestroyed();
     if (typeof ciphertext === 'string') {
       try {
         const ciphertextObject = RecordCiphertext.fromString(ciphertext);
@@ -385,6 +428,7 @@ export class Account {
    * assert(account.verify(message, signature));
    */
   sign(message: Uint8Array): Signature {
+    this.assertNotDestroyed();
     return this._privateKey.sign(message);
   }
 
@@ -410,6 +454,50 @@ export class Account {
    * assert(account.verify(message, signature));
    */
   verify(message: Uint8Array, signature: Signature): boolean {
+    this.assertNotDestroyed();
     return this._address.verify(message, signature);
+  }
+
+  /**
+   * Securely destroys the account by zeroizing and freeing all sensitive key material
+   * from WASM memory. After calling this method, the account object should not be used.
+   *
+   * This triggers the Rust-level zeroizing Drop implementation which overwrites private key,
+   * view key, and compute key bytes with zeros in WASM linear memory before deallocation.
+   *
+   * Note: If destroy() is never called, the FinalizationRegistry (set up by wasm-bindgen)
+   * will eventually trigger cleanup via GC, but the timing is non-deterministic. For security-
+   * sensitive applications, always call destroy() explicitly when the account is no longer needed.
+   *
+   * @example
+   * const account = new Account();
+   * // ... use account ...
+   * account.destroy(); // Securely cleans up key material
+   */
+  destroy(): void {
+    if (this._destroyed) return;
+    this._destroyed = true;
+
+    // Free sensitive WASM objects (triggers Rust Drop -> zeroization).
+    // try/catch guards against double-free if FinalizationRegistry already ran.
+    try { this._privateKey.free(); } catch (_) { /* already freed */ }
+    try { this._viewKey.free(); } catch (_) { /* already freed */ }
+    try { this._computeKey.free(); } catch (_) { /* already freed */ }
+    // Address is public data but free it for completeness.
+    try { this._address.free(); } catch (_) { /* already freed */ }
+  }
+
+  /**
+   * Implements the Disposable interface for use with `using` declarations (ES2024+).
+   * Calls {@link destroy} to securely clean up key material.
+   *
+   * @example
+   * {
+   *   using account = new Account();
+   *   // ... use account ...
+   * } // account is automatically destroyed here
+   */
+  [Symbol.dispose](): void {
+    this.destroy();
   }
 }

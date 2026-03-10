@@ -19,6 +19,7 @@ use crate::types::{Field, native::GraphKeyNative};
 
 use core::{convert::TryFrom, fmt, ops::Deref, str::FromStr};
 use wasm_bindgen::prelude::*;
+use zeroize::Zeroize;
 
 #[wasm_bindgen]
 #[derive(Clone, Debug, PartialEq, Eq)]
@@ -50,9 +51,33 @@ impl GraphKey {
         self.0.to_string()
     }
 
+    /// Get a string representation of a graph key
+    ///
+    /// @returns {string} String representation of a graph key
+    #[wasm_bindgen(js_name = "toString")]
+    #[allow(clippy::inherent_to_string)]
+    pub fn to_string_js(&self) -> String {
+        self.0.to_string()
+    }
+
     /// Get the sk_tag of the graph key. Used to determine ownership of records.
     pub fn sk_tag(&self) -> Field {
         Field::from(self.0.sk_tag())
+    }
+}
+
+impl Drop for GraphKey {
+    fn drop(&mut self) {
+        // Safety: GraphKeyNative is Copy (no internal pointers or heap allocations),
+        // composed of a single Field element, so byte-level zeroing is sound.
+        // GraphKeyNative does not derive Zeroize, so we zero the raw bytes directly.
+        let bytes: &mut [u8] = unsafe {
+            core::slice::from_raw_parts_mut(
+                &mut self.0 as *mut GraphKeyNative as *mut u8,
+                core::mem::size_of::<GraphKeyNative>(),
+            )
+        };
+        bytes.zeroize();
     }
 }
 
@@ -128,5 +153,28 @@ mod tests {
         let sk_tag_string = sk_tag.to_string();
         let sk_tag_from_string = Field::from_string(&sk_tag_string).unwrap();
         assert_eq!(sk_tag, sk_tag_from_string);
+    }
+
+    #[wasm_bindgen_test]
+    fn test_zeroize_clears_graph_key_material() {
+        let private_key = PrivateKey::new();
+        let view_key = ViewKey::from_private_key(&private_key);
+        let mut graph_key = GraphKey::from_view_key(&view_key);
+
+        let ptr = &graph_key.0 as *const GraphKeyNative as *const u8;
+        let size = core::mem::size_of::<GraphKeyNative>();
+
+        // Verify the graph key contains non-zero data before zeroization.
+        let bytes_before: Vec<u8> = unsafe { core::slice::from_raw_parts(ptr, size).to_vec() };
+        assert!(bytes_before.iter().any(|&b| b != 0), "Graph key should contain non-zero data");
+
+        // Zeroize the raw bytes (same operation our Drop impl performs).
+        let bytes: &mut [u8] =
+            unsafe { core::slice::from_raw_parts_mut(&mut graph_key.0 as *mut GraphKeyNative as *mut u8, size) };
+        bytes.zeroize();
+
+        // Verify all bytes are now zero.
+        let bytes_after: Vec<u8> = unsafe { core::slice::from_raw_parts(ptr, size).to_vec() };
+        assert!(bytes_after.iter().all(|&b| b == 0), "Graph key material should be zeroed");
     }
 }

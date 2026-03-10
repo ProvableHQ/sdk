@@ -116,6 +116,10 @@ default-features = false
 [build-dependencies.walkdir]
 version = "2"
 
+[dependencies.zeroize]
+version = "1.8"
+features = [ "zeroize_derive" ]
+
 [dependencies.wasm-bindgen]
 version = "0.2.100"
 features = [ "serde-serialize" ]
