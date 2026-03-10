@@ -27,6 +27,8 @@ use crate::{
         CurrentNetwork,
         FieldNative,
         IdentifierNative,
+        InputIDNative,
+        PlaintextNative,
         ProgramIDNative,
         RecordPlaintextNative,
         RequestNative,
@@ -241,36 +243,10 @@ impl ExecutionRequest {
         function_name: String,
         inputs: Array,
         input_types: Array,
-        signature: Signature,
-        tvk: Field,
-        view_key: ViewKey,
-        gammas: Option<Array>
-    ) -> Result<ExecutionRequest, String> {
-        let signature_native = *signature;
-        let tvk_native = FieldNative::from(tvk);
-        let tcm_native = FieldNative::from(tcm);
-        let view_key_native = *view_key;
-        Self::from_mpc_impl(
-            program_id,
-            function_name,
-            inputs,
-            input_types,
-            signature,
-            tvk,
-            view_key,
-            gammas,
-        )
-    }
-
-    fn from_mpc_impl(
-        program_id: String,
-        function_name: String,
-        inputs: Array,
-        input_types: Array,
         signature_native: Signature,
         tvk: Field,
         view_key: ViewKey,
-        record_gamma: Option<Array>, // Optional array of gammas.  One gamma per input record.
+        gammas: Option<Array>, // Optional array of gammas.  One gamma per input record.
     ) -> Result<ExecutionRequest, String> {
         let program_id = ProgramIDNative::from_str(&program_id).map_err(|e| e.to_string())?;
         let function_name = IdentifierNative::from_str(&function_name).map_err(|e| e.to_string())?;
@@ -293,12 +269,12 @@ impl ExecutionRequest {
             return Err("input_types and inputs must have the same length".to_string());
         }
 
-        let signer = Address::from_view_key(view_key.as_ref());
-        let sk_tag = GraphKey::from_view_key(view_key.as_ref()).tag();
-        let root_tvk = tvk_native;
+        let signer = Address::from_view_key(&view_key);
+        let sk_tag = GraphKey::from_view_key(&view_key).sk_tag();
+        let root_tvk = tvk;
         let signer_x = *signer.to_x_coordinate();
         let scm = CurrentNetwork::hash_psd2(&[signer_x, *root_tvk]).map_err(|e| e.to_string())?;
-        let tcm = CurrentNetwork::hash_psd2(&[*tvk])?;
+        let tcm = CurrentNetwork::hash_psd2(&[*tvk]).map_err(|e| e.to_string())?;
 
         let network_id = U16Native::new(CurrentNetwork::ID);
         let function_id = compute_function_id(&network_id, &program_id, &function_name).map_err(|e| e.to_string())?;
@@ -307,12 +283,14 @@ impl ExecutionRequest {
             .iter()
             .filter(|t| matches!(t, ValueTypeNative::Record(_)))
             .count();
-        if record_count != gammas.len() {
+        
+        let gamma_length = gammas.as_ref().map_or(0, |a| a.length() as usize);
+        if record_count != gamma_length {
             return Err(format!(
                 "record_input_ids must have length {} for {} record input(s), got {}",
                 record_count,
                 record_count,
-                gammas.len()
+                gamma_length
             ));
         }
 
@@ -327,17 +305,17 @@ impl ExecutionRequest {
                 ValueTypeNative::Constant(_) | ValueTypeNative::Public(_) => {
                     let mut preimage = vec![function_id];
                     preimage.extend(input.to_fields().map_err(|e| e.to_string())?);
-                    preimage.push(tcm_native);
+                    preimage.push(tcm);
                     preimage.push(index_field);
                     let input_hash = CurrentNetwork::hash_psd8(&preimage).map_err(|e| e.to_string())?;
                     input_ids.push(match input_type {
-                        ValueTypeNative::Constant(_) => InputID::Constant(input_hash),
-                        _ => InputID::Public(input_hash),
+                        ValueTypeNative::Constant(_) => InputIDNative::Constant(input_hash),
+                        _ => InputIDNative::Public(input_hash),
                     });
                 }
                 ValueTypeNative::Private(_) => {
                     let input_view_key =
-                        CurrentNetwork::hash_psd4(&[function_id, tvk.as_rev(), index_field]).map_err(|e| e.to_string())?;
+                        CurrentNetwork::hash_psd4(&[function_id, tvk, index_field]).map_err(|e| e.to_string())?;
                     let ciphertext = match input {
                         ValueNative::Plaintext(plaintext) => {
                             plaintext.encrypt_symmetric(input_view_key).map_err(|e| e.to_string())?
@@ -347,23 +325,23 @@ impl ExecutionRequest {
                     let input_hash =
                         CurrentNetwork::hash_psd8(&ciphertext.to_fields().map_err(|e| e.to_string())?)
                             .map_err(|e| e.to_string())?;
-                    input_ids.push(InputID::Private(input_hash));
+                    input_ids.push(InputIDNative::Private(input_hash));
                 }
                 ValueTypeNative::Record(record_name) => {
                     // Deserialize the record input
                     let ValueNative::Record(record_input) = input;
                     // Compute the record input ID from the gamma, record commitment, h, and h_r.
-                    let record_view_key = (*record_input.nonce() * ***vk).to_x_coordinate();
+                    let record_view_key = (*record_input.nonce() * ***view_key).to_x_coordinate();
                     // Compute the commitment for the record input.
                     let commitment = record_input
                         .to_commitment(&program_id, &record_name, &record_view_key)
                         .map_err(|e| e.to_string())?;
                     // Pop the gamma value and deserialize to group element.
-                    let gamma = Group::from(Array.shift());
+                    let gamma = Group::from(gammas[record_input_idx]);
                     // Compute the serial number
-                    let serial_number = RecordNative::<CurrentNetwork, PlaintextNative<CurrentNetwork>>::serial_number_from_gamma(&gamma, commitment).map_err(|e| e.to_string())?;
+                    let serial_number = RecordPlaintextNative::<CurrentNetwork, PlaintextNative<CurrentNetwork>>::serial_number_from_gamma(&gamma, commitment).map_err(|e| e.to_string())?;
                     // Compute the tag
-                    let tag = RecordNative::<CurrentNetwork, PlaintextNative<CurrentNetwork>::tag(sk_tag, commitment);
+                    let tag = RecordPlaintextNative::<CurrentNetwork, PlaintextNative<CurrentNetwork>>::tag(sk_tag, commitment);
                     // Add the input ID to the input_id vector and increment the count.
                     input_ids.push(InputIDNative::Record(commitment, gamma, record_view_key, serial_number, tag));
                     record_input_idx += 1;
