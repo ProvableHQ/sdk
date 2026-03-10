@@ -584,6 +584,7 @@ describe('Program Manager', async () => {
             // Use beacon private key - record is owned by beacon address
             const privateKey = PrivateKey.from_string(beaconPrivateKeyString);
             const viewKey = ViewKey.from_private_key(privateKey);
+            const viewKeyString = viewKey.to_string(); // extract before viewKey is consumed by computeMPCInputs
             const mpcInputs = await programManager.computeMPCInputs({
                 programName: "credits.aleo",
                 functionName: "transfer_private",
@@ -615,10 +616,9 @@ describe('Program Manager', async () => {
             if (recordId0 == null) throw new Error("Expected record input ID at index 0");
             const recordInputIdsJson = JSON.stringify([String(recordId0)]); // first input is the record
             console.log(recordInputIdsJson);
-            const signature = signedRequest.signature().toString();
+            const signature = signedRequest.signature().to_string();
             const tvk = signedRequest.tvk().toString();
             const tcm = signedRequest.tcm().toString();
-            const viewKeyString = viewKey.toString();
             console.log(2);
             console.log(signature);
             const mpcRequest = ExecutionRequest.fromMPCWithStrings(
