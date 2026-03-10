@@ -196,9 +196,8 @@ impl ProgramManager {
         }
 
         log("Estimate the deployment fee");
-        let (minimum_deployment_cost, (_, _, _, _)) =
-            deployment_cost::<CurrentNetwork>(process, &deployment, consensus_version)
-                .map_err(|err| err.to_string())?;
+        let (minimum_deployment_cost, _) = deployment_cost::<CurrentNetwork>(process, &deployment, consensus_version)
+            .map_err(|err| err.to_string())?;
 
         Ok(minimum_deployment_cost)
     }
@@ -300,9 +299,8 @@ impl ProgramManager {
         }
 
         log("Ensuring the fee is sufficient to pay for the deployment");
-        let (minimum_deployment_cost, (_, _, _, _)) =
-            deployment_cost::<CurrentNetwork>(process, &deployment, consensus_version)
-                .map_err(|err| err.to_string())?;
+        let (minimum_deployment_cost, _) = deployment_cost::<CurrentNetwork>(process, &deployment, consensus_version)
+            .map_err(|err| err.to_string())?;
 
         // Check to see if the fee record has enough microcredits to pay for the deployment.
         let priority_fee_microcredits = (priority_fee_credits * 1_000_000.0) as u64;
