@@ -43,7 +43,7 @@ pub mod test;
 /// import { getOrInitConsensusVersionHeights } from @provablehq/sdk;
 ///
 /// Set the consensus version heights.
-/// getOrInitConsensusVersionTestHeights("0,1,2,3,4,5,6,7,8,9,10");
+/// getOrInitConsensusVersionTestHeights("0,1,2,3,4,5,6,7,8,9,10,11,12,13");
 #[wasm_bindgen::prelude::wasm_bindgen(js_name = getOrInitConsensusVersionTestHeights)]
 pub fn get_or_init_consensus_version_heights(heights: Option<String>) -> js_sys::Array {
     // Call the underlying Rust function that returns [(ConsensusVersion, u32); N]
