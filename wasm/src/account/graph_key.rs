@@ -50,6 +50,15 @@ impl GraphKey {
         self.0.to_string()
     }
 
+    /// Get a string representation of a graph key
+    ///
+    /// @returns {string} String representation of a graph key
+    #[wasm_bindgen(js_name = "toString")]
+    #[allow(clippy::inherent_to_string)]
+    pub fn to_string_js(&self) -> String {
+        self.0.to_string()
+    }
+
     /// Get the sk_tag of the graph key. Used to determine ownership of records.
     pub fn sk_tag(&self) -> Field {
         Field::from(self.0.sk_tag())
