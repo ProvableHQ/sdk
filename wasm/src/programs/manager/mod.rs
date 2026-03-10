@@ -465,12 +465,12 @@ constructor:
         assert!(!builder.has_programs(), "New builder should have no programs");
         assert!(!builder.has_program("multiply_test.aleo"));
 
-        builder.add_program("multiply_test.aleo", MULTIPLY_PROGRAM);
+        builder.add_program("multiply_test.aleo", MULTIPLY_PROGRAM, None).unwrap();
         assert!(builder.has_programs(), "Builder should have programs after add");
         assert!(builder.has_program("multiply_test.aleo"));
         assert!(!builder.has_program("addition_test.aleo"));
 
-        builder.add_program("addition_test.aleo", ADDITION_PROGRAM);
+        builder.add_program("addition_test.aleo", ADDITION_PROGRAM, None).unwrap();
         assert!(builder.has_program("addition_test.aleo"));
     }
 
@@ -478,8 +478,8 @@ constructor:
     #[wasm_bindgen_test]
     fn test_program_imports_resolve_into() {
         let mut builder = ProgramImports::new();
-        builder.add_program("multiply_test.aleo", MULTIPLY_PROGRAM);
-        builder.add_program("addition_test.aleo", ADDITION_PROGRAM);
+        builder.add_program("multiply_test.aleo", MULTIPLY_PROGRAM, None).unwrap();
+        builder.add_program("addition_test.aleo", ADDITION_PROGRAM, None).unwrap();
 
         let multiply_program = ProgramNative::from_str(MULTIPLY_PROGRAM).unwrap();
         let addition_program = ProgramNative::from_str(ADDITION_PROGRAM).unwrap();
@@ -495,8 +495,8 @@ constructor:
     #[wasm_bindgen_test]
     fn test_program_imports_resolve_into_transitive() {
         let mut builder = ProgramImports::new();
-        builder.add_program("multiply_test.aleo", MULTIPLY_PROGRAM);
-        builder.add_program("double_test.aleo", MULTIPLY_IMPORT_PROGRAM);
+        builder.add_program("multiply_test.aleo", MULTIPLY_PROGRAM, None).unwrap();
+        builder.add_program("double_test.aleo", MULTIPLY_IMPORT_PROGRAM, None).unwrap();
 
         let multiply_program = ProgramNative::from_str(MULTIPLY_PROGRAM).unwrap();
         let double_program = ProgramNative::from_str(MULTIPLY_IMPORT_PROGRAM).unwrap();
@@ -517,7 +517,7 @@ constructor:
 
         // Builder has only addition_test.aleo.
         let mut builder = ProgramImports::new();
-        builder.add_program("addition_test.aleo", ADDITION_PROGRAM);
+        builder.add_program("addition_test.aleo", ADDITION_PROGRAM, None).unwrap();
 
         let multiply_program = ProgramNative::from_str(MULTIPLY_PROGRAM).unwrap();
         let addition_program = ProgramNative::from_str(ADDITION_PROGRAM).unwrap();

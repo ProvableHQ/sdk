@@ -90,7 +90,7 @@ interface DeployOptions {
  *   ```ts
  *   const [provingKey, verifyingKey] = await pm.synthesizeKeys(importSource, "fn_name", sampleInputs);
  *   const builder = new ProgramImportsBuilder();
- *   builder.addProgram("my_import.aleo", importSource);
+ *   builder.addProgram("my_import.aleo", importSource, edition);
  *   builder.addProvingKey("my_import.aleo", "fn_name", provingKey);
  *   builder.addVerifyingKey("my_import.aleo", "fn_name", verifyingKey);
  *   await pm.buildExecutionTransaction({ ..., programImportsBuilder: builder });

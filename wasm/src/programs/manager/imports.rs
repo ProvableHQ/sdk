@@ -38,9 +38,22 @@ use super::ProgramManager;
 /// Internal storage for a single imported program's source and optional keys.
 #[derive(Clone)]
 struct ProgramEntry {
-    source: String,
-    proving_keys: HashMap<String, ProvingKeyNative>,
-    verifying_keys: HashMap<String, VerifyingKeyNative>,
+    program: ProgramNative,
+    edition: u16,
+    proving_keys: HashMap<IdentifierNative, ProvingKeyNative>,
+    verifying_keys: HashMap<IdentifierNative, VerifyingKeyNative>,
+}
+
+impl ProgramEntry {
+    /// Get the program ID.
+    pub fn id(&self) -> &ProgramIDNative {
+        self.program.id()
+    }
+
+    /// Get the program.
+    pub fn program(&self) -> &ProgramNative {
+        &self.program
+    }
 }
 
 /// A builder for specifying program imports with optional proving and verifying keys.
@@ -62,7 +75,7 @@ struct ProgramEntry {
 #[wasm_bindgen]
 #[derive(Clone)]
 pub struct ProgramImports {
-    entries: HashMap<String, ProgramEntry>,
+    entries: HashMap<ProgramIDNative, ProgramEntry>,
 }
 
 #[wasm_bindgen]
@@ -83,6 +96,8 @@ impl ProgramImports {
     /// { "my_program.aleo": { source: "program source..." } }
     /// ```
     ///
+    /// Programs created via this method default to edition 1.
+    ///
     /// @param {Object} object A plain JavaScript object mapping program names to source code.
     /// @returns {ProgramImports}
     #[wasm_bindgen(js_name = "fromObject")]
@@ -90,10 +105,10 @@ impl ProgramImports {
         let mut imports = Self::new();
         let keys = Object::keys(&object);
         for i in 0..keys.length() {
-            let name = keys.get(i).as_string().unwrap_or_default();
+            let Some(name) = keys.get(i).as_string() else { continue; };
             let value = Reflect::get(&object, &name.as_str().into()).ok();
             if let Some(source) = extract_source(&value) {
-                imports.add_program(&name, &source);
+                let _ = imports.add_program(&name, &source, None);
             }
         }
         imports
@@ -101,13 +116,30 @@ impl ProgramImports {
 
     /// Add a program's source code to the imports.
     ///
+    /// The source is parsed and validated on insertion. Returns an error if the
+    /// source is not a valid Aleo program.
+    ///
     /// @param {string} name The program name (e.g., "my_program.aleo").
     /// @param {string} source The program source code.
+    /// @param {number | undefined} edition The program edition (defaults to 1).
     #[wasm_bindgen(js_name = "addProgram")]
-    pub fn add_program(&mut self, name: &str, source: &str) {
-        self.entries.entry(name.to_string()).and_modify(|e| e.source = source.to_string()).or_insert_with(|| {
-            ProgramEntry { source: source.to_string(), proving_keys: HashMap::new(), verifying_keys: HashMap::new() }
-        });
+    pub fn add_program(&mut self, name: &str, source: &str, edition: Option<u16>) -> Result<(), String> {
+        let program = ProgramNative::from_str(source).map_err(|e| e.to_string())?;
+        let program_id = ProgramIDNative::from_str(name).map_err(|e| e.to_string())?;
+        let edition = edition.unwrap_or(1);
+        self.entries
+            .entry(program_id)
+            .and_modify(|e| {
+                e.program = program.clone();
+                e.edition = edition;
+            })
+            .or_insert_with(|| ProgramEntry {
+                program,
+                edition,
+                proving_keys: HashMap::new(),
+                verifying_keys: HashMap::new(),
+            });
+        Ok(())
     }
 
     /// Add a proving key for a function or record within an imported program.
@@ -119,13 +151,14 @@ impl ProgramImports {
     /// @param {string} identifier The function name or record name the key belongs to.
     /// @param {ProvingKey} key The proving key.
     #[wasm_bindgen(js_name = "addProvingKey")]
-    pub fn add_proving_key(&mut self, program_name: &str, identifier: &str, key: ProvingKey) {
-        let entry = self.entries.entry(program_name.to_string()).or_insert_with(|| ProgramEntry {
-            source: String::new(),
-            proving_keys: HashMap::new(),
-            verifying_keys: HashMap::new(),
-        });
-        entry.proving_keys.insert(identifier.to_string(), ProvingKeyNative::from(key));
+    pub fn add_proving_key(&mut self, program_name: &str, identifier: &str, key: ProvingKey) -> Result<(), String> {
+        let program_id = ProgramIDNative::from_str(program_name).map_err(|e| e.to_string())?;
+        let fn_id = IdentifierNative::from_str(identifier).map_err(|e| e.to_string())?;
+        let entry = self.entries.get_mut(&program_id).ok_or_else(|| {
+            format!("Program '{program_name}' must be added via addProgram before adding keys")
+        })?;
+        entry.proving_keys.insert(fn_id, ProvingKeyNative::from(key));
+        Ok(())
     }
 
     /// Add a verifying key for a function or record within an imported program.
@@ -137,13 +170,14 @@ impl ProgramImports {
     /// @param {string} identifier The function name or record name the key belongs to.
     /// @param {VerifyingKey} key The verifying key.
     #[wasm_bindgen(js_name = "addVerifyingKey")]
-    pub fn add_verifying_key(&mut self, program_name: &str, identifier: &str, key: VerifyingKey) {
-        let entry = self.entries.entry(program_name.to_string()).or_insert_with(|| ProgramEntry {
-            source: String::new(),
-            proving_keys: HashMap::new(),
-            verifying_keys: HashMap::new(),
-        });
-        entry.verifying_keys.insert(identifier.to_string(), VerifyingKeyNative::from(key));
+    pub fn add_verifying_key(&mut self, program_name: &str, identifier: &str, key: VerifyingKey) -> Result<(), String> {
+        let program_id = ProgramIDNative::from_str(program_name).map_err(|e| e.to_string())?;
+        let fn_id = IdentifierNative::from_str(identifier).map_err(|e| e.to_string())?;
+        let entry = self.entries.get_mut(&program_id).ok_or_else(|| {
+            format!("Program '{program_name}' must be added via addProgram before adding keys")
+        })?;
+        entry.verifying_keys.insert(fn_id, VerifyingKeyNative::from(key));
+        Ok(())
     }
 
     /// Convert this ProgramImports to a plain JavaScript object containing only
@@ -154,10 +188,10 @@ impl ProgramImports {
     #[wasm_bindgen(js_name = "toObject")]
     pub fn to_object(&self) -> Object {
         let obj = Object::new();
-        for (name, entry) in &self.entries {
-            if !entry.source.is_empty() {
-                Reflect::set(&obj, &name.as_str().into(), &entry.source.as_str().into()).unwrap();
-            }
+        for (program_id, entry) in &self.entries {
+            let source = entry.program().to_string();
+            let name = program_id.to_string();
+            Reflect::set(&obj, &name.as_str().into(), &source.as_str().into()).unwrap();
         }
         obj
     }
@@ -176,7 +210,7 @@ impl ProgramImports {
     /// @returns {boolean}
     #[wasm_bindgen(js_name = "hasProgram")]
     pub fn has_program(&self, name: &str) -> bool {
-        self.entries.contains_key(name)
+        ProgramIDNative::from_str(name).map_or(false, |id| self.entries.contains_key(&id))
     }
 }
 
@@ -204,51 +238,50 @@ impl ProgramImports {
     /// 2. Inserts any pre-provided proving and verifying keys directly into
     ///    the process, avoiding expensive on-demand key synthesis.
     pub(crate) fn resolve_into(&self, process: &mut ProcessNative) -> Result<(), String> {
+        let credits_id = ProgramIDNative::from_str("credits.aleo").map_err(|e| e.to_string())?;
+
         // Phase 1: Load all programs into the process.
-        for (name, entry) in &self.entries {
-            if name == "credits.aleo" || entry.source.is_empty() {
+        for (program_id, entry) in &self.entries {
+            if program_id == &credits_id {
                 continue;
             }
-            let program = ProgramNative::from_str(&entry.source).map_err(|e| e.to_string())?;
+            let program = entry.program();
             if !process.contains_program(program.id()) {
-                log(&format!("Importing program: {name}"));
+                log(&format!("Importing program: {program_id}"));
                 // Resolve transitive static imports first.
-                self.resolve_program_imports(process, &program)?;
-                log(&format!("Adding {name} to the process"));
-                process.add_program_with_edition(&program, 1).map_err(|e| e.to_string())?;
+                self.resolve_program_imports(process, program)?;
+                log(&format!("Adding {program_id} to the process"));
+                process.add_program_with_edition(program, entry.edition).map_err(|e| e.to_string())?;
             }
         }
 
         // Phase 2: Insert keys into the process.
-        for (name, entry) in &self.entries {
-            if name == "credits.aleo" {
+        for (program_id, entry) in &self.entries {
+            if program_id == &credits_id {
                 continue;
             }
-            let program_id = ProgramIDNative::from_str(name).map_err(|e| e.to_string())?;
-            if !process.contains_program(&program_id) {
-                log(&format!("Program {name} not in process, skipping key insertion"));
+            if !process.contains_program(program_id) {
+                log(&format!("Program {program_id} not in process, skipping key insertion"));
                 continue;
             }
 
-            for (fn_name, pk) in &entry.proving_keys {
-                let fn_id = IdentifierNative::from_str(fn_name).map_err(|e| e.to_string())?;
-                if ProgramManager::contains_key(process, &program_id, &fn_id) {
-                    log(&format!("Key already exists for {name}/{fn_name}, skipping"));
+            for (fn_id, pk) in &entry.proving_keys {
+                if ProgramManager::contains_key(process, program_id, fn_id) {
+                    log(&format!("Key already exists for {program_id}/{fn_id}, skipping"));
                     continue;
                 }
-                log(&format!("Inserting proving key for {name}/{fn_name}"));
-                process.insert_proving_key(&program_id, &fn_id, pk.clone()).map_err(|e| e.to_string())?;
+                log(&format!("Inserting proving key for {program_id}/{fn_id}"));
+                process.insert_proving_key(program_id, fn_id, pk.clone()).map_err(|e| e.to_string())?;
             }
 
-            for (fn_name, vk) in &entry.verifying_keys {
-                let fn_id = IdentifierNative::from_str(fn_name).map_err(|e| e.to_string())?;
-                let has_vk = process.get_stack(&program_id).map_or(false, |stack| stack.contains_verifying_key(&fn_id));
+            for (fn_id, vk) in &entry.verifying_keys {
+                let has_vk = process.get_stack(program_id).map_or(false, |stack| stack.contains_verifying_key(fn_id));
                 if has_vk {
-                    log(&format!("Verifying key already exists for {name}/{fn_name}, skipping"));
+                    log(&format!("Verifying key already exists for {program_id}/{fn_id}, skipping"));
                     continue;
                 }
-                log(&format!("Inserting verifying key for {name}/{fn_name}"));
-                process.insert_verifying_key(&program_id, &fn_id, vk.clone()).map_err(|e| e.to_string())?;
+                log(&format!("Inserting verifying key for {program_id}/{fn_id}"));
+                process.insert_verifying_key(program_id, fn_id, vk.clone()).map_err(|e| e.to_string())?;
             }
         }
 
@@ -257,20 +290,18 @@ impl ProgramImports {
 
     /// Recursively resolve a program's static imports in depth-first order.
     fn resolve_program_imports(&self, process: &mut ProcessNative, program: &ProgramNative) -> Result<(), String> {
-        program.imports().keys().try_for_each(|program_id| {
-            let program_id_str = program_id.to_string();
-            if program_id_str == "credits.aleo" {
+        let credits_id = ProgramIDNative::from_str("credits.aleo").map_err(|e| e.to_string())?;
+        program.imports().keys().try_for_each(|import_id| {
+            if *import_id == credits_id {
                 return Ok(());
             }
-            if let Some(entry) = self.entries.get(&program_id_str) {
-                if !entry.source.is_empty() {
-                    let import = ProgramNative::from_str(&entry.source).map_err(|e| e.to_string())?;
-                    if !process.contains_program(import.id()) {
-                        log(&format!("Importing program: {program_id_str}"));
-                        self.resolve_program_imports(process, &import)?;
-                        log(&format!("Adding {program_id_str} to the process"));
-                        process.add_program_with_edition(&import, 1).map_err(|e| e.to_string())?;
-                    }
+            if let Some(entry) = self.entries.get(import_id) {
+                let import = entry.program();
+                if !process.contains_program(import.id()) {
+                    log(&format!("Importing program: {import_id}"));
+                    self.resolve_program_imports(process, import)?;
+                    log(&format!("Adding {import_id} to the process"));
+                    process.add_program_with_edition(import, entry.edition).map_err(|e| e.to_string())?;
                 }
             }
             Ok::<(), String>(())

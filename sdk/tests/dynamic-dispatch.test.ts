@@ -371,7 +371,7 @@ describe("Dynamic Dispatch", () => {
         it("should build an authorization using ProgramImportsBuilder instead of plain object", async () => {
             // Create a ProgramImportsBuilder and add the import via the builder API.
             const builder = new ProgramImportsBuilder();
-            builder.addProgram("dd_constants.aleo", DD_CONSTANTS_PROGRAM);
+            builder.addProgram("dd_constants.aleo", DD_CONSTANTS_PROGRAM, 0);
 
             const authorization = await programManager.buildAuthorization({
                 programName: "dd_caller.aleo",
@@ -412,7 +412,7 @@ describe("Dynamic Dispatch", () => {
 
             // Build a ProgramImportsBuilder with the program source AND pre-computed keys.
             const builder = new ProgramImportsBuilder();
-            builder.addProgram("dd_constants.aleo", DD_CONSTANTS_PROGRAM);
+            builder.addProgram("dd_constants.aleo", DD_CONSTANTS_PROGRAM, 0);
             builder.addProvingKey("dd_constants.aleo", "get_value", provingKey);
             builder.addVerifyingKey("dd_constants.aleo", "get_value", verifyingKey);
 
