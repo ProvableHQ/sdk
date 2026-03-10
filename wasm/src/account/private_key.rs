@@ -79,6 +79,16 @@ impl PrivateKey {
         self.0.to_string()
     }
 
+    /// Get a string representation of the private key. This function should be used very carefully
+    /// as it exposes the private key plaintext
+    ///
+    /// @returns {string} String representation of a private key
+    #[wasm_bindgen(js_name = "toString")]
+    #[allow(clippy::inherent_to_string)]
+    pub fn to_string_js(&self) -> String {
+        self.0.to_string()
+    }
+
     /// Get the view key corresponding to the private key
     ///
     /// @returns {ViewKey}

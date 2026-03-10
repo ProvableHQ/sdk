@@ -153,6 +153,15 @@ impl Address {
         self.0.to_string()
     }
 
+    /// Get a string representation of an Aleo address object
+    ///
+    /// @returns {string} String representation of the address
+    #[wasm_bindgen(js_name = "toString")]
+    #[allow(clippy::inherent_to_string)]
+    pub fn to_string_js(&self) -> String {
+        self.0.to_string()
+    }
+
     /// Get the plaintext representation of the address.
     #[wasm_bindgen(js_name = "toPlaintext")]
     pub fn to_plaintext(&self) -> Plaintext {

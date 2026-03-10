@@ -50,6 +50,15 @@ impl ViewKey {
         self.0.to_string()
     }
 
+    /// Get a string representation of a view key
+    ///
+    /// @returns {string} String representation of a view key
+    #[wasm_bindgen(js_name = "toString")]
+    #[allow(clippy::inherent_to_string)]
+    pub fn to_string_js(&self) -> String {
+        self.0.to_string()
+    }
+
     /// Get the underlying bytes of a view key.
     ///
     /// @returns {Uint8Array} Left endian byte array representation of the view key.
