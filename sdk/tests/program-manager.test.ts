@@ -565,11 +565,8 @@ describe('Program Manager', async () => {
                 "transfer_public",
                 transferPublicInputs,
                 transferPublicInputTypes,
-                true,
-                undefined,
                 signedRequest.signature(),
                 signedRequest.tvk(),
-                signedRequest.tcm(),
                 viewKey,
                 undefined, // no record inputs
             );
@@ -583,8 +580,8 @@ describe('Program Manager', async () => {
         it('Should match ExecutionRequest.sign for transfer_private', async () => {
             // Use beacon private key - record is owned by beacon address
             const privateKey = PrivateKey.from_string(beaconPrivateKeyString);
-            const viewKey = ViewKey.from_private_key(privateKey);
-            const viewKeyString = viewKey.to_string(); // extract before viewKey is consumed by computeMPCInputs
+            const beaconRecord = RecordPlaintext.fromString(recordBeaconOwned);
+            const gamma = beaconRecord.gamma("credits.aleo", "credits", privateKey);
             const mpcInputs = await programManager.computeMPCInputs({
                 programName: "credits.aleo",
                 functionName: "transfer_private",
@@ -592,7 +589,7 @@ describe('Program Manager', async () => {
                 inputTypes: transferPrivateInputTypes,
                 isRoot: true,
                 checksum: null,
-                viewKey,
+                viewKey: ViewKey.from_private_key(PrivateKey.from_string(beaconPrivateKeyString)),
             });
             const signedRequest = ExecutionRequest.sign(
                 privateKey,
@@ -609,28 +606,17 @@ describe('Program Manager', async () => {
             expect(signedRequest.inputs().length).to.equal(3);
             expect(mpcInputs.requestInputs.length).to.equal(signedRequest.inputs().length);
 
-            // Build the same request via fromMPCWithStrings - pass strings to avoid "null pointer passed to rust"
-            // when passing wasm objects (Signature, Field, ViewKey) across the boundary.
-            const inputIds = Array.from(signedRequest.input_ids());
-            const recordId0 = inputIds[0];
-            if (recordId0 == null) throw new Error("Expected record input ID at index 0");
-            const recordInputIdsJson = JSON.stringify([String(recordId0)]); // first input is the record
-            // console.log(recordInputIdsJson);
-            const signature = signedRequest.signature().to_string();
-            const tvk = signedRequest.tvk().toString();
-            const tcm = signedRequest.tcm().toString();
-            const mpcRequest = ExecutionRequest.fromMPCWithStrings(
+            const signature = signedRequest.signature();
+            const tvk = signedRequest.tvk();
+            const mpcRequest = ExecutionRequest.fromMPC(
                 "credits.aleo",
                 "transfer_private",
                 transferPrivateInputs,
                 transferPrivateInputTypes,
-                true,
-                undefined,
                 signature,
                 tvk,
-                tcm,
-                viewKeyString,
-                recordInputIdsJson,
+                ViewKey.from_private_key(PrivateKey.from_string(beaconPrivateKeyString)),
+                [gamma],
             );
             expect(mpcRequest.program_id()).to.equal(signedRequest.program_id());
             expect(mpcRequest.function_name()).to.equal(signedRequest.function_name());

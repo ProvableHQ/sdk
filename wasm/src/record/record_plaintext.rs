@@ -41,10 +41,11 @@ use crate::{
     },
 };
 use snarkvm_console::{
-    prelude::{FromBytes, ToBits, ToBytes, ToFields},
+    prelude::{FromBytes, Network, ToBits, ToBytes, ToFields},
     program::Owner,
 };
 
+use crate::types::native::ViewKeyNative;
 use anyhow::Context;
 use js_sys::{Array, Object, Uint8Array};
 use std::{ops::Deref, str::FromStr};
@@ -254,6 +255,31 @@ impl RecordPlaintext {
         let serial_number = RecordPlaintextNative::serial_number(private_key.into(), commitment.into())
             .map_err(|_| "Serial number derivation failed".to_string())?;
         Ok(serial_number.to_string())
+    }
+
+    /// Compute the record's gamma value.
+    ///
+    /// @param {string} program_id The program id that produced the record.
+    /// @param {string} record_name The name of the record within the program.
+    /// @param {PrivateKey} private_key The private key that created the record.
+    /// @returns {Group} The computed value of gamma.
+    pub fn gamma(&self, program_id: &str, record_name: &str, private_key: &PrivateKey) -> Result<Group, String> {
+        let private_key_native = **private_key;
+        let view_key = ViewKeyNative::try_from(&private_key_native).map_err(|e| e.to_string())?;
+        let program_id_native = ProgramIDNative::from_str(program_id).map_err(|e| e.to_string())?;
+        let record_name_native = IdentifierNative::from_str(record_name).map_err(|e| e.to_string())?;
+        let record_view_key = (*self.0.nonce() * *view_key).to_x_coordinate();
+        // Compute the record commitment.
+        let commitment = self
+            .0
+            .to_commitment(&program_id_native, &record_name_native, &record_view_key)
+            .map_err(|e| e.to_string())?;
+
+        // Compute the generator `H` as `HashToGroup(commitment)`.
+        let h = CurrentNetwork::hash_to_group_psd2(&[CurrentNetwork::serial_number_domain(), commitment])
+            .map_err(|e| e.to_string())?;
+        let gamma = h * private_key_native.sk_sig();
+        Ok(Group::from(gamma))
     }
 
     /// Get the tag of the record using the graph key.
