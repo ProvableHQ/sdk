@@ -20,7 +20,7 @@ use crate::{
     Plaintext,
     ViewKey,
     from_js_typed_array,
-    from_wasm_object_array,
+    from_wasm_field_array,
     js_array_from_fields,
     native::{CiphertextNative, CurrentNetwork, FieldNative, IdentifierNative, ProgramIDNative},
     to_bits_array_le,
@@ -171,7 +171,7 @@ impl Ciphertext {
     /// @returns {Ciphertext} The ciphertext object.
     #[wasm_bindgen(js_name = "fromFields")]
     pub fn from_fields(fields: Array) -> Result<Ciphertext, String> {
-        let native_fields = from_wasm_object_array!(fields, Field)?;
+        let native_fields = from_wasm_field_array!(fields, Field)?;
         let native = CiphertextNative::from_fields(&native_fields).map_err(|e| e.to_string())?;
         Ok(Self(native))
     }

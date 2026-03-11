@@ -20,7 +20,7 @@ use crate::{
     Field,
     Scalar,
     from_js_typed_array,
-    from_wasm_object_array,
+    from_wasm_field_array,
     js_array_from_fields,
     native::{FieldNative, LiteralNative, U8Native},
     plaintext_to_js_value,
@@ -204,7 +204,7 @@ impl Plaintext {
     /// @returns {Plaintext} The plaintext object.
     #[wasm_bindgen(js_name = "fromFields")]
     pub fn from_fields(fields: Array) -> Result<Plaintext, String> {
-        let native_fields = from_wasm_object_array!(fields, Field)?;
+        let native_fields = from_wasm_field_array!(fields, Field)?;
         let native = PlaintextNative::from_fields(&native_fields).map_err(|e| e.to_string())?;
         Ok(Self(native))
     }
