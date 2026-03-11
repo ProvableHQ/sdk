@@ -12,6 +12,7 @@ import {
     AleoKeyProvider,
     AleoKeyProviderParams,
 } from "./keys/provider/memory.js";
+import { KeyStore, KeyLocator } from "./keys/keystore/interface.js";
 
 import {
     FunctionKeyPair
@@ -161,12 +162,18 @@ interface FeeAuthorizationOptions {
  * Represents the options for executing a transaction on the Aleo Network from an authorization.
  *
  * @property {string} programName - The name of the program containing the function to be executed.
+ * @property {Authorization} authorization - The authorization to execute.
+ * @property {Authorization} [feeAuthorization] - Optional fee authorization.
  * @property {KeySearchParams} [keySearchParams] - Optional parameters for finding the matching proving & verifying keys for the function.
  * @property {ProvingKey} [provingKey] - Optional proving key to use for the transaction.
  * @property {VerifyingKey} [verifyingKey] - Optional verifying key to use for the transaction.
  * @property {OfflineQuery} [offlineQuery] - Optional offline query if creating transactions in an offline environment.
  * @property {string | Program} [program] - Optional program source code to use for the transaction.
  * @property {ProgramImports} [imports] - Optional programs that the program being executed imports.
+ * @property {number} [edition] - Edition of the program to execute the function in.
+ * @property {ProgramImportsBuilder} [programImportsBuilder] - A builder carrying imported programs
+ *   with optional pre-computed proving/verifying keys. Takes precedence over `imports`.
+ *   See {@link ExecuteOptions.programImportsBuilder} for a usage example.
  */
 interface ExecuteAuthorizationOptions {
     programName: string;
@@ -178,6 +185,7 @@ interface ExecuteAuthorizationOptions {
     offlineQuery?: OfflineQuery;
     program?: string | Program;
     imports?: ProgramImports;
+    edition?: number;
     programImportsBuilder?: ProgramImportsBuilder;
 }
 
@@ -252,6 +260,7 @@ class ProgramManager {
     networkClient: AleoNetworkClient;
     recordProvider: RecordProvider | undefined;
     inclusionKeysLoaded: boolean = false;
+    private _keyStore: KeyStore | undefined;
 
     /** Create a new instance of the ProgramManager
      *
@@ -304,6 +313,17 @@ class ProgramManager {
     }
 
     /**
+     * Set a KeyStore for persistent proving and verifying key storage.
+     * When configured, ProgramManager automatically loads cached keys before
+     * execution and persists synthesized keys after execution.
+     *
+     * @param {KeyStore} keyStore
+     */
+    setKeyStore(keyStore: KeyStore) {
+        this._keyStore = keyStore;
+    }
+
+    /**
      * Set the host peer to use for transaction submission to the Aleo network
      *
      * @param host {string} Peer url to use for transaction submission
@@ -339,6 +359,194 @@ class ProgramManager {
      */
     setHeader(headerName: string, value: string) {
         this.networkClient.headers[headerName] = value;
+    }
+
+    /**
+     * Build a ProgramImportsBuilder internally from program imports and KeyStore keys.
+     *
+     * Merges user-provided imports (which may include dynamic dispatch targets) with
+     * auto-fetched static imports from the network, then queries KeyStore for proving
+     * and verifying keys for all imported programs.
+     */
+    private async buildProgramImports(
+        program: string | Program,
+        imports?: ProgramImports,
+    ): Promise<ProgramImportsBuilder> {
+        const builder = new ProgramImportsBuilder();
+        const programSource = typeof program === "string" ? program : program.toString();
+        const programObj = Program.fromString(programSource);
+
+        // Check if there are any imports to resolve
+        const importNames = programObj.getImports();
+        if (importNames.length === 0 && (!imports || Object.keys(imports).length === 0)) {
+            return builder;
+        }
+
+        // Fetch static imports from the network, then overlay user-provided imports
+        // (which may include dynamic dispatch targets or custom overrides) on top.
+        let resolvedImports: ProgramImports = {};
+        if (importNames.length > 0) {
+            try {
+                resolvedImports = await this.networkClient.getProgramImports(programSource);
+            } catch (e) {
+                // Non-blocking — if we can't fetch imports, proceed with what we have
+            }
+        }
+        if (imports) {
+            resolvedImports = { ...resolvedImports, ...imports };
+        }
+
+        // Add each import program and query KeyStore for its keys
+        for (const [name, importProgram] of Object.entries(resolvedImports)) {
+            const importProgramStr = typeof importProgram === "string" ? importProgram : importProgram.toString();
+            builder.addProgram(name, importProgramStr);
+            await this.loadKeysFromStore(builder, name, importProgramStr);
+        }
+
+        return builder;
+    }
+
+    /**
+     * Load proving and verifying keys from the KeyStore for a given program
+     * and add them to the ProgramImportsBuilder.
+     */
+    private async loadKeysFromStore(
+        builder: ProgramImportsBuilder,
+        programName: string,
+        programSource: string,
+    ): Promise<void> {
+        let keyStore: KeyStore | undefined = this._keyStore;
+        if (!keyStore) {
+            try {
+                keyStore = await this.keyProvider?.keyStore?.();
+            } catch {
+                return;
+            }
+        }
+        if (!keyStore) return;
+
+        const program = Program.fromString(programSource);
+        const functions: string[] = Array.from(program.getFunctions());
+
+        for (const fnName of functions) {
+            const proverLocator = `${programName}.${fnName}.prover`;
+            const verifierLocator = `${programName}.${fnName}.verifier`;
+
+            try {
+                if (await keyStore.has(proverLocator)) {
+                    const pk = await keyStore.getProvingKey({ locator: proverLocator });
+                    if (pk) builder.addProvingKey(programName, fnName, pk);
+                }
+                if (await keyStore.has(verifierLocator)) {
+                    const vk = await keyStore.getVerifyingKey({ locator: verifierLocator });
+                    if (vk) builder.addVerifyingKey(programName, fnName, vk);
+                }
+            } catch (e) {
+                // Non-blocking — key loading failures don't prevent execution
+                console.debug(`Failed to load keys for ${programName}/${fnName}: ${e}`);
+            }
+        }
+    }
+
+    /**
+     * Persist synthesized keys from a mutated ProgramImportsBuilder to the
+     * configured KeyStore. After WASM execution, the builder is populated with
+     * any keys that were synthesized during the call. This method iterates all
+     * import programs and their functions, extracting and persisting each key pair.
+     *
+     * Uses `.take()` semantics — keys are removed from the builder to free WASM memory.
+     */
+    private async persistExtractedKeys(
+        builder: ProgramImportsBuilder,
+        imports?: ProgramImports,
+        topLevelProgram?: string,
+        topLevelFunction?: string,
+    ): Promise<void> {
+        let keyStore: KeyStore | undefined = this._keyStore;
+        if (!keyStore) {
+            try {
+                keyStore = await this.keyProvider?.keyStore?.();
+            } catch {
+                return;
+            }
+        }
+        if (!keyStore) return;
+
+        // Persist import program keys.
+        const resolvedImports = imports ?? {};
+        for (const [name, importProgram] of Object.entries(resolvedImports)) {
+            if (!builder.contains(name)) continue;
+
+            const importProgramStr = typeof importProgram === "string" ? importProgram : importProgram.toString();
+            const program = Program.fromString(importProgramStr);
+            const functions: string[] = Array.from(program.getFunctions());
+
+            for (const fnName of functions) {
+                try {
+                    const pk = builder.getProvingKey(name, fnName);
+                    const vk = builder.getVerifyingKey(name, fnName);
+                    if (pk && vk) {
+                        const proverLocator: KeyLocator = { locator: `${name}.${fnName}.prover` };
+                        const verifierLocator: KeyLocator = { locator: `${name}.${fnName}.verifier` };
+                        await keyStore.setKeys(proverLocator, verifierLocator, [pk, vk]);
+                    }
+                } catch (e) {
+                    console.debug(`Failed to persist keys for ${name}/${fnName}: ${e}`);
+                }
+            }
+        }
+
+        // Persist top-level program keys.
+        if (topLevelProgram && topLevelFunction) {
+            const programName = Program.fromString(topLevelProgram).id();
+            if (builder.contains(programName)) {
+                try {
+                    const pk = builder.getProvingKey(programName, topLevelFunction);
+                    const vk = builder.getVerifyingKey(programName, topLevelFunction);
+                    if (pk && vk) {
+                        const proverLocator: KeyLocator = { locator: `${programName}.${topLevelFunction}.prover` };
+                        const verifierLocator: KeyLocator = { locator: `${programName}.${topLevelFunction}.verifier` };
+                        await keyStore.setKeys(proverLocator, verifierLocator, [pk, vk]);
+                    }
+                } catch (e) {
+                    console.debug(`Failed to persist top-level keys for ${programName}/${topLevelFunction}: ${e}`);
+                }
+            }
+        }
+    }
+
+    /**
+     * Resolve proving and verifying keys for a top-level program function.
+     * Checks KeyStore first (preferred), then falls back to KeyProvider (legacy).
+     * Returns undefined if keys are not found in either location.
+     */
+    private async resolveTopLevelKeys(
+        programName: string,
+        functionName: string,
+        keySearchParams?: KeySearchParams,
+    ): Promise<FunctionKeyPair | undefined> {
+        // 1. Try KeyStore first (preferred path)
+        const keyStore = this._keyStore ?? await this.keyProvider?.keyStore?.().catch(() => undefined);
+        if (keyStore) {
+            try {
+                const proverLocator = `${programName}.${functionName}.prover`;
+                const verifierLocator = `${programName}.${functionName}.verifier`;
+                if (await keyStore.has(proverLocator) && await keyStore.has(verifierLocator)) {
+                    const pk = await keyStore.getProvingKey({ locator: proverLocator });
+                    const vk = await keyStore.getVerifyingKey({ locator: verifierLocator });
+                    if (pk && vk) return [pk, vk];
+                }
+            } catch {
+                // Fall through to KeyProvider
+            }
+        }
+
+        // 2. Fall back to KeyProvider (legacy path)
+        try {
+            return <FunctionKeyPair>(await this.keyProvider.functionKeys(keySearchParams));
+        } catch {
+            return undefined;
+        }
     }
 
     /**
@@ -830,7 +1038,6 @@ class ProgramManager {
         let programName = options.programName;
         let imports = options.imports;
         let edition = options.edition;
-        const programImportsBuilder = options.programImportsBuilder;
 
         let programObject;
         // Ensure the function exists on the network
@@ -872,6 +1079,9 @@ class ProgramManager {
             }
         }
 
+        const programImportsBuilder = options.programImportsBuilder
+            ?? await this.buildProgramImports(program, imports);
+
         // Get the private key from the account if it is not provided in the parameters
         let executionPrivateKey = privateKey;
         if (
@@ -898,15 +1108,15 @@ class ProgramManager {
         }
         const [feeProvingKey, feeVerifyingKey] = feeKeys;
 
-        // If the function proving and verifying keys are not provided, attempt to find them using the key provider
+        // If the function proving and verifying keys are not provided, check KeyStore
+        // first (preferred), then fall back to KeyProvider (legacy).
         if (!provingKey || !verifyingKey) {
-            try {
-                [provingKey, verifyingKey] = <FunctionKeyPair>(
-                    await this.keyProvider.functionKeys(keySearchParams)
-                );
-            } catch (e) {
+            const keys = await this.resolveTopLevelKeys(programName, functionName, keySearchParams);
+            if (keys) {
+                [provingKey, verifyingKey] = keys;
+            } else {
                 console.log(
-                    `Function keys not found. Key finder response: '${e}'. The function keys will be synthesized`,
+                    "Function keys not found in KeyStore or KeyProvider. The function keys will be synthesized",
                 );
             }
         }
@@ -963,8 +1173,10 @@ class ProgramManager {
             }
         }
 
-        // Build an execution transaction
-        return await WasmProgramManager.buildExecutionTransaction(
+        // Build an execution transaction.
+        // Use the key-extracting variant when we have a ProgramImportsBuilder,
+        // which mutates it with synthesized keys for KeyStore persistence.
+        const transaction = await WasmProgramManager.buildExecutionTransactionWithImports(
             executionPrivateKey,
             program,
             functionName,
@@ -972,7 +1184,6 @@ class ProgramManager {
             priorityFee,
             feeRecord,
             this.host,
-            imports,
             provingKey,
             verifyingKey,
             feeProvingKey,
@@ -981,6 +1192,11 @@ class ProgramManager {
             edition,
             programImportsBuilder,
         );
+
+        // Auto-persist synthesized keys (both imports and top-level) from the mutated builder to KeyStore.
+        await this.persistExtractedKeys(programImportsBuilder, imports, program, functionName);
+
+        return transaction;
     }
 
     /**
@@ -1065,7 +1281,6 @@ class ProgramManager {
         const feeAuthorization = options.feeAuthorization;
         const keySearchParams = options.keySearchParams;
         const offlineQuery = options.offlineQuery;
-        const programImportsBuilder = options.programImportsBuilder;
         let provingKey = options.provingKey;
         let verifyingKey = options.verifyingKey;
         let program = options.program;
@@ -1086,6 +1301,9 @@ class ProgramManager {
             program = program.toString();
         }
 
+        const programImportsBuilder = options.programImportsBuilder
+            ?? await this.buildProgramImports(program, imports);
+
         // Get the fee proving and verifying keys from the key provider.
         let feeKeys;
         const privateFee = feeAuthorization ? feeAuthorization.isFeePrivate() : false;
@@ -1100,16 +1318,30 @@ class ProgramManager {
         }
         const [feeProvingKey, feeVerifyingKey] = feeKeys;
 
-        // If the function proving and verifying keys are not provided, attempt to find them using the key provider.
+        // Extract the function name from the authorization for key resolution and persistence.
+        const functionName = authorization.functionName();
+
+        // If the function proving and verifying keys are not provided, check KeyStore
+        // first (preferred), then fall back to KeyProvider (legacy).
         if (!provingKey || !verifyingKey) {
-            try {
-                [provingKey, verifyingKey] = <FunctionKeyPair>(
-                    await this.keyProvider.functionKeys(keySearchParams)
-                );
-            } catch (e) {
+            const keys = await this.resolveTopLevelKeys(programName, functionName, keySearchParams);
+            if (keys) {
+                [provingKey, verifyingKey] = keys;
+            } else {
                 console.log(
-                    `Function keys not found. Key finder response: '${e}'. The function keys will be synthesized`,
+                    "Function keys not found in KeyStore or KeyProvider. The function keys will be synthesized",
                 );
+            }
+        }
+
+        // Resolve the program edition.
+        let edition = options.edition;
+        if (edition == undefined) {
+            try {
+                edition = await this.networkClient.getLatestProgramEdition(programName);
+            } catch (e: any) {
+                console.warn(`Error finding edition for ${programName}. Network response: '${e.message}'. Assuming edition 0.`);
+                edition = 0;
             }
         }
 
@@ -1142,8 +1374,9 @@ class ProgramManager {
         }
 
         // Build an execution transaction from the authorization.
+        // Use the key-extracting variant to capture synthesized keys for KeyStore persistence.
         console.log("Executing authorizations")
-        return await WasmProgramManager.executeAuthorization(
+        const transaction = await WasmProgramManager.executeAuthorizationWithImports(
             authorization,
             feeAuthorization,
             program,
@@ -1151,11 +1384,16 @@ class ProgramManager {
             verifyingKey,
             feeProvingKey,
             feeVerifyingKey,
-            imports,
             this.host,
             offlineQuery,
+            edition,
             programImportsBuilder,
-        )
+        );
+
+        // Auto-persist synthesized keys (both imports and top-level) from the mutated builder to KeyStore.
+        await this.persistExtractedKeys(programImportsBuilder, imports, program, functionName);
+
+        return transaction;
     }
 
     /**
@@ -1196,7 +1434,6 @@ class ProgramManager {
         } = options;
 
         const privateKey = options.privateKey;
-        const programImportsBuilder = options.programImportsBuilder;
         let program = options.programSource;
         let programName = options.programName;
         let imports = options.programImports;
@@ -1221,6 +1458,9 @@ class ProgramManager {
         if (programName === undefined) {
             programName = Program.fromString(program).id();
         }
+
+        const programImportsBuilder = options.programImportsBuilder
+            ?? await this.buildProgramImports(program, imports);
 
         // Get the private key from the account if it is not provided in the parameters.
         let executionPrivateKey = privateKey;
@@ -1308,7 +1548,6 @@ class ProgramManager {
         } = options;
 
         const privateKey = options.privateKey;
-        const programImportsBuilder = options.programImportsBuilder;
         let program = options.programSource;
         let programName = options.programName;
         let imports = options.programImports;
@@ -1333,6 +1572,9 @@ class ProgramManager {
         if (programName === undefined) {
             programName = Program.fromString(program).id();
         }
+
+        const programImportsBuilder = options.programImportsBuilder
+            ?? await this.buildProgramImports(program, imports);
 
         // Get the private key from the account if it is not provided in the parameters.
         let executionPrivateKey = privateKey;
@@ -1430,7 +1672,6 @@ class ProgramManager {
         const baseFee = options.baseFee ? options.baseFee : 0;
         const privateKey = options.privateKey;
         const useFeeMaster = options.useFeeMaster ? options.useFeeMaster : false;
-        const programImportsBuilder = options.programImportsBuilder;
         let program = options.programSource;
         let programName = options.programName;
         let feeRecord = options.feeRecord;
@@ -1456,6 +1697,9 @@ class ProgramManager {
         if (programName === undefined) {
             programName = Program.fromString(program).id();
         }
+
+        const programImportsBuilder = options.programImportsBuilder
+            ?? await this.buildProgramImports(program, imports);
 
         if (edition == undefined) {
             try {
@@ -1721,38 +1965,44 @@ class ProgramManager {
             throw "No private key provided and no private key set in the ProgramManager";
         }
 
-        // If the function proving and verifying keys are not provided, attempt to find them using the key provider
+        // If the function proving and verifying keys are not provided, check KeyStore
+        // first (preferred), then fall back to KeyProvider (legacy).
         if (!provingKey || !verifyingKey) {
-            try {
-                [provingKey, verifyingKey] = <FunctionKeyPair>(
-                    await this.keyProvider.functionKeys(keySearchParams)
-                );
-            } catch (e) {
+            const programName = Program.fromString(program).id();
+            const keys = await this.resolveTopLevelKeys(programName, function_name, keySearchParams);
+            if (keys) {
+                [provingKey, verifyingKey] = keys;
+            } else {
                 console.log(
-                    `Function keys not found. Key finder response: '${e}'. The function keys will be synthesized`,
+                    "Function keys not found in KeyStore or KeyProvider. The function keys will be synthesized",
                 );
             }
         }
 
-        // Run the program offline and return the result
-        console.log("Running program offline");
-        console.log("Proving key: ", provingKey);
-        console.log("Verifying key: ", verifyingKey);
-        return WasmProgramManager.executeFunctionOffline(
+        // Build a ProgramImportsBuilder from KeyStore if one wasn't provided.
+        const resolvedImportsBuilder = programImportsBuilder
+            ?? await this.buildProgramImports(program, imports);
+
+        // Run the program offline using the key-extracting variant.
+        const executionResponse = await WasmProgramManager.executeFunctionOfflineWithImports(
             executionPrivateKey,
             program,
             function_name,
             inputs,
             proveExecution,
             false,
-            imports,
             provingKey,
             verifyingKey,
             this.host,
             offlineQuery,
             edition,
-            programImportsBuilder,
+            resolvedImportsBuilder,
         );
+
+        // Auto-persist synthesized keys (both imports and top-level) from the mutated builder to KeyStore.
+        await this.persistExtractedKeys(resolvedImportsBuilder, imports, program, function_name);
+
+        return executionResponse;
     }
 
     /**
@@ -2045,10 +2295,27 @@ class ProgramManager {
                 inputs,
                 imports,
             );
-            return [
+            const keys: FunctionKeyPair = [
                 <ProvingKey>keyPair.provingKey(),
                 <VerifyingKey>keyPair.verifyingKey(),
             ];
+
+            // Auto-persist synthesized keys to KeyStore if configured
+            const keyStore = this._keyStore ?? await this.keyProvider?.keyStore?.().catch(() => undefined);
+            if (keyStore) {
+                try {
+                    const programName = Program.fromString(program).id();
+                    await keyStore.setKeys(
+                        { locator: `${programName}.${function_id}.prover` },
+                        { locator: `${programName}.${function_id}.verifier` },
+                        keys,
+                    );
+                } catch (e) {
+                    console.debug(`Failed to persist synthesized keys: ${e}`);
+                }
+            }
+
+            return keys;
         } catch (e: any) {
             logAndThrow(
                 `Could not synthesize keys - error ${e.message}. Please ensure the program is valid and the inputs are correct.`,
@@ -3217,13 +3484,14 @@ class ProgramManager {
             program,
             imports,
             edition,
-            programImportsBuilder,
         } = options;
         if (!authorization) {
             throw new Error("Authorization must be provided if estimating fee for Authorization.")
         }
         const programSource = program ? program.toString() : await this.networkClient.getProgram(programName, edition);
         const programImports = imports ? imports : await this.networkClient.getProgramImports(programSource);
+        const programImportsBuilder = options.programImportsBuilder
+            ?? await this.buildProgramImports(programSource, programImports);
         if (Object.keys(programImports).length > 0) {
             return WasmProgramManager.estimateFeeForAuthorization(authorization, programSource, programImports, edition, programImportsBuilder);
         }
@@ -3265,13 +3533,14 @@ class ProgramManager {
             program,
             imports,
             edition,
-            programImportsBuilder,
         } = options;
         if (!functionName) {
             throw new Error("Function name must be specified when estimating fee.");
         }
         const programSource = program ? program.toString() : await this.networkClient.getProgram(programName, edition);
         const programImports = imports ? imports : await this.networkClient.getProgramImports(programSource);
+        const programImportsBuilder = options.programImportsBuilder
+            ?? await this.buildProgramImports(programSource, programImports);
         if (Object.keys(programImports).length > 0) {
             return WasmProgramManager.estimateExecutionFee(programSource, functionName, programImports, edition, programImportsBuilder);
         }
@@ -3371,7 +3640,6 @@ class ProgramManager {
         let programName = options.programName;
         let imports = options.imports;
         let edition = options.edition;
-        const programImportsBuilder = options.programImportsBuilder;
 
         let programObject;
         // Ensure the function exists on the network
@@ -3412,6 +3680,9 @@ class ProgramManager {
                 edition = 0;
             }
         }
+
+        const programImportsBuilder = options.programImportsBuilder
+            ?? await this.buildProgramImports(program, imports);
 
         // Get the private key from the account if it is not provided in the parameters.
         let executionPrivateKey = privateKey;

@@ -200,7 +200,7 @@ impl ProgramManager {
         imports: Option<Object>,
         program_imports: Option<&ProgramImports>,
     ) -> Result<(), String> {
-        if let Some(pi) = program_imports { pi.resolve_into(process) } else { Self::resolve_imports(process, imports) }
+        if let Some(pi) = program_imports { pi.load_programs(process) } else { Self::resolve_imports(process, imports) }
     }
 
     pub(crate) fn validate_fee_record(
@@ -458,25 +458,25 @@ constructor:
     // ProgramImports builder tests
     // ───────────────────────────────────────────────────────────────────
 
-    /// Test basic ProgramImports builder operations: new, add_program, has_programs, has_program.
+    /// Test basic ProgramImports builder operations: new, add_program, is_empty, contains.
     #[wasm_bindgen_test]
     fn test_program_imports_builder_basic() {
         let mut builder = ProgramImports::new();
-        assert!(!builder.has_programs(), "New builder should have no programs");
-        assert!(!builder.has_program("multiply_test.aleo"));
+        assert!(builder.is_empty(), "New builder should be empty");
+        assert!(!builder.contains("multiply_test.aleo"));
 
         builder.add_program("multiply_test.aleo", MULTIPLY_PROGRAM, None).unwrap();
-        assert!(builder.has_programs(), "Builder should have programs after add");
-        assert!(builder.has_program("multiply_test.aleo"));
-        assert!(!builder.has_program("addition_test.aleo"));
+        assert!(!builder.is_empty(), "Builder should not be empty after add");
+        assert!(builder.contains("multiply_test.aleo"));
+        assert!(!builder.contains("addition_test.aleo"));
 
         builder.add_program("addition_test.aleo", ADDITION_PROGRAM, None).unwrap();
-        assert!(builder.has_program("addition_test.aleo"));
+        assert!(builder.contains("addition_test.aleo"));
     }
 
-    /// Test that resolve_into loads programs into the process via the builder path.
+    /// Test that load_programs loads programs into the process via the builder path.
     #[wasm_bindgen_test]
-    fn test_program_imports_resolve_into() {
+    fn test_program_imports_load_programs() {
         let mut builder = ProgramImports::new();
         builder.add_program("multiply_test.aleo", MULTIPLY_PROGRAM, None).unwrap();
         builder.add_program("addition_test.aleo", ADDITION_PROGRAM, None).unwrap();
@@ -485,15 +485,15 @@ constructor:
         let addition_program = ProgramNative::from_str(ADDITION_PROGRAM).unwrap();
 
         let mut process = ProcessNative::load_web().unwrap();
-        builder.resolve_into(&mut process).unwrap();
+        builder.load_programs(&mut process).unwrap();
 
         assert!(process.contains_program(multiply_program.id()), "multiply_test.aleo should be in process");
         assert!(process.contains_program(addition_program.id()), "addition_test.aleo should be in process");
     }
 
-    /// Test that resolve_into handles transitive dependencies via the builder's own recursive resolution.
+    /// Test that load_programs handles transitive dependencies via the builder's own recursive resolution.
     #[wasm_bindgen_test]
-    fn test_program_imports_resolve_into_transitive() {
+    fn test_program_imports_load_programs_transitive() {
         let mut builder = ProgramImports::new();
         builder.add_program("multiply_test.aleo", MULTIPLY_PROGRAM, None).unwrap();
         builder.add_program("double_test.aleo", MULTIPLY_IMPORT_PROGRAM, None).unwrap();
@@ -502,7 +502,7 @@ constructor:
         let double_program = ProgramNative::from_str(MULTIPLY_IMPORT_PROGRAM).unwrap();
 
         let mut process = ProcessNative::load_web().unwrap();
-        builder.resolve_into(&mut process).unwrap();
+        builder.load_programs(&mut process).unwrap();
 
         assert!(process.contains_program(multiply_program.id()), "Transitive dep should be loaded");
         assert!(process.contains_program(double_program.id()), "Direct import should be loaded");
@@ -535,4 +535,114 @@ constructor:
             "Legacy Object's program should NOT be loaded when builder is provided"
         );
     }
+
+    /// Test ProgramImports::from_object creates a builder from a plain JS object.
+    #[wasm_bindgen_test]
+    fn test_program_imports_from_object() {
+        let obj = Object::new();
+        Reflect::set(&obj, &JsValue::from_str("multiply_test.aleo"), &JsValue::from_str(MULTIPLY_PROGRAM)).unwrap();
+        Reflect::set(&obj, &JsValue::from_str("addition_test.aleo"), &JsValue::from_str(ADDITION_PROGRAM)).unwrap();
+
+        let builder = ProgramImports::from_object(obj);
+        assert!(!builder.is_empty());
+        assert!(builder.contains("multiply_test.aleo"));
+        assert!(builder.contains("addition_test.aleo"));
+        assert!(!builder.contains("nonexistent.aleo"));
+    }
+
+    /// Test ProgramImports::from_object with structured entries (objects with `source` field).
+    #[wasm_bindgen_test]
+    fn test_program_imports_from_object_structured() {
+        let obj = Object::new();
+
+        // Structured entry.
+        let structured = Object::new();
+        Reflect::set(&structured, &JsValue::from_str("source"), &JsValue::from_str(MULTIPLY_PROGRAM)).unwrap();
+        Reflect::set(&obj, &JsValue::from_str("multiply_test.aleo"), &structured.into()).unwrap();
+
+        // Plain string entry.
+        Reflect::set(&obj, &JsValue::from_str("addition_test.aleo"), &JsValue::from_str(ADDITION_PROGRAM)).unwrap();
+
+        let builder = ProgramImports::from_object(obj);
+        assert!(builder.contains("multiply_test.aleo"), "Structured entry should be parsed");
+        assert!(builder.contains("addition_test.aleo"), "Plain string entry should be parsed");
+    }
+
+    /// Test ProgramImports::to_object round-trips program sources.
+    #[wasm_bindgen_test]
+    fn test_program_imports_to_object() {
+        let mut builder = ProgramImports::new();
+        builder.add_program("multiply_test.aleo", MULTIPLY_PROGRAM, None).unwrap();
+        builder.add_program("addition_test.aleo", ADDITION_PROGRAM, None).unwrap();
+
+        let obj = builder.to_object();
+
+        // Verify keys exist.
+        let mul_val = Reflect::get(&obj, &JsValue::from_str("multiply_test.aleo")).unwrap();
+        let add_val = Reflect::get(&obj, &JsValue::from_str("addition_test.aleo")).unwrap();
+        assert!(mul_val.is_string(), "multiply_test.aleo should be a string in the output");
+        assert!(add_val.is_string(), "addition_test.aleo should be a string in the output");
+
+        // Verify the source strings are valid programs (round-trip parse).
+        let mul_src = mul_val.as_string().unwrap();
+        let add_src = add_val.as_string().unwrap();
+        assert!(ProgramNative::from_str(&mul_src).is_ok(), "multiply_test source should be valid");
+        assert!(ProgramNative::from_str(&add_src).is_ok(), "addition_test source should be valid");
+    }
+
+    /// Test getProvingKey / getVerifyingKey return None when no keys have been added.
+    #[wasm_bindgen_test]
+    fn test_program_imports_get_keys_returns_none_without_keys() {
+        let mut builder = ProgramImports::new();
+        builder.add_program("multiply_test.aleo", MULTIPLY_PROGRAM, None).unwrap();
+
+        // No keys added — get should return None.
+        assert!(builder.get_proving_key("multiply_test.aleo", "multiply").is_none());
+        assert!(builder.get_verifying_key("multiply_test.aleo", "multiply").is_none());
+
+        // Unknown program — should also return None.
+        assert!(builder.get_proving_key("nonexistent.aleo", "foo").is_none());
+        assert!(builder.get_verifying_key("nonexistent.aleo", "foo").is_none());
+    }
+
+    /// Test extract_keys is a safe no-op when no keys exist in the process.
+    #[wasm_bindgen_test]
+    fn test_program_imports_extract_keys_noop() {
+        let mut builder = ProgramImports::new();
+        builder.add_program("multiply_test.aleo", MULTIPLY_PROGRAM, None).unwrap();
+
+        // Load programs into the process (no execution, so no keys synthesized).
+        let mut process = ProcessNative::load_web().unwrap();
+        builder.load_programs(&mut process).unwrap();
+
+        // extract_keys should be a safe no-op — no keys to extract.
+        builder.extract_keys(&process);
+
+        // Verify no keys were extracted (none existed).
+        assert!(builder.get_proving_key("multiply_test.aleo", "multiply").is_none());
+        assert!(builder.get_verifying_key("multiply_test.aleo", "multiply").is_none());
+    }
+
+    /// Test add_program with explicit edition parameter.
+    #[wasm_bindgen_test]
+    fn test_program_imports_add_program_with_edition() {
+        let mut builder = ProgramImports::new();
+        // Edition 2 — should still load successfully.
+        builder.add_program("multiply_test.aleo", MULTIPLY_PROGRAM, Some(2)).unwrap();
+        assert!(builder.contains("multiply_test.aleo"));
+
+        let mut process = ProcessNative::load_web().unwrap();
+        builder.load_programs(&mut process).unwrap();
+        let multiply_program = ProgramNative::from_str(MULTIPLY_PROGRAM).unwrap();
+        assert!(process.contains_program(multiply_program.id()));
+    }
+
+    /// Test add_program rejects invalid source code.
+    #[wasm_bindgen_test]
+    fn test_program_imports_add_program_invalid_source() {
+        let mut builder = ProgramImports::new();
+        let result = builder.add_program("bad.aleo", "this is not valid aleo code", None);
+        assert!(result.is_err(), "Invalid source code should return an error");
+    }
+
 }

@@ -6,6 +6,7 @@
 
     /* Module Resolution Options */
     "moduleResolution": "bundler",
+    "customConditions": ["node"],
     "esModuleInterop": true,
 
     /* Advanced Options */
