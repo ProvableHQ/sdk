@@ -20,7 +20,7 @@ use crate::{
     Plaintext,
     account::{PrivateKey, Signature, ViewKey, compute_key::ComputeKey},
     from_js_typed_array,
-    from_wasm_object_array,
+    from_wasm_field_array,
     js_array_from_fields,
     native::{CurrentNetwork, FieldNative, LiteralNative},
     to_bits_array_le,
@@ -106,7 +106,7 @@ impl Address {
     /// @returns {Plaintext} The address object.
     #[wasm_bindgen(js_name = "fromFields")]
     pub fn from_fields(fields: Array) -> Result<Self, String> {
-        let native_fields = from_wasm_object_array!(fields, Field)?;
+        let native_fields = from_wasm_field_array!(fields, Field)?;
         let native = AddressNative::from_fields(&native_fields).map_err(|e| e.to_string())?;
         Ok(Self(native))
     }
