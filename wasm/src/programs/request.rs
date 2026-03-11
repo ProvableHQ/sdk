@@ -243,47 +243,44 @@ impl ExecutionRequest {
         function_name: String,
         inputs: Array,
         input_types: Array,
-        signature_native: Signature,
+        signature: Signature,
         tvk: Field,
         view_key: ViewKey,
-        gammas: Option<Array>, // Optional array of gammas.  One gamma per input record.
+        gammas: Option<Array>,
     ) -> Result<ExecutionRequest, String> {
         let program_id = ProgramIDNative::from_str(&program_id).map_err(|e| e.to_string())?;
         let function_name = IdentifierNative::from_str(&function_name).map_err(|e| e.to_string())?;
 
-        let inputs: Vec<ValueNative> = inputs
+        // Collect input_types into a Vec for record_count and length checks.
+        let input_types_vec: Vec<ValueTypeNative> = input_types
             .iter()
-            .map(|input| {
-                ValueNative::from_str(&input.as_string().unwrap()).map_err(|e| e.to_string())
-            })
+            .map(|it| ValueTypeNative::from_str(&it.as_string().unwrap()).map_err(|e| e.to_string()))
             .collect::<Result<Vec<_>, _>>()?;
 
-        let input_types: Vec<ValueTypeNative> = input_types
+        // Collect inputs_native separately for use in RequestNative at the end.
+        let inputs_native: Vec<ValueNative> = inputs
             .iter()
-            .map(|input_type| {
-                ValueTypeNative::from_str(&input_type.as_string().unwrap()).map_err(|e| e.to_string())
-            })
+            .map(|i| ValueNative::from_str(&i.as_string().unwrap()).map_err(|e| e.to_string()))
             .collect::<Result<Vec<_>, _>>()?;
 
-        if input_types.len() != inputs.len() {
+        if input_types_vec.len() != inputs_native.len() {
             return Err("input_types and inputs must have the same length".to_string());
         }
 
         let signer = Address::from_view_key(&view_key);
         let sk_tag = GraphKey::from_view_key(&view_key).sk_tag();
         let root_tvk = tvk;
-        let signer_x = *signer.to_x_coordinate();
-        let scm = CurrentNetwork::hash_psd2(&[signer_x, *root_tvk]).map_err(|e| e.to_string())?;
+        let scm = CurrentNetwork::hash_psd2(&[*signer.to_group().to_x_coordinate(), *root_tvk]).map_err(|e| e.to_string())?;
         let tcm = CurrentNetwork::hash_psd2(&[*tvk]).map_err(|e| e.to_string())?;
 
         let network_id = U16Native::new(CurrentNetwork::ID);
         let function_id = compute_function_id(&network_id, &program_id, &function_name).map_err(|e| e.to_string())?;
 
-        let record_count = input_types
+        let record_count = input_types_vec
             .iter()
             .filter(|t| matches!(t, ValueTypeNative::Record(_)))
             .count();
-        
+
         let gamma_length = gammas.as_ref().map_or(0, |a| a.length() as usize);
         if record_count != gamma_length {
             return Err(format!(
@@ -294,14 +291,19 @@ impl ExecutionRequest {
             ));
         }
 
-        let mut record_input_idx = 0;
-        let mut input_ids = Vec::with_capacity(inputs.len());
-        for (index, (input, input_type)) in inputs.iter().zip(&input_types).enumerate() {
+        let mut record_input_idx = 0u32;
+        let mut input_ids = Vec::with_capacity(inputs_native.len());
+
+        // Iterate the raw JS arrays, parsing each input fresh so it is owned.
+        for (index, (input_js, input_type_js)) in inputs.iter().zip(input_types.iter()).enumerate() {
+            let input = ValueNative::from_str(&input_js.as_string().unwrap()).map_err(|e| e.to_string())?;
+            let input_type = ValueTypeNative::from_str(&input_type_js.as_string().unwrap()).map_err(|e| e.to_string())?;
+
             let index_field = FieldNative::from_u16(
                 u16::try_from(index).map_err(|_| format!("Input index {index} exceeds maximum allowed value"))?,
             );
 
-            match input_type {
+            match &input_type {
                 ValueTypeNative::Constant(_) | ValueTypeNative::Public(_) => {
                     let mut preimage = vec![function_id];
                     preimage.extend(input.to_fields().map_err(|e| e.to_string())?);
@@ -328,21 +330,22 @@ impl ExecutionRequest {
                     input_ids.push(InputIDNative::Private(input_hash));
                 }
                 ValueTypeNative::Record(record_name) => {
-                    // Deserialize the record input
-                    let ValueNative::Record(record_input) = input;
-                    // Compute the record input ID from the gamma, record commitment, h, and h_r.
-                    let record_view_key = (**record_input.nonce() * ***view_key).to_x_coordinate();
-                    // Compute the commitment for the record input.
+                    // input is owned here, so destructuring works without clone.
+                    let record_input = match input {
+                        ValueNative::Record(record) => record,
+                        _ => return Err("Expected a record input for record type".to_string()),
+                    };
+                    let record_view_key = (*record_input.nonce() * ***view_key).to_x_coordinate();
                     let commitment = record_input
-                        .to_commitment(&program_id, &record_name, &record_view_key)
+                        .to_commitment(&program_id, record_name, &record_view_key)
                         .map_err(|e| e.to_string())?;
-                    // Obtain the correct gamme from the Option<Array> deserialize to group element.
-                    let gamma = Group::from(gammas.as_ref().unwrap().get(record_input_idx as u32)); // Not great to use unwrap()...even though the existence of the array is valid at this point.
-                    // Compute the serial number
+
+                    let gamma_js = gammas.as_ref().unwrap().get(record_input_idx as u32);
+                    let gamma = Group::from_string(&gamma_js.as_string().ok_or("Invalid gamma value")?)
+                        .map_err(|e| e.to_string())?;
+
                     let serial_number = RecordPlaintextNative::serial_number_from_gamma(&gamma, commitment).map_err(|e| e.to_string())?;
-                    // Compute the tag
                     let tag = RecordPlaintextNative::tag(*sk_tag, commitment).map_err(|e| e.to_string())?;
-                    // Add the input ID to the input_id vector and increment the count.
                     input_ids.push(InputIDNative::Record(commitment, *gamma, record_view_key, serial_number, tag));
                     record_input_idx += 1;
                 }
@@ -356,15 +359,15 @@ impl ExecutionRequest {
         }
 
         let request = RequestNative::from((
-            signer,
+            *signer,
             network_id,
             program_id,
             function_name,
             input_ids,
-            inputs,
-            signature_native,
-            sk_tag,
-            tvk,
+            inputs_native,  // use the separately collected Vec
+            *signature,
+            *sk_tag,
+            *tvk,
             tcm,
             scm,
         ));
