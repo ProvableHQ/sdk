@@ -458,7 +458,6 @@ class ProgramManager {
      */
     private async persistExtractedKeys(
         builder: ProgramImportsBuilder,
-        imports?: ProgramImports,
         topLevelProgram?: string,
         topLevelFunction?: string,
     ): Promise<void> {
@@ -472,13 +471,17 @@ class ProgramManager {
         }
         if (!keyStore) return;
 
-        // Persist import program keys.
-        const resolvedImports = imports ?? {};
-        for (const [name, importProgram] of Object.entries(resolvedImports)) {
+        // Enumerate programs/functions from the builder and persist any extracted keys.
+        const builderObj = builder.toObject() as Record<string, any>;
+        for (const name of Object.keys(builderObj)) {
             if (!builder.contains(name)) continue;
 
-            const importProgramStr = typeof importProgram === "string" ? importProgram : importProgram.toString();
-            const program = Program.fromString(importProgramStr);
+            // Extract the program source from the builder's output (plain string or structured object).
+            const entry = builderObj[name];
+            const source = typeof entry === "string" ? entry : entry?.program;
+            if (typeof source !== "string") continue;
+
+            const program = Program.fromString(source);
             const functions: string[] = Array.from(program.getFunctions());
 
             for (const fnName of functions) {
@@ -1115,22 +1118,8 @@ class ProgramManager {
             if (keys) {
                 [provingKey, verifyingKey] = keys;
             } else {
-                console.log(
+                console.debug(
                     "Function keys not found in KeyStore or KeyProvider. The function keys will be synthesized",
-                );
-            }
-        }
-
-        // Resolve the program imports if they exist
-        const numberOfImports = programObject.getImports().length;
-        if (numberOfImports > 0 && !imports) {
-            try {
-                imports = <ProgramImports>(
-                    await this.networkClient.getProgramImports(programName)
-                );
-            } catch (e: any) {
-                logAndThrow(
-                    `Error finding program imports. Network response: '${e.message}'. Please ensure you're connected to a valid Aleo network and the program is deployed to the network.`,
                 );
             }
         }
@@ -1194,7 +1183,7 @@ class ProgramManager {
         );
 
         // Auto-persist synthesized keys (both imports and top-level) from the mutated builder to KeyStore.
-        await this.persistExtractedKeys(programImportsBuilder, imports, program, functionName);
+        await this.persistExtractedKeys(programImportsBuilder, program, functionName);
 
         return transaction;
     }
@@ -1328,7 +1317,7 @@ class ProgramManager {
             if (keys) {
                 [provingKey, verifyingKey] = keys;
             } else {
-                console.log(
+                console.debug(
                     "Function keys not found in KeyStore or KeyProvider. The function keys will be synthesized",
                 );
             }
@@ -1342,21 +1331,6 @@ class ProgramManager {
             } catch (e: any) {
                 console.warn(`Error finding edition for ${programName}. Network response: '${e.message}'. Assuming edition 0.`);
                 edition = 0;
-            }
-        }
-
-        // Resolve the program imports if they exist.
-        console.log("Resolving program imports");
-        const numberOfImports = Program.fromString(program).getImports().length;
-        if (numberOfImports > 0 && !imports) {
-            try {
-                imports = <ProgramImports>(
-                    await this.networkClient.getProgramImports(programName)
-                );
-            } catch (e: any) {
-                logAndThrow(
-                    `Error finding program imports. Network response: '${e.message}'. Please ensure you're connected to a valid Aleo network and the program is deployed to the network.`,
-                );
             }
         }
 
@@ -1391,7 +1365,7 @@ class ProgramManager {
         );
 
         // Auto-persist synthesized keys (both imports and top-level) from the mutated builder to KeyStore.
-        await this.persistExtractedKeys(programImportsBuilder, imports, program, functionName);
+        await this.persistExtractedKeys(programImportsBuilder, program, functionName);
 
         return transaction;
     }
@@ -1973,7 +1947,7 @@ class ProgramManager {
             if (keys) {
                 [provingKey, verifyingKey] = keys;
             } else {
-                console.log(
+                console.debug(
                     "Function keys not found in KeyStore or KeyProvider. The function keys will be synthesized",
                 );
             }
@@ -2000,7 +1974,7 @@ class ProgramManager {
         );
 
         // Auto-persist synthesized keys (both imports and top-level) from the mutated builder to KeyStore.
-        await this.persistExtractedKeys(resolvedImportsBuilder, imports, program, function_name);
+        await this.persistExtractedKeys(resolvedImportsBuilder, program, function_name);
 
         return executionResponse;
     }

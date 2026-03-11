@@ -138,7 +138,7 @@ impl ProgramManager {
 
     /// Resolve all imports from the imports object and load them into the process.
     /// Accepts plain string values (`{ "name.aleo": "source" }`) or objects with a
-    /// `source` property (`{ "name.aleo": { source: "..." } }`).
+    /// `program` property (`{ "name.aleo": { program: "..." } }`).
     ///
     /// To provide proving/verifying keys for imported programs, use `ProgramImports`
     /// (the builder) instead of this legacy Object path.
@@ -230,7 +230,7 @@ mod tests {
 
     use crate::Metadata;
     use js_sys::{Object, Reflect};
-    use wasm_bindgen::JsValue;
+    use wasm_bindgen::{JsCast, JsValue};
     use wasm_bindgen_test::*;
 
     pub const MULTIPLY_PROGRAM: &str = r#"// The 'multiply_test.aleo' program which is imported by the 'double_test.aleo' program.
@@ -417,7 +417,7 @@ constructor:
 
         // Structured entry: object with `source` field.
         let structured_entry = Object::new();
-        Reflect::set(&structured_entry, &JsValue::from_str("source"), &JsValue::from_str(MULTIPLY_PROGRAM)).unwrap();
+        Reflect::set(&structured_entry, &JsValue::from_str("program"), &JsValue::from_str(MULTIPLY_PROGRAM)).unwrap();
         Reflect::set(&imports, &JsValue::from_str("multiply_test.aleo"), &structured_entry.into()).unwrap();
 
         // Plain string entry (backward compat).
@@ -443,7 +443,7 @@ constructor:
 
         // double_test.aleo as structured entry (imports multiply_test.aleo statically).
         let structured_entry = Object::new();
-        Reflect::set(&structured_entry, &JsValue::from_str("source"), &JsValue::from_str(MULTIPLY_IMPORT_PROGRAM))
+        Reflect::set(&structured_entry, &JsValue::from_str("program"), &JsValue::from_str(MULTIPLY_IMPORT_PROGRAM))
             .unwrap();
         Reflect::set(&imports, &JsValue::from_str("double_test.aleo"), &structured_entry.into()).unwrap();
 
@@ -557,7 +557,7 @@ constructor:
 
         // Structured entry.
         let structured = Object::new();
-        Reflect::set(&structured, &JsValue::from_str("source"), &JsValue::from_str(MULTIPLY_PROGRAM)).unwrap();
+        Reflect::set(&structured, &JsValue::from_str("program"), &JsValue::from_str(MULTIPLY_PROGRAM)).unwrap();
         Reflect::set(&obj, &JsValue::from_str("multiply_test.aleo"), &structured.into()).unwrap();
 
         // Plain string entry.
@@ -566,6 +566,32 @@ constructor:
         let builder = ProgramImports::from_object(obj);
         assert!(builder.contains("multiply_test.aleo"), "Structured entry should be parsed");
         assert!(builder.contains("addition_test.aleo"), "Plain string entry should be parsed");
+    }
+
+    /// Test ProgramImports::from_object with structured entries that include a `keys` property.
+    /// Verifies that the `keys` object is parsed without errors and non-Uint8Array values
+    /// are silently skipped.
+    #[wasm_bindgen_test]
+    fn test_program_imports_from_object_structured_with_keys() {
+        let obj = Object::new();
+
+        // Build a structured entry with a `keys` map containing non-Uint8Array placeholder values.
+        let structured = Object::new();
+        Reflect::set(&structured, &JsValue::from_str("program"), &JsValue::from_str(MULTIPLY_PROGRAM)).unwrap();
+
+        let keys_map = Object::new();
+        let fn_keys = Object::new();
+        // These are strings, not Uint8Array, so dyn_into will fail and they should be silently skipped.
+        Reflect::set(&fn_keys, &JsValue::from_str("provingKey"), &JsValue::from_str("not a key")).unwrap();
+        Reflect::set(&fn_keys, &JsValue::from_str("verifyingKey"), &JsValue::from_str("not a key")).unwrap();
+        Reflect::set(&keys_map, &JsValue::from_str("multiply"), &fn_keys.into()).unwrap();
+        Reflect::set(&structured, &JsValue::from_str("keys"), &keys_map.into()).unwrap();
+
+        Reflect::set(&obj, &JsValue::from_str("multiply_test.aleo"), &structured.into()).unwrap();
+
+        let builder = ProgramImports::from_object(obj);
+        // Program should still be added even though key extraction was skipped.
+        assert!(builder.contains("multiply_test.aleo"), "Program should be added despite invalid key types");
     }
 
     /// Test ProgramImports::to_object round-trips program sources.
@@ -645,4 +671,110 @@ constructor:
         assert!(result.is_err(), "Invalid source code should return an error");
     }
 
+    /// Test that addProvingKeyBytes / addVerifyingKeyBytes require an existing program.
+    #[wasm_bindgen_test]
+    fn test_program_imports_add_key_bytes_requires_program() {
+        let mut builder = ProgramImports::new();
+        let result = builder.add_proving_key_bytes("nonexistent.aleo", "multiply", &[0u8; 4]);
+        assert!(result.is_err(), "Should fail when program not added");
+        assert!(result.unwrap_err().contains("must be added via addProgram"));
+
+        let result = builder.add_verifying_key_bytes("nonexistent.aleo", "multiply", &[0u8; 4]);
+        assert!(result.is_err(), "Should fail when program not added");
+        assert!(result.unwrap_err().contains("must be added via addProgram"));
+    }
+
+    /// Test that addProvingKeyBytes / addVerifyingKeyBytes reject invalid bytes.
+    #[wasm_bindgen_test]
+    fn test_program_imports_add_key_bytes_invalid() {
+        let mut builder = ProgramImports::new();
+        builder.add_program("multiply_test.aleo", MULTIPLY_PROGRAM, None).unwrap();
+
+        let result = builder.add_proving_key_bytes("multiply_test.aleo", "multiply", &[0u8; 4]);
+        assert!(result.is_err(), "Invalid bytes should fail deserialization");
+
+        let result = builder.add_verifying_key_bytes("multiply_test.aleo", "multiply", &[0u8; 4]);
+        assert!(result.is_err(), "Invalid bytes should fail deserialization");
+    }
+
+    /// Test that addProvingKeyBytes / addVerifyingKeyBytes successfully round-trip
+    /// with real key bytes from the built-in verifier parameters.
+    #[wasm_bindgen_test]
+    fn test_program_imports_add_verifying_key_bytes_roundtrip() {
+        // Load real verifying key bytes from built-in parameters.
+        let vk_bytes = crate::types::native::parameters::TransferPublicVerifier::load_bytes().unwrap();
+        let vk = VerifyingKey::from_bytes(&vk_bytes).unwrap();
+
+        let mut builder = ProgramImports::new();
+        builder.add_program("multiply_test.aleo", MULTIPLY_PROGRAM, None).unwrap();
+        builder.add_verifying_key_bytes("multiply_test.aleo", "multiply", &vk_bytes).unwrap();
+
+        // Extract via getter and verify it matches.
+        let extracted = builder.get_verifying_key("multiply_test.aleo", "multiply").unwrap();
+        assert_eq!(extracted.checksum(), vk.checksum(), "Round-tripped verifying key should match");
+    }
+
+    /// Test that to_object outputs structured format with keys as Uint8Array when keys are present.
+    #[wasm_bindgen_test]
+    fn test_program_imports_to_object_with_keys() {
+        let vk_bytes = crate::types::native::parameters::TransferPublicVerifier::load_bytes().unwrap();
+
+        let mut builder = ProgramImports::new();
+        builder.add_program("multiply_test.aleo", MULTIPLY_PROGRAM, None).unwrap();
+        builder.add_verifying_key_bytes("multiply_test.aleo", "multiply", &vk_bytes).unwrap();
+
+        // Also add a program without keys to verify it uses the simple format.
+        builder.add_program("addition_test.aleo", ADDITION_PROGRAM, None).unwrap();
+
+        let obj = builder.to_object();
+
+        // addition_test.aleo should be a plain string (no keys).
+        let add_val = Reflect::get(&obj, &JsValue::from_str("addition_test.aleo")).unwrap();
+        assert!(add_val.is_string(), "Program without keys should use plain string format");
+
+        // multiply_test.aleo should be a structured object.
+        let mul_val = Reflect::get(&obj, &JsValue::from_str("multiply_test.aleo")).unwrap();
+        assert!(!mul_val.is_string(), "Program with keys should use structured format");
+
+        // Verify source is present.
+        let source = Reflect::get(&mul_val, &JsValue::from_str("program")).unwrap();
+        assert!(source.is_string(), "Structured entry should have a source property");
+        assert!(ProgramNative::from_str(&source.as_string().unwrap()).is_ok(), "Source should be valid program");
+
+        // Verify keys structure.
+        let keys = Reflect::get(&mul_val, &JsValue::from_str("keys")).unwrap();
+        assert!(!keys.is_undefined(), "Structured entry should have a keys property");
+
+        let fn_keys = Reflect::get(&keys, &JsValue::from_str("multiply")).unwrap();
+        assert!(!fn_keys.is_undefined(), "Keys should contain the function name");
+
+        let vk_val = Reflect::get(&fn_keys, &JsValue::from_str("verifyingKey")).unwrap();
+        assert!(vk_val.is_instance_of::<js_sys::Uint8Array>(), "Verifying key should be a Uint8Array");
+    }
+
+    /// Test that to_object → fromObject round-trips keys via Uint8Array bytes.
+    #[wasm_bindgen_test]
+    fn test_program_imports_to_object_from_object_roundtrip_keys() {
+        let vk_bytes = crate::types::native::parameters::TransferPublicVerifier::load_bytes().unwrap();
+        let original_checksum = VerifyingKey::from_bytes(&vk_bytes).unwrap().checksum();
+
+        let mut builder = ProgramImports::new();
+        builder.add_program("multiply_test.aleo", MULTIPLY_PROGRAM, None).unwrap();
+        builder.add_verifying_key_bytes("multiply_test.aleo", "multiply", &vk_bytes).unwrap();
+
+        // Round-trip: to_object → fromObject.
+        let obj = builder.to_object();
+        let mut restored = ProgramImports::from_object(obj);
+
+        assert!(restored.contains("multiply_test.aleo"), "Program should survive round-trip");
+
+        // Verify the verifying key survived the round-trip.
+        let restored_vk = restored.get_verifying_key("multiply_test.aleo", "multiply");
+        assert!(restored_vk.is_some(), "Verifying key should survive to_object → fromObject round-trip");
+        assert_eq!(
+            restored_vk.unwrap().checksum(),
+            original_checksum,
+            "Round-tripped verifying key should have same checksum"
+        );
+    }
 }

@@ -28,10 +28,11 @@ use crate::{
     },
 };
 
-use js_sys::{Object, Reflect};
+use js_sys::{Object, Reflect, Uint8Array};
 use snarkvm_synthesizer_program::StackTrait;
+use snarkvm_wasm::utilities::{FromBytes, ToBytes};
 use std::{collections::HashMap, str::FromStr};
-use wasm_bindgen::prelude::wasm_bindgen;
+use wasm_bindgen::{JsCast, prelude::wasm_bindgen};
 
 use super::ProgramManager;
 
@@ -88,27 +89,47 @@ impl ProgramImports {
 
     /// Create a ProgramImports from a plain JavaScript object.
     ///
-    /// Accepts the legacy format where keys are program names and values are
-    /// either source code strings or objects with a `source` property:
+    /// Accepts three formats:
     /// ```js
+    /// // 1. Plain string — source code only.
     /// { "my_program.aleo": "program source..." }
-    /// // or
-    /// { "my_program.aleo": { source: "program source..." } }
+    ///
+    /// // 2. Structured — program source with optional edition.
+    /// { "my_program.aleo": { program: "program source..." } }
+    ///
+    /// // 3. Structured with keys — program source plus proving/verifying keys per function.
+    /// {
+    ///   "my_program.aleo": {
+    ///     program: "program source...",
+    ///     keys: {
+    ///       "my_function": {
+    ///         provingKey: Uint8Array,
+    ///         verifyingKey: Uint8Array
+    ///       }
+    ///     }
+    ///   }
+    /// }
     /// ```
     ///
     /// Programs created via this method default to edition 1.
     ///
-    /// @param {Object} object A plain JavaScript object mapping program names to source code.
+    /// @param {Object} object A plain JavaScript object mapping program names to source code
+    ///   and optional keys.
     /// @returns {ProgramImports}
     #[wasm_bindgen(js_name = "fromObject")]
     pub fn from_object(object: Object) -> Self {
         let mut imports = Self::new();
         let keys = Object::keys(&object);
         for i in 0..keys.length() {
-            let Some(name) = keys.get(i).as_string() else { continue; };
+            let Some(name) = keys.get(i).as_string() else {
+                continue;
+            };
             let value = Reflect::get(&object, &name.as_str().into()).ok();
             if let Some(source) = extract_source(&value) {
                 let _ = imports.add_program(&name, &source, None);
+                if let Some(value) = value.as_ref() {
+                    extract_keys_from_value(&mut imports, &name, value);
+                }
             }
         }
         imports
@@ -154,9 +175,10 @@ impl ProgramImports {
     pub fn add_proving_key(&mut self, program_name: &str, identifier: &str, key: ProvingKey) -> Result<(), String> {
         let program_id = ProgramIDNative::from_str(program_name).map_err(|e| e.to_string())?;
         let fn_id = IdentifierNative::from_str(identifier).map_err(|e| e.to_string())?;
-        let entry = self.entries.get_mut(&program_id).ok_or_else(|| {
-            format!("Program '{program_name}' must be added via addProgram before adding keys")
-        })?;
+        let entry = self
+            .entries
+            .get_mut(&program_id)
+            .ok_or_else(|| format!("Program '{program_name}' must be added via addProgram before adding keys"))?;
         entry.proving_keys.insert(fn_id, ProvingKeyNative::from(key));
         Ok(())
     }
@@ -173,10 +195,58 @@ impl ProgramImports {
     pub fn add_verifying_key(&mut self, program_name: &str, identifier: &str, key: VerifyingKey) -> Result<(), String> {
         let program_id = ProgramIDNative::from_str(program_name).map_err(|e| e.to_string())?;
         let fn_id = IdentifierNative::from_str(identifier).map_err(|e| e.to_string())?;
-        let entry = self.entries.get_mut(&program_id).ok_or_else(|| {
-            format!("Program '{program_name}' must be added via addProgram before adding keys")
-        })?;
+        let entry = self
+            .entries
+            .get_mut(&program_id)
+            .ok_or_else(|| format!("Program '{program_name}' must be added via addProgram before adding keys"))?;
         entry.verifying_keys.insert(fn_id, VerifyingKeyNative::from(key));
+        Ok(())
+    }
+
+    /// Add a proving key from its byte representation.
+    ///
+    /// Deserializes the bytes into a native proving key and stores it. The program
+    /// must already have been added via `addProgram`.
+    ///
+    /// @param {string} program_name The program name (e.g., "my_program.aleo").
+    /// @param {string} identifier The function name or record name the key belongs to.
+    /// @param {Uint8Array} bytes The proving key bytes.
+    #[wasm_bindgen(js_name = "addProvingKeyBytes")]
+    pub fn add_proving_key_bytes(&mut self, program_name: &str, identifier: &str, bytes: &[u8]) -> Result<(), String> {
+        let program_id = ProgramIDNative::from_str(program_name).map_err(|e| e.to_string())?;
+        let fn_id = IdentifierNative::from_str(identifier).map_err(|e| e.to_string())?;
+        let entry = self
+            .entries
+            .get_mut(&program_id)
+            .ok_or_else(|| format!("Program '{program_name}' must be added via addProgram before adding keys"))?;
+        let pk = ProvingKeyNative::from_bytes_le(bytes).map_err(|e| e.to_string())?;
+        entry.proving_keys.insert(fn_id, pk);
+        Ok(())
+    }
+
+    /// Add a verifying key from its byte representation.
+    ///
+    /// Deserializes the bytes into a native verifying key and stores it. The program
+    /// must already have been added via `addProgram`.
+    ///
+    /// @param {string} program_name The program name (e.g., "my_program.aleo").
+    /// @param {string} identifier The function name or record name the key belongs to.
+    /// @param {Uint8Array} bytes The verifying key bytes.
+    #[wasm_bindgen(js_name = "addVerifyingKeyBytes")]
+    pub fn add_verifying_key_bytes(
+        &mut self,
+        program_name: &str,
+        identifier: &str,
+        bytes: &[u8],
+    ) -> Result<(), String> {
+        let program_id = ProgramIDNative::from_str(program_name).map_err(|e| e.to_string())?;
+        let fn_id = IdentifierNative::from_str(identifier).map_err(|e| e.to_string())?;
+        let entry = self
+            .entries
+            .get_mut(&program_id)
+            .ok_or_else(|| format!("Program '{program_name}' must be added via addProgram before adding keys"))?;
+        let vk = VerifyingKeyNative::from_bytes_le(bytes).map_err(|e| e.to_string())?;
+        entry.verifying_keys.insert(fn_id, vk);
         Ok(())
     }
 
@@ -208,18 +278,76 @@ impl ProgramImports {
         entry.verifying_keys.remove(&fn_id).map(VerifyingKey::from)
     }
 
-    /// Convert this ProgramImports to a plain JavaScript object containing only
-    /// program sources (no keys). Useful for interop with APIs that accept the
-    /// legacy `{ "name.aleo": "source" }` format.
+    /// Convert this ProgramImports to a plain JavaScript object.
+    ///
+    /// Entries without keys use the simple `{ "name.aleo": "source" }` format.
+    /// Entries with keys use the structured format:
+    /// ```js
+    /// {
+    ///   "name.aleo": {
+    ///     program: "program source...",
+    ///     keys: {
+    ///       "function_name": {
+    ///         provingKey: Uint8Array,
+    ///         verifyingKey: Uint8Array
+    ///       }
+    ///     }
+    ///   }
+    /// }
+    /// ```
     ///
     /// @returns {Object}
     #[wasm_bindgen(js_name = "toObject")]
     pub fn to_object(&self) -> Object {
         let obj = Object::new();
         for (program_id, entry) in &self.entries {
-            let source = entry.program().to_string();
             let name = program_id.to_string();
-            Reflect::set(&obj, &name.as_str().into(), &source.as_str().into()).unwrap();
+            let source = entry.program().to_string();
+
+            let has_keys = !entry.proving_keys.is_empty() || !entry.verifying_keys.is_empty();
+            if !has_keys {
+                Reflect::set(&obj, &name.as_str().into(), &source.as_str().into()).unwrap();
+                continue;
+            }
+
+            // Structured format with keys.
+            let structured = Object::new();
+            Reflect::set(&structured, &"program".into(), &source.as_str().into()).unwrap();
+
+            let keys_obj = Object::new();
+            // Collect all identifier names that have at least one key.
+            let mut fn_ids: Vec<&IdentifierNative> = Vec::new();
+            for fn_id in entry.proving_keys.keys() {
+                fn_ids.push(fn_id);
+            }
+            for fn_id in entry.verifying_keys.keys() {
+                if !entry.proving_keys.contains_key(fn_id) {
+                    fn_ids.push(fn_id);
+                }
+            }
+
+            for fn_id in fn_ids {
+                let fn_name = fn_id.to_string();
+                let key_pair = Object::new();
+
+                if let Some(pk) = entry.proving_keys.get(fn_id) {
+                    if let Ok(bytes) = pk.to_bytes_le() {
+                        let arr = Uint8Array::from(bytes.as_slice());
+                        Reflect::set(&key_pair, &"provingKey".into(), &arr.into()).unwrap();
+                    }
+                }
+                if let Some(vk) = entry.verifying_keys.get(fn_id) {
+                    if let Ok(bytes) = vk.to_bytes_le() {
+                        let arr = Uint8Array::from(bytes.as_slice());
+                        Reflect::set(&key_pair, &"verifyingKey".into(), &arr.into()).unwrap();
+                    }
+                }
+
+                Reflect::set(&keys_obj, &fn_name.as_str().into(), &key_pair.into()).unwrap();
+            }
+
+            Reflect::set(&structured, &"keys".into(), &keys_obj.into()).unwrap();
+            Reflect::set(&obj, &name.as_str().into(), &structured.into()).unwrap();
         }
         obj
     }
@@ -242,18 +370,51 @@ impl ProgramImports {
     }
 }
 
-/// Extract source code from a JS value (plain string or object with `.source`).
+/// Extract source code from a JS value (plain string or object with `.program`).
 ///
 /// Supports both legacy format (`"source code"`) and structured format
-/// (`{ source: "source code", ... }`).
+/// (`{ program: "source code", ... }`).
 pub(crate) fn extract_source(value: &Option<wasm_bindgen::JsValue>) -> Option<String> {
     let value = value.as_ref()?;
     // Plain string format: "source code"
     if let Some(program) = value.as_string() {
         return Some(program);
     }
-    // Structured object format: { source: "source code", ... }
-    Reflect::get(value, &"source".into()).ok().and_then(|v| v.as_string())
+    // Structured object format: { program: "source code", ... }
+    Reflect::get(value, &"program".into()).ok().and_then(|v| v.as_string())
+}
+
+/// Extract proving and verifying keys from a structured JS value's `keys` property.
+///
+/// Keys must be provided as `Uint8Array` byte representations.
+/// Expects the format:
+/// ```js
+/// { keys: { "fn_name": { provingKey: Uint8Array, verifyingKey: Uint8Array } } }
+/// ```
+/// Silently skips any entries that are missing, malformed, or not valid `Uint8Array` values.
+fn extract_keys_from_value(imports: &mut ProgramImports, program_name: &str, value: &wasm_bindgen::JsValue) {
+    let Ok(keys_obj) = Reflect::get(value, &"keys".into()) else { return };
+    if keys_obj.is_undefined() || keys_obj.is_null() {
+        return;
+    }
+    let Ok(keys_obj) = keys_obj.dyn_into::<Object>() else { return };
+    let fn_names = Object::keys(&keys_obj);
+
+    for i in 0..fn_names.length() {
+        let Some(fn_name) = fn_names.get(i).as_string() else { continue };
+        let Ok(key_pair) = Reflect::get(&keys_obj, &fn_name.as_str().into()) else { continue };
+
+        if let Ok(pk_val) = Reflect::get(&key_pair, &"provingKey".into()) {
+            if let Ok(arr) = pk_val.dyn_into::<Uint8Array>() {
+                let _ = imports.add_proving_key_bytes(program_name, &fn_name, &arr.to_vec());
+            }
+        }
+        if let Ok(vk_val) = Reflect::get(&key_pair, &"verifyingKey".into()) {
+            if let Ok(arr) = vk_val.dyn_into::<Uint8Array>() {
+                let _ = imports.add_verifying_key_bytes(program_name, &fn_name, &arr.to_vec());
+            }
+        }
+    }
 }
 
 // Internal methods (not exported to JS).

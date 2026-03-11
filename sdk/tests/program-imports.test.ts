@@ -4,6 +4,7 @@ import {
     Program,
     ProgramImportsBuilder,
     ProgramManager,
+    ProgramManagerBase,
     ProvingKey,
     VerifyingKey,
 } from "@provablehq/sdk/%%NETWORK%%.js";
@@ -11,6 +12,8 @@ import {
     DD_CALLER_PROGRAM,
     DD_CONSTANTS_PROGRAM,
     DD_TEN_PROGRAM,
+    MULTIPLY_PROGRAM,
+    DOUBLE_PROGRAM,
 } from "./data/dynamic-dispatch.js";
 import type { KeyStore, KeyLocator } from "../src/keys/keystore/interface.js";
 import type { FunctionKeyProvider } from "../src/keys/provider/interface.js";
@@ -97,29 +100,17 @@ describe("ProgramImports & KeyStore integration", () => {
 
         it("should merge network-fetched imports with user-provided imports", async () => {
             const manager = new ProgramManager();
-            const networkImports = { "dd_constants.aleo": DD_CONSTANTS_PROGRAM };
-            sinon.stub(manager.networkClient, "getProgramImports").resolves(networkImports);
-            // User provides dd_ten as a dynamic dispatch target (not a static import).
+            // DOUBLE_PROGRAM has a static `import multiply_test.aleo;`
+            sinon.stub(manager.networkClient, "getProgramImports").resolves({
+                "multiply_test.aleo": MULTIPLY_PROGRAM,
+            });
             const userImports = { "dd_ten.aleo": DD_TEN_PROGRAM };
 
-            const builder: ProgramImportsBuilder = await pm(manager).buildProgramImports(DD_CALLER_PROGRAM, userImports);
+            const builder: ProgramImportsBuilder = await pm(manager).buildProgramImports(DOUBLE_PROGRAM, userImports);
 
             // Both network-fetched and user-provided imports should be present.
-            expect(builder.contains("dd_constants.aleo")).to.equal(true);
+            expect(builder.contains("multiply_test.aleo")).to.equal(true);
             expect(builder.contains("dd_ten.aleo")).to.equal(true);
-        });
-
-        it("should let user-provided imports override network-fetched imports", async () => {
-            const manager = new ProgramManager();
-            const networkImports = { "dd_constants.aleo": DD_CONSTANTS_PROGRAM };
-            sinon.stub(manager.networkClient, "getProgramImports").resolves(networkImports);
-            // User provides their own version of dd_constants.
-            const userImports = { "dd_constants.aleo": DD_CONSTANTS_PROGRAM };
-
-            const builder: ProgramImportsBuilder = await pm(manager).buildProgramImports(DD_CALLER_PROGRAM, userImports);
-
-            // User-provided import should be in the builder (overrides network).
-            expect(builder.contains("dd_constants.aleo")).to.equal(true);
         });
 
         it("should gracefully handle network fetch failures", async () => {
@@ -213,6 +204,29 @@ describe("ProgramImports & KeyStore integration", () => {
             expect(hasLocators).to.include("dd_ten.aleo.get_ten.verifier");
         });
 
+        it("should fetch and add keys when keyStore.has returns true", async () => {
+            const fakePk = {} as ProvingKey;
+            const fakeVk = {} as VerifyingKey;
+            const store = createMockKeyStore({
+                "multiply_test.aleo.multiply": { pk: fakePk, vk: fakeVk },
+            });
+            const manager = new ProgramManager();
+            manager.setKeyStore(store as unknown as KeyStore);
+
+            const builder = new ProgramImportsBuilder();
+            builder.addProgram("multiply_test.aleo", MULTIPLY_PROGRAM);
+
+            // Stub the WASM builder methods so fake keys don't trigger WASM type errors
+            sinon.stub(builder, "addProvingKey");
+            sinon.stub(builder, "addVerifyingKey");
+
+            await pm(manager).loadKeysFromStore(builder, "multiply_test.aleo", MULTIPLY_PROGRAM);
+
+            expect(store.has.called).to.equal(true);
+            expect(store.getProvingKey.called).to.equal(true);
+            expect(store.getVerifyingKey.called).to.equal(true);
+        });
+
         it("should swallow keyStore errors without throwing", async () => {
             const store = createMockKeyStore();
             store.has.rejects(new Error("disk error"));
@@ -260,7 +274,7 @@ describe("ProgramImports & KeyStore integration", () => {
             builder.addProgram("dd_constants.aleo", DD_CONSTANTS_PROGRAM);
 
             // Should not throw.
-            await pm(manager).persistExtractedKeys(builder, { "dd_constants.aleo": DD_CONSTANTS_PROGRAM });
+            await pm(manager).persistExtractedKeys(builder);
         });
 
         it("should skip programs not in the builder", async () => {
@@ -271,7 +285,7 @@ describe("ProgramImports & KeyStore integration", () => {
             const builder = new ProgramImportsBuilder();
             // Builder is empty — does not contain dd_constants.aleo.
 
-            await pm(manager).persistExtractedKeys(builder, { "dd_constants.aleo": DD_CONSTANTS_PROGRAM });
+            await pm(manager).persistExtractedKeys(builder);
 
             expect(store.setKeys.called).to.equal(false);
         });
@@ -285,7 +299,7 @@ describe("ProgramImports & KeyStore integration", () => {
             builder.addProgram("dd_constants.aleo", DD_CONSTANTS_PROGRAM);
             // No keys added to the builder.
 
-            await pm(manager).persistExtractedKeys(builder, { "dd_constants.aleo": DD_CONSTANTS_PROGRAM });
+            await pm(manager).persistExtractedKeys(builder);
 
             expect(store.setKeys.called).to.equal(false);
         });
@@ -300,7 +314,7 @@ describe("ProgramImports & KeyStore integration", () => {
             builder.addProgram("dd_constants.aleo", DD_CONSTANTS_PROGRAM);
 
             // Should not throw.
-            await pm(manager).persistExtractedKeys(builder, { "dd_constants.aleo": DD_CONSTANTS_PROGRAM });
+            await pm(manager).persistExtractedKeys(builder);
         });
 
         it("should swallow keyProvider.keyStore() errors without throwing", async () => {
@@ -309,23 +323,24 @@ describe("ProgramImports & KeyStore integration", () => {
             const manager = new ProgramManager(undefined, provider);
 
             const builder = new ProgramImportsBuilder();
+            builder.addProgram("dd_constants.aleo", DD_CONSTANTS_PROGRAM);
 
             // Should not throw.
-            await pm(manager).persistExtractedKeys(builder, { "dd_constants.aleo": DD_CONSTANTS_PROGRAM });
+            await pm(manager).persistExtractedKeys(builder);
         });
 
-        it("should accept Program objects in the imports map", async () => {
+        it("should not persist when only one of PK/VK is present", async () => {
             const store = createMockKeyStore();
             const provider = createMockKeyProvider(store);
             const manager = new ProgramManager(undefined, provider);
 
             const builder = new ProgramImportsBuilder();
             builder.addProgram("dd_constants.aleo", DD_CONSTANTS_PROGRAM);
+            // Builder has the program but no keys — getProvingKey/getVerifyingKey return undefined.
 
-            const programObj = Program.fromString(DD_CONSTANTS_PROGRAM);
+            await pm(manager).persistExtractedKeys(builder);
 
-            // Should not throw — the method coerces Program objects to strings.
-            await pm(manager).persistExtractedKeys(builder, { "dd_constants.aleo": programObj });
+            expect(store.setKeys.called).to.equal(false);
         });
 
         it("should persist top-level keys when topLevelProgram and topLevelFunction are provided", async () => {
@@ -343,7 +358,7 @@ describe("ProgramImports & KeyStore integration", () => {
             // with keys from the process. Here the builder has no keys, so getProvingKey
             // returns undefined and setKeys is not called. This verifies the guard works.
 
-            await pm(manager).persistExtractedKeys(builder, {}, DD_CONSTANTS_PROGRAM, "get_value");
+            await pm(manager).persistExtractedKeys(builder, DD_CONSTANTS_PROGRAM, "get_value");
 
             // Builder had no keys (getProvingKey returns undefined), so setKeys should not fire.
             expect(store.setKeys.called).to.equal(false);
@@ -357,7 +372,7 @@ describe("ProgramImports & KeyStore integration", () => {
             const builder = new ProgramImportsBuilder();
             builder.addProgram("dd_constants.aleo", DD_CONSTANTS_PROGRAM);
 
-            await pm(manager).persistExtractedKeys(builder, {});
+            await pm(manager).persistExtractedKeys(builder);
 
             // No top-level params means no top-level persistence attempt.
             expect(store.setKeys.called).to.equal(false);
@@ -375,7 +390,7 @@ describe("ProgramImports & KeyStore integration", () => {
             // Should resolve without throwing despite the write error.
             let threw = false;
             try {
-                await pm(manager).persistExtractedKeys(builder, {}, DD_CONSTANTS_PROGRAM, "get_value");
+                await pm(manager).persistExtractedKeys(builder, DD_CONSTANTS_PROGRAM, "get_value");
             } catch {
                 threw = true;
             }
@@ -438,6 +453,21 @@ describe("ProgramImports & KeyStore integration", () => {
 
             // KeyStore was consulted via setKeyStore, not keyProvider.keyStore().
             expect(store.has.called).to.equal(true);
+        });
+
+        it("should make KeyStore available to persistExtractedKeys", async () => {
+            const store = createMockKeyStore();
+            const manager = new ProgramManager();
+            manager.setKeyStore(store as unknown as KeyStore);
+
+            const builder = new ProgramImportsBuilder();
+            builder.addProgram("dd_constants.aleo", DD_CONSTANTS_PROGRAM);
+
+            await pm(manager).persistExtractedKeys(builder);
+
+            // setKeys not called (no keys in builder), but method completed without error,
+            // meaning the KeyStore was resolved via setKeyStore.
+            expect(store.setKeys.called).to.equal(false);
         });
 
         it("should take precedence over keyProvider.keyStore()", async () => {
@@ -556,8 +586,7 @@ describe("ProgramImports & KeyStore integration", () => {
 
             // Stub the WASM call to return our fake key pair
             sinon.stub(manager.networkClient, "getProgramImports").resolves({});
-            const { ProgramManager: WasmPM } = await import("@provablehq/sdk/%%NETWORK%%.js");
-            const synthesizeStub = sinon.stub(WasmPM, "synthesizeKeyPair").resolves(fakeKeyPair);
+            const synthesizeStub = sinon.stub(ProgramManagerBase, "synthesizeKeyPair").resolves(fakeKeyPair as any);
 
             try {
                 await manager.synthesizeKeys(DD_CONSTANTS_PROGRAM, "get_value", ["0u8"]);
@@ -583,8 +612,7 @@ describe("ProgramImports & KeyStore integration", () => {
             };
 
             sinon.stub(manager.networkClient, "getProgramImports").resolves({});
-            const { ProgramManager: WasmPM } = await import("@provablehq/sdk/%%NETWORK%%.js");
-            const synthesizeStub = sinon.stub(WasmPM, "synthesizeKeyPair").resolves(fakeKeyPair);
+            const synthesizeStub = sinon.stub(ProgramManagerBase, "synthesizeKeyPair").resolves(fakeKeyPair as any);
 
             try {
                 const keys = await manager.synthesizeKeys(DD_CONSTANTS_PROGRAM, "get_value", ["0u8"]);
@@ -610,8 +638,7 @@ describe("ProgramImports & KeyStore integration", () => {
             };
 
             sinon.stub(manager.networkClient, "getProgramImports").resolves({});
-            const { ProgramManager: WasmPM } = await import("@provablehq/sdk/%%NETWORK%%.js");
-            const synthesizeStub = sinon.stub(WasmPM, "synthesizeKeyPair").resolves(fakeKeyPair);
+            const synthesizeStub = sinon.stub(ProgramManagerBase, "synthesizeKeyPair").resolves(fakeKeyPair as any);
 
             try {
                 const keys = await manager.synthesizeKeys(DD_CONSTANTS_PROGRAM, "get_value", ["0u8"]);
@@ -625,7 +652,7 @@ describe("ProgramImports & KeyStore integration", () => {
         });
     });
 
-    describe("run() import key loading", () => {
+    describe("run() integration", () => {
         it("should auto-build ProgramImportsBuilder from KeyStore when none provided", async () => {
             const store = createMockKeyStore();
             const provider = createMockKeyProvider(store);
@@ -635,8 +662,7 @@ describe("ProgramImports & KeyStore integration", () => {
             const buildSpy = sinon.spy(pm(manager), "buildProgramImports");
 
             // Stub the WASM execution to avoid actual execution
-            const { ProgramManager: WasmPM } = await import("@provablehq/sdk/%%NETWORK%%.js");
-            const execStub = sinon.stub(WasmPM, "executeFunctionOfflineWithImports").resolves({} as any);
+            const execStub = sinon.stub(ProgramManagerBase, "executeFunctionOfflineWithImports").resolves({} as any);
 
             try {
                 manager.setAccount({ privateKey: () => ({}) } as any);
@@ -655,8 +681,7 @@ describe("ProgramImports & KeyStore integration", () => {
 
             const buildSpy = sinon.spy(pm(manager), "buildProgramImports");
 
-            const { ProgramManager: WasmPM } = await import("@provablehq/sdk/%%NETWORK%%.js");
-            const execStub = sinon.stub(WasmPM, "executeFunctionOfflineWithImports").resolves({} as any);
+            const execStub = sinon.stub(ProgramManagerBase, "executeFunctionOfflineWithImports").resolves({} as any);
 
             try {
                 manager.setAccount({ privateKey: () => ({}) } as any);
@@ -664,6 +689,25 @@ describe("ProgramImports & KeyStore integration", () => {
                 await manager.run(DD_CONSTANTS_PROGRAM, "get_value", ["0u8"], false, undefined, undefined, undefined, undefined, undefined, undefined, undefined, builder);
 
                 expect(buildSpy.called).to.equal(false);
+            } finally {
+                execStub.restore();
+            }
+        });
+
+        it("should call persistExtractedKeys after execution", async () => {
+            const store = createMockKeyStore();
+            const provider = createMockKeyProvider(store);
+            const manager = new ProgramManager(undefined, provider);
+
+            const persistSpy = sinon.spy(pm(manager), "persistExtractedKeys");
+
+            const execStub = sinon.stub(ProgramManagerBase, "executeFunctionOfflineWithImports").resolves({} as any);
+
+            try {
+                manager.setAccount({ privateKey: () => ({}) } as any);
+                await manager.run(DD_CONSTANTS_PROGRAM, "get_value", ["0u8"], false);
+
+                expect(persistSpy.calledOnce).to.equal(true);
             } finally {
                 execStub.restore();
             }

@@ -52,6 +52,29 @@ constructor:
     assert.eq true true;
 `;
 
+/// A simple program used as a static import target.
+/// Mirrors multiply_test.aleo from wasm/src/programs/manager/mod.rs.
+export const MULTIPLY_PROGRAM = `program multiply_test.aleo;
+
+function multiply:
+    input r0 as u32.public;
+    input r1 as u32.private;
+    mul r0 r1 into r2;
+    output r2 as u32.private;
+`;
+
+/// A program that statically imports multiply_test.aleo.
+/// Mirrors double_test.aleo from wasm/src/programs/manager/mod.rs.
+export const DOUBLE_PROGRAM = `import multiply_test.aleo;
+
+program double_test.aleo;
+
+function double_it:
+    input r0 as u32.private;
+    call multiply_test.aleo/multiply 2u32 r0 into r1;
+    output r1 as u32.private;
+`;
+
 /// Pre-computed field-encoded identifiers for dynamic dispatch.
 /// These are Identifier::to_field() values computed from the Rust/WASM tests.
 export const DD_CONSTANTS_FIELD = "35731532782568442653824738404field";

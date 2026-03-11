@@ -9,8 +9,12 @@ import {
   NetworkRecordProvider,
 } from "@provablehq/sdk";
 import { expose, proxy } from "comlink";
+import { IndexedDBKeyStore } from "../IndexedDBKeyStore";
 
 await initThreadPool();
+
+// Shared KeyStore instance persists keys in IndexedDB across page reloads.
+const keyStore = new IndexedDBKeyStore();
 
 async function localProgramExecution(program, aleoFunction, inputs) {
   const programManager = new ProgramManager();
@@ -18,6 +22,12 @@ async function localProgramExecution(program, aleoFunction, inputs) {
   // Create a temporary account for the execution of the program
   const account = new Account();
   programManager.setAccount(account);
+
+  // Set up key caching: in-memory for the session, IndexedDB across sessions.
+  const keyProvider = new AleoKeyProvider();
+  keyProvider.useCache(true);
+  programManager.setKeyProvider(keyProvider);
+  programManager.setKeyStore(keyStore);
 
   const executionResponse = await programManager.run(
     program,
@@ -55,6 +65,9 @@ async function deployProgram(program) {
   );
 
   programManager.setAccount(account);
+
+  // Persist keys across sessions with IndexedDB.
+  programManager.setKeyStore(keyStore);
 
   // Define a fee to pay to deploy the program
   const fee = 1.9; // 1.9 Aleo credits

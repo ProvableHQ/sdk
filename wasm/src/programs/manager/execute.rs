@@ -1058,7 +1058,10 @@ impl ProgramManager {
             None
         };
 
-        Ok((Transaction::from(TransactionNative::from_execution(execution, fee).map_err(|e| e.to_string())?), program_imports))
+        Ok((
+            Transaction::from(TransactionNative::from_execution(execution, fee).map_err(|e| e.to_string())?),
+            program_imports,
+        ))
     }
 }
 
