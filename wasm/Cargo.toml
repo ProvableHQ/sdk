@@ -23,16 +23,16 @@ doctest = false
 
 [dependencies.snarkvm-algorithms]
 git = "https://github.com/ProvableHQ/snarkVM.git"
-rev = "ed7b59031741f13f148f63d7cda4e1e1634399f6"
+rev = "7296b3cc9cffb8b71eb15dad3a00603d21a5912f"
 
 [dependencies.snarkvm-circuit-network]
 git = "https://github.com/ProvableHQ/snarkVM.git"
-rev = "ed7b59031741f13f148f63d7cda4e1e1634399f6"
+rev = "7296b3cc9cffb8b71eb15dad3a00603d21a5912f"
 features = ["wasm"]
 
 [dependencies.snarkvm-console]
 git = "https://github.com/ProvableHQ/snarkVM.git"
-rev = "ed7b59031741f13f148f63d7cda4e1e1634399f6"
+rev = "7296b3cc9cffb8b71eb15dad3a00603d21a5912f"
 default-features = false
 features = [
     "account",
@@ -46,37 +46,37 @@ features = [
 
 [dependencies.snarkvm-ledger-block]
 git = "https://github.com/ProvableHQ/snarkVM.git"
-rev = "ed7b59031741f13f148f63d7cda4e1e1634399f6"
+rev = "7296b3cc9cffb8b71eb15dad3a00603d21a5912f"
 features = ["wasm"]
 
 [dependencies.snarkvm-ledger-query]
 git = "https://github.com/ProvableHQ/snarkVM.git"
-rev = "ed7b59031741f13f148f63d7cda4e1e1634399f6"
+rev = "7296b3cc9cffb8b71eb15dad3a00603d21a5912f"
 features = ["async", "wasm"]
 
 [dependencies.snarkvm-ledger-store]
 git = "https://github.com/ProvableHQ/snarkVM.git"
-rev = "ed7b59031741f13f148f63d7cda4e1e1634399f6"
+rev = "7296b3cc9cffb8b71eb15dad3a00603d21a5912f"
 
 [dependencies.snarkvm-parameters]
 git = "https://github.com/ProvableHQ/snarkVM.git"
-rev = "ed7b59031741f13f148f63d7cda4e1e1634399f6"
+rev = "7296b3cc9cffb8b71eb15dad3a00603d21a5912f"
 default-features = false
 features = ["wasm"]
 
 [dependencies.snarkvm-synthesizer-program]
 git = "https://github.com/ProvableHQ/snarkVM.git"
-rev = "ed7b59031741f13f148f63d7cda4e1e1634399f6"
+rev = "7296b3cc9cffb8b71eb15dad3a00603d21a5912f"
 features = ["wasm"]
 
 [dependencies.snarkvm-synthesizer]
 git = "https://github.com/ProvableHQ/snarkVM.git"
-rev = "ed7b59031741f13f148f63d7cda4e1e1634399f6"
+rev = "7296b3cc9cffb8b71eb15dad3a00603d21a5912f"
 features = ["async", "wasm"]
 
 [dependencies.snarkvm-wasm]
 git = "https://github.com/ProvableHQ/snarkVM.git"
-rev = "ed7b59031741f13f148f63d7cda4e1e1634399f6"
+rev = "7296b3cc9cffb8b71eb15dad3a00603d21a5912f"
 features = ["fields", "utilities"]
 
 [dependencies.anyhow]
