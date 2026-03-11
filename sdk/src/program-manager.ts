@@ -471,15 +471,11 @@ class ProgramManager {
         }
         if (!keyStore) return;
 
-        // Enumerate programs/functions from the builder and persist any extracted keys.
-        const builderObj = builder.toObject() as Record<string, any>;
-        for (const name of Object.keys(builderObj)) {
-            if (!builder.contains(name)) continue;
-
-            // Extract the program source from the builder's output (plain string or structured object).
-            const entry = builderObj[name];
-            const source = typeof entry === "string" ? entry : entry?.program;
-            if (typeof source !== "string") continue;
+        // Enumerate programs from the builder without serializing keys.
+        const programNames: string[] = Array.from(builder.programNames());
+        for (const name of programNames) {
+            const source = builder.getProgram(name);
+            if (!source) continue;
 
             const program = Program.fromString(source);
             const functions: string[] = Array.from(program.getFunctions());

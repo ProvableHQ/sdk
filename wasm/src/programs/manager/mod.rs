@@ -474,6 +474,39 @@ constructor:
         assert!(builder.contains("addition_test.aleo"));
     }
 
+    /// Test that program_names returns the names of all added programs.
+    #[wasm_bindgen_test]
+    fn test_program_imports_program_names() {
+        let mut builder = ProgramImports::new();
+        let empty_names = builder.program_names();
+        assert_eq!(empty_names.length(), 0);
+
+        builder.add_program("multiply_test.aleo", MULTIPLY_PROGRAM, None).unwrap();
+        builder.add_program("addition_test.aleo", ADDITION_PROGRAM, None).unwrap();
+
+        let names = builder.program_names();
+        assert_eq!(names.length(), 2);
+
+        let names_vec: Vec<String> = names.iter().filter_map(|v| v.as_string()).collect();
+        assert!(names_vec.contains(&"multiply_test.aleo".to_string()));
+        assert!(names_vec.contains(&"addition_test.aleo".to_string()));
+    }
+
+    /// Test that get_program returns source for known programs and None for unknown.
+    #[wasm_bindgen_test]
+    fn test_program_imports_get_program() {
+        let mut builder = ProgramImports::new();
+        assert!(builder.get_program("multiply_test.aleo").is_none());
+
+        builder.add_program("multiply_test.aleo", MULTIPLY_PROGRAM, None).unwrap();
+
+        let source = builder.get_program("multiply_test.aleo");
+        assert!(source.is_some());
+        assert!(source.unwrap().contains("multiply_test.aleo"));
+
+        assert!(builder.get_program("nonexistent.aleo").is_none());
+    }
+
     /// Test that load_programs loads programs into the process via the builder path.
     #[wasm_bindgen_test]
     fn test_program_imports_load_programs() {

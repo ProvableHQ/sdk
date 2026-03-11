@@ -28,11 +28,11 @@ use crate::{
     },
 };
 
-use js_sys::{Object, Reflect, Uint8Array};
+use js_sys::{Array, Object, Reflect, Uint8Array};
 use snarkvm_synthesizer_program::StackTrait;
 use snarkvm_wasm::utilities::{FromBytes, ToBytes};
 use std::{collections::HashMap, str::FromStr};
-use wasm_bindgen::{JsCast, prelude::wasm_bindgen};
+use wasm_bindgen::{JsCast, JsValue, prelude::wasm_bindgen};
 
 use super::ProgramManager;
 
@@ -350,6 +350,31 @@ impl ProgramImports {
             Reflect::set(&obj, &name.as_str().into(), &structured.into()).unwrap();
         }
         obj
+    }
+
+    /// Return the names of all programs in this builder as a JS `Array<string>`.
+    ///
+    /// This is a lightweight alternative to `toObject()` when you only need to
+    /// enumerate program names without serializing keys.
+    ///
+    /// @returns {Array<string>}
+    #[wasm_bindgen(js_name = "programNames")]
+    pub fn program_names(&self) -> Array {
+        let arr = Array::new_with_length(self.entries.len() as u32);
+        for (i, program_id) in self.entries.keys().enumerate() {
+            arr.set(i as u32, JsValue::from_str(&program_id.to_string()));
+        }
+        arr
+    }
+
+    /// Return the source code of a program by name, without serializing keys.
+    ///
+    /// @param {string} name The program name (e.g., "my_program.aleo").
+    /// @returns {string | undefined}
+    #[wasm_bindgen(js_name = "getProgram")]
+    pub fn get_program(&self, name: &str) -> Option<String> {
+        let program_id = ProgramIDNative::from_str(name).ok()?;
+        self.entries.get(&program_id).map(|entry| entry.program().to_string())
     }
 
     /// Check whether any programs have been added to this builder.
