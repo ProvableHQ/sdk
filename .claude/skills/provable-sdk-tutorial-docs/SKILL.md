@@ -47,7 +47,7 @@ In browser contexts, the SDK is most commonly used to **supplement features that
 
 - Cryptographic hashing (BHP, Pedersen, Poseidon) and mathematics (cryptographic math using the Aleo finite field and groups)
 - Program and program data introspection (parsing program source, inspecting program functions, records and mappings)
-- Encryption and decryption operations not exposed by the wallet
+- Arbitrary encryption, decryption and signature operations not exposed by the wallet.
 
 **Web tutorials must recommend using `aleo-wallet-adapter` alongside the SDK** for account/signing concerns, transaction execution and should show how the two integrate where relevant. Do not suggest the SDK replaces the wallet adapter on the web.
 
@@ -76,6 +76,23 @@ package.json        # yarn start runs src/index.ts
 - `yarn start` must run successfully without modification (offline features) or with only `.env` filled in (network features)
 
 ### Web templates (`template-react-*-ts`)
+
+The wallet adapter has this API here:
+* https://github.com/ProvableHQ/aleo-dev-toolkit/blob/master/packages/aleo-wallet-adaptor/core/src/adapter.ts
+* https://github.com/ProvableHQ/aleo-dev-toolkit/blob/master/packages/aleo-wallet-adaptor/core/src/account.ts
+
+and for web examples, this should be used to do the following.
+1. Executing transactions (via the `executeTransaction` method)
+2. Creating new accounts (via the `createAccount` method)
+3. Polling transaction status (via the `transactionStatus` method)
+4. Decrypting ciphertexts from transition inputs and outputs (via the `decrypt` method). Note this does not do arbitrary encryption and decryption schemes, only decryption of transition inputs and outputs.
+5. Record scans via the (via the `requestRecords` method)
+6. Executing deployments (via the `executeDeployment` method)
+
+React environments should look here for context on how to invoke wallets via react: https://github.com/ProvableHQ/aleo-dev-toolkit/blob/master/packages/aleo-wallet-adaptor/react/src/WalletProvider.tsx
+
+For most create leo app examples (for now) there should be the ability to execute any of the above functions optionally 
+via the wallet AND via native SDK methods (where the wallet is preferred).
 
 ```
 src/
