@@ -1,7 +1,7 @@
 import { Field, ViewKey } from "@provablehq/wasm";
 
 /**
- * Type surrounding the input to a MPC request.
+ * Type surrounding the input to an external signing request.
  *
  * @property {string} outputType - The type of output being requested.
  * @property {string} index - The index of the output being requested represented as an Ed/BLS-377 base field element.
@@ -20,14 +20,14 @@ export interface RequestSignInput {
 }
 
 /**
- * Type representing the input to a MPC request.
+ * Type representing the input to an external signing request.
  *
  * @property {string} functionId - The ID of the function the request is for serialized to Ed/BLS-377 base field elements.
  * @property {string} isRoot - Field representation of a boolean indicating whether this is a top-level transition (i.e. "0field" or "1field").
  * @property {RequestSignInput[]} requestInputs - The inputs to the function being executed.
  * @property {string} [checksum] - The Ed/BLS-377 base field representation of the program checksum (for programs that contain constructors).
  */
-export interface MPCInput {
+export interface ExternalSigningInput {
     functionId: string;
     isRoot: string;
     requestInputs: RequestSignInput[]
@@ -35,7 +35,7 @@ export interface MPCInput {
 }
 
 /**
- * Type representing the options for pre-computing the inputs to an MPC request.
+ * Type representing the options for pre-computing the inputs to an external signing request.
  *
  * @property {string} programName - The name of the program containing the function to execute.
  * @property {string} functionName - The name of the function to execute within the program.
@@ -44,7 +44,7 @@ export interface MPCInput {
  * @property {boolean} isRoot - Whether this transition is the first transition being executed in a transaction.
  * @property {string} [checksum] - The optional checksum of the program, used to verify the program source code on the network matches the program source code used to generate the proof.
  */
-export interface MPCOptions {
+export interface ExternalSigningOptions {
     programName: string;
     functionName: string;
     inputs: string[];

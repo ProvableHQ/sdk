@@ -472,7 +472,7 @@ describe('Program Manager', async () => {
         });
     });
 
-    describe('Program Manager public message signing (computeMPCInputs)', () => {
+    describe('Program Manager public message signing (computeExternalSigningInputs)', () => {
         const privateKeyStr = "APrivateKey1zkp7Vc4xJt8HqW9U7VhY6h32d8Z9Xi5C6ZZX3gtXxbBSJmj";
         const beaconAddress = "aleo1rhgdu77hgyqd3xjj8ucu3jj9r2krwz6mnzyd80gncr5fxcwlh5rsvzp9px";
         const transferPublicInputs = [
@@ -489,8 +489,8 @@ describe('Program Manager', async () => {
         ];
         const transferPrivateInputTypes = ["credits.record", "address.private", "u64.private"];
 
-        it('Should compute MPC inputs and return MPCInput shape (functionId, isRoot, requestInputs, checksum)', async () => {
-            const mpcInputs = await programManager.computeMPCInputs({
+        it('Should compute external signing inputs and return ExternalSigningInput shape (functionId, isRoot, requestInputs, checksum)', async () => {
+            const externalSigningInputs = await programManager.computeExternalSigningInputs({
                 programName: "credits.aleo",
                 functionName: "transfer_public",
                 inputs: transferPublicInputs,
@@ -499,18 +499,18 @@ describe('Program Manager', async () => {
                 checksum: null,
             });
 
-            expect(mpcInputs).to.be.an("object");
-            expect(mpcInputs).to.have.property("functionId");
-            expect(mpcInputs).to.have.property("isRoot");
-            expect(mpcInputs).to.have.property("requestInputs");
-            expect(mpcInputs.functionId).to.be.a("string");
-            expect(mpcInputs.functionId.length).to.be.greaterThan(0);
-            expect(mpcInputs.functionId).to.match(/field$/);
-            expect(mpcInputs.isRoot).to.equal("1field");
-            expect(mpcInputs.checksum).to.satisfy((v: unknown) => v === null || v === undefined);
-            expect(mpcInputs.requestInputs).to.be.an("array").with.lengthOf(2);
+            expect(externalSigningInputs).to.be.an("object");
+            expect(externalSigningInputs).to.have.property("functionId");
+            expect(externalSigningInputs).to.have.property("isRoot");
+            expect(externalSigningInputs).to.have.property("requestInputs");
+            expect(externalSigningInputs.functionId).to.be.a("string");
+            expect(externalSigningInputs.functionId.length).to.be.greaterThan(0);
+            expect(externalSigningInputs.functionId).to.match(/field$/);
+            expect(externalSigningInputs.isRoot).to.equal("1field");
+            expect(externalSigningInputs.checksum).to.satisfy((v: unknown) => v === null || v === undefined);
+            expect(externalSigningInputs.requestInputs).to.be.an("array").with.lengthOf(2);
 
-            const [firstInput, secondInput] = mpcInputs.requestInputs;
+            const [firstInput, secondInput] = externalSigningInputs.requestInputs;
             expect(firstInput).to.have.property("outputType", "public");
             expect(firstInput).to.have.property("index", "0field");
             expect(firstInput).to.have.property("data").that.is.an("array");
@@ -535,7 +535,7 @@ describe('Program Manager', async () => {
         it('Should match ExecutionRequest.sign for transfer_public', async () => {
             const privateKey = PrivateKey.from_string(privateKeyStr);
             const viewKey = ViewKey.from_private_key(privateKey);
-            const mpcInputs = await programManager.computeMPCInputs({
+            const externalSigningInputs = await programManager.computeExternalSigningInputs({
                 programName: "credits.aleo",
                 functionName: "transfer_public",
                 inputs: transferPublicInputs,
@@ -557,10 +557,10 @@ describe('Program Manager', async () => {
             expect(signedRequest.program_id()).to.equal("credits.aleo");
             expect(signedRequest.function_name()).to.equal("transfer_public");
             expect(signedRequest.inputs().length).to.equal(2);
-            expect(mpcInputs.requestInputs.length).to.equal(signedRequest.inputs().length);
+            expect(externalSigningInputs.requestInputs.length).to.equal(signedRequest.inputs().length);
 
-            // Build the same request via fromMPC using MPC-signed fields from the signed request.
-            const mpcRequest = ExecutionRequest.fromMPC(
+            // Build the same request via fromExternallySignedData using externally-signed fields from the signed request.
+            const externallySignedRequest = ExecutionRequest.fromExternallySignedData(
                 "credits.aleo",
                 "transfer_public",
                 transferPublicInputs,
@@ -570,11 +570,11 @@ describe('Program Manager', async () => {
                 viewKey,
                 undefined, // no record inputs
             );
-            expect(mpcRequest.program_id()).to.equal(signedRequest.program_id());
-            expect(mpcRequest.function_name()).to.equal(signedRequest.function_name());
-            expect(mpcRequest.inputs().length).to.equal(signedRequest.inputs().length);
-            expect(mpcRequest.input_ids().length).to.equal(signedRequest.input_ids().length);
-            expect(mpcRequest.toString()).to.equal(signedRequest.toString());
+            expect(externallySignedRequest.program_id()).to.equal(signedRequest.program_id());
+            expect(externallySignedRequest.function_name()).to.equal(signedRequest.function_name());
+            expect(externallySignedRequest.inputs().length).to.equal(signedRequest.inputs().length);
+            expect(externallySignedRequest.input_ids().length).to.equal(signedRequest.input_ids().length);
+            expect(externallySignedRequest.toString()).to.equal(signedRequest.toString());
         });
 
         it('Should match ExecutionRequest.sign for transfer_private', async () => {
@@ -582,7 +582,7 @@ describe('Program Manager', async () => {
             const privateKey = PrivateKey.from_string(beaconPrivateKeyString);
             const beaconRecord = RecordPlaintext.fromString(recordBeaconOwned);
             const gamma = beaconRecord.gamma("credits.aleo", "credits", privateKey);
-            const mpcInputs = await programManager.computeMPCInputs({
+            const externalSigningInputs = await programManager.computeExternalSigningInputs({
                 programName: "credits.aleo",
                 functionName: "transfer_private",
                 inputs: transferPrivateInputs,
@@ -604,11 +604,11 @@ describe('Program Manager', async () => {
             expect(signedRequest.program_id()).to.equal("credits.aleo");
             expect(signedRequest.function_name()).to.equal("transfer_private");
             expect(signedRequest.inputs().length).to.equal(3);
-            expect(mpcInputs.requestInputs.length).to.equal(signedRequest.inputs().length);
+            expect(externalSigningInputs.requestInputs.length).to.equal(signedRequest.inputs().length);
 
             const signature = signedRequest.signature();
             const tvk = signedRequest.tvk();
-            const mpcRequest = ExecutionRequest.fromMPC(
+            const externallySignedRequest = ExecutionRequest.fromExternallySignedData(
                 "credits.aleo",
                 "transfer_private",
                 transferPrivateInputs,
@@ -618,15 +618,15 @@ describe('Program Manager', async () => {
                 ViewKey.from_private_key(PrivateKey.from_string(beaconPrivateKeyString)),
                 [gamma],
             );
-            expect(mpcRequest.program_id()).to.equal(signedRequest.program_id());
-            expect(mpcRequest.function_name()).to.equal(signedRequest.function_name());
-            expect(mpcRequest.inputs().length).to.equal(signedRequest.inputs().length);
-            expect(mpcRequest.input_ids().length).to.equal(signedRequest.input_ids().length);
-            expect(mpcRequest.toString()).to.equal(signedRequest.toString());
+            expect(externallySignedRequest.program_id()).to.equal(signedRequest.program_id());
+            expect(externallySignedRequest.function_name()).to.equal(signedRequest.function_name());
+            expect(externallySignedRequest.inputs().length).to.equal(signedRequest.inputs().length);
+            expect(externallySignedRequest.input_ids().length).to.equal(signedRequest.input_ids().length);
+            expect(externallySignedRequest.toString()).to.equal(signedRequest.toString());
         });
 
-        it('Should compute MPC inputs and return MPCInput shape for private transfer', async () => {
-            const mpcInputs = await programManager.computeMPCInputs({
+        it('Should compute external signing inputs and return ExternalSigningInput shape for private transfer', async () => {
+            const externalSigningInputs = await programManager.computeExternalSigningInputs({
                 programName: "credits.aleo",
                 functionName: "transfer_private",
                 inputs: transferPrivateInputs,
@@ -635,18 +635,18 @@ describe('Program Manager', async () => {
                 checksum: null,
             })
 
-            expect(mpcInputs).to.be.an("object");
-            expect(mpcInputs).to.have.property("functionId");
-            expect(mpcInputs).to.have.property("isRoot");
-            expect(mpcInputs).to.have.property("requestInputs");
-            expect(mpcInputs.functionId).to.be.a("string");
-            expect(mpcInputs.functionId.length).to.be.greaterThan(0);
-            expect(mpcInputs.functionId).to.match(/field$/);
-            expect(mpcInputs.isRoot).to.equal("1field");
-            expect(mpcInputs.checksum).to.satisfy((v: unknown) => v === null || v === undefined);
-            expect(mpcInputs.requestInputs).to.be.an("array").with.lengthOf(3);
+            expect(externalSigningInputs).to.be.an("object");
+            expect(externalSigningInputs).to.have.property("functionId");
+            expect(externalSigningInputs).to.have.property("isRoot");
+            expect(externalSigningInputs).to.have.property("requestInputs");
+            expect(externalSigningInputs.functionId).to.be.a("string");
+            expect(externalSigningInputs.functionId.length).to.be.greaterThan(0);
+            expect(externalSigningInputs.functionId).to.match(/field$/);
+            expect(externalSigningInputs.isRoot).to.equal("1field");
+            expect(externalSigningInputs.checksum).to.satisfy((v: unknown) => v === null || v === undefined);
+            expect(externalSigningInputs.requestInputs).to.be.an("array").with.lengthOf(3);
 
-            const [firstInput, secondInput, thirdInput] = mpcInputs.requestInputs;
+            const [firstInput, secondInput, thirdInput] = externalSigningInputs.requestInputs;
             expect(firstInput).to.have.property("outputType", "record");
             expect(firstInput).to.have.property("index", "0field");
             expect(firstInput).to.have.property("data").that.is.an("array");

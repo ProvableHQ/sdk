@@ -218,10 +218,10 @@ impl ExecutionRequest {
         Ok(ExecutionRequest(request))
     }
 
-    /// Builds a request from MPC options and MPC-signed fields, computing `sk_tag` and `scm` internally.
+    /// Builds a request from external signing options and externally-signed fields, computing `sk_tag` and `scm` internally.
     ///
     /// For record inputs, the caller must provide the record input IDs (which require `sk_sig` to compute).
-    /// These can be obtained from a signed request's `input_ids()` or from the MPC output.
+    /// These can be obtained from a signed request's `input_ids()` or from the external signing output.
     ///
     /// @param {string} program_id The id of the program.
     /// @param {string} function_name The function name.
@@ -229,14 +229,14 @@ impl ExecutionRequest {
     /// @param {string[]} input_types The input types of the function.
     /// @param {boolean} is_root Flag to indicate if this is the top level function in the call graph.
     /// @param {Field | undefined} program_checksum The program checksum (required if the program has a constructor).
-    /// @param {Signature} signature The MPC-computed signature.
+    /// @param {Signature} signature The externally-computed signature.
     /// @param {Field} tvk The transition view key.
     /// @param {Field} tcm The transition commitment.
     /// @param {ViewKey} view_key The view key of the signer.
-    /// @param {Group[] | undefined] gammas An array of gammas output from the MPC.
-    #[wasm_bindgen(js_name = "fromMPC")]
+    /// @param {Group[] | undefined] gammas An array of gammas output from the external signing.
+    #[wasm_bindgen(js_name = "fromExternallySignedData")]
     #[allow(clippy::too_many_arguments)]
-    pub fn from_mpc(
+    pub fn from_externally_signed_data(
         program_id: String,
         function_name: String,
         inputs: Array,
@@ -354,7 +354,7 @@ impl ExecutionRequest {
                     input_ids.push(InputIDNative::Record(commitment, gamma, record_view_key, serial_number, tag));
                 }
                 ValueTypeNative::ExternalRecord(_) => {
-                    return Err("external_record inputs are not yet supported in fromMPC".to_string());
+                    return Err("external_record inputs are not yet supported in fromExternallySignedData".to_string());
                 }
                 ValueTypeNative::Future(_) => {
                     return Err("Future inputs are not supported".to_string());
@@ -394,7 +394,7 @@ impl ExecutionRequest {
     }
 
     /// Computes the function ID and serialized input data for a program function call.
-    /// This is a helper for MPC wallets and other applications that need to compute
+    /// This is a helper for external signing wallets and other applications that need to compute
     /// publicly computable inputs for the `Request::sign` function.
     ///
     /// @param {string} program_id The id of the program.
@@ -405,9 +405,9 @@ impl ExecutionRequest {
     /// @param {Field | undefined} program_checksum The program checksum (required if the program has a constructor).
     /// @param {ViewKey | undefined} view_key The view key of the signer to compute a record's tag and h values.
     ///
-    /// @returns {MpcInput}
-    #[wasm_bindgen(js_name = "computeMPCInputs")]
-    pub fn compute_mpc_inputs(
+    /// @returns {ExternalSigningInput}
+    #[wasm_bindgen(js_name = "computeExternalSigningInputs")]
+    pub fn compute_external_signing_inputs(
         program_id: String,
         function_name: String,
         inputs: Array,
@@ -629,7 +629,7 @@ mod tests {
     }
 
     #[wasm_bindgen_test]
-    fn test_execution_request_from_mpc_matches_sign() {
+    fn test_execution_request_from_externally_signed_data_matches_sign() {
         let private_key = PrivateKey::from_string(PRIVATE_KEY_STR).unwrap();
         let view_key = ViewKey::from_private_key(&private_key);
         let inputs = array![TRANSFER_PUBLIC_INPUTS[0].to_string(), TRANSFER_PUBLIC_INPUTS[1].to_string()];
@@ -648,7 +648,7 @@ mod tests {
         )
         .expect("sign should succeed");
 
-        let mpc_request = ExecutionRequest::from_mpc(
+        let externally_signed_request = ExecutionRequest::from_externally_signed_data(
             "credits.aleo".to_string(),
             "transfer_public".to_string(),
             inputs,
@@ -658,17 +658,17 @@ mod tests {
             view_key,
             None, // no record inputs
         )
-        .expect("from_mpc should succeed");
+        .expect("from_externally_signed_data should succeed");
 
-        assert_eq!(mpc_request.program_id(), signed_request.program_id());
-        assert_eq!(mpc_request.function_name(), signed_request.function_name());
-        assert_eq!(mpc_request.inputs().length(), signed_request.inputs().length());
-        assert_eq!(mpc_request.input_ids().length(), signed_request.input_ids().length());
-        assert_eq!(mpc_request.to_string(), signed_request.to_string());
+        assert_eq!(externally_signed_request.program_id(), signed_request.program_id());
+        assert_eq!(externally_signed_request.function_name(), signed_request.function_name());
+        assert_eq!(externally_signed_request.inputs().length(), signed_request.inputs().length());
+        assert_eq!(externally_signed_request.input_ids().length(), signed_request.input_ids().length());
+        assert_eq!(externally_signed_request.to_string(), signed_request.to_string());
     }
 
     #[wasm_bindgen_test]
-    fn test_execution_request_from_mpc_matches_sign_transfer_private() {
+    fn test_execution_request_from_externally_signed_data_matches_sign_transfer_private() {
         let private_key = PrivateKey::from_string(BEACON_PRIVATE_KEY_STR).unwrap();
         let view_key = ViewKey::from_private_key(&private_key);
         let record_beacon_owned = "{ owner: aleo1rhgdu77hgyqd3xjj8ucu3jj9r2krwz6mnzyd80gncr5fxcwlh5rsvzp9px.private, microcredits: 1000000u64.private, _nonce: 3634848344765318974603121890869676775499130077229666060613233255327643175219group.public, _version: 1u8.public }";
@@ -695,7 +695,7 @@ mod tests {
         )
         .expect("sign should succeed");
 
-        let mpc_request = ExecutionRequest::from_mpc(
+        let externally_signed_request = ExecutionRequest::from_externally_signed_data(
             "credits.aleo".to_string(),
             "transfer_private".to_string(),
             inputs,
@@ -705,13 +705,13 @@ mod tests {
             view_key,
             Some(gammas),
         )
-        .expect("from_mpc should succeed");
+        .expect("from_externally_signed_data should succeed");
 
-        assert_eq!(mpc_request.program_id(), signed_request.program_id());
-        assert_eq!(mpc_request.function_name(), signed_request.function_name());
-        assert_eq!(mpc_request.inputs().length(), signed_request.inputs().length());
-        assert_eq!(mpc_request.input_ids().length(), signed_request.input_ids().length());
-        assert_eq!(mpc_request.to_string(), signed_request.to_string());
+        assert_eq!(externally_signed_request.program_id(), signed_request.program_id());
+        assert_eq!(externally_signed_request.function_name(), signed_request.function_name());
+        assert_eq!(externally_signed_request.inputs().length(), signed_request.inputs().length());
+        assert_eq!(externally_signed_request.input_ids().length(), signed_request.input_ids().length());
+        assert_eq!(externally_signed_request.to_string(), signed_request.to_string());
     }
 
     #[wasm_bindgen_test]
@@ -738,14 +738,14 @@ mod tests {
     }
 
     #[wasm_bindgen_test]
-    fn test_compute_mpc_inputs_transfer_public() {
+    fn test_compute_external_signing_inputs_transfer_public() {
         // Build the inputs and input types.
         let inputs = array![TRANSFER_PUBLIC_INPUTS[0].to_string(), TRANSFER_PUBLIC_INPUTS[1].to_string()];
         let input_types =
             array![TRANSFER_PUBLIC_INPUT_TYPES[0].to_string(), TRANSFER_PUBLIC_INPUT_TYPES[1].to_string()];
 
-        // Compute the MPC inputs.
-        let result = ExecutionRequest::compute_mpc_inputs(
+        // Compute the external signing inputs.
+        let result = ExecutionRequest::compute_external_signing_inputs(
             "credits.aleo".to_string(),
             "transfer_public".to_string(),
             inputs,
@@ -754,7 +754,7 @@ mod tests {
             None,
             None,
         )
-        .expect("compute_mpc_inputs should succeed");
+        .expect("compute_external_signing_inputs should succeed");
 
         // Check the function ID.
         let function_id = Reflect::get(&result, &JsValue::from_str("function_id"))
@@ -823,11 +823,11 @@ mod tests {
     }
 
     #[wasm_bindgen_test]
-    fn test_compute_mpc_inputs_input_types_inputs_length_mismatch() {
+    fn test_compute_external_signing_inputs_input_types_inputs_length_mismatch() {
         let inputs = array!["aleo1rhgdu77hgyqd3xjj8ucu3jj9r2krwz6mnzyd80gncr5fxcwlh5rsvzp9px"];
         let input_types = array!["address.public", "u64.public"];
 
-        let result = ExecutionRequest::compute_mpc_inputs(
+        let result = ExecutionRequest::compute_external_signing_inputs(
             "credits.aleo".to_string(),
             "transfer_public".to_string(),
             inputs,

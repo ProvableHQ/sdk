@@ -43,7 +43,7 @@ import {
 } from "./constants.js";
 
 import { logAndThrow } from "./utils.js";
-import { MPCInput, MPCOptions } from "./models/MPCInputs.js";
+import { ExternalSigningInput, ExternalSigningOptions } from "./models/ExternalSigningInputs.js";
 
 /**
  * Represents the options for deploying and upgrading a transaction in the Aleo network.
@@ -3743,14 +3743,14 @@ class ProgramManager {
 
     /**
      * Computes the function ID and serialized input data for a program function call.
-     * Used by MPC wallets and other applications that need publicly computable inputs
+     * Used by external signing wallets and other applications that need publicly computable inputs
      * for building a signed execution request (e.g. before calling {@link ExecutionRequest.sign}).
      *
-     * @param {MPCOptions} options - Program name, function name, inputs, input_types, root flag, an optional program checksum, and an optional view key.
+     * @param {ExternalSigningOptions} options - Program name, function name, inputs, input_types, root flag, an optional program checksum, and an optional view key.
      * @throws Throws if parsing the program ID, function name, or inputs fails or if the inputs do not match the type signatures passed in the input_types parameter.
      *
      * @example
-     * const mpcInputs = await programManager.computeMPCInputs({
+     * const externalSigningInputs = await programManager.computeExternalSigningInputs({
      *   programName: "credits.aleo",
      *   functionName: "transfer_public",
      *   inputs: ["aleo1...", "100u64"],
@@ -3758,13 +3758,13 @@ class ProgramManager {
      *   checksum: null,
      * });
      *
-     * @returns {MPCInput} A JSON object for inputs to MPC signing algorithms.
+     * @returns {ExternalSigningInput} A JSON object for inputs to external signing algorithms.
      */
-    async computeMPCInputs(options: MPCOptions): Promise<MPCInput> {
+    async computeExternalSigningInputs(options: ExternalSigningOptions): Promise<ExternalSigningInput> {
         const { programName, functionName, inputs, inputTypes, isRoot, checksum, viewKey} = options;
         try {
-            const raw = <MPCInput>(await ExecutionRequest.computeMPCInputs(programName, functionName, inputs, inputTypes, isRoot, checksum ?? null, viewKey ?? null));
-            // Normalize to MPCInput (camelCase): WASM may return function_id
+            const raw = <ExternalSigningInput>(await ExecutionRequest.computeExternalSigningInputs(programName, functionName, inputs, inputTypes, isRoot, checksum ?? null, viewKey ?? null));
+            // Normalize to ExternalSigningInput (camelCase): WASM may return function_id
             const functionId = (raw as { functionId?: string }).functionId ?? (raw as { function_id?: string }).function_id;
             return {
                 functionId: functionId!,
@@ -3793,4 +3793,4 @@ function validateTransferType(transferType: string): string {
         );
 }
 
-export { ProgramManager, AuthorizationOptions, FeeAuthorizationOptions, ExecuteOptions, ProvingRequestOptions, MPCOptions };
+export { ProgramManager, AuthorizationOptions, FeeAuthorizationOptions, ExecuteOptions, ProvingRequestOptions, ExternalSigningOptions };
