@@ -18,7 +18,7 @@ import { FunctionObject } from "./models/functionObject.js";
 import { ImportedVerifyingKeys, ImportedPrograms } from "./models/imports.js";
 import { InputJSON } from "./models/input/inputJSON.js";
 import { InputObject } from "./models/input/inputObject.js";
-import { MPCInput, MPCOptions, RequestSignInput } from "./models/MPCInputs";
+import { ExternalSigningInput, ExternalSigningOptions, RequestSignInput } from "./models/ExternalSigningInputs";
 import { OutputJSON } from "./models/output/outputJSON.js";
 import { OutputObject } from "./models/output/outputObject.js";
 import { OwnedFilter } from "./models/record-scanner/ownedFilter.js";
@@ -238,8 +238,8 @@ export {
     KeyVerifier,
     MemKeyVerifier,
     Metadata,
-    MPCInput,
-    MPCOptions,
+    ExternalSigningInput,
+    ExternalSigningOptions,
     NetworkRecordProvider,
     OfflineKeyProvider,
     OfflineSearchParams,
