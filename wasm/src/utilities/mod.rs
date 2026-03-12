@@ -21,6 +21,7 @@ pub mod encrypt;
 pub use encrypt::EncryptionToolkit;
 
 pub mod rest;
+use crate::{Field, types::native::IdentifierNative};
 pub use rest::{
     get,
     get_network,
@@ -31,6 +32,8 @@ pub use rest::{
     latest_program_edition,
     latest_stateroot,
 };
+use snarkvm_console::prelude::ToField;
+use std::str::FromStr;
 
 #[cfg(test)]
 pub mod test;
@@ -53,6 +56,13 @@ pub fn get_or_init_consensus_version_heights(heights: Option<String>) -> js_sys:
     pairs.iter().map(|(_, height)| wasm_bindgen::JsValue::from_f64(*height as f64)).collect::<js_sys::Array>()
 }
 
+#[wasm_bindgen::prelude::wasm_bindgen(js_name = stringToField)]
+pub fn string_to_field(string: &str) -> Result<Field, String> {
+    Ok(Field::from(
+        IdentifierNative::from_str(string).map_err(|e| e.to_string())?.to_field().map_err(|e| e.to_string())?,
+    ))
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -62,5 +72,11 @@ mod tests {
     #[should_panic]
     fn test_set_genesis_block_non_zero_fails() {
         get_or_init_consensus_version_heights(Some("10,9,8,7,6,5,4,3,2,1,0".to_string()));
+    }
+
+    #[wasm_bindgen_test]
+    fn test_string_to_field() {
+        assert_eq!(string_to_field("transfer_a").unwrap().to_string(), "459830232632696923845236field");
+        assert_eq!(string_to_field("transfer_b").unwrap().to_string(), "464552599115566569058932field");
     }
 }

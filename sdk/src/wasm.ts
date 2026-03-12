@@ -38,6 +38,7 @@ export {
     RecordPlaintext,
     Scalar,
     Signature,
+    stringToField,
     Transaction,
     Transition,
     U8,
