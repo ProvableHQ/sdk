@@ -8,7 +8,7 @@
     "start": "npm run build && node dist/index.js"
   },
   "dependencies": {
-    "@provablehq/sdk": "^0.9.17"
+    "@provablehq/sdk": "^0.9.18"
   },
   "devDependencies": {
     "rimraf": "^6.0.1",
