@@ -49,6 +49,8 @@ pub type TransactionNative = Transaction<CurrentNetwork>;
 
 Do not add a new `use` statement if the crate is already imported — extend the existing one.
 
+Ensure all imports are in alphabetical order.
+
 ---
 
 ## Step 3: Create the wrapper file at the specified destination
@@ -77,6 +79,7 @@ impl TypeName {
     // - to_string gets #[wasm_bindgen(js_name = "toString")] and #[allow(clippy::inherent_to_string)]
     // - from_str / constructors get #[wasm_bindgen(js_name = "fromString")] etc.
     // - Fallible methods return Result<T, String> — map errors with .map_err(|e| e.to_string())
+    // - Methods should have to_string(), from_string(), to_bytes_le(), from_bytes_le(), to_field(), and to_fields(), from_fields(), to_bits_le(), and from_bits_le() if the SnarkVM object implements any of those. 
 }
 
 // Always generate all four two-way conversions between TypeName and TypeNameNative.
@@ -309,14 +312,72 @@ Match the style of existing entries in that file.
 
 ---
 
-## Step 6: Verify
+## Step 6: Verify the wasm tests
 
-Run:
+Run this from the sdk base directory.
 ```bash
-cd wasm && cargo clippy --features testnet 2>&1 | head -50
+yarn test:wasm
 ```
 
 Fix any errors before declaring done. Common issues:
 - Missing imports in the wrapper file
 - Trait bounds not satisfied (check what traits the native type requires)
 - Method signatures that need adjustment for wasm-bindgen compatibility (e.g. no generic parameters, no lifetimes on return types)
+
+## Step 7: Write JS tests of the wasm object and export it in `browser.ts`.
+
+
+Write JS tests of the wasm object and its methods in the JS sdk in the appropriate test file in `sdk/tests/wasm.test.ts`.
+
+An example of how to write such tests are below.
+
+```typescript
+    describe('Transition', () => {
+    const transitionStringTestnet = `{"id":"au1u62jasyx78x9hktak24awyj38fz73aseq8g9cx98u8egd9pj9uxq3u6s2z","program":"hello_hello.aleo","function":"hello","inputs":[{"type":"public","id":"3748790614260807060977840590007893602934308327222309419419577452790958781330field","value":"1u32"},{"type":"private","id":"5954208307642819953251922459490586292095132973876550778604572231610245257004field","value":"ciphertext1qyq0m5mp0d2gzh2pv9p25z70gz2avhqdt3dp8y8thzwf3aq6g35zcqcuyptz3"}],"outputs":[{"type":"private","id":"1557506318887190915592751299113729867877933642317637206076176689093854281418field","value":"ciphertext1qyqzmhw8ln9r6uuyh0n5jrsqlt25wdggqp3d9yqyttpr3g7g00k2sysdf9rmv"}],"tpk":"7532444547840484531569841377269810017844130178606467837628364672670182422388group","tcm":"7292056195970541935877520517416922164990366931599720071937561392936678536563field","scm":"8283770351301010771186520129040704279224805960417079922462917369178354050332field"}`;
+    const transitionTestnet = Transition.fromString(transitionStringTestnet);
+    const transitionDecryptedStringTestnet = `{"id":"au1mhdz6jqm973v5vfkz2pwgv63p340c9tpvydxha2zs8w03746qcpqvx3yye","program":"hello_hello.aleo","function":"hello","inputs":[{"type":"public","id":"3748790614260807060977840590007893602934308327222309419419577452790958781330field","value":"1u32"},{"type":"public","id":"5954208307642819953251922459490586292095132973876550778604572231610245257004field","value":"2u32"}],"outputs":[{"type":"public","id":"1557506318887190915592751299113729867877933642317637206076176689093854281418field","value":"3u32"}],"tpk":"7532444547840484531569841377269810017844130178606467837628364672670182422388group","tcm":"7292056195970541935877520517416922164990366931599720071937561392936678536563field","scm":"8283770351301010771186520129040704279224805960417079922462917369178354050332field"}`
+    const transitionDecryptedTestnet = Transition.fromString(transitionDecryptedStringTestnet);
+    const transitionViewKeyStringTestnet = "3975242887442171718863200089461896014344887434842278474302914755871123010247field";
+
+    const transitionStringMainnet = `{"id":"au1mguuz0dh20f78802m4z0py7n08xhl0pz60llzck63mhl8pc8l5xqxpwgtn","program":"hello_hello.aleo","function":"main","inputs":[{"type":"public","id":"6393584049543470937057043098611271993206122889317039351966319038535020834557field","value": "1u32"},{"type":"private","id":"8207446256045172951742235001162005156507562935942883128759030124682934277495field","value":"ciphertext1qyqqgz9qnupeld9vr4vuwp6yrpmhgtkvmgag5m7mmrruw0r6je666qgqdswk3"}],"outputs":[{"type":"private","id":"127469473292952941321346770257126666363371158501875622169294663492714835110field","value":"ciphertext1qyqyapkjuxm9dcslgyjf7hkr2k3dek500z40gjspnwvll0uawj23vzgggc405"}],"tpk":"7647553513996966044119163122930125808381703910407273818947266861843062002251group","tcm":"4479413938380109857414238205380483440836495997450846894155088299187217672609field","scm":"6461007226176477784737642021400489186736987671609840640950580467598882134642field"}`;
+    const transitionMainnet = Transition.fromString(transitionStringMainnet);
+    const transitionDecryptedStringMainnet = `{"id":"au1jl2ur42sj7hwe4r0alv6gnklqxj0fszrvu3q82gjcls5x6q9pyzqdgmu2k","program":"hello_hello.aleo","function":"main","inputs":[{"type":"public","id":"6393584049543470937057043098611271993206122889317039351966319038535020834557field","value":"1u32"},{"type":"public","id":"8207446256045172951742235001162005156507562935942883128759030124682934277495field","value":"2u32"}],"outputs":[{"type":"public","id":"127469473292952941321346770257126666363371158501875622169294663492714835110field","value":"3u32"}],"tpk":"7647553513996966044119163122930125808381703910407273818947266861843062002251group","tcm":"4479413938380109857414238205380483440836495997450846894155088299187217672609field","scm":"6461007226176477784737642021400489186736987671609840640950580467598882134642field"}`;
+    const transitionDecryptedMainnet = Transition.fromString(transitionDecryptedStringMainnet);
+    const transitionViewKeyStringMainnet = "8161419549946991944867064830365679191883723972221767444308198038592561311302field";
+
+    const invalidTransitionViewKeyString = "5089075468761042335883809641276568724119791331127957254389204093712358605127field"
+    const invalidTransitionViewKey = Field.fromString(invalidTransitionViewKeyString);
+    const privateKey = PrivateKey.from_string("APrivateKey1zkp8CZNn3yeCseEtxuVPbDCwSyhGW6yZKUYKfgXmcpoGPWH");
+    const viewKey = privateKey.to_view_key();
+
+    let connection = new AleoNetworkClient("https://api.provable.com/v2");
+
+    if (connection.network === "testnet") {
+        it('can be decrypted with a valid transition view key', () => {
+            const tvk = transitionTestnet.tvk(viewKey);
+            const transitionDecryptedWithTVK = transitionTestnet.decryptTransition(tvk);
+            // Ensure the transition is valid
+            expect(transitionDecryptedWithTVK.toString()).equal(transitionDecryptedTestnet.toString());
+        });
+
+        it('cannot be decrypted with an invalid transition view key', () => {
+            expect(() => transitionTestnet.decryptTransition(invalidTransitionViewKey).toThrow());
+        });
+
+        it('can generate a transition view key from a valid view key', () => {
+            const generatedTransitionViewKey = transitionTestnet.tvk(viewKey);
+
+            // Ensure the generated transition view key is the same as the one used to decrypt
+            expect(generatedTransitionViewKey.toString()).equal(transitionViewKeyStringTestnet);
+        });
+    };
+```
+
+Verify these tests work by running `yarn build:wasm && yarn build:sdk && yarn test:sdk` from the root of the sdk directory.
+
+## Step 8: Cleanup Run cargo fmt --all
+
+run the following in the `wasm` directory
+```bash
+cargo fmt --all
+```

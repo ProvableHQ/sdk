@@ -1,5 +1,5 @@
 import { expect } from "chai";
-import { Address, AleoNetworkClient, CREDITS_PROGRAM_KEYS, Field, FunctionKeyPair, PrivateKey, ViewKey, Signature, RecordCiphertext, RecordPlaintext, PrivateKeyCiphertext, EncryptionToolkit, Transition, VerifyingKey, AleoKeyProvider, getOrInitConsensusVersionTestHeights} from "../src/node.js";
+import { Address, AleoNetworkClient, CREDITS_PROGRAM_KEYS, DynamicRecord, Field, FunctionKeyPair, PrivateKey, ViewKey, Signature, RecordCiphertext, RecordPlaintext, PrivateKeyCiphertext, EncryptionToolkit, Transition, VerifyingKey, AleoKeyProvider, getOrInitConsensusVersionTestHeights} from "../src/node.js";
 import {
     seed,
     message,
@@ -431,6 +431,71 @@ describe('WASM Objects', () => {
             expect(plaintext.toString()).equal(recordPlaintextString);
             // Ensure the record has the correct number of microcredits
             expect(plaintext.microcredits()).equal(BigInt(1500000000000000));
+        });
+    });
+
+    describe('DynamicRecord', () => {
+        // A credits record with _version: 1u8 (hiding variant)
+        const creditsRecord = RecordPlaintext.fromString(CREDITS_RECORD_V1);
+        const dynamicRecord = DynamicRecord.fromRecord(creditsRecord);
+        const dynamicRecordString = dynamicRecord.toString();
+
+        it('can be created from a RecordPlaintext', () => {
+            expect(dynamicRecord).instanceof(DynamicRecord);
+        });
+
+        it('round-trips through toString and fromString', () => {
+            const parsed = DynamicRecord.fromString(dynamicRecordString);
+            expect(parsed.toString()).equal(dynamicRecordString);
+        });
+
+        it('returns the correct owner address', () => {
+            expect(dynamicRecord.owner().to_string()).equal('aleo12a4wll9ax6w5355jph0dr5wt2vla5sss2t4cnch0tc3vzh643v8qcfvc7a');
+        });
+
+        it('returns the correct nonce', () => {
+            expect(dynamicRecord.nonce().toString()).equal('3634848344765318974603121890869676775499130077229666060613233255327643175219group');
+        });
+
+        it('returns a non-empty root field', () => {
+            const root = dynamicRecord.root();
+            expect(root.toString()).to.be.a('string');
+            expect(root.toString()).to.include('field');
+        });
+
+        it('is a hiding variant because _version is 1', () => {
+            expect(dynamicRecord.isHiding()).equal(true);
+        });
+
+        it('round-trips through bytes', () => {
+            const bytes = dynamicRecord.toBytesLe();
+            const recovered = DynamicRecord.fromBytesLe(bytes);
+            expect(recovered.owner().to_string()).equal(dynamicRecord.owner().to_string());
+            expect(recovered.root().toString()).equal(dynamicRecord.root().toString());
+            expect(recovered.nonce().toString()).equal(dynamicRecord.nonce().toString());
+        });
+
+        it('returns a non-empty array of field elements', () => {
+            const fields = dynamicRecord.toFields();
+            expect(fields).to.be.an('array');
+            expect(fields.length).greaterThan(0);
+        });
+
+        it('returns a non-empty bit array', () => {
+            const bits = dynamicRecord.toBitsLe();
+            expect(bits).to.be.an('array');
+            expect(bits.length).greaterThan(0);
+        });
+
+        it('can convert back to a RecordPlaintext', () => {
+            const recovered = dynamicRecord.toRecord(true);
+            expect(recovered).instanceof(RecordPlaintext);
+            // Owner and nonce should round-trip
+            expect(recovered.toString()).to.include('aleo12a4wll9ax6w5355jph0dr5wt2vla5sss2t4cnch0tc3vzh643v8qcfvc7a.private');
+        });
+
+        it('throws on an invalid string', () => {
+            expect(() => DynamicRecord.fromString('not a record')).throw();
         });
     });
 
