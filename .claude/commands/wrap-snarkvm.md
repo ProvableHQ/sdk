@@ -79,7 +79,7 @@ impl TypeName {
     // - to_string gets #[wasm_bindgen(js_name = "toString")] and #[allow(clippy::inherent_to_string)]
     // - from_str / constructors get #[wasm_bindgen(js_name = "fromString")] etc.
     // - Fallible methods return Result<T, String> — map errors with .map_err(|e| e.to_string())
-    // - Methods should have to_string(), from_string(), to_bytes_lee(), from_bytes_le(), to_field(), and to_fields(), from_fields(), to_bits_le(), and from_bits_le() if the SnarkVM object implements any of those. 
+    // - Methods should have to_string(), from_string(), to_bytes_le(), from_bytes_le(), to_field(), and to_fields(), from_fields(), to_bits_le(), and from_bits_le() if the SnarkVM object implements any of those. 
 }
 
 // Always generate all four two-way conversions between TypeName and TypeNameNative.
@@ -327,9 +327,9 @@ Fix any errors before declaring done. Common issues:
 ## Step 7: Write JS tests of the wasm object and export it in `browser.ts`.
 
 
-Write JS tests of the wasm object and its methods in the JS sdk in the appropriate test file in `sdk/tests/wasm.test.js`.
+Write JS tests of the wasm object and its methods in the JS sdk in the appropriate test file in `sdk/tests/wasm.test.ts`.
 
-An example of how to write such tests is are below.
+An example of how to write such tests are below.
 
 ```typescript
     describe('Transition', () => {
