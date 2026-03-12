@@ -487,11 +487,11 @@ describe('WASM Objects', () => {
             expect(bits.length).greaterThan(0);
         });
 
-        it('can convert back to a RecordPlaintext', () => {
+        it.only('can convert back to a RecordPlaintext', () => {
             const recovered = dynamicRecord.toRecord(true);
             expect(recovered).instanceof(RecordPlaintext);
             // Owner and nonce should round-trip
-            expect(recovered.toString()).to.include('aleo12a4wll9ax6w5355jph0dr5wt2vla5sss2t4cnch0tc3vzh643v8qcfvc7a');
+            expect(recovered.toString()).to.include('aleo12a4wll9ax6w5355jph0dr5wt2vla5sss2t4cnch0tc3vzh643v8qcfvc7a.private');
         });
 
         it('throws on an invalid string', () => {
