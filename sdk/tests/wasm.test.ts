@@ -487,7 +487,7 @@ describe('WASM Objects', () => {
             expect(bits.length).greaterThan(0);
         });
 
-        it.only('can convert back to a RecordPlaintext', () => {
+        it('can convert back to a RecordPlaintext', () => {
             const recovered = dynamicRecord.toRecord(true);
             expect(recovered).instanceof(RecordPlaintext);
             // Owner and nonce should round-trip
