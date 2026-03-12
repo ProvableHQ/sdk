@@ -113,6 +113,7 @@ export {
     BHP1024,
     Ciphertext,
     ComputeKey,
+    DynamicRecord,
     Execution as FunctionExecution,
     ExecutionRequest,
     ExecutionResponse,

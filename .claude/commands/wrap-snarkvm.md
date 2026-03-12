@@ -49,6 +49,8 @@ pub type TransactionNative = Transaction<CurrentNetwork>;
 
 Do not add a new `use` statement if the crate is already imported — extend the existing one.
 
+Ensure all imports are in alphabetical order.
+
 ---
 
 ## Step 3: Create the wrapper file at the specified destination
@@ -322,7 +324,9 @@ Fix any errors before declaring done. Common issues:
 - Trait bounds not satisfied (check what traits the native type requires)
 - Method signatures that need adjustment for wasm-bindgen compatibility (e.g. no generic parameters, no lifetimes on return types)
 
-## Step 7: Write JS tests of the wasm object.
+## Step 7: Write JS tests of the wasm object and export it in `browser.ts`.
+
+
 Write JS tests of the wasm object and its methods in the JS sdk in the appropriate test file in `sdk/tests/wasm.test.js`.
 
 An example of how to write such tests is are below.
