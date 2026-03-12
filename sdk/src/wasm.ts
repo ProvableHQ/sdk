@@ -40,6 +40,7 @@ export {
     Scalar,
     stringToField,
     Signature,
+    stringToField,
     Transaction,
     Transition,
     U8,
