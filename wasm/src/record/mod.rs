@@ -14,6 +14,9 @@
 // You should have received a copy of the GNU General Public License
 // along with the Provable SDK library. If not, see <https://www.gnu.org/licenses/>.
 
+pub mod dynamic_record;
+pub use dynamic_record::*;
+
 pub mod record_ciphertext;
 pub use record_ciphertext::*;
 

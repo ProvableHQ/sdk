@@ -21,6 +21,7 @@ use snarkvm_console::{
     program::{
         Argument,
         Ciphertext,
+        DynamicRecord,
         Entry,
         Future,
         Identifier,
@@ -97,6 +98,7 @@ pub type PlaintextNative = Plaintext<CurrentNetwork>;
 pub type PlaintextEntryNative = Entry<CurrentNetwork, PlaintextNative>;
 pub type ProgramIDNative = ProgramID<CurrentNetwork>;
 pub type ProgramNative = Program<CurrentNetwork>;
+pub type DynamicRecordNative = DynamicRecord<CurrentNetwork>;
 pub type RecordCiphertextNative = Record<CurrentNetwork, CiphertextNative>;
 pub type RecordPlaintextNative = Record<CurrentNetwork, PlaintextNative>;
 pub type ResponseNative = Response<CurrentNetwork>;
