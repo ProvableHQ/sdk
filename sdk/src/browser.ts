@@ -82,6 +82,7 @@ import {
     KeyId,
     KeyLocator,
     KeyStore,
+    KeyType,
     keyId,
     serializeKeyId,
 } from "./keys/keystore/interface.js";
@@ -220,6 +221,7 @@ export {
     KeyMetadata,
     KeySearchParams,
     KeyStore,
+    KeyType,
     KeyVerificationError,
     KeyVerifier,
     MemKeyVerifier,

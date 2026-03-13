@@ -5,45 +5,49 @@ import { KeyFingerprint } from "../verifier/interface.js";
 import { ProvingKey, VerifyingKey } from "../../wasm.js";
 
 /**
- * A 4-value tuple that definitively identifies a function's proving/verifying key.
- *
- * Callers distinguish prover vs verifier keys by encoding the role in the
- * `func` component (e.g. `"transfer_private_prover"` / `"transfer_private_verifier"`).
- *
- * @example
- * const proverId: KeyId = ["credits.aleo", "transfer_private_prover", 0, "mainnet"];
- * const verifierId: KeyId = ["credits.aleo", "transfer_private_verifier", 0, "mainnet"];
+ * Discriminates whether a {@link KeyId} refers to a proving key or a verifying key.
  */
-export type KeyId = readonly [
-    program: string,
-    func: string,
-    edition: number,
-    network: string,
-];
+export type KeyType = "prover" | "verifier";
 
 /**
- * Creates a {@link KeyId} tuple with defaults for edition (0) and network (build-time).
+ * A structured identifier that definitively identifies a function's proving or verifying key.
  *
- * Validates that program and func components do not contain characters that
- * would produce an unsafe serialized key (path separators, traversal sequences,
- * or null bytes). Fails early with a clear message rather than deferring to
- * store-level validation.
- *
- * @param {string} program - The program name (e.g. "credits.aleo").
- * @param {string} func - The function name (e.g. "transfer_private").
- * @param {number} [edition=0] - The program edition.
- * @param {string} [network] - The network name. Defaults to the build-time network.
- * @returns {KeyId}
- * @throws {Error} If program or func contain unsafe characters.
+ * @example
+ * const proverId: KeyId = { program: "credits.aleo", functionName: "transfer_private", edition: 1, network: "mainnet", keyType: "prover" };
+ * const verifierId: KeyId = { program: "credits.aleo", functionName: "transfer_private", edition: 1, network: "mainnet", keyType: "verifier" };
  */
-export function keyId(program: string, func: string, edition = 0, network = "%%NETWORK%%"): KeyId {
-    validateKeyIdComponent(program, "program");
-    validateKeyIdComponent(func, "func");
-    return [program, func, edition, network] as const;
+export interface KeyId {
+    program: string;
+    functionName: string;
+    edition: number;
+    network: string;
+    keyType: KeyType;
 }
 
 /**
- * Validates a single KeyId component (program or func) for unsafe characters.
+ * Creates a {@link KeyId} with defaults for edition (1) and network (build-time).
+ *
+ * Validates that program and functionName components do not contain characters
+ * that would produce an unsafe serialized key (path separators, traversal
+ * sequences, or null bytes). Fails early with a clear message rather than
+ * deferring to store-level validation.
+ *
+ * @param {string} program - The program name (e.g. "credits.aleo").
+ * @param {string} functionName - The function name (e.g. "transfer_private").
+ * @param {KeyType} keyType - Whether this identifies a "prover" or "verifier" key.
+ * @param {number} [edition=1] - The program edition.
+ * @param {string} [network] - The network name. Defaults to the build-time network.
+ * @returns {KeyId}
+ * @throws {Error} If program or functionName contain unsafe characters.
+ */
+export function keyId(program: string, functionName: string, keyType: KeyType, edition = 1, network = "%%NETWORK%%"): KeyId {
+    validateKeyIdComponent(program, "program");
+    validateKeyIdComponent(functionName, "functionName");
+    return { program, functionName, edition, network, keyType };
+}
+
+/**
+ * Validates a single KeyId component (program or functionName) for unsafe characters.
  * @internal
  */
 function validateKeyIdComponent(value: string, label: string): void {
@@ -61,22 +65,21 @@ function validateKeyIdComponent(value: string, label: string): void {
 /**
  * Serializes a {@link KeyId} to a filesystem-safe flat string.
  *
- * @param {KeyId} id - The key identifier tuple.
+ * @param {KeyId} id - The key identifier.
  * @returns {string} A dot-delimited string safe for use as a filename.
  *
  * @example
- * serializeKeyId(["credits.aleo", "transfer_private", 0, "mainnet"])
- * // => "credits.aleo.transfer_private.e0.mainnet"
+ * serializeKeyId({ program: "credits.aleo", functionName: "transfer_private", edition: 1, network: "mainnet", keyType: "prover" })
+ * // => "credits.aleo.transfer_private.e1.mainnet.prover"
  */
 export function serializeKeyId(id: KeyId): string {
-    const [program, func, edition, network] = id;
-    return `${program}.${func}.e${edition}.${network}`;
+    return `${id.program}.${id.functionName}.e${id.edition}.${id.network}.${id.keyType}`;
 }
 
 /**
  * A structured key locator with an optional fingerprint to verify key integrity.
  *
- * @property {KeyId} keyId - The 4-value tuple identifying the key.
+ * @property {KeyId} keyId - The structured identifier for the key.
  * @property {KeyFingerprint} [fingerprint] - Optional fingerprint for verification.
  */
 export interface KeyLocator {
@@ -128,7 +131,7 @@ export interface KeyStore {
      * @example
      * const keys = await generateKeys();
      * await setKeyBytes(keys.provingKey.toBytes(), {
-     *     keyId: ["credits.aleo", "transfer_private_prover", 0, "mainnet"]
+     *     keyId: { program: "credits.aleo", functionName: "transfer_private", edition: 1, network: "mainnet", keyType: "prover" }
      * });
      */
     setKeyBytes(keyBytes: Uint8Array, locator: KeyLocator): Promise<void>;

@@ -212,7 +212,7 @@ export class LocalFileKeyStore implements KeyStore {
      *
      * @example
      * const keyBytes = await getKeyBytes({
-     *   keyId: ["credits.aleo", "transfer_private", 0, "mainnet"],
+     *   keyId: { program: "credits.aleo", functionName: "transfer_private", edition: 1, network: "mainnet", keyType: "prover" },
      *   fingerprint: { checksum: '421e5a5...', size: 116746954 }
      * });
      * if (keyBytes) {
@@ -255,7 +255,7 @@ export class LocalFileKeyStore implements KeyStore {
      * @example
      * try {
      *   const key = await getProvingKey({
-     *     keyId: ["credits.aleo", "transfer_private", 0, "mainnet"]
+     *     keyId: { program: "credits.aleo", functionName: "transfer_private", edition: 1, network: "mainnet", keyType: "prover" }
      *   });
      *   if (key) {
      *     // Use the verified proving key
@@ -288,7 +288,7 @@ export class LocalFileKeyStore implements KeyStore {
      * @example
      * try {
      *   const key = await getVerifyingKey({
-     *     keyId: ["credits.aleo", "transfer_private", 0, "mainnet"]
+     *     keyId: { program: "credits.aleo", functionName: "transfer_private", edition: 1, network: "mainnet", keyType: "verifier" }
      *   });
      *   if (key) {
      *     // Use the verified verifying key
@@ -320,8 +320,8 @@ export class LocalFileKeyStore implements KeyStore {
      * @example
      * const keys = await generateKeys();
      * await setKeys(
-     *   { keyId: ["credits.aleo", "transfer_private_prover", 0, "mainnet"] },
-     *   { keyId: ["credits.aleo", "transfer_private_verifier", 0, "mainnet"] },
+     *   { keyId: { program: "credits.aleo", functionName: "transfer_private", edition: 1, network: "mainnet", keyType: "prover" } },
+     *   { keyId: { program: "credits.aleo", functionName: "transfer_private", edition: 1, network: "mainnet", keyType: "verifier" } },
      *   keys
      * );
      */
@@ -374,7 +374,7 @@ export class LocalFileKeyStore implements KeyStore {
      * @example
      * const keys = await generateKeys();
      * await setKeyBytes(keys.provingKey.toBytes(), {
-     *     keyId: ["credits.aleo", "transfer_private", 0, "mainnet"]
+     *     keyId: { program: "credits.aleo", functionName: "transfer_private", edition: 1, network: "mainnet", keyType: "prover" }
      * });
      */
     async setKeyBytes(keyBytes: Uint8Array, locator: KeyLocator): Promise<void> {
@@ -400,7 +400,7 @@ export class LocalFileKeyStore implements KeyStore {
      * @returns {Promise<KeyFingerprint | null>} The stored fingerprint metadata for that key, or null if none exists.
      *
      * @example
-     * const metadata = await getKeyMetadata(["credits.aleo", "transfer_private", 0, "mainnet"]);
+     * const metadata = await getKeyMetadata({ program: "credits.aleo", functionName: "transfer_private", edition: 1, network: "mainnet", keyType: "prover" });
      * if (metadata) {
      *   // Use the stored metadata.
      * }
@@ -418,7 +418,7 @@ export class LocalFileKeyStore implements KeyStore {
      * @returns {Promise<boolean>} True if key exists, false otherwise.
      *
      * @example
-     * const exists = await has(["credits.aleo", "transfer_private", 0, "mainnet"]);
+     * const exists = await has({ program: "credits.aleo", functionName: "transfer_private", edition: 1, network: "mainnet", keyType: "prover" });
      * if (exists) {
      *   // Key exists.
      * } else {
@@ -442,7 +442,7 @@ export class LocalFileKeyStore implements KeyStore {
      * @returns {Promise<void>}
      *
      * @example
-     * await store.delete(["credits.aleo", "transfer_private", 0, "mainnet"]);
+     * await store.delete({ program: "credits.aleo", functionName: "transfer_private", edition: 1, network: "mainnet", keyType: "prover" });
      */
     async delete(keyId: KeyId): Promise<void> {
         const fileKey = serializeKeyId(keyId);
