@@ -31,15 +31,43 @@ describe("ProgramManager.prepareInputs", () => {
         expect(result[2]).to.equal(stringToField("get_value").toString());
     });
 
-    it("should leave inputs that already end with 'field' untouched", () => {
+    it("should leave numeric field literals (e.g. '123field') untouched", () => {
         const manager = new ProgramManager();
-        const alreadyField = stringToField("dd_constants").toString();
+        const alreadyFieldLiteral = "123field";
         const result = manager.prepareInputs(DD_CALLER_PROGRAM, "call_and_increment", [
-            alreadyField,
+            alreadyFieldLiteral,
+            "456field",
+            "789field",
+        ]);
+        expect(result[0]).to.equal(alreadyFieldLiteral);
+        expect(result[1]).to.equal("456field");
+        expect(result[2]).to.equal("789field");
+    });
+
+    it("should convert identifiers ending with 'field' when a field is expected", () => {
+        const manager = new ProgramManager();
+        const result = manager.prepareInputs(DD_CALLER_PROGRAM, "call_and_increment", [
+            "battlefield",
+            "my_field",
+            "outfield",
+        ]);
+        // These are NOT numeric field literals — they must be converted
+        expect(result[0]).to.equal(stringToField("battlefield").toString());
+        expect(result[1]).to.equal(stringToField("my_field").toString());
+        expect(result[2]).to.equal(stringToField("outfield").toString());
+    });
+
+    it("should leave stringToField output untouched since it is a numeric field literal", () => {
+        const manager = new ProgramManager();
+        const encoded = stringToField("dd_constants").toString();
+        const result = manager.prepareInputs(DD_CALLER_PROGRAM, "call_and_increment", [
+            encoded,
             stringToField("aleo").toString(),
             stringToField("get_value").toString(),
         ]);
-        expect(result[0]).to.equal(alreadyField);
+        expect(result[0]).to.equal(encoded);
+        expect(result[1]).to.equal(stringToField("aleo").toString());
+        expect(result[2]).to.equal(stringToField("get_value").toString());
     });
 
     it("should not convert non-field inputs", () => {
