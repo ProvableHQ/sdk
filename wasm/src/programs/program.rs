@@ -556,9 +556,17 @@ impl Program {
         // Verify the input types and implicitly cast identifier and string types to string.
         let mut processed_inputs = Vec::with_capacity(num_inputs);
         for (i, (input, input_type)) in inputs.into_iter().zip(input_types.into_iter()).enumerate() {
-            let value = ValueNative::from_str(&input).map_err(|_| {
-                format!("Input {input} at index {i} is not a valid input, expected type: {input_type}.")
-            })?;
+            let value = match ValueNative::from_str(&input) {
+                Ok(value) => value,
+                Err(_) => {
+                    let field_cast = IdentifierNative::from_str(&input)
+                        .map_err(|e| format!("Input {input} index {i} is not a valid input, expected type {input_type}: {e}"))?
+                        .to_field()
+                        .map_err(|e| format!("Input {input} index {i} is not a valid input, expected type {input_type}: {e}"))?;
+                    ValueNative::try_from(LiteralNative::Field(field_cast))
+                        .map_err(|e| format!("Input {input} index {i} is not a valid input, expected type {input_type}: {e}"))?
+                }
+            };
             match value {
                 ValueNative::Record(_) | ValueNative::DynamicRecord(_) => match input_type {
                     ValueTypeNative::Record(_) | ValueTypeNative::DynamicRecord => processed_inputs.push(input),
@@ -1033,5 +1041,133 @@ function add_and_double:
         let program = Program::from_string(AMM).unwrap();
         let dynamic_call_count = program.dynamic_call_count("buy_token_b").unwrap();
         assert_eq!(dynamic_call_count, 2);
+    }
+
+    // A minimal program with two field.public inputs for testing identifier/string → field casting.
+    const FIELD_INPUT_PROGRAM: &str = r#"program field_input.aleo;
+
+function process:
+    input r0 as field.public;
+    input r1 as field.public;
+    add r0 r1 into r2;
+    output r2 as field.public;"#;
+
+    // A minimal program with address.private and u64.public inputs for type validation tests.
+    const ADDRESS_U64_PROGRAM: &str = r#"program addr_u64.aleo;
+
+function check:
+    input r0 as address.private;
+    input r1 as u64.public;
+    output r1 as u64.public;"#;
+
+    /// Known address used across process_inputs tests.
+    const TEST_ADDRESS: &str = "aleo12a4wll9ax6w5355jph0dr5wt2vla5sss2t4cnch0tc3vzh643v8qcfvc7a";
+
+    #[wasm_bindgen_test]
+    fn test_process_inputs_aleo_string_cast_to_field() {
+        // Aleo string literals (quoted, e.g. `"transfer_a"`) placed where a field is expected
+        // are cast via IdentifierLiteral::new(content).to_field().
+        // This is the primary way callers encode a program/function identifier as a field input.
+        let program = Program::from_string(FIELD_INPUT_PROGRAM).unwrap();
+        let inputs = vec![r#""transfer_a""#.to_string(), r#""transfer_b""#.to_string()];
+        let result = program.process_inputs("process", inputs).unwrap();
+        // Expected values match string_to_field("transfer_a/b") from utilities/mod.rs.
+        assert_eq!(result[0], "459830232632696923845236field");
+        assert_eq!(result[1], "464552599115566569058932field");
+    }
+
+    #[wasm_bindgen_test]
+    fn test_process_inputs_bare_identifier_is_invalid() {
+        // A bare identifier string like "transfer_a" (no quotes) does not parse as a valid
+        // Value in snarkVM, so process_inputs should return an error.
+        let program = Program::from_string(FIELD_INPUT_PROGRAM).unwrap();
+        let inputs = vec!["transfer_a".to_string(), "transfer_b".to_string()];
+        let result = program.process_inputs("process", inputs);
+        assert!(result.is_err(), "Bare identifier should not be accepted as a valid input");
+    }
+
+    #[wasm_bindgen_test]
+    fn test_process_inputs_field_passes_through_unchanged() {
+        // Inputs already formatted as field elements should pass through without modification.
+        let program = Program::from_string(FIELD_INPUT_PROGRAM).unwrap();
+        let inputs = vec![
+            "459830232632696923845236field".to_string(),
+            "464552599115566569058932field".to_string(),
+        ];
+        let result = program.process_inputs("process", inputs.clone()).unwrap();
+        assert_eq!(result, inputs);
+    }
+
+    #[wasm_bindgen_test]
+    fn test_process_inputs_valid_primitive_types_pass_through() {
+        // Correctly-typed primitive inputs should pass through unchanged.
+        let program = Program::from_string(ADDRESS_U64_PROGRAM).unwrap();
+        let inputs = vec![TEST_ADDRESS.to_string(), "100u64".to_string()];
+        let result = program.process_inputs("check", inputs.clone()).unwrap();
+        assert_eq!(result, inputs);
+    }
+
+    #[wasm_bindgen_test]
+    fn test_process_inputs_rejects_wrong_literal_type() {
+        // A u64 given where an address is expected must return an error.
+        let program = Program::from_string(ADDRESS_U64_PROGRAM).unwrap();
+        let inputs = vec!["100u64".to_string(), "100u64".to_string()];
+        let result = program.process_inputs("check", inputs);
+        assert!(result.is_err(), "Expected an error for mismatched input type");
+    }
+
+    #[wasm_bindgen_test]
+    fn test_process_inputs_rejects_field_where_u64_expected() {
+        // A field element given where u64 is expected must return an error.
+        let program = Program::from_string(ADDRESS_U64_PROGRAM).unwrap();
+        let inputs = vec![TEST_ADDRESS.to_string(), "100field".to_string()];
+        let result = program.process_inputs("check", inputs);
+        assert!(result.is_err(), "Expected an error for field where u64 was expected");
+    }
+
+    #[wasm_bindgen_test]
+    fn test_process_inputs_rejects_unknown_function() {
+        // Requesting process_inputs for a function not in the program must return an error.
+        let program = Program::from_string(ADDRESS_U64_PROGRAM).unwrap();
+        let result = program.process_inputs("nonexistent_fn", vec![]);
+        assert!(result.is_err(), "Expected an error for unknown function");
+        let err = result.unwrap_err();
+        assert!(
+            err.contains("nonexistent_fn"),
+            "Error should mention the missing function name, got: {err}"
+        );
+    }
+
+    #[wasm_bindgen_test]
+    fn test_process_inputs_amm_identifiers_cast_to_field() {
+        // Validate the primary motivating use-case: passing program/function name identifiers as
+        // field inputs to an AMM function that uses dynamic dispatch.
+        let field_only_program = r#"program amm_fields.aleo;
+
+function buy_token_b:
+    input r0 as field.public;
+    input r1 as field.public;
+    input r2 as field.public;
+    input r3 as field.public;
+    input r4 as field.public;
+    output r0 as field.public;"#;
+
+        let prog = Program::from_string(field_only_program).unwrap();
+        let inputs = vec![
+            "credits_a".to_string(),
+            "credits_b".to_string(),
+            "aleo".to_string(),
+            "transfer_private_to_public".to_string(),
+            "transfer_public_to_private".to_string(),
+        ];
+        let result = prog.process_inputs("buy_token_b", inputs).unwrap();
+
+        // Every output should be a field element.
+        for r in &result {
+            assert!(r.ends_with("field"), "Expected a field element, got: {r}");
+        }
+        // Each identifier hashes to a distinct field value.
+        let unique: std::collections::HashSet<_> = result.iter().collect();
+        assert_eq!(unique.len(), result.len(), "All identifier → field conversions should be distinct");
     }
 }

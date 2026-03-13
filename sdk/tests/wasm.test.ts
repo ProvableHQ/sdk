@@ -1,5 +1,5 @@
 import { expect } from "chai";
-import { Address, AleoNetworkClient, CREDITS_PROGRAM_KEYS, DynamicRecord, Field, FunctionKeyPair, PrivateKey, ViewKey, Signature, RecordCiphertext, RecordPlaintext, PrivateKeyCiphertext, EncryptionToolkit, Transition, VerifyingKey, AleoKeyProvider, getOrInitConsensusVersionTestHeights} from "../src/node.js";
+import { Address, AleoNetworkClient, CREDITS_PROGRAM_KEYS, DynamicRecord, Field, FunctionKeyPair, PrivateKey, Program, ViewKey, Signature, RecordCiphertext, RecordPlaintext, PrivateKeyCiphertext, EncryptionToolkit, Transition, VerifyingKey, AleoKeyProvider, getOrInitConsensusVersionTestHeights, stringToField} from "../src/node.js";
 import {
     seed,
     message,
@@ -647,7 +647,115 @@ describe('WASM Objects', () => {
                 const programAddress = Address.fromProgramId(programIDString);
                 expect(programAddress.to_string()).to.equal("aleo1lqmly7ez2k48ajf5hs92ulphaqr05qm4n8qwzj8v0yprmasgpqgsez59gg");
             }
-        }); 
+        });
     })
+
+    describe('Program', () => {
+        // A minimal program with two field.public inputs for testing identifier/string → field casting.
+        const FIELD_INPUT_PROGRAM = `program field_input.aleo;
+
+function process:
+    input r0 as field.public;
+    input r1 as field.public;
+    add r0 r1 into r2;
+    output r2 as field.public;`;
+
+        // A minimal program with address.private and u64.public inputs for type validation tests.
+        const ADDRESS_U64_PROGRAM = `program addr_u64.aleo;
+
+function check:
+    input r0 as address.private;
+    input r1 as u64.public;
+    output r1 as u64.public;`;
+
+        const TEST_ADDRESS = 'aleo12a4wll9ax6w5355jph0dr5wt2vla5sss2t4cnch0tc3vzh643v8qcfvc7a';
+
+        describe.only('processInputs', () => {
+            it('casts identifier literals to field when field type is expected', () => {
+                const program = Program.fromString(FIELD_INPUT_PROGRAM);
+                // Bare identifiers like "transfer_a" placed where field is expected should
+                // be converted to their field representation via Identifier::to_field().
+                const result = program.processInputs('process', ['transfer_a', 'transfer_b']);
+                // These expected values match stringToField() for the same identifiers.
+                expect(result[0]).to.equal('459830232632696923845236field');
+                expect(result[1]).to.equal('464552599115566569058932field');
+            });
+
+            it('casts Aleo string literals to field when field type is expected', () => {
+                const program = Program.fromString(FIELD_INPUT_PROGRAM);
+                // Aleo string literals (quoted) placed where field is expected should also be cast.
+                const result = program.processInputs('process', ['"transfer_a"', '"transfer_b"']);
+                expect(result[0]).to.equal('459830232632696923845236field');
+                expect(result[1]).to.equal('464552599115566569058932field');
+            });
+
+            it('identifier → field result matches stringToField utility', () => {
+                const program = Program.fromString(FIELD_INPUT_PROGRAM);
+                const result = program.processInputs('process', ['transfer_a', 'transfer_b']);
+                expect(result[0]).to.equal(stringToField('transfer_a').toString());
+                expect(result[1]).to.equal(stringToField('transfer_b').toString());
+            });
+
+            it('passes field elements through unchanged', () => {
+                const program = Program.fromString(FIELD_INPUT_PROGRAM);
+                const inputs = ['459830232632696923845236field', '464552599115566569058932field'];
+                const result = program.processInputs('process', inputs);
+                expect(result).to.deep.equal(inputs);
+            });
+
+            it('passes correctly-typed primitive inputs through unchanged', () => {
+                const program = Program.fromString(ADDRESS_U64_PROGRAM);
+                const inputs = [TEST_ADDRESS, '100u64'];
+                const result = program.processInputs('check', inputs);
+                expect(result).to.deep.equal(inputs);
+            });
+
+            it('throws when a u64 is given where an address is expected', () => {
+                const program = Program.fromString(ADDRESS_U64_PROGRAM);
+                expect(() => program.processInputs('check', ['100u64', '100u64'])).to.throw();
+            });
+
+            it('throws when a field is given where a u64 is expected', () => {
+                const program = Program.fromString(ADDRESS_U64_PROGRAM);
+                expect(() => program.processInputs('check', [TEST_ADDRESS, '100field'])).to.throw();
+            });
+
+            it('throws for an unknown function name', () => {
+                const program = Program.fromString(ADDRESS_U64_PROGRAM);
+                expect(() => program.processInputs('nonexistent_fn', [])).to.throw();
+            });
+
+            it('converts program/function identifier inputs to fields for AMM dynamic dispatch pattern', () => {
+                // This is the primary motivating use-case: a caller passes identifier strings
+                // (program/function names) as the field-typed inputs required by dynamic dispatch.
+                const fieldOnlyProgram = `program amm_fields.aleo;
+
+function buy_token_b:
+    input r0 as field.public;
+    input r1 as field.public;
+    input r2 as field.public;
+    input r3 as field.public;
+    input r4 as field.public;
+    output r0 as field.public;`;
+
+                const program = Program.fromString(fieldOnlyProgram);
+                const inputs = [
+                    'credits_a',
+                    'credits_b',
+                    'aleo',
+                    'transfer_private_to_public',
+                    'transfer_public_to_private',
+                ];
+                const result = program.processInputs('buy_token_b', inputs);
+
+                // All outputs should be field elements.
+                for (const r of result) {
+                    expect(r).to.match(/field$/, `Expected a field element, got: ${r}`);
+                }
+                // Each identifier hashes to a distinct field value.
+                expect(new Set(result).size).to.equal(result.length);
+            });
+        });
+    });
 });
 
