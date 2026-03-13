@@ -1,0 +1,46 @@
+{
+  "name": "@provablehq/wasm-account-tools",
+  "version": "0.1.1",
+  "type": "module",
+  "description": "Minimal WebAssembly bindings for Aleo account operations",
+  "collaborators": [
+    "The Provable Team"
+  ],
+  "license": "GPL-3.0",
+  "main": "./dist/aleo_wasm_account_tools.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "default": "./dist/aleo_wasm_account_tools.js"
+    }
+  },
+  "files": [
+    "dist",
+    "LICENSE.md"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/ProvableHQ/sdk.git"
+  },
+  "keywords": [
+    "Aleo",
+    "Blockchain",
+    "Zero-Knowledge",
+    "ZK"
+  ],
+  "bugs": {
+    "url": "https://github.com/ProvableHQ/sdk/issues"
+  },
+  "homepage": "https://github.com/ProvableHQ/sdk#readme",
+  "scripts": {
+    "build": "rimraf dist && node build.js",
+    "test": "wasm-pack test --node -- --no-default-features --features serial"
+  },
+  "devDependencies": {
+    "@wasm-tool/rollup-plugin-rust": "^3.1.4",
+    "binaryen": "^120.0.0",
+    "rimraf": "^6.0.1",
+    "rollup": "^4.32.0"
+  }
+}
