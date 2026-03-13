@@ -1,0 +1,16 @@
+{
+  "include": ["src", "__tests__", "src/custom.d.ts"],
+  "compilerOptions": {
+    "outDir": "dist",
+    "target": "ES2015",
+    "moduleResolution": "Bundler",
+    "strict": true,
+    "skipLibCheck": true,
+    "declaration": false,
+    "sourceMap": false,
+    "noUnusedLocals": true,
+    "esModuleInterop": true,
+    "allowSyntheticDefaultImports": true,
+    "jsx":"react-jsx", 
+  }
+}
