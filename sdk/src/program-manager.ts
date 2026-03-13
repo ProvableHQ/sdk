@@ -396,11 +396,30 @@ class ProgramManager {
             resolvedImports = { ...resolvedImports, ...imports };
         }
 
-        // Add each import program and query KeyStore for its keys
+        // Add each import program, recursively fetch its static imports, and
+        // query the KeyStore for cached keys.
         for (const [name, importProgram] of Object.entries(resolvedImports)) {
+            if (builder.contains(name)) continue;
             const importProgramStr = typeof importProgram === "string" ? importProgram : importProgram.toString();
             builder.addProgram(name, importProgramStr);
             await this.loadKeysFromStore(builder, name, importProgramStr);
+
+            // Recursively resolve static imports of dynamic targets so the caller
+            // doesn't need to manually provide transitive dependencies.
+            const importObj = Program.fromString(importProgramStr);
+            if (importObj.getImports().length > 0) {
+                try {
+                    const transitive = await this.networkClient.getProgramImports(importProgramStr);
+                    for (const [tName, tSource] of Object.entries(transitive)) {
+                        if (builder.contains(tName)) continue;
+                        const tStr = typeof tSource === "string" ? tSource : tSource.toString();
+                        builder.addProgram(tName, tStr);
+                        await this.loadKeysFromStore(builder, tName, tStr);
+                    }
+                } catch {
+                    // Non-blocking — transitive import resolution is best-effort
+                }
+            }
         }
 
         return builder;

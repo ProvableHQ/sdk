@@ -75,6 +75,22 @@ function double_it:
     output r1 as u32.private;
 `;
 
+/// A program that dynamically calls double_test.aleo, which itself statically
+/// imports multiply_test.aleo. Used to test transitive import resolution.
+export const DD_TRANSITIVE_CALLER = `program dd_transitive_caller.aleo;
+
+function call_double:
+    input r0 as field.public;
+    input r1 as field.public;
+    input r2 as field.public;
+    input r3 as u32.private;
+    call.dynamic r0 r1 r2 with r3 (as u32.private) into r4 (as u32.private);
+    output r4 as u32.private;
+
+constructor:
+    assert.eq true true;
+`;
+
 /// Pre-computed field-encoded identifiers for dynamic dispatch.
 /// These are Identifier::to_field() values computed from the Rust/WASM tests.
 export const DD_CONSTANTS_FIELD = "35731532782568442653824738404field";

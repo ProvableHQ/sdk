@@ -12,6 +12,7 @@ import {
     DD_CALLER_PROGRAM,
     DD_CONSTANTS_PROGRAM,
     DD_TEN_PROGRAM,
+    DD_TRANSITIVE_CALLER,
     MULTIPLY_PROGRAM,
     DOUBLE_PROGRAM,
 } from "./data/dynamic-dispatch.js";
@@ -143,6 +144,27 @@ describe("ProgramImports & KeyStore integration", () => {
             const builder: ProgramImportsBuilder = await pm(manager).buildProgramImports(DD_CONSTANTS_PROGRAM, imports);
 
             expect(builder.contains("dd_ten.aleo")).to.equal(true);
+        });
+
+        it("should recursively resolve static imports of dynamic targets", async () => {
+            const manager = new ProgramManager();
+            // DOUBLE_PROGRAM has `import multiply_test.aleo;` — stub the network fetch
+            const fetchStub = sinon.stub(manager.networkClient, "getProgramImports").resolves({
+                "multiply_test.aleo": MULTIPLY_PROGRAM,
+            });
+
+            // User provides DOUBLE_PROGRAM as a dynamic target for DD_TRANSITIVE_CALLER
+            const builder: ProgramImportsBuilder = await pm(manager).buildProgramImports(
+                DD_TRANSITIVE_CALLER,
+                { "double_test.aleo": DOUBLE_PROGRAM },
+            );
+
+            // Verify the transitive fetch was triggered for DOUBLE_PROGRAM's static imports
+            expect(fetchStub.calledOnce).to.equal(true);
+            expect(fetchStub.firstCall.args[0]).to.include("double_test.aleo");
+            // Both the user-provided import and its transitive static dependency should be present
+            expect(builder.contains("double_test.aleo")).to.equal(true);
+            expect(builder.contains("multiply_test.aleo")).to.equal(true);
         });
 
         it("should add multiple imports to the builder", async () => {
