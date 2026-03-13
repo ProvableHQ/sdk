@@ -20,7 +20,7 @@ async function updateDependency(path, newVersion) {
     const replaced = json
         .replace(/"@provablehq\/sdk": *"[^"]+"/g, `"@provablehq/sdk": "^${newVersion}"`)
         .replace(/"@provablehq\/wasm": *"[^"]+"/g, `"@provablehq/wasm": "^${newVersion}"`)
-        .replace(/"@provablehq\/wasm-address": *"[^"]+"/g, `"@provablehq/wasm-address": "^${newVersion}"`);
+        .replace(/"@provablehq\/wasm-account-tools": *"[^"]+"/g, `"@provablehq/wasm-account-tools": "^${newVersion}"`);
 
     await writeFile(path, replaced);
 }
@@ -31,9 +31,9 @@ async function updateVersions(newVersion) {
     await Promise.all([
         "create-leo-app/package.json",
         "sdk/package.json",
-        "sdk-address/package.json",
+        "sdk-account-tools/package.json",
         "wasm/package.json",
-        "wasm-address/package.json",
+        "wasm-account-tools/package.json",
     ].map(async (file) => {
         await updateVersion(file, newVersion);
     }));
@@ -48,8 +48,8 @@ async function updateCargo(newVersion) {
             pattern: /(\[package\]\s+name *= *"aleo-wasm"\s+version *= *)"[^"]+"/,
         },
         {
-            path: "wasm-address/Cargo.toml",
-            pattern: /(\[package\]\s+name *= *"aleo-wasm-address"\s+version *= *)"[^"]+"/,
+            path: "wasm-account-tools/Cargo.toml",
+            pattern: /(\[package\]\s+name *= *"wasm-account-tools"\s+version *= *)"[^"]+"/,
         },
     ].map(async ({ path, pattern }) => {
         const toml = await readFile(path, { encoding: "utf8" });
