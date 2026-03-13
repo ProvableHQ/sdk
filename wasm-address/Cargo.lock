@@ -3,7 +3,7 @@
 version = 4
 
 [[package]]
-name = "account-tools"
+name = "account-tools-wasm"
 version = "0.9.16"
 dependencies = [
  "anyhow",

@@ -44,7 +44,7 @@ async function build() {
         entryFileNames: "[name].js",
     });
 
-    await $fs.writeFile("dist/index.d.ts", `export * from "./account_tools";\n`);
+    await $fs.writeFile("dist/index.d.ts", `export * from "./account_tools_wasm";\n`);
 
 }
 
