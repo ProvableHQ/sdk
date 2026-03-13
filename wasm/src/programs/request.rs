@@ -237,18 +237,26 @@ impl ExecutionRequest {
     #[wasm_bindgen(js_name = "fromExternallySignedData")]
     #[allow(clippy::too_many_arguments)]
     pub fn from_externally_signed_data(
-        program_id: String,
-        function_name: String,
+        program_id: Uint8Array,
+        function_name: Uint8Array,
         inputs: Array,
         input_types: Array,
-        signature: Signature,
-        tvk: Field,
-        view_key: ViewKey,
+        signature: Uint8Array,
+        tvk: Uint8Array,
+        view_key: Uint8Array,
         gammas: Option<Array>,
     ) -> Result<ExecutionRequest, String> {
+        // Convert the program_id and function_name arrays to String types
+        let program_id_string = String::from_utf8(program_id).map_err(|e| e.to_string())?;
+        let function_name_string = String::from_utf8(function_name).map_err(|e| e.to_string())?;
+
         // Parse the input and function name strings.
-        let program_id = ProgramIDNative::from_str(&program_id).map_err(|e| e.to_string())?;
-        let function_name = IdentifierNative::from_str(&function_name).map_err(|e| e.to_string())?;
+        let program_id = ProgramIDNative::from_str(&program_id_string).map_err(|e| e.to_string())?;
+        let function_name = IdentifierNative::from_str(&function_name_string).map_err(|e| e.to_string())?;
+
+        let signature = Signature::from_bytes_le(signature).map_err(|e| e.to_string())?;
+        let tvk = Field::from_bytes_le(tvk).map_err(|e| e.to_string())?;
+        let view_key = Field::from_bytes_le(view_key).map_err(|e| e.to_string())?;
 
         // Ensure input types and inputs are the same length.
         let input_types_length = input_types.length();
@@ -291,8 +299,10 @@ impl ExecutionRequest {
         let record_count = input_types_native.iter().filter(|t| matches!(t, ValueTypeNative::Record(_))).count();
 
         // Ensure the number of gammas match the number of records.
-        let mut gammas_native =
-            native_type_from_wasm_object_array!(gammas.unwrap_or(Array::new()), Group, GroupNative)?;
+        // let mut gammas_native =
+        //     native_type_from_wasm_object_array!(gammas.unwrap_or(Array::new()), Group, GroupNative)?;
+        let mut gammas_native_field = native_type_from_wasm_byte_array!(gammas.unwrap_or(Array::new()), FieldNative)?;
+        gammas_native_field.iter().map(|gamma| Group::from_field(gamma)).map_err(|e| e.to_string());
         let gamma_length = gammas_native.len();
         if record_count != gamma_length {
             return Err(format!(
@@ -584,6 +594,20 @@ impl From<&ExecutionRequest> for RequestNative {
     fn from(request: &ExecutionRequest) -> Self {
         request.0.clone()
     }
+}
+
+#[macro_export]
+macro_rules! native_type_from_wasm_byte_array {
+    ($input:expr, $native_type:ident) => {{
+        $input
+            .iter()
+            .map(|x| {
+                let bytes = Uint8Array::new(&x).to_vec();
+                $native_type::from_bytes_le(&bytes)
+                    .map_err(|_| "Invalid byte array".to_string())
+            })
+            .collect::<Result<Vec<$native_type>, String>>()
+    }};
 }
 
 #[cfg(test)]
