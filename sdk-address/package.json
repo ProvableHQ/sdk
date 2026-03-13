@@ -7,14 +7,12 @@
   ],
   "license": "GPL-3.0",
   "type": "module",
-  "main": "./dist/node/address.js",
-  "types": "./dist/browser/address.d.ts",
+  "main": "./dist/node.js",
+  "browser": "./dist/browser.js",
   "exports": {
     ".": {
-      "browser": "./dist/browser/address.js",
-      "deno": "./dist/browser/address.js",
-      "node": "./dist/node/address.js",
-      "default": "./dist/browser/address.js"
+      "node": "./dist/node.js",
+      "default": "./dist/browser.js"
     }
   },
   "files": [
@@ -41,17 +39,35 @@
   },
   "homepage": "https://github.com/ProvableHQ/sdk#readme",
   "dependencies": {
-    "@provablehq/account-tools-wasm": "^0.1.1"
+    "@provablehq/account-tools-wasm": "^0.1.1",
+    "comlink": "^4.4.2",
+    "mime": "^4.0.6",
+    "sync-request": "^6.1.0",
+    "xmlhttprequest-ssl": "^3.1.0"
   },
   "devDependencies": {
+    "@rollup/plugin-replace": "^6.0.2",
     "@types/chai": "^5.0.1",
     "@types/mocha": "^10.0.10",
+    "@types/sinon": "^17.0.3",
+    "@typescript-eslint/eslint-plugin": "^8.22.0",
+    "@typescript-eslint/parser": "^8.22.0",
+    "better-docs": "^2.7.3",
     "chai": "^5.1.2",
+    "clean-jsdoc-theme": "^4.3.0",
+    "cpr": "^3.0.1",
+    "eslint": "^9.19.0",
+    "eslint-config-prettier": "^10.0.1",
+    "eslint-plugin-import": "^2.31.0",
     "glob": "^11.0.1",
+    "jsdoc": "^4.0.4",
+    "kis-jsdoc-plugin": "^2.2.1",
     "mocha": "^11.1.0",
+    "prettier": "3.4.2",
     "rimraf": "^6.0.1",
     "rollup": "^4.32.0",
     "rollup-plugin-typescript2": "^0.36.0",
+    "sinon": "^19.0.2",
     "typescript": "^5.7.3"
   }
 }

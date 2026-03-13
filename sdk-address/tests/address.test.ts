@@ -1,6 +1,7 @@
-import "../src/node-polyfill.js";
+// import "../src/node-polyfill.js";
 import { expect } from "chai";
-import { Address } from "../src/address.js";
+// import { Address } from "@provablehq/account-tools-wasm";
+import { Address } from "../dist/node.js";
 
 const beaconAddressString = "aleo1rhgdu77hgyqd3xjj8ucu3jj9r2krwz6mnzyd80gncr5fxcwlh5rsvzp9px";
 const creditsAddressString = "aleo1lqmly7ez2k48ajf5hs92ulphaqr05qm4n8qwzj8v0yprmasgpqgsez59gg";
