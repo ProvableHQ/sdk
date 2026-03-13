@@ -389,6 +389,193 @@ impl ExecutionRequest {
         Ok(ExecutionRequest(request))
     }
 
+    pub fn from_externally_signed_data_string(
+        program_id_str: String,
+        function_name_str: String,
+        inputs: Array,
+        input_types: Array,
+        signature_str: String,
+        tvk_str: String,
+        view_key_str: String,
+        gammas: Option<Array>,
+    ) -> Result<ExecutionRequest, String> {
+         // Parse the input and function name strings.
+        let program_id = ProgramIDNative::from_str(&program_id).map_err(|e| e.to_string())?;
+        let function_name = IdentifierNative::from_str(&function_name).map_err(|e| e.to_string())?;
+        
+        // Collect input_types into a Vec for record_count and length checks.
+        let mut inputs_native = Vec::with_capacity(inputs_length as usize);
+        for (i, input) in inputs.iter().enumerate() {
+            let input_string =
+                input.as_string().ok_or(format!("Input type had invalid string encoding at index {i}"))?;
+            let input = ValueNative::from_str(&input_string).map_err(|e| e.to_string())?;
+            inputs_native.push(input);
+        }
+
+        let mut input_types_native = Vec::with_capacity(inputs_length as usize);
+        for (i, input_type) in input_types.iter().enumerate() {
+            let input_type_string =
+                input_type.as_string().ok_or(format!("Input type had invalid string encoding at index {i}"))?;
+            let input_type = ValueTypeNative::from_str(&input_type_string).map_err(|e| e.to_string())?;
+            input_types_native.push(input_type);
+        }
+
+        let signature = Signature::from_string(&signature_str);
+        let tvk = Field::from_string(tvk_str);
+        let view_key = Field::from_string(view_key_str);
+
+        let mut gammas_native =
+            native_type_from_wasm_object_array!(gammas.unwrap_or(Array::new()), Group, GroupNative)?; 
+
+        Self::from_externally_signed_data_impl(
+            program_id,
+            function_name,
+            inputs_native,
+            inputs_types_native,
+            signatures,
+            tvk,
+            view_key,
+            gammas,
+        )
+    }
+
+    fn from_externally_signed_data_impl(
+        program_id: ProgramIDNative,
+        function_name: IdentifierNative,
+        inputs: Vec<ValueNative>,
+        input_types: Vec<ValueTypeNative>,
+        signature: Signature,
+        tvk: Field,
+        view_key: ViewKey,
+        gammas: Option<Vec<Group>,
+    ) -> Result<ExecutionRequest, String> {
+        // Ensure input types and inputs are the same length.
+        let input_types_length = input_types.length();
+        let inputs_length = inputs.length();
+        if input_types_length != inputs_length {
+            return Err(format!(
+                "input_types and inputs must have the same length. Input array length: {inputs_length} - input type array length: {input_types_length}"
+            ));
+        }
+
+        // Collect input_types into a Vec for record_count and length checks.
+        let mut inputs_native = Vec::with_capacity(inputs_length as usize);
+        for (i, input) in inputs.iter().enumerate() {
+            let input_string =
+                input.as_string().ok_or(format!("Input type had invalid string encoding at index {i}"))?;
+            let input = ValueNative::from_str(&input_string).map_err(|e| e.to_string())?;
+            inputs_native.push(input);
+        }
+
+        let mut input_types_native = Vec::with_capacity(inputs_length as usize);
+        for (i, input_type) in input_types.iter().enumerate() {
+            let input_type_string =
+                input_type.as_string().ok_or(format!("Input type had invalid string encoding at index {i}"))?;
+            let input_type = ValueTypeNative::from_str(&input_type_string).map_err(|e| e.to_string())?;
+            input_types_native.push(input_type);
+        }
+
+        // Derive the signer, sk_tag, scm and tcm.
+        let signer = Address::from_view_key(&view_key);
+        let sk_tag = GraphKey::from_view_key(&view_key).sk_tag();
+        let scm =
+            CurrentNetwork::hash_psd2(&[*signer.to_group().to_x_coordinate(), *tvk]).map_err(|e| e.to_string())?;
+        let tcm = CurrentNetwork::hash_psd2(&[*tvk]).map_err(|e| e.to_string())?;
+
+        // Compute the network id and function id.
+        let network_id = U16Native::new(CurrentNetwork::ID);
+        let function_id = compute_function_id(&network_id, &program_id, &function_name).map_err(|e| e.to_string())?;
+
+        // Compute the record count.
+        let record_count = input_types_native.iter().filter(|t| matches!(t, ValueTypeNative::Record(_))).count();
+
+        // Ensure the number of gammas match the number of records.
+        let gamma_length = gammas_native.len();
+        if record_count != gamma_length {
+            return Err(format!(
+                "The number of gammas must match the number of record inputs. {gamma_length} gammas specified for {record_count} record input(s)",
+            ));
+        }
+
+        // Iterate the raw JS arrays, parsing each input fresh so it is owned.
+        let mut input_ids = Vec::with_capacity(inputs_native.len());
+        for (index, (input, input_type)) in inputs_native.iter().zip(input_types_native.iter()).enumerate() {
+            let index_field = FieldNative::from_u16(
+                u16::try_from(index).map_err(|_| format!("Input index {index} exceeds maximum allowed value"))?,
+            );
+
+            match &input_type {
+                ValueTypeNative::Constant(_) | ValueTypeNative::Public(_) => {
+                    let mut preimage = vec![function_id];
+                    preimage.extend(input.to_fields().map_err(|e| e.to_string())?);
+                    preimage.push(tcm);
+                    preimage.push(index_field);
+                    let input_hash = CurrentNetwork::hash_psd8(&preimage).map_err(|e| e.to_string())?;
+                    input_ids.push(match input_type {
+                        ValueTypeNative::Constant(_) => InputIDNative::Constant(input_hash),
+                        _ => InputIDNative::Public(input_hash),
+                    });
+                }
+                ValueTypeNative::Private(_) => {
+                    let input_view_key =
+                        CurrentNetwork::hash_psd4(&[function_id, *tvk, index_field]).map_err(|e| e.to_string())?;
+                    let ciphertext = match input {
+                        ValueNative::Plaintext(plaintext) => {
+                            plaintext.encrypt_symmetric(input_view_key).map_err(|e| e.to_string())?
+                        }
+                        _ => return Err("Expected a plaintext input for private type".to_string()),
+                    };
+                    let input_hash = CurrentNetwork::hash_psd8(&ciphertext.to_fields().map_err(|e| e.to_string())?)
+                        .map_err(|e| e.to_string())?;
+                    input_ids.push(InputIDNative::Private(input_hash));
+                }
+                ValueTypeNative::Record(record_name) => {
+                    // Get the record input.
+                    let record_input = match input {
+                        ValueNative::Record(record) => record,
+                        _ => return Err("Expected a record input for record type".to_string()),
+                    };
+                    // Compute the record's view key and commitment.
+                    let record_view_key = (*record_input.nonce() * **view_key).to_x_coordinate();
+                    let commitment = record_input
+                        .to_commitment(&program_id, record_name, &record_view_key)
+                        .map_err(|e| e.to_string())?;
+
+                    // Get the gammas from the externally provided array of gammas.
+                    let gamma = gammas_native.pop().unwrap();
+
+                    // Compute the record nullifiers (serial number and tag).
+                    let serial_number = RecordPlaintextNative::serial_number_from_gamma(&gamma, commitment)
+                        .map_err(|e| e.to_string())?;
+                    let tag = RecordPlaintextNative::tag(*sk_tag, commitment).map_err(|e| e.to_string())?;
+                    input_ids.push(InputIDNative::Record(commitment, gamma, record_view_key, serial_number, tag));
+                }
+                ValueTypeNative::ExternalRecord(_) => {
+                    return Err("external_record inputs are not yet supported in fromExternallySignedData".to_string());
+                }
+                ValueTypeNative::Future(_) => {
+                    return Err("Future inputs are not supported".to_string());
+                }
+            }
+        }
+
+        let request = RequestNative::from((
+            *signer,
+            network_id,
+            program_id,
+            function_name,
+            input_ids,
+            inputs_native, // use the separately collected Vec
+            *signature,
+            *sk_tag,
+            *tvk,
+            tcm,
+            scm,
+        ));
+
+        Ok(ExecutionRequest(request))
+    }
+
     /// Verify the input types within a request.
     ///
     /// @param {string[]} The input_types within the request.
