@@ -252,10 +252,7 @@ impl ExecutionRequest {
     ) -> Result<ExecutionRequest, String> {
         // Validate: either input_ids is provided, or view_key is provided to compute them.
         if input_ids.is_none() && view_key.is_none() {
-            return Err(
-                "Either input_ids or view_key must be provided."
-                    .to_string(),
-            );
+            return Err("Either input_ids or view_key must be provided.".to_string());
         }
 
         // Parse the input and function name strings.
@@ -274,8 +271,7 @@ impl ExecutionRequest {
         // Collect inputs and input_types into native Vecs.
         let mut inputs_native = Vec::with_capacity(inputs_length as usize);
         for (i, input) in inputs.iter().enumerate() {
-            let input_string =
-                input.as_string().ok_or(format!("Input had invalid string encoding at index {i}"))?;
+            let input_string = input.as_string().ok_or(format!("Input had invalid string encoding at index {i}"))?;
             let input = ValueNative::from_str(&input_string).map_err(|e| e.to_string())?;
             inputs_native.push(input);
         }
@@ -300,9 +296,7 @@ impl ExecutionRequest {
             // Parse pre-computed input_ids from strings.
             let mut parsed = Vec::with_capacity(ids_array.length() as usize);
             for (i, id_js) in ids_array.iter().enumerate() {
-                let id_str = id_js
-                    .as_string()
-                    .ok_or(format!("input_ids[{i}] must be a string"))?;
+                let id_str = id_js.as_string().ok_or(format!("input_ids[{i}] must be a string"))?;
                 let id_native =
                     InputIDNative::from_str(&id_str).map_err(|e| format!("Failed to parse input_ids[{i}]: {e}"))?;
                 parsed.push(id_native);
@@ -384,7 +378,9 @@ impl ExecutionRequest {
                         ));
                     }
                     ValueTypeNative::ExternalRecord(_) => {
-                        return Err("external_record inputs are not yet supported in fromExternallySignedData".to_string());
+                        return Err(
+                            "external_record inputs are not yet supported in fromExternallySignedData".to_string()
+                        );
                     }
                     ValueTypeNative::Future(_) => {
                         return Err("Future inputs are not supported".to_string());
