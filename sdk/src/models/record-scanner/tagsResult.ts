@@ -12,4 +12,3 @@ export interface TagsSuccess {
 }
 
 export type TagsResult = TagsSuccess | RecordScannerFailure;
-

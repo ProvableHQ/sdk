@@ -10,14 +10,13 @@ import {
     Row,
     Result,
     Spin,
-    Space, Switch,
+    Space,
+    Switch,
 } from "antd";
 import { CodeEditor } from "./execute/CodeEditor.jsx";
 import { useAleoWASM } from "../../aleo-wasm-hook.js";
 
-
 export const Deploy = () => {
-
     const [form] = Form.useForm();
     const [aleoWASM] = useAleoWASM();
     const [deploymentFeeRecord, setDeploymentFeeRecord] = useState(null);
@@ -33,7 +32,7 @@ export const Deploy = () => {
     const [transactionID, setTransactionID] = useState(null);
     const [worker, setWorker] = useState(null);
     const [messageApi, contextHolder] = message.useMessage();
-    
+
     function spawnWorker() {
         let worker = new Worker(
             new URL("../../workers/worker.js", import.meta.url),
@@ -204,14 +203,12 @@ export const Deploy = () => {
         transactionID !== null ? transactionID : "";
     const deploymentErrorString = () =>
         deploymentError !== null ? deploymentError : "";
-    const feeString = () => deploymentFeeEstimate ? deploymentFeeEstimate : "";
+    const feeString = () =>
+        deploymentFeeEstimate ? deploymentFeeEstimate : "";
     const peerUrl = () => (deployUrl !== null ? deployUrl : "");
     const generateKey = () => {
-        const newKey = new aleoWASM.PrivateKey().to_string()
-        form.setFieldValue(
-            "private_key",
-            newKey
-        );
+        const newKey = new aleoWASM.PrivateKey().to_string();
+        form.setFieldValue("private_key", newKey);
 
         setPrivateKey(newKey);
         form.validateFields(["private_key"]);
@@ -219,34 +216,28 @@ export const Deploy = () => {
     return (
         <Card
             title="Deploy Program"
-            style={{ width: "100%"}}
+            style={{ width: "100%" }}
             extra={
-                <Button
-                    type="primary"
-                    size="middle"
-                    onClick={demo}
-                >
+                <Button type="primary" size="middle" onClick={demo}>
                     Insert Demo Program
                 </Button>
             }
         >
-            <Form
-                form={form}
-                {...layout}>
+            <Form form={form} {...layout}>
                 <Divider />
-                    <Form.Item
-                        label="Program"
-                        name="program"
-                        tooltip={"This must be an Aleo Instructions program."}
-                        rules={[
-                            {
-                                required: true,
-                                message: "Please input or load an Aleo program",
-                            },
-                        ]}
-                    >
-                        <CodeEditor onChange={onProgramChange} />
-                    </Form.Item>
+                <Form.Item
+                    label="Program"
+                    name="program"
+                    tooltip={"This must be an Aleo Instructions program."}
+                    rules={[
+                        {
+                            required: true,
+                            message: "Please input or load an Aleo program",
+                        },
+                    ]}
+                >
+                    <CodeEditor onChange={onProgramChange} />
+                </Form.Item>
                 <Divider />
                 <Form.Item
                     label="Private Key"
@@ -255,10 +246,10 @@ export const Deploy = () => {
                     validateStatus={status}
                 >
                     <Input.Search
-                            enterButton="Generate Random Key"
-                            onSearch={generateKey}
-                            onChange={onPrivateKeyChange}
-                        />
+                        enterButton="Generate Random Key"
+                        onSearch={generateKey}
+                        onChange={onPrivateKeyChange}
+                    />
                 </Form.Item>
                 <Form.Item
                     label="Peer Url"
@@ -305,7 +296,6 @@ export const Deploy = () => {
                         <Space>
                             <Button
                                 type="primary"
-
                                 size="middle"
                                 onClick={deploy}
                             >
@@ -314,7 +304,6 @@ export const Deploy = () => {
                             {contextHolder}
                             <Button
                                 type="primary"
-
                                 size="middle"
                                 onClick={estimate}
                             >
@@ -354,7 +343,9 @@ export const Deploy = () => {
                         status="success"
                         title="Estimated Deployment Fee"
                         subTitle={
-                            "Estimated Deployment Fee: " + feeString() + " credits"
+                            "Estimated Deployment Fee: " +
+                            feeString() +
+                            " credits"
                         }
                     />
                 )}

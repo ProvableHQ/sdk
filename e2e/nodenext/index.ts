@@ -1,1 +1,7 @@
-import { Account, initThreadPool, ProgramManager, AleoKeyProvider, AleoKeyProviderParams } from "@provablehq/sdk";
+import {
+    Account,
+    initThreadPool,
+    ProgramManager,
+    AleoKeyProvider,
+    AleoKeyProviderParams,
+} from "@provablehq/sdk";

@@ -1,13 +1,13 @@
-import {VerifyingKey, Metadata} from "./wasm.js";
+import { VerifyingKey, Metadata } from "./wasm.js";
 
 export const KEY_STORE = Metadata.baseUrl();
 
 export interface Key {
-    name: string,
-    locator: string,
-    prover: string,
-    verifier: string,
-    verifyingKey: () => VerifyingKey,
+    name: string;
+    locator: string;
+    prover: string;
+    verifier: string;
+    verifyingKey: () => VerifyingKey;
 }
 
 function convert(metadata: Metadata): Key {
@@ -43,13 +43,13 @@ export const CREDITS_PROGRAM_KEYS = {
     transfer_public_as_signer: convert(Metadata.transfer_public_as_signer()),
     transfer_public_to_private: convert(Metadata.transfer_public_to_private()),
     unbond_public: convert(Metadata.unbond_public()),
-    getKey: function(key: string): Key {
+    getKey: function (key: string): Key {
         if (this.hasOwnProperty(key)) {
             return (this as any)[key] as Key;
         } else {
             throw new Error(`Key "${key}" not found.`);
         }
-    }
+    },
 };
 
 export const PRIVATE_TRANSFER_TYPES = new Set([
@@ -117,6 +117,6 @@ export const RECORD_DOMAIN = "RecordScannerV0";
 /**
  * Zero address on Aleo blockchain that corresponds to field element 0. Used as padding in Merkle trees and as a sentinel value.
  */
-export const ZERO_ADDRESS = "aleo1qqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqq3ljyzc";
+export const ZERO_ADDRESS =
+    "aleo1qqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqq3ljyzc";
 export const FIVE_MINUTES = 5 * 60 * 1000; // 5 minutes in milliseconds
-

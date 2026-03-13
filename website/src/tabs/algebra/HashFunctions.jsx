@@ -1,5 +1,16 @@
 import { useEffect, useState } from "react";
-import { Card, Divider, Form, Input, Radio, Select, Button, Typography, Space, Collapse } from "antd";
+import {
+    Card,
+    Divider,
+    Form,
+    Input,
+    Radio,
+    Select,
+    Button,
+    Typography,
+    Space,
+    Collapse,
+} from "antd";
 import { CopyButton } from "../../components/CopyButton";
 import { useAleoWASM } from "../../aleo-wasm-hook";
 
@@ -64,7 +75,7 @@ export const HashFunctions = () => {
     const layout = {
         labelCol: { span: 6 },
         wrapperCol: { span: 18 },
-        style: { marginBottom: '24px' }
+        style: { marginBottom: "24px" },
     };
 
     const parseBits = (text) => {
@@ -74,8 +85,10 @@ export const HashFunctions = () => {
             .filter(Boolean)
             .map((t) => {
                 const lower = t.toLowerCase();
-                if (lower === "true" || lower === "t" || lower === "1") return true;
-                if (lower === "false" || lower === "f" || lower === "0") return false;
+                if (lower === "true" || lower === "t" || lower === "1")
+                    return true;
+                if (lower === "false" || lower === "f" || lower === "0")
+                    return false;
                 throw new Error(`Invalid bit '${t}'. Use true/false or 1/0`);
             });
     };
@@ -112,29 +125,50 @@ export const HashFunctions = () => {
 
             let hasher;
             switch (bhp) {
-                case "BHP256": hasher = new wasm.BHP256(); break;
-                case "BHP512": hasher = new wasm.BHP512(); break;
-                case "BHP768": hasher = new wasm.BHP768(); break;
-                case "BHP1024": hasher = new wasm.BHP1024(); break;
-                default: hasher = new wasm.BHP256();
+                case "BHP256":
+                    hasher = new wasm.BHP256();
+                    break;
+                case "BHP512":
+                    hasher = new wasm.BHP512();
+                    break;
+                case "BHP768":
+                    hasher = new wasm.BHP768();
+                    break;
+                case "BHP1024":
+                    hasher = new wasm.BHP1024();
+                    break;
+                default:
+                    hasher = new wasm.BHP256();
             }
 
             let out;
             switch (bhpOp) {
                 case "hash":
-                    out = hasher.hash(bytesFromFieldsLe(parseFields(finiteFieldCsv)));
+                    out = hasher.hash(
+                        bytesFromFieldsLe(parseFields(finiteFieldCsv)),
+                    );
                     break;
                 case "hashToGroup":
-                    out = hasher.hashToGroup(bytesFromFieldsLe(parseFields(finiteFieldCsv)));
+                    out = hasher.hashToGroup(
+                        bytesFromFieldsLe(parseFields(finiteFieldCsv)),
+                    );
                     break;
                 case "commit":
-                    out = hasher.commit(bytesFromFieldsLe(parseFields(finiteFieldCsv)), scalar.clone());
+                    out = hasher.commit(
+                        bytesFromFieldsLe(parseFields(finiteFieldCsv)),
+                        scalar.clone(),
+                    );
                     break;
                 case "commitToGroup":
-                    out = hasher.commitToGroup(bytesFromFieldsLe(parseFields(finiteFieldCsv)), scalar.clone());
+                    out = hasher.commitToGroup(
+                        bytesFromFieldsLe(parseFields(finiteFieldCsv)),
+                        scalar.clone(),
+                    );
                     break;
                 default:
-                    out = hasher.hash(bytesFromFieldsLe(parseFields(finiteFieldCsv)));
+                    out = hasher.hash(
+                        bytesFromFieldsLe(parseFields(finiteFieldCsv)),
+                    );
             }
             setResult(out.toString());
         } catch (e) {
@@ -152,9 +186,14 @@ export const HashFunctions = () => {
 
             let hasher;
             switch (pedersen) {
-                case "Pedersen64": hasher = new wasm.Pedersen64(); break;
-                case "Pedersen128": hasher = new wasm.Pedersen128(); break;
-                default: hasher = new wasm.Pedersen64();
+                case "Pedersen64":
+                    hasher = new wasm.Pedersen64();
+                    break;
+                case "Pedersen128":
+                    hasher = new wasm.Pedersen128();
+                    break;
+                default:
+                    hasher = new wasm.Pedersen64();
             }
 
             let out;
@@ -185,10 +224,17 @@ export const HashFunctions = () => {
             const fields = parseFields(finiteFieldCsv);
             let hasher;
             switch (poseidon) {
-                case "Poseidon2": hasher = new wasm.Poseidon2(); break;
-                case "Poseidon4": hasher = new wasm.Poseidon4(); break;
-                case "Poseidon8": hasher = new wasm.Poseidon8(); break;
-                default: hasher = new wasm.Poseidon2();
+                case "Poseidon2":
+                    hasher = new wasm.Poseidon2();
+                    break;
+                case "Poseidon4":
+                    hasher = new wasm.Poseidon4();
+                    break;
+                case "Poseidon8":
+                    hasher = new wasm.Poseidon8();
+                    break;
+                default:
+                    hasher = new wasm.Poseidon2();
             }
 
             let out;
@@ -204,8 +250,14 @@ export const HashFunctions = () => {
                     break;
                 case "hashMany":
                     {
-                        const n = Math.max(1, parseInt(hashManyChunkSize || "2", 10));
-                        const arr = hasher.hashMany(fields.map((f) => f.clone()), n);
+                        const n = Math.max(
+                            1,
+                            parseInt(hashManyChunkSize || "2", 10),
+                        );
+                        const arr = hasher.hashMany(
+                            fields.map((f) => f.clone()),
+                            n,
+                        );
                         out = `[${arr.map((f) => f.toString()).join(", ")}]`;
                     }
                     break;
@@ -245,7 +297,7 @@ export const HashFunctions = () => {
         } else {
             computePoseidon();
         }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [
         wasm,
         family,
@@ -273,7 +325,11 @@ export const HashFunctions = () => {
             const encoder = new TextEncoder();
             const utf8 = encoder.encode(text || "");
             const fields = [];
-            for (let i = 0; i < utf8.length || (utf8.length === 0 && i === 0); i += 31) {
+            for (
+                let i = 0;
+                i < utf8.length || (utf8.length === 0 && i === 0);
+                i += 31
+            ) {
                 const chunk = utf8.subarray(i, Math.min(i + 31, utf8.length));
                 const padded = new Uint8Array(32);
                 padded.set(chunk);
@@ -299,9 +355,11 @@ export const HashFunctions = () => {
         for (let i = 0; i < bytes.length; i++) {
             const b = bytes[i];
             if (order === "le") {
-                for (let bit = 0; bit < 8; bit++) out.push(((b >> bit) & 1) === 1);
+                for (let bit = 0; bit < 8; bit++)
+                    out.push(((b >> bit) & 1) === 1);
             } else {
-                for (let bit = 7; bit >= 0; bit--) out.push(((b >> bit) & 1) === 1);
+                for (let bit = 7; bit >= 0; bit--)
+                    out.push(((b >> bit) & 1) === 1);
             }
         }
         return out;
@@ -327,26 +385,64 @@ export const HashFunctions = () => {
         if (family === "BHP") {
             return (
                 <>
-                    <Form.Item label={<span style={{ whiteSpace: 'nowrap' }}>Hasher</span>} colon={false} style={{ marginBottom: '24px' }}>
-                        <Select value={bhp} onChange={setBhp} options={BHP_OPTIONS} size="large" />
+                    <Form.Item
+                        label={
+                            <span style={{ whiteSpace: "nowrap" }}>Hasher</span>
+                        }
+                        colon={false}
+                        style={{ marginBottom: "24px" }}
+                    >
+                        <Select
+                            value={bhp}
+                            onChange={setBhp}
+                            options={BHP_OPTIONS}
+                            size="large"
+                        />
                     </Form.Item>
-                    <Form.Item label={<span style={{ whiteSpace: 'nowrap' }}>String → Fields</span>} colon={false} style={{ marginBottom: '24px' }}>
+                    <Form.Item
+                        label={
+                            <span style={{ whiteSpace: "nowrap" }}>
+                                String → Fields
+                            </span>
+                        }
+                        colon={false}
+                        style={{ marginBottom: "24px" }}
+                    >
                         <Collapse>
-                            <Collapse.Panel header="String → Fields (optional)" key="strFieldsBHP">
-                                <Space direction="vertical" style={{ width: '100%' }}>
-                                    <Text>Enter a string to convert into 31-byte field limbs. This will populate the Fields input.</Text>
+                            <Collapse.Panel
+                                header="String → Fields (optional)"
+                                key="strFieldsBHP"
+                            >
+                                <Space
+                                    direction="vertical"
+                                    style={{ width: "100%" }}
+                                >
+                                    <Text>
+                                        Enter a string to convert into 31-byte
+                                        field limbs. This will populate the
+                                        Fields input.
+                                    </Text>
                                     <Input
                                         size="large"
                                         placeholder="Enter any UTF-8 string"
                                         value={stringInput}
-                                        onChange={(e) => { setStringInput(e.target.value); encodeStringToFieldsFrom(e.target.value); }}
+                                        onChange={(e) => {
+                                            setStringInput(e.target.value);
+                                            encodeStringToFieldsFrom(
+                                                e.target.value,
+                                            );
+                                        }}
                                         allowClear
                                     />
                                     {stringFieldsPreview ? (
                                         <Input
                                             size="large"
                                             value={stringFieldsPreview}
-                                            addonAfter={<CopyButton data={stringFieldsPreview} />}
+                                            addonAfter={
+                                                <CopyButton
+                                                    data={stringFieldsPreview}
+                                                />
+                                            }
                                             disabled
                                         />
                                     ) : null}
@@ -354,30 +450,60 @@ export const HashFunctions = () => {
                             </Collapse.Panel>
                         </Collapse>
                     </Form.Item>
-                    <Form.Item label={<span style={{ whiteSpace: 'nowrap' }}>Operation</span>} colon={false} style={{ marginBottom: '24px' }}>
-                        <Radio.Group value={bhpOp} onChange={(e) => setBhpOp(e.target.value)} size="large">
+                    <Form.Item
+                        label={
+                            <span style={{ whiteSpace: "nowrap" }}>
+                                Operation
+                            </span>
+                        }
+                        colon={false}
+                        style={{ marginBottom: "24px" }}
+                    >
+                        <Radio.Group
+                            value={bhpOp}
+                            onChange={(e) => setBhpOp(e.target.value)}
+                            size="large"
+                        >
                             <Radio.Button value="hash">Hash</Radio.Button>
-                            <Radio.Button value="hashToGroup">Hash → Group</Radio.Button>
+                            <Radio.Button value="hashToGroup">
+                                Hash → Group
+                            </Radio.Button>
                             <Radio.Button value="commit">Commit</Radio.Button>
-                            <Radio.Button value="commitToGroup">Commit → Group</Radio.Button>
+                            <Radio.Button value="commitToGroup">
+                                Commit → Group
+                            </Radio.Button>
                         </Radio.Group>
                     </Form.Item>
-                    <Form.Item label={<span style={{ whiteSpace: 'nowrap' }}>Inputs</span>} colon={false} style={{ marginBottom: '24px' }}>
-                        <Space direction="vertical" style={{ width: '100%' }}>
-                            <Text>Enter Field elements (comma-separated). Example: 1, 2, 3</Text>
+                    <Form.Item
+                        label={
+                            <span style={{ whiteSpace: "nowrap" }}>Inputs</span>
+                        }
+                        colon={false}
+                        style={{ marginBottom: "24px" }}
+                    >
+                        <Space direction="vertical" style={{ width: "100%" }}>
+                            <Text>
+                                Enter Field elements (comma-separated). Example:
+                                1, 2, 3
+                            </Text>
                             <Input
                                 size="large"
                                 placeholder="e.g. 1, 2, 3, 4"
                                 value={finiteFieldCsv}
-                                onChange={(e) => setFiniteFieldCsv(e.target.value)}
+                                onChange={(e) =>
+                                    setFiniteFieldCsv(e.target.value)
+                                }
                                 allowClear
                             />
-                            {(bhpOp === "commit" || bhpOp === "commitToGroup") && (
+                            {(bhpOp === "commit" ||
+                                bhpOp === "commitToGroup") && (
                                 <Input
                                     size="large"
                                     placeholder="Scalar (e.g. 5)"
                                     value={scalarInput}
-                                    onChange={(e) => setScalarInput(e.target.value)}
+                                    onChange={(e) =>
+                                        setScalarInput(e.target.value)
+                                    }
                                     allowClear
                                 />
                             )}
@@ -390,46 +516,111 @@ export const HashFunctions = () => {
         if (family === "Pedersen") {
             return (
                 <>
-                    <Form.Item label={<span style={{ whiteSpace: 'nowrap' }}>Hasher</span>} colon={false} style={{ marginBottom: '24px' }}>
-                        <Select value={pedersen} onChange={setPedersen} options={PEDERSEN_OPTIONS} size="large" />
+                    <Form.Item
+                        label={
+                            <span style={{ whiteSpace: "nowrap" }}>Hasher</span>
+                        }
+                        colon={false}
+                        style={{ marginBottom: "24px" }}
+                    >
+                        <Select
+                            value={pedersen}
+                            onChange={setPedersen}
+                            options={PEDERSEN_OPTIONS}
+                            size="large"
+                        />
                     </Form.Item>
-                    <Form.Item label={<span style={{ whiteSpace: 'nowrap' }}>String → Bits</span>} colon={false} style={{ marginBottom: '24px' }}>
-                        <Space direction="vertical" style={{ width: '100%' }}>
-                            <Text>Enter a string to convert to UTF-8 bytes and then to a bit array for Pedersen.</Text>
+                    <Form.Item
+                        label={
+                            <span style={{ whiteSpace: "nowrap" }}>
+                                String → Bits
+                            </span>
+                        }
+                        colon={false}
+                        style={{ marginBottom: "24px" }}
+                    >
+                        <Space direction="vertical" style={{ width: "100%" }}>
+                            <Text>
+                                Enter a string to convert to UTF-8 bytes and
+                                then to a bit array for Pedersen.
+                            </Text>
                             <Input
                                 size="large"
                                 placeholder="Enter any UTF-8 string"
                                 value={bitsStringInput}
-                                onChange={(e) => setBitsStringInput(e.target.value)}
+                                onChange={(e) =>
+                                    setBitsStringInput(e.target.value)
+                                }
                                 allowClear
                             />
                             <Space>
-                                <Radio.Group value={bitOrder} onChange={(e) => setBitOrder(e.target.value)} size="large">
-                                    <Radio.Button value="le">Per-byte: Little Endian</Radio.Button>
-                                    <Radio.Button value="be">Per-byte: Big Endian</Radio.Button>
+                                <Radio.Group
+                                    value={bitOrder}
+                                    onChange={(e) =>
+                                        setBitOrder(e.target.value)
+                                    }
+                                    size="large"
+                                >
+                                    <Radio.Button value="le">
+                                        Per-byte: Little Endian
+                                    </Radio.Button>
+                                    <Radio.Button value="be">
+                                        Per-byte: Big Endian
+                                    </Radio.Button>
                                 </Radio.Group>
-                                <Button size="large" onClick={encodeStringToBits} disabled={!wasm}>Convert & Fill</Button>
+                                <Button
+                                    size="large"
+                                    onClick={encodeStringToBits}
+                                    disabled={!wasm}
+                                >
+                                    Convert & Fill
+                                </Button>
                             </Space>
                             {bitsPreview ? (
                                 <Input
                                     size="large"
                                     value={bitsPreview}
-                                    addonAfter={<CopyButton data={bitsPreview} />}
+                                    addonAfter={
+                                        <CopyButton data={bitsPreview} />
+                                    }
                                     disabled
                                 />
                             ) : null}
                         </Space>
                     </Form.Item>
-                    <Form.Item label={<span style={{ whiteSpace: 'nowrap' }}>Operation</span>} colon={false} style={{ marginBottom: '24px' }}>
-                        <Radio.Group value={pedersenOp} onChange={(e) => setPedersenOp(e.target.value)} size="large">
+                    <Form.Item
+                        label={
+                            <span style={{ whiteSpace: "nowrap" }}>
+                                Operation
+                            </span>
+                        }
+                        colon={false}
+                        style={{ marginBottom: "24px" }}
+                    >
+                        <Radio.Group
+                            value={pedersenOp}
+                            onChange={(e) => setPedersenOp(e.target.value)}
+                            size="large"
+                        >
                             <Radio.Button value="hash">Hash</Radio.Button>
                             <Radio.Button value="commit">Commit</Radio.Button>
-                            <Radio.Button value="commitToGroup">Commit → Group</Radio.Button>
+                            <Radio.Button value="commitToGroup">
+                                Commit → Group
+                            </Radio.Button>
                         </Radio.Group>
                     </Form.Item>
-                    <Form.Item label={<span style={{ whiteSpace: 'nowrap' }}>Inputs</span>} colon={false} style={{ marginBottom: '24px' }}>
-                        <Space direction="vertical" style={{ width: '100%' }}>
-                            <Text>Enter bits as comma-separated values. Example: 1,0,0,1,1</Text>
+                    <Form.Item
+                        label={
+                            <span style={{ whiteSpace: "nowrap" }}>Inputs</span>
+                        }
+                        colon={false}
+                        style={{ marginBottom: "24px" }}
+                    >
+                        <Space direction="vertical" style={{ width: "100%" }}>
+                            <Text>
+                                Enter bits as comma-separated values. Example:
+                                1,0,0,1,1
+                            </Text>
                             <Input
                                 size="large"
                                 placeholder="e.g. true, false, 1, 0, 1, 0"
@@ -437,12 +628,15 @@ export const HashFunctions = () => {
                                 onChange={(e) => setBitsInput(e.target.value)}
                                 allowClear
                             />
-                            {(pedersenOp === "commit" || pedersenOp === "commitToGroup") && (
+                            {(pedersenOp === "commit" ||
+                                pedersenOp === "commitToGroup") && (
                                 <Input
                                     size="large"
                                     placeholder="Scalar (e.g. 5)"
                                     value={scalarInput}
-                                    onChange={(e) => setScalarInput(e.target.value)}
+                                    onChange={(e) =>
+                                        setScalarInput(e.target.value)
+                                    }
                                     allowClear
                                 />
                             )}
@@ -455,26 +649,61 @@ export const HashFunctions = () => {
         // Poseidon
         return (
             <>
-                <Form.Item label={<span style={{ whiteSpace: 'nowrap' }}>Hasher</span>} colon={false} style={{ marginBottom: '24px' }}>
-                    <Select value={poseidon} onChange={setPoseidon} options={POSEIDON_OPTIONS} size="large" />
+                <Form.Item
+                    label={<span style={{ whiteSpace: "nowrap" }}>Hasher</span>}
+                    colon={false}
+                    style={{ marginBottom: "24px" }}
+                >
+                    <Select
+                        value={poseidon}
+                        onChange={setPoseidon}
+                        options={POSEIDON_OPTIONS}
+                        size="large"
+                    />
                 </Form.Item>
-                <Form.Item label={<span style={{ whiteSpace: 'nowrap' }}>String → Fields</span>} colon={false} style={{ marginBottom: '24px' }}>
+                <Form.Item
+                    label={
+                        <span style={{ whiteSpace: "nowrap" }}>
+                            String → Fields
+                        </span>
+                    }
+                    colon={false}
+                    style={{ marginBottom: "24px" }}
+                >
                     <Collapse>
-                        <Collapse.Panel header="String → Fields (optional)" key="strFieldsPoseidon">
-                            <Space direction="vertical" style={{ width: '100%' }}>
-                                <Text>Enter a string to convert into 31-byte field limbs. This will populate the Fields input.</Text>
+                        <Collapse.Panel
+                            header="String → Fields (optional)"
+                            key="strFieldsPoseidon"
+                        >
+                            <Space
+                                direction="vertical"
+                                style={{ width: "100%" }}
+                            >
+                                <Text>
+                                    Enter a string to convert into 31-byte field
+                                    limbs. This will populate the Fields input.
+                                </Text>
                                 <Input
                                     size="large"
                                     placeholder="Enter any UTF-8 string"
                                     value={stringInput}
-                                    onChange={(e) => { setStringInput(e.target.value); encodeStringToFieldsFrom(e.target.value); }}
+                                    onChange={(e) => {
+                                        setStringInput(e.target.value);
+                                        encodeStringToFieldsFrom(
+                                            e.target.value,
+                                        );
+                                    }}
                                     allowClear
                                 />
                                 {stringFieldsPreview ? (
                                     <Input
                                         size="large"
                                         value={stringFieldsPreview}
-                                        addonAfter={<CopyButton data={stringFieldsPreview} />}
+                                        addonAfter={
+                                            <CopyButton
+                                                data={stringFieldsPreview}
+                                            />
+                                        }
                                         disabled
                                     />
                                 ) : null}
@@ -482,17 +711,38 @@ export const HashFunctions = () => {
                         </Collapse.Panel>
                     </Collapse>
                 </Form.Item>
-                <Form.Item label={<span style={{ whiteSpace: 'nowrap' }}>Operation</span>} colon={false} style={{ marginBottom: '24px' }}>
-                    <Radio.Group value={poseidonOp} onChange={(e) => setPoseidonOp(e.target.value)} size="large">
+                <Form.Item
+                    label={
+                        <span style={{ whiteSpace: "nowrap" }}>Operation</span>
+                    }
+                    colon={false}
+                    style={{ marginBottom: "24px" }}
+                >
+                    <Radio.Group
+                        value={poseidonOp}
+                        onChange={(e) => setPoseidonOp(e.target.value)}
+                        size="large"
+                    >
                         <Radio.Button value="hash">Hash</Radio.Button>
-                        <Radio.Button value="hashToScalar">Hash → Scalar</Radio.Button>
-                        <Radio.Button value="hashToGroup">Hash → Group</Radio.Button>
+                        <Radio.Button value="hashToScalar">
+                            Hash → Scalar
+                        </Radio.Button>
+                        <Radio.Button value="hashToGroup">
+                            Hash → Group
+                        </Radio.Button>
                         <Radio.Button value="hashMany">Hash Many</Radio.Button>
                     </Radio.Group>
                 </Form.Item>
-                <Form.Item label={<span style={{ whiteSpace: 'nowrap' }}>Inputs</span>} colon={false} style={{ marginBottom: '24px' }}>
-                    <Space direction="vertical" style={{ width: '100%' }}>
-                        <Text>Enter Field elements (comma-separated). Example: 1, 2, 3</Text>
+                <Form.Item
+                    label={<span style={{ whiteSpace: "nowrap" }}>Inputs</span>}
+                    colon={false}
+                    style={{ marginBottom: "24px" }}
+                >
+                    <Space direction="vertical" style={{ width: "100%" }}>
+                        <Text>
+                            Enter Field elements (comma-separated). Example: 1,
+                            2, 3
+                        </Text>
                         <Input
                             size="large"
                             placeholder="e.g. 1, 2, 3, 4"
@@ -505,7 +755,9 @@ export const HashFunctions = () => {
                                 size="large"
                                 placeholder="Chunk size (e.g. 2)"
                                 value={hashManyChunkSize}
-                                onChange={(e) => setHashManyChunkSize(e.target.value)}
+                                onChange={(e) =>
+                                    setHashManyChunkSize(e.target.value)
+                                }
                             />
                         )}
                     </Space>
@@ -517,10 +769,20 @@ export const HashFunctions = () => {
     return (
         <Card title="Hash Functions" style={{ width: "100%" }}>
             <Form {...layout}>
-                <Form.Item label={<span style={{ whiteSpace: 'nowrap' }}>Family</span>} colon={false} style={{ marginBottom: '24px' }}>
-                    <Radio.Group value={family} onChange={(e) => setFamily(e.target.value)} size="large">
+                <Form.Item
+                    label={<span style={{ whiteSpace: "nowrap" }}>Family</span>}
+                    colon={false}
+                    style={{ marginBottom: "24px" }}
+                >
+                    <Radio.Group
+                        value={family}
+                        onChange={(e) => setFamily(e.target.value)}
+                        size="large"
+                    >
                         {HASHER_FAMILIES.map((f) => (
-                            <Radio.Button key={f.value} value={f.value}>{f.label}</Radio.Button>
+                            <Radio.Button key={f.value} value={f.value}>
+                                {f.label}
+                            </Radio.Button>
                         ))}
                     </Radio.Group>
                 </Form.Item>
@@ -529,12 +791,22 @@ export const HashFunctions = () => {
 
                 <Divider />
                 {error ? (
-                    <Form.Item label={<span style={{ whiteSpace: 'nowrap' }}>Error</span>} colon={false} style={{ marginBottom: '24px' }}>
+                    <Form.Item
+                        label={
+                            <span style={{ whiteSpace: "nowrap" }}>Error</span>
+                        }
+                        colon={false}
+                        style={{ marginBottom: "24px" }}
+                    >
                         <Input size="large" value={error} disabled />
                     </Form.Item>
                 ) : null}
 
-                <Form.Item label={<span style={{ whiteSpace: 'nowrap' }}>Result</span>} colon={false} style={{ marginBottom: '24px' }}>
+                <Form.Item
+                    label={<span style={{ whiteSpace: "nowrap" }}>Result</span>}
+                    colon={false}
+                    style={{ marginBottom: "24px" }}
+                >
                     <Input
                         size="large"
                         placeholder="Result will appear here"
@@ -551,4 +823,3 @@ export const HashFunctions = () => {
 };
 
 export default HashFunctions;
-

@@ -2,8 +2,8 @@
 
 ## Scaffolding Your First Aleo Project
 
-> **Compatibility Note:**
-> Please use [Node.js](https://nodejs.org/en/) version 18+
+> **Compatibility Note:** Please use [Node.js](https://nodejs.org/en/) version
+> 18+
 
 With NPM:
 
@@ -13,7 +13,9 @@ npm create leo-app@latest
 
 Then follow the prompts!
 
-You can also directly specify the project name and template you want to use via additional command line options. For example, to scaffold a Leo project using the Vanilla JavaScript template, run:
+You can also directly specify the project name and template you want to use via
+additional command line options. For example, to scaffold a Leo project using
+the Vanilla JavaScript template, run:
 
 ```bash
 # npm 6.x
@@ -33,4 +35,5 @@ You can use `.` for the project name to scaffold in the current directory.
 
 ## More Information
 
-Based off of create-vite: https://github.com/vitejs/vite/tree/main/packages/create-vite
+Based off of create-vite:
+https://github.com/vitejs/vite/tree/main/packages/create-vite

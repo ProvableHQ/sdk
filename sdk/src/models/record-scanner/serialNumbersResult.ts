@@ -15,4 +15,3 @@ export interface SerialNumbersSuccess {
  * Success or failure variant of serialNumbers() result.
  */
 export type SerialNumbersResult = SerialNumbersSuccess | RecordScannerFailure;
-

@@ -13,7 +13,9 @@ describe("RecordScanner", () => {
         const result = await recordScanner.register(viewKey, 0);
         expect(result.ok).to.equal(true);
         if (result.ok) {
-            expect(result.data.uuid).to.equal(recordScanner.computeUUID(viewKey).toString());
+            expect(result.data.uuid).to.equal(
+                recordScanner.computeUUID(viewKey).toString(),
+            );
         }
     });
 
@@ -30,7 +32,7 @@ describe("RecordScanner", () => {
                 program_name: true,
                 record_name: true,
                 commitment: true,
-            }
+            },
         });
         expect(response.length).to.equal(9);
         for (const record of response) {
@@ -104,8 +106,10 @@ describe("RecordScanner", () => {
             "1050894655374138905808887909092891940183499902306462627909572997011712750387field",
         ]);
         expect(response).to.deep.equal({
-            "2497968624879919117393326048350070098671407363450098197552864797993755823036field": false,
-            "1050894655374138905808887909092891940183499902306462627909572997011712750387field": false,
+            "2497968624879919117393326048350070098671407363450098197552864797993755823036field":
+                false,
+            "1050894655374138905808887909092891940183499902306462627909572997011712750387field":
+                false,
         });
     });
 
@@ -115,8 +119,10 @@ describe("RecordScanner", () => {
             "448505083045691117285710413252063292683250969684463991322463606849073525242field",
         ]);
         expect(response).to.deep.equal({
-            "2726311268578079710210289900019159614843633435399431654197596897028642765098field": false,
-            "448505083045691117285710413252063292683250969684463991322463606849073525242field": false,
+            "2726311268578079710210289900019159614843633435399431654197596897028642765098field":
+                false,
+            "448505083045691117285710413252063292683250969684463991322463606849073525242field":
+                false,
         });
     });
 
@@ -127,5 +133,5 @@ describe("RecordScanner", () => {
             expect(response.data.synced).to.be.instanceOf(Boolean);
             expect(response.data.percentage).to.be.instanceOf(Number);
         }
-    })
+    });
 });

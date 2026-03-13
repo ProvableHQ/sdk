@@ -1,21 +1,33 @@
-import {Account, AleoKeyProvider, AleoKeyProviderParams, initThreadPool, ProgramManager, PrivateKey} from "@provablehq/sdk";
+import {
+    Account,
+    AleoKeyProvider,
+    AleoKeyProviderParams,
+    initThreadPool,
+    ProgramManager,
+    PrivateKey,
+} from "@provablehq/sdk";
 
 import * as process from "node:process";
 
 // await initThreadPool();
 
-const programName = "hello_hello.aleo"
+const programName = "hello_hello.aleo";
 
-const hello_hello_program =`
+const hello_hello_program = `
 program ${programName};
 
 function hello:
     input r0 as u32.public;
     input r1 as u32.private;
     add r0 r1 into r2;
-    output r2 as u32.private;`
+    output r2 as u32.private;`;
 
-async function localProgramExecution(program, programName, functionName, inputs) {
+async function localProgramExecution(
+    program,
+    programName,
+    functionName,
+    inputs,
+) {
     const programManager = new ProgramManager();
 
     // Create a temporary account for the execution of the program
@@ -29,12 +41,21 @@ async function localProgramExecution(program, programName, functionName, inputs)
 
     // Pre-synthesize the program keys and then cache them in memory using key provider.
     console.log("Synthesizing hello_hello/hello keys");
-    const keyPair = await programManager.synthesizeKeys(hello_hello_program, functionName, inputs);
-    programManager.keyProvider.cacheKeys(`${programName}:${functionName}`, keyPair);
+    const keyPair = await programManager.synthesizeKeys(
+        hello_hello_program,
+        functionName,
+        inputs,
+    );
+    programManager.keyProvider.cacheKeys(
+        `${programName}:${functionName}`,
+        keyPair,
+    );
 
     // Specify parameters for the key provider to use search for program keys. In particular specify the cache key
     // that was used to cache the keys in the previous step.
-    const keyProviderParams = new AleoKeyProviderParams({cacheKey: `${programName}:${functionName}`});
+    const keyProviderParams = new AleoKeyProviderParams({
+        cacheKey: `${programName}:${functionName}`,
+    });
 
     // Execute once using the key provider params defined above. This will use the cached proving keys and make
     // execution significantly faster.
@@ -47,13 +68,16 @@ async function localProgramExecution(program, programName, functionName, inputs)
         undefined,
         keyProviderParams,
     );
-    console.log("hello_hello/hello executed - result:", executionResponse.getOutputs());
+    console.log(
+        "hello_hello/hello executed - result:",
+        executionResponse.getOutputs(),
+    );
 
     // Verify the execution using the verifying key that was generated earlier.
     if (programManager.verifyExecution(executionResponse, 9_000_000)) {
         console.log("hello_hello/hello execution verified!");
     } else {
-        throw("Execution failed verification!");
+        throw "Execution failed verification!";
     }
 }
 
@@ -63,19 +87,20 @@ async function remoteProgramExecution(programName, functionName, inputs) {
     const keyProvider = new AleoKeyProvider();
     keyProvider.useCache(true);
 
-    const programManager = new ProgramManager("http://34.169.215.4:3030", keyProvider);
-
-    const tx = await programManager.buildExecutionTransaction(
-        {
-            programName,
-            functionName,
-            priorityFee: 0,
-            privateFee: false,
-            inputs,
-            privateKey: PrivateKey.from_string(process.env["PUZZLE_PK"])
-        }
+    const programManager = new ProgramManager(
+        "http://34.169.215.4:3030",
+        keyProvider,
     );
-    console.log("Resulting transaction")
+
+    const tx = await programManager.buildExecutionTransaction({
+        programName,
+        functionName,
+        priorityFee: 0,
+        privateFee: false,
+        inputs,
+        privateKey: PrivateKey.from_string(process.env["PUZZLE_PK"]),
+    });
+    console.log("Resulting transaction");
 }
 
 // const start = Date.now();

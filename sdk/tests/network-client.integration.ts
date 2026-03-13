@@ -1,61 +1,114 @@
 import { expect } from "chai";
-import {beaconAddressString, beaconPrivateKeyString} from "./data/account-data.js";
-import {Account, AleoNetworkClient} from "../src/browser.js";
+import {
+    beaconAddressString,
+    beaconPrivateKeyString,
+} from "./data/account-data.js";
+import { Account, AleoNetworkClient } from "../src/browser.js";
 
-describe('NodeConnection', () => {
+describe("NodeConnection", () => {
     let localApiClient: AleoNetworkClient;
     let remoteApiClientWithPrivateKey: AleoNetworkClient;
 
     beforeEach(() => {
         localApiClient = new AleoNetworkClient("http://0.0.0.0:3030");
-        remoteApiClientWithPrivateKey = new AleoNetworkClient("http://0.0.0.0:3030");
-        remoteApiClientWithPrivateKey.setAccount(new Account({privateKey: beaconPrivateKeyString}));
+        remoteApiClientWithPrivateKey = new AleoNetworkClient(
+            "http://0.0.0.0:3030",
+        );
+        remoteApiClientWithPrivateKey.setAccount(
+            new Account({ privateKey: beaconPrivateKeyString }),
+        );
     });
 
-    describe('findUnspentRecords', () => {
-
+    describe("findUnspentRecords", () => {
         // Integration tests to be run with a local node (run with -s flag)
-        it('should find records', async () => {
-            const records = await localApiClient.findUnspentRecords(0, undefined, undefined, undefined, undefined, []);
+        it("should find records", async () => {
+            const records = await localApiClient.findUnspentRecords(
+                0,
+                undefined,
+                undefined,
+                undefined,
+                undefined,
+                [],
+            );
             expect(Array.isArray(records)).equal(true);
             if (!(records instanceof Error)) {
                 expect(records.length).above(0);
             }
         });
 
-        it('should find records when a private key is pre-configured', async () => {
-            const records = await remoteApiClientWithPrivateKey.findUnspentRecords(0, undefined, ["credits.aleo"], undefined, 100, []);
+        it("should find records when a private key is pre-configured", async () => {
+            const records =
+                await remoteApiClientWithPrivateKey.findUnspentRecords(
+                    0,
+                    undefined,
+                    ["credits.aleo"],
+                    undefined,
+                    100,
+                    [],
+                );
             expect(Array.isArray(records)).equal(true);
             if (!(records instanceof Error)) {
                 expect(records.length).above(0);
             }
         });
 
-        it('should find records even when block height specified is higher than current block height', async () => {
-            const records = await localApiClient.findUnspentRecords(0, 50000000000000, ["credits.aleo"], undefined, 100, [], beaconPrivateKeyString);
+        it("should find records even when block height specified is higher than current block height", async () => {
+            const records = await localApiClient.findUnspentRecords(
+                0,
+                50000000000000,
+                ["credits.aleo"],
+                undefined,
+                100,
+                [],
+                beaconPrivateKeyString,
+            );
             expect(Array.isArray(records)).equal(true);
             if (!(records instanceof Error)) {
                 expect(records.length).above(0);
             }
         });
 
-        it('should find records with specified amounts', async () => {
-            let records = await localApiClient.findUnspentRecords(0, 3, ["credits.aleo"], [100, 200], undefined, [], beaconPrivateKeyString);
+        it("should find records with specified amounts", async () => {
+            let records = await localApiClient.findUnspentRecords(
+                0,
+                3,
+                ["credits.aleo"],
+                [100, 200],
+                undefined,
+                [],
+                beaconPrivateKeyString,
+            );
             expect(Array.isArray(records)).equal(true);
             if (!(records instanceof Error)) {
                 expect(records.length).equal(2);
             }
 
-            records = await localApiClient.findUnspentRecords(0, undefined, ["credits.aleo"], undefined, 1000, [], beaconPrivateKeyString);
+            records = await localApiClient.findUnspentRecords(
+                0,
+                undefined,
+                ["credits.aleo"],
+                undefined,
+                1000,
+                [],
+                beaconPrivateKeyString,
+            );
             expect(Array.isArray(records)).equal(true);
             if (!(records instanceof Error)) {
                 expect(records.length).above(0);
             }
         });
 
-        it('should not find records with existing nonces', async () => {
+        it("should not find records with existing nonces", async () => {
             const nonces: string[] = [];
-            const records = await localApiClient.findUnspentRecords(0, 3, ["credits.aleo"], [100, 200], undefined, [], beaconPrivateKeyString);
+            const records = await localApiClient.findUnspentRecords(
+                0,
+                3,
+                ["credits.aleo"],
+                [100, 200],
+                undefined,
+                [],
+                beaconPrivateKeyString,
+            );
             expect(Array.isArray(records)).equal(true);
 
             // Find two records and store their nonces
@@ -66,7 +119,15 @@ describe('NodeConnection', () => {
                     nonces.push(record.nonce());
                 });
                 // Check the next records found do not have the same nonces
-                const new_records = await localApiClient.findUnspentRecords(0, 3, ["credits.aleo"], [100, 200], undefined, nonces, undefined);
+                const new_records = await localApiClient.findUnspentRecords(
+                    0,
+                    3,
+                    ["credits.aleo"],
+                    [100, 200],
+                    undefined,
+                    nonces,
+                    undefined,
+                );
                 expect(Array.isArray(records)).equal(true);
                 if (!(new_records instanceof Error)) {
                     expect(new_records.length).equal(2);

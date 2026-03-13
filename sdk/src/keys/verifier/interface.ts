@@ -9,7 +9,6 @@ export interface KeyFingerprint {
     size: number;
 }
 
-
 /**
  * Options for verifying the integrity of proving and verifying keys. An identifier to allow the interface to find key metadata and/or the desired metadata to verify must be passed in.
  *
@@ -42,10 +41,10 @@ export class KeyVerificationError extends Error {
         public readonly locator: string,
         public readonly field: "checksum" | "size",
         public readonly expected: string,
-        public readonly actual: string
+        public readonly actual: string,
     ) {
         super(
-            `Key verification ${locator} ${field} mismatch: expected ${expected}, got ${actual}`
+            `Key verification ${locator} ${field} mismatch: expected ${expected}, got ${actual}`,
         );
         this.name = "ChecksumMismatchError";
         Object.setPrototypeOf(this, KeyVerificationError.prototype);

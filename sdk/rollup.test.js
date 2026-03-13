@@ -3,10 +3,7 @@ import replace from "@rollup/plugin-replace";
 import { globSync } from "glob";
 import $package from "./package.json" with { type: "json" };
 
-const networks = [
-    "testnet",
-    "mainnet",
-];
+const networks = ["testnet", "mainnet"];
 
 function inputs() {
     const files = {};
@@ -49,10 +46,10 @@ export default networks.map((network) => {
         plugins: [
             replace({
                 preventAssignment: true,
-                delimiters: ['', ''],
+                delimiters: ["", ""],
                 values: {
-                    '%%VERSION%%': $package.version,
-                    '%%NETWORK%%': network,
+                    "%%VERSION%%": $package.version,
+                    "%%NETWORK%%": network,
                 },
             }),
             typescript({

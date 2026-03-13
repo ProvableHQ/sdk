@@ -71,7 +71,7 @@ export const DecryptRecord = () => {
         setIsOwner(null);
     };
 
-    const layout = { labelCol: { span: 4 }, wrapperCol: { span: 21 }};
+    const layout = { labelCol: { span: 4 }, wrapperCol: { span: 21 } };
 
     if (aleo !== null) {
         const recordPlaintext = () =>
@@ -93,7 +93,7 @@ export const DecryptRecord = () => {
                         record is used, it’s consumed and can’t be reused.
                     </li>
                     <li>
-                        Functions can consume records as input and/or generate 
+                        Functions can consume records as input and/or generate
                         new records as output.
                     </li>
                     <li>
@@ -109,10 +109,10 @@ export const DecryptRecord = () => {
 
                 <br />
                 <p>
-                    Try the demo below! Enter a record and
-                    decrypt it using your View Key to experience how the process
-                    works. You can also click the "Show Demo" button on the
-                    right to generate an example.
+                    Try the demo below! Enter a record and decrypt it using your
+                    View Key to experience how the process works. You can also
+                    click the "Show Demo" button on the right to generate an
+                    example.
                 </p>
 
                 <br />

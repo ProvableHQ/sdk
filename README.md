@@ -4,11 +4,12 @@
     <a href="https://github.com/ProvableHQ/sdk#%EF%B8%8F-contributors"><img src="https://img.shields.io/badge/contributors-23-ee8449"/></a>
 </p>
 
-
 # Zero-Knowledge Web App SDK
 
-The [Provable SDK](https://github.com/ProvableHQ/sdk) provides tools for building zero-knowledge applications. It consists of
-several TypeScript & JavaScript libraries which provide the following functionality:
+The [Provable SDK](https://github.com/ProvableHQ/sdk) provides tools for
+building zero-knowledge applications. It consists of several TypeScript &
+JavaScript libraries which provide the following functionality:
+
 1. [Aleo account management](https://provable.tools/account)
 2. [Web-based program execution and deployment](https://provable.tools/develop)
 3. [Aleo credit transfers](https://provable.tools/transfer)
@@ -16,61 +17,79 @@ several TypeScript & JavaScript libraries which provide the following functional
 5. [Communication with the Aleo network](https://provable.tools/rest)
 6. [Aleo Cryptographic Primitives](https://provable.tools/algebra)
 
-All of this functionality is demonstrated on [Provable.tools](https://provable.tools).
-
+All of this functionality is demonstrated on
+[Provable.tools](https://provable.tools).
 
 The Provable SDK is divided into three TypeScript/JavaScript packages:
 
 ## 1. Provable SDK - Build Zero-Knowledge Web Apps
 
-<a href="https://www.npmjs.com/package/@provablehq/sdk"> <img alt="Provable SDK" src="https://img.shields.io/npm/l/%40provablehq%2Fsdk?label=NPM%20-%20Aleo%20SDK&labelColor=green&color=blue"></a>
+<a href="https://www.npmjs.com/package/@provablehq/sdk">
+<img alt="Provable SDK" src="https://img.shields.io/npm/l/%40provablehq%2Fsdk?label=NPM%20-%20Aleo%20SDK&labelColor=green&color=blue"></a>
 
-The official Provable SDK providing JavaScript/TypeScript tools for creating zero-knowledge applications.
+The official Provable SDK providing JavaScript/TypeScript tools for creating
+zero-knowledge applications.
 
 ### ⚡ Build your own app
 
-Start here with the [Provable SDK Readme](https://github.com/ProvableHQ/sdk#readme) to get started building your
-first zero-knowledge web app.
+Start here with the
+[Provable SDK Readme](https://github.com/ProvableHQ/sdk#readme) to get started
+building your first zero-knowledge web app.
 
 #### Source: [`Provable SDK`](https://www.npmjs.com/package/@provablehq/sdk)
 
 ## 2. Create-Leo-App - Zero-Knowledge Web App Examples
-<a href="https://www.npmjs.com/package/create-leo-app"> <img alt="Create Leo App" src="https://img.shields.io/npm/l/create-leo-app?label=NPM%20-%20Create-Leo-App&labelColor=green&color=blue"></a>
 
-Create-leo-app provides zero-knowledge web app examples in common web frameworks such as React. Developers looking to
-start with working examples should start here.
+<a href="https://www.npmjs.com/package/create-leo-app">
+<img alt="Create Leo App" src="https://img.shields.io/npm/l/create-leo-app?label=NPM%20-%20Create-Leo-App&labelColor=green&color=blue"></a>
+
+Create-leo-app provides zero-knowledge web app examples in common web frameworks
+such as React. Developers looking to start with working examples should start
+here.
 
 #### Source: [`sdk/create-leo-app`](https://github.com/ProvableHQ/sdk/tree/mainnet/create-leo-app)
 
 ## 3. Aleo Wasm - Zero-Knowledge Algorithms in JavaScript + WebAssembly
-<a href="https://www.npmjs.com/package/@provablehq/wasm"> <img alt="Create Leo App" src="https://img.shields.io/npm/l/%40provablehq%2Fwasm?label=NPM%20-%20Aleo%20Wasm&labelColor=green&color=blue"></a>
 
-Aleo Wasm is a Rust crate which compiles the Aleo source code responsible for creating and executing zero-knowledge programs into
-WebAssembly.
+<a href="https://www.npmjs.com/package/@provablehq/wasm">
+<img alt="Create Leo App" src="https://img.shields.io/npm/l/%40provablehq%2Fwasm?label=NPM%20-%20Aleo%20Wasm&labelColor=green&color=blue"></a>
 
-When compiled with `wasm-pack`, JavaScript bindings are generated for the WebAssembly allowing Aleo zero-knowledge programs to be used in the browser and Node.js. This package is available on NPM (linked above). The Aleo Wasm
-readme provides instructions for compiling this crate and using it in web projects for those interested in building from
-source.
+Aleo Wasm is a Rust crate which compiles the Aleo source code responsible for
+creating and executing zero-knowledge programs into WebAssembly.
+
+When compiled with `wasm-pack`, JavaScript bindings are generated for the
+WebAssembly allowing Aleo zero-knowledge programs to be used in the browser and
+Node.js. This package is available on NPM (linked above). The Aleo Wasm readme
+provides instructions for compiling this crate and using it in web projects for
+those interested in building from source.
 
 Source: [Aleo Wasm](https://www.npmjs.com/package/@provablehq/wasm)
 
 ## 📚 Documentation
 
 #### [API Documentation](https://developer.aleo.org/sdk/overview)
-API Documentation and tutorials for the Provable SDK can be found on the [SDK Developer Docs](https://developer.aleo.org/sdk/overview) page.
-Documentation on how to build Leo and Aleo Instructions programs can be found on the [Leo Developer Docs](https://docs.leo-lang.org/leo) page.
+
+API Documentation and tutorials for the Provable SDK can be found on the
+[SDK Developer Docs](https://developer.aleo.org/sdk/overview) page.
+Documentation on how to build Leo and Aleo Instructions programs can be found on
+the [Leo Developer Docs](https://docs.leo-lang.org/leo) page.
 
 #### [SDK Readme](https://github.com/ProvableHQ/sdk/tree/mainnet/sdk#readme)
-The SDK readme provides concepts core to executing zero-knowledge programs in the web and several detailed examples of
-how to use the SDK to build web apps using Aleo.
+
+The SDK readme provides concepts core to executing zero-knowledge programs in
+the web and several detailed examples of how to use the SDK to build web apps
+using Aleo.
 
 #### [Aleo Wasm Readme](https://github.com/ProvableHQ/sdk/tree/mainnet/wasm#readme)
-The Aleo Wasm readme provides instructions for compiling the Aleo Wasm crate and using it in web projects. Those who
-want to build from source or create their own WebAssembly bindings should start here.
+
+The Aleo Wasm readme provides instructions for compiling the Aleo Wasm crate and
+using it in web projects. Those who want to build from source or create their
+own WebAssembly bindings should start here.
 
 ## ❤️ Contributors
 
-Thanks goes to these wonderful people ([emoji key](https://allcontributors.org/docs/en/emoji-key)):
+Thanks goes to these wonderful people
+([emoji key](https://allcontributors.org/docs/en/emoji-key)):
 
 <!-- ALL-CONTRIBUTORS-LIST:START - Do not remove or modify this section -->
 <!-- prettier-ignore-start -->
@@ -126,4 +145,6 @@ Thanks goes to these wonderful people ([emoji key](https://allcontributors.org/d
 
 <!-- ALL-CONTRIBUTORS-LIST:END -->
 
-This project follows the [all-contributors](https://github.com/all-contributors/all-contributors) specification. Contributions of any kind welcome!
+This project follows the
+[all-contributors](https://github.com/all-contributors/all-contributors)
+specification. Contributions of any kind welcome!

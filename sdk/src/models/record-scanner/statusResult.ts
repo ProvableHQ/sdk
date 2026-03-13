@@ -13,4 +13,3 @@ export interface StatusSuccess {
 }
 
 export type StatusResult = StatusSuccess | RecordScannerFailure;
-

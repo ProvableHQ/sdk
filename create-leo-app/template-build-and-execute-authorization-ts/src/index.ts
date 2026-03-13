@@ -1,4 +1,9 @@
-import { AleoKeyProvider, PrivateKey, initThreadPool, ProgramManager } from "@provablehq/sdk";
+import {
+    AleoKeyProvider,
+    PrivateKey,
+    initThreadPool,
+    ProgramManager,
+} from "@provablehq/sdk";
 
 await initThreadPool();
 
@@ -7,7 +12,10 @@ const keyProvider = new AleoKeyProvider();
 keyProvider.useCache(true);
 
 // Initialize a program manager with the key provider to automatically fetch keys for executions.
-const programManager = new ProgramManager("https://api.provable.com/v2", keyProvider);
+const programManager = new ProgramManager(
+    "https://api.provable.com/v2",
+    keyProvider,
+);
 
 // Build the `Authorization`.
 const privateKey = new PrivateKey(); // Change this to a private key that has an aleo credit balance.
@@ -33,7 +41,7 @@ const baseFeeMicrocredits = await programManager.estimateFeeForAuthorization({
     programName: "credits.aleo",
     authorization,
 });
-const baseFeeCredits = Number(baseFeeMicrocredits)/1000000;
+const baseFeeCredits = Number(baseFeeMicrocredits) / 1000000;
 
 console.log("Building fee authorization");
 
@@ -41,7 +49,7 @@ console.log("Building fee authorization");
 const feeAuthorization = await programManager.buildFeeAuthorization({
     deploymentOrExecutionId: executionId,
     baseFeeCredits,
-    privateKey
+    privateKey,
 });
 
 console.log("Executing authorizations");
@@ -58,7 +66,8 @@ await programManager.networkClient.submitTransaction(tx.toString());
 
 // Verify the transaction was successful.
 setTimeout(async () => {
-    const transaction = await programManager.networkClient.getTransaction(tx.id());
+    const transaction = await programManager.networkClient.getTransaction(
+        tx.id(),
+    );
     console.log(transaction);
 }, 10000);
-

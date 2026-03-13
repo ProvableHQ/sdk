@@ -1,5 +1,5 @@
 ```typescript
-import { Account, ProgramManager, initThreadPool } from '@provablehq/sdk';
+import { Account, ProgramManager, initThreadPool } from "@provablehq/sdk";
 
 // Initialize multi-threading to allow WASM execution.
 await initThreadPoool();
@@ -14,7 +14,11 @@ keyProvider.useCache(true);
 const recordProvider = new NetworkRecordProvider(account, networkClient);
 
 // Create program manager using the KeyProvider and NetworkProvider.
-const programManager = new ProgramManager("https://api.provable.com/v2", keyProvider, recordProvider);
+const programManager = new ProgramManager(
+    "https://api.provable.com/v2",
+    keyProvider,
+    recordProvider,
+);
 // Set the account as the program caller.
 programManager.setAccount(account);
 
@@ -30,7 +34,12 @@ function addition:
 `;
 
 // Create a deployment transaction using the declared source code.
-const transaction = await programManager.buildDeploymentTransaction(program, 0.0, false);
+const transaction = await programManager.buildDeploymentTransaction(
+    program,
+    0.0,
+    false,
+);
 // Broadcast the transaction to the Aleo network.
-const result = await programManager.networkClient.submitTransaction(transaction);
+const result =
+    await programManager.networkClient.submitTransaction(transaction);
 ```

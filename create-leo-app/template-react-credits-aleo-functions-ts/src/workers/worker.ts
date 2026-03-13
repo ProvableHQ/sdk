@@ -29,7 +29,10 @@ class Credits {
     private creditsProgram: string;
     private _account: Account;
 
-    constructor(account: Account, apiUrl: string = "https://api.provable.com/v2") {
+    constructor(
+        account: Account,
+        apiUrl: string = "https://api.provable.com/v2",
+    ) {
         this._account = account;
         this.programManager = new ProgramManager(apiUrl);
         this.programManager.setAccount(account);
@@ -48,7 +51,10 @@ class Credits {
     /**
      * Execute a credits.aleo function.
      */
-    private async execute(functionName: string, inputs: string[]): Promise<string[]> {
+    private async execute(
+        functionName: string,
+        inputs: string[],
+    ): Promise<string[]> {
         const keyParams = new AleoKeyProviderParams({
             cacheKey: CREDITS_PROGRAM_KEYS.getKey(functionName).locator,
         });
@@ -95,16 +101,38 @@ class Credits {
         return this.execute("transfer_public", [recipient, `${amount}u64`]);
     }
 
-    async transferPublicToPrivate(recipient: string, amount: number): Promise<string[]> {
-        return this.execute("transfer_public_to_private", [recipient, `${amount}u64`]);
+    async transferPublicToPrivate(
+        recipient: string,
+        amount: number,
+    ): Promise<string[]> {
+        return this.execute("transfer_public_to_private", [
+            recipient,
+            `${amount}u64`,
+        ]);
     }
 
-    async transferPrivate(record: string, recipient: string, amount: number): Promise<string[]> {
-        return this.execute("transfer_private", [record, recipient, `${amount}u64`]);
+    async transferPrivate(
+        record: string,
+        recipient: string,
+        amount: number,
+    ): Promise<string[]> {
+        return this.execute("transfer_private", [
+            record,
+            recipient,
+            `${amount}u64`,
+        ]);
     }
 
-    async transferPrivateToPublic(record: string, recipient: string, amount: number): Promise<string[]> {
-        return this.execute("transfer_private_to_public", [record, recipient, `${amount}u64`]);
+    async transferPrivateToPublic(
+        record: string,
+        recipient: string,
+        amount: number,
+    ): Promise<string[]> {
+        return this.execute("transfer_private_to_public", [
+            record,
+            recipient,
+            `${amount}u64`,
+        ]);
     }
 
     async join(record1: string, record2: string): Promise<string[]> {
@@ -137,12 +165,13 @@ const workerMethods = {
         credits.transferPublicToPrivate(recipient, amount),
     transferPrivate: (record: string, recipient: string, amount: number) =>
         credits.transferPrivate(record, recipient, amount),
-    transferPrivateToPublic: (record: string, recipient: string, amount: number) =>
-        credits.transferPrivateToPublic(record, recipient, amount),
-    join: (record1: string, record2: string) =>
-        credits.join(record1, record2),
-    split: (record: string, amount: number) =>
-        credits.split(record, amount),
+    transferPrivateToPublic: (
+        record: string,
+        recipient: string,
+        amount: number,
+    ) => credits.transferPrivateToPublic(record, recipient, amount),
+    join: (record1: string, record2: string) => credits.join(record1, record2),
+    split: (record: string, amount: number) => credits.split(record, amount),
     getPrivateKey,
 };
 

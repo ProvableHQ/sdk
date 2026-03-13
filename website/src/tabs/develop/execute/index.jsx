@@ -34,7 +34,7 @@ export const Execute = () => {
                     "    input r0 as u32.public;\n" +
                     "    input r1 as u32.private;\n" +
                     "    add r0 r1 into r2;\n" +
-                    "    output r2 as u32.private;\n"
+                    "    output r2 as u32.private;\n",
             );
             form.setFieldValue("manual_input", true);
             form.setFieldValue("functionName", "hello");
@@ -116,7 +116,7 @@ export const Execute = () => {
     function spawnWorker() {
         let worker = new Worker(
             new URL("../../../workers/worker.js", import.meta.url),
-            { type: "module" }
+            { type: "module" },
         );
         worker.addEventListener("message", (ev) => {
             if (ev.data.type == "OFFLINE_EXECUTION_COMPLETED") {
@@ -194,7 +194,7 @@ export const Execute = () => {
     const generateKey = () => {
         form.setFieldValue(
             "private_key",
-            new aleoWASM.PrivateKey().to_string()
+            new aleoWASM.PrivateKey().to_string(),
         );
         form.validateFields(["private_key"]);
     };
@@ -239,225 +239,244 @@ export const Execute = () => {
 
     return (
         <>
+            <NewAccount />
 
-        <NewAccount />
+            <br />
 
-        <br/>
-
-        <Card
-            title="Execute Program"
-            extra={
-                <Select
-                    placeholder="Select a demo"
-                    onChange={demoSelect}
-                    options={[
-                        {
-                            value: "hello",
-                            label: "hello_hello.aleo",
-                        },
-                    ]}
-                />
-            }
-        >
-            <Modal
-                title="Executing program..."
-                open={modalOpen}
-                onOk={handleOk}
-                confirmLoading={loading}
-                cancelButtonProps={{ style: { display: "none" } }}
-                closeIcon={false}
-                maskClosable={false}
+            <Card
+                title="Execute Program"
+                extra={
+                    <Select
+                        placeholder="Select a demo"
+                        onChange={demoSelect}
+                        options={[
+                            {
+                                value: "hello",
+                                label: "hello_hello.aleo",
+                            },
+                        ]}
+                    />
+                }
             >
-                {loading ? <Skeleton active /> : <Result {...modalResult} />}
-            </Modal>
-            <Form.Provider
-                onFormFinish={(name, info) => {
-                    if (name !== "execute") {
-                        form.setFieldValue("functionName", name);
-                        let translatedArray = info.values.inputs.map((item) => {
-                            return JSON.stringify(item).replaceAll('"', "");
-                        });
-                        form.setFieldValue(
-                            "inputs",
-                            JSON.stringify(translatedArray)
-                        );
-                        form.submit();
-                    }
-                }}
-            >
-                <Form
-                    form={form}
-                    name="execute"
-                    {...layout}
-                    onFinish={execute}
-                    autoComplete="off"
-                    scrollToFirstError="true"
+                <Modal
+                    title="Executing program..."
+                    open={modalOpen}
+                    onOk={handleOk}
+                    confirmLoading={loading}
+                    cancelButtonProps={{ style: { display: "none" } }}
+                    closeIcon={false}
+                    maskClosable={false}
                 >
-                    <LoadProgram onResponse={onLoadProgram} />
-                    <Form.Item
-                        label="Program"
-                        name="program"
-                        rules={[
-                            {
-                                required: true,
-                                message: "Please input or load an Aleo program",
-                            },
-                        ]}
-                    >
-                        <CodeEditor onChange={onProgramEdit} />
-                    </Form.Item>
-                    <Divider dashed />
-                    <Form.Item
-                        label="Private Key"
-                        name="private_key"
-                        rules={[
-                            {
-                                required: true,
-                                message: "Private key required",
-                            },
-                        ]}
-                    >
-                        <Input.Search
-                            enterButton="Generate Random Key"
-                            onSearch={generateKey}
-                        />
-                    </Form.Item>
-                    <Divider dashed />
-                    <Form.Item
-                        label="Execute On-Chain"
-                        name="execute_onchain"
-                        valuePropName="checked"
-                        initialValue={false}
-                    >
-                        <Switch />
-                    </Form.Item>
-                    <Form.Item
-                        noStyle
-                        shouldUpdate={(prevValues, currentValues) =>
-                            prevValues.execute_onchain !==
-                            currentValues.execute_onchain
+                    {loading ? (
+                        <Skeleton active />
+                    ) : (
+                        <Result {...modalResult} />
+                    )}
+                </Modal>
+                <Form.Provider
+                    onFormFinish={(name, info) => {
+                        if (name !== "execute") {
+                            form.setFieldValue("functionName", name);
+                            let translatedArray = info.values.inputs.map(
+                                (item) => {
+                                    return JSON.stringify(item).replaceAll(
+                                        '"',
+                                        "",
+                                    );
+                                },
+                            );
+                            form.setFieldValue(
+                                "inputs",
+                                JSON.stringify(translatedArray),
+                            );
+                            form.submit();
                         }
+                    }}
+                >
+                    <Form
+                        form={form}
+                        name="execute"
+                        {...layout}
+                        onFinish={execute}
+                        autoComplete="off"
+                        scrollToFirstError="true"
                     >
-                        {({ getFieldValue }) => (
-                            <>
-                                <Form.Item
-                                    label="Peer URL"
-                                    name="peer_url"
-                                    initialValue="https://api.provable.com/v2"
-                                    hidden={!getFieldValue("execute_onchain")}
-                                >
-                                    <Input />
-                                </Form.Item>
-                                <Form.Item
-                                    label="Private Fee"
-                                    name="private_fee"
-                                    valuePropName="checked"
-                                    initialValue={false}
-                                    hidden={!getFieldValue("execute_onchain")}
-                                >
-                                    <Switch defaultChecked />
-                                </Form.Item>
-                                <Form.Item
-                                    noStyle
-                                    shouldUpdate={(prevValues, currentValues) =>
-                                        prevValues.private_fee !==
-                                        currentValues.private_fee
-                                    }
-                                >
-                                    {({ getFieldValue }) => (
-                                        <>
-                                            <Form.Item
-                                                label="Fee Record"
-                                                name="fee_record"
-                                                hidden={
-                                                    !getFieldValue(
-                                                        "private_fee"
-                                                    ) ||
-                                                    !getFieldValue(
-                                                        "execute_onchain"
-                                                    )
-                                                }
-                                                rules={[
-                                                    {
-                                                        required:
-                                                            getFieldValue(
-                                                                "private_fee"
-                                                            ) &&
-                                                            getFieldValue(
-                                                                "execute_onchain"
-                                                            ),
-                                                        message:
-                                                            "Fee record needed for private fee",
-                                                    },
-                                                ]}
-                                            >
-                                                <Input.TextArea />
-                                            </Form.Item>
-                                        </>
-                                    )}
-                                </Form.Item>
-                            </>
-                        )}
-                    </Form.Item>
-                    <Divider dashed />
-                    <Form.Item
-                        label="Manual Input"
-                        name="manual_input"
-                        valuePropName="checked"
-                        initialValue={false}
-                    >
-                        <Switch />
-                    </Form.Item>
-                    <Form.Item
-                        noStyle
-                        shouldUpdate={(prevValues, currentValues) =>
-                            prevValues.manual_input !==
-                            currentValues.manual_input
-                        }
-                    >
-                        {({ getFieldValue }) => (
-                            <>
-                                <Form.Item
-                                    label="Function"
-                                    name="functionName"
-                                    hidden={!getFieldValue("manual_input")}
-                                >
-                                    <Input />
-                                </Form.Item>
-                                <Form.Item
-                                    label="Inputs"
-                                    name="inputs"
-                                    hidden={!getFieldValue("manual_input")}
-                                >
-                                    <Input.TextArea />
-                                </Form.Item>
-                                <Form.Item
-                                    wrapperCol={{
-                                        xs: {
-                                            offset: 0,
-                                        },
-                                        sm: {
-                                            offset: 4,
-                                        },
-                                    }}
-                                    hidden={!getFieldValue("manual_input")}
-                                >
-                                    <Button type="primary" htmlType="submit">
-                                        Run
-                                    </Button>
-                                </Form.Item>
-                            </>
-                        )}
-                    </Form.Item>
-                </Form>
-                <Divider dashed>Program Functions</Divider>
-                {functions.length > 0 ? (
-                    <Collapse bordered={false} items={functions} />
-                ) : (
-                    <Empty image={Empty.PRESENTED_IMAGE_SIMPLE} />
-                )}
-            </Form.Provider>
-        </Card>
+                        <LoadProgram onResponse={onLoadProgram} />
+                        <Form.Item
+                            label="Program"
+                            name="program"
+                            rules={[
+                                {
+                                    required: true,
+                                    message:
+                                        "Please input or load an Aleo program",
+                                },
+                            ]}
+                        >
+                            <CodeEditor onChange={onProgramEdit} />
+                        </Form.Item>
+                        <Divider dashed />
+                        <Form.Item
+                            label="Private Key"
+                            name="private_key"
+                            rules={[
+                                {
+                                    required: true,
+                                    message: "Private key required",
+                                },
+                            ]}
+                        >
+                            <Input.Search
+                                enterButton="Generate Random Key"
+                                onSearch={generateKey}
+                            />
+                        </Form.Item>
+                        <Divider dashed />
+                        <Form.Item
+                            label="Execute On-Chain"
+                            name="execute_onchain"
+                            valuePropName="checked"
+                            initialValue={false}
+                        >
+                            <Switch />
+                        </Form.Item>
+                        <Form.Item
+                            noStyle
+                            shouldUpdate={(prevValues, currentValues) =>
+                                prevValues.execute_onchain !==
+                                currentValues.execute_onchain
+                            }
+                        >
+                            {({ getFieldValue }) => (
+                                <>
+                                    <Form.Item
+                                        label="Peer URL"
+                                        name="peer_url"
+                                        initialValue="https://api.provable.com/v2"
+                                        hidden={
+                                            !getFieldValue("execute_onchain")
+                                        }
+                                    >
+                                        <Input />
+                                    </Form.Item>
+                                    <Form.Item
+                                        label="Private Fee"
+                                        name="private_fee"
+                                        valuePropName="checked"
+                                        initialValue={false}
+                                        hidden={
+                                            !getFieldValue("execute_onchain")
+                                        }
+                                    >
+                                        <Switch defaultChecked />
+                                    </Form.Item>
+                                    <Form.Item
+                                        noStyle
+                                        shouldUpdate={(
+                                            prevValues,
+                                            currentValues,
+                                        ) =>
+                                            prevValues.private_fee !==
+                                            currentValues.private_fee
+                                        }
+                                    >
+                                        {({ getFieldValue }) => (
+                                            <>
+                                                <Form.Item
+                                                    label="Fee Record"
+                                                    name="fee_record"
+                                                    hidden={
+                                                        !getFieldValue(
+                                                            "private_fee",
+                                                        ) ||
+                                                        !getFieldValue(
+                                                            "execute_onchain",
+                                                        )
+                                                    }
+                                                    rules={[
+                                                        {
+                                                            required:
+                                                                getFieldValue(
+                                                                    "private_fee",
+                                                                ) &&
+                                                                getFieldValue(
+                                                                    "execute_onchain",
+                                                                ),
+                                                            message:
+                                                                "Fee record needed for private fee",
+                                                        },
+                                                    ]}
+                                                >
+                                                    <Input.TextArea />
+                                                </Form.Item>
+                                            </>
+                                        )}
+                                    </Form.Item>
+                                </>
+                            )}
+                        </Form.Item>
+                        <Divider dashed />
+                        <Form.Item
+                            label="Manual Input"
+                            name="manual_input"
+                            valuePropName="checked"
+                            initialValue={false}
+                        >
+                            <Switch />
+                        </Form.Item>
+                        <Form.Item
+                            noStyle
+                            shouldUpdate={(prevValues, currentValues) =>
+                                prevValues.manual_input !==
+                                currentValues.manual_input
+                            }
+                        >
+                            {({ getFieldValue }) => (
+                                <>
+                                    <Form.Item
+                                        label="Function"
+                                        name="functionName"
+                                        hidden={!getFieldValue("manual_input")}
+                                    >
+                                        <Input />
+                                    </Form.Item>
+                                    <Form.Item
+                                        label="Inputs"
+                                        name="inputs"
+                                        hidden={!getFieldValue("manual_input")}
+                                    >
+                                        <Input.TextArea />
+                                    </Form.Item>
+                                    <Form.Item
+                                        wrapperCol={{
+                                            xs: {
+                                                offset: 0,
+                                            },
+                                            sm: {
+                                                offset: 4,
+                                            },
+                                        }}
+                                        hidden={!getFieldValue("manual_input")}
+                                    >
+                                        <Button
+                                            type="primary"
+                                            htmlType="submit"
+                                        >
+                                            Run
+                                        </Button>
+                                    </Form.Item>
+                                </>
+                            )}
+                        </Form.Item>
+                    </Form>
+                    <Divider dashed>Program Functions</Divider>
+                    {functions.length > 0 ? (
+                        <Collapse bordered={false} items={functions} />
+                    ) : (
+                        <Empty image={Empty.PRESENTED_IMAGE_SIMPLE} />
+                    )}
+                </Form.Provider>
+            </Card>
         </>
     );
 };
@@ -474,8 +493,8 @@ const renderInput = (input, inputIndex, nameArray = []) => {
                     renderInput(
                         member,
                         memberIndex,
-                        [].concat(nameArray).concat(input.name || inputIndex)
-                    )
+                        [].concat(nameArray).concat(input.name || inputIndex),
+                    ),
                 )}
             </div>
         );
@@ -503,7 +522,7 @@ const functionForm = (func, funcInputs) => {
         >
             {funcInputs.length > 0 ? (
                 funcInputs.map((input, inputIndex) =>
-                    renderInput(input, inputIndex, ["inputs"])
+                    renderInput(input, inputIndex, ["inputs"]),
                 )
             ) : (
                 <Form.Item

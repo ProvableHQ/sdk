@@ -1,15 +1,15 @@
-import { defineBuildConfig } from 'unbuild'
+import { defineBuildConfig } from "unbuild";
 
 export default defineBuildConfig({
-  entries: ['src/index'],
-  clean: true,
-  rollup: {
-    inlineDependencies: true,
-    esbuild: {
-      minify: true,
+    entries: ["src/index"],
+    clean: true,
+    rollup: {
+        inlineDependencies: true,
+        esbuild: {
+            minify: true,
+        },
     },
-  },
-  alias: {
-    prompts: 'prompts/lib/index.js',
-  },
-})
+    alias: {
+        prompts: "prompts/lib/index.js",
+    },
+});

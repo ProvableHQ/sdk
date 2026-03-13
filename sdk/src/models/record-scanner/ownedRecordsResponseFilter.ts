@@ -1,7 +1,7 @@
 /**
  * OwnedRecordsResponseFilter is a type that represents a filter for the response from a record provider.
  * A `true` value for a field in the filter will include that field in the response.
- * 
+ *
  * @example
  * const ownedRecordsResponseFilter: OwnedRecordsResponseFilter = {
  *     commitment: true,

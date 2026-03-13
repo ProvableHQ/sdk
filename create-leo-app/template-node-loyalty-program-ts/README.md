@@ -1,14 +1,15 @@
 # Loyalty Program - Node.js Example
 
-A Node.js example demonstrating the Aleo SDK with a multi-program loyalty points system.
+A Node.js example demonstrating the Aleo SDK with a multi-program loyalty points
+system.
 
 ## Features
 
 This example showcases:
 
 - **Multi-Program Architecture**: Two Leo programs that work together
-  - `loyalty_token.aleo`: Manages loyalty cards and points
-  - `loyalty_rewards.aleo`: Handles voucher redemption (imports loyalty_token)
+    - `loyalty_token.aleo`: Manages loyalty cards and points
+    - `loyalty_rewards.aleo`: Handles voucher redemption (imports loyalty_token)
 - **Record Operations**: Minting, consuming, and transferring records
 - **Hash Functions**: BHP256 for generating unique card/voucher IDs
 - **Program Imports**: Cross-program execution with imports
@@ -74,7 +75,7 @@ const updatedCard = await loyalty.addPoints(card, 500);
 const { card: newCard, voucher } = await loyalty.redeemForVoucher(
     updatedCard,
     RewardType.Discount,
-    500
+    500,
 );
 // => { card: LoyaltyCard, voucher: RewardVoucher }
 
@@ -107,18 +108,18 @@ loyalty_rewards.aleo (Imports loyalty_token)
 ## Tier Thresholds
 
 | Tier   | Points Required |
-|--------|-----------------|
+| ------ | --------------- |
 | Bronze | 0 - 999         |
 | Silver | 1,000 - 9,999   |
 | Gold   | 10,000+         |
 
 ## Reward Types
 
-| Type     | Value | Description      |
-|----------|-------|------------------|
-| Discount | 1     | Percentage off   |
-| Freebie  | 2     | Free item        |
-| Upgrade  | 3     | Service upgrade  |
+| Type     | Value | Description     |
+| -------- | ----- | --------------- |
+| Discount | 1     | Percentage off  |
+| Freebie  | 2     | Free item       |
+| Upgrade  | 3     | Service upgrade |
 
 ## Learn More
 

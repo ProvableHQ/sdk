@@ -21,7 +21,7 @@ window.key = () => {
 };
 
 window.deploy = () => {
-  worker.postMessage("deploy");
+    worker.postMessage("deploy");
 };
 
 document.querySelector("#app").innerHTML = `

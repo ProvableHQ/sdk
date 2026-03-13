@@ -6,9 +6,15 @@ amount: 1000000u64.private,
 _nonce: 3552842606932684888288059180163265370185468417773274452409126263862773749561group.public
 }`;
 
-const PUZZLE_SPINNER_V002_INPUT_1 = "{nonce: 1170758118field, tickets: 5000000u64}";
+const PUZZLE_SPINNER_V002_INPUT_1 =
+    "{nonce: 1170758118field, tickets: 5000000u64}";
 
-const PUZZLE_SPINNER_V002_INPUT_2 = "sign1qkveh904rhh9q72mvg7r9p20q54w73w55m375dplgqmg4dj07cqgfu6nmyennfeyvczvdlsztndg3vstm5wrdx8gwl7ucjp8mmlwsqxyx67umlz8tz8pw8zk599sj05tsqczr4ufz06e4jl0lve0k6p3pvyztyddnpcpvq3p66k3ryatluay3cndws6fktfvnytg3hcswahqjdc7n92";
+const PUZZLE_SPINNER_V002_INPUT_2 =
+    "sign1qkveh904rhh9q72mvg7r9p20q54w73w55m375dplgqmg4dj07cqgfu6nmyennfeyvczvdlsztndg3vstm5wrdx8gwl7ucjp8mmlwsqxyx67umlz8tz8pw8zk599sj05tsqczr4ufz06e4jl0lve0k6p3pvyztyddnpcpvq3p66k3ryatluay3cndws6fktfvnytg3hcswahqjdc7n92";
 
-export { PUZZLE_SPINNER_PROGRAM_ID, PUZZLE_SPINNER_V002_INPUT_0, PUZZLE_SPINNER_V002_INPUT_1,
-    PUZZLE_SPINNER_V002_INPUT_2}
+export {
+    PUZZLE_SPINNER_PROGRAM_ID,
+    PUZZLE_SPINNER_V002_INPUT_0,
+    PUZZLE_SPINNER_V002_INPUT_1,
+    PUZZLE_SPINNER_V002_INPUT_2,
+};

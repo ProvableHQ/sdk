@@ -49,7 +49,11 @@ export interface KeyStore {
      * @param {KeyLocator} verifierLocator The unique locator for the desired verifying key.
      * @param {FunctionKeyPair} keys The proving and verifying keys.
      */
-    setKeys(proverLocator: KeyLocator, verifierLocator: KeyLocator, keys: FunctionKeyPair): Promise<void>;
+    setKeys(
+        proverLocator: KeyLocator,
+        verifierLocator: KeyLocator,
+        keys: FunctionKeyPair,
+    ): Promise<void>;
 
     /**
      * Store a raw proving or verifying key in storage along with its fingerprint metadata for future verification.
@@ -70,9 +74,7 @@ export interface KeyStore {
      * @param {string} locator The unique locator for the key.
      * @returns {Promise<KeyFingerprint | null>} The stored fingerprint for that locator, or null if none exists.
      */
-    getKeyMetadata(
-        locator: string
-    ): Promise<KeyFingerprint | null>;
+    getKeyMetadata(locator: string): Promise<KeyFingerprint | null>;
 
     /**
      * Determines if a given key exists or not.

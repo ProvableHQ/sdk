@@ -1,4 +1,4 @@
-import {useMemo, useState} from "react";
+import { useMemo, useState } from "react";
 import { Button, Card, Col, Divider, Form, Input, Row } from "antd";
 import axios from "axios";
 import { CopyButton } from "../../components/CopyButton";
@@ -56,12 +56,12 @@ export const GetProgram = () => {
     const layout = { labelCol: { span: 4 }, wrapperCol: { span: 21 } };
 
     const programString = useMemo(() => {
-        return program !== null ? program : ""
+        return program !== null ? program : "";
     }, [program]);
 
     const programIDString = useMemo(() => {
-        return programID !== null ? programID : ""
-    }, [programID])
+        return programID !== null ? programID : "";
+    }, [programID]);
 
     return (
         <Card
@@ -70,7 +70,6 @@ export const GetProgram = () => {
             extra={
                 <Button
                     type="primary"
-
                     size="middle"
                     onClick={() => {
                         tryRequest("credits.aleo");

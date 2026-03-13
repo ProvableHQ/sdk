@@ -5,8 +5,8 @@ export interface TransitionJSON {
     id: string;
     program: string;
     function: string;
-    inputs?: (InputJSON)[];
-    outputs?: (OutputJSON)[];
+    inputs?: InputJSON[];
+    outputs?: OutputJSON[];
     proof: string;
     tpk: string;
     tcm: string;

@@ -25,8 +25,11 @@ interface RecordProvider {
      * @param {RecordSearchParams} recordsFilter The filter used to find the records.
      * @param {RecordsResponseFilter} responseFilter The filter used to filter the response.
      * @returns {Promise<EncryptedRecord[]>} The encrypted records.
-    */
-    encryptedRecords(recordsFilter: RecordSearchParams, responseFilter?: RecordsResponseFilter): Promise<EncryptedRecord[]>;
+     */
+    encryptedRecords(
+        recordsFilter: RecordSearchParams,
+        responseFilter?: RecordsResponseFilter,
+    ): Promise<EncryptedRecord[]>;
 
     /**
      * Check if a list of serial numbers exist in the chosen provider.
@@ -34,7 +37,9 @@ interface RecordProvider {
      * @param {string[]} serialNumbers The serial numbers to check.
      * @returns {Promise<Record<string, boolean>>} Map of Aleo Record serial numbers and whether they appeared in any inputs on chain. If boolean corresponding to the Serial Number has a true value, that Record is considered spent by the Aleo Network.
      */
-    checkSerialNumbers(serialNumbers: string[]): Promise<Record<string, boolean>>;
+    checkSerialNumbers(
+        serialNumbers: string[],
+    ): Promise<Record<string, boolean>>;
 
     /**
      * Check if a list of tags exist in the chosen provider.
@@ -64,7 +69,10 @@ interface RecordProvider {
      * const programManager = new ProgramManager("https://api.provable.com/v2", keyProvider, recordProvider);
      * programManager.transfer(1, "aleo166q6ww6688cug7qxwe7nhctjpymydwzy2h7rscfmatqmfwnjvggqcad0at", "public", 0.5);
      */
-    findCreditsRecord(microcredits: number, searchParameters: RecordSearchParams): Promise<OwnedRecord>;
+    findCreditsRecord(
+        microcredits: number,
+        searchParameters: RecordSearchParams,
+    ): Promise<OwnedRecord>;
 
     /**
      * Find a list of credit.aleo records with a given number of microcredits from the chosen provider
@@ -88,7 +96,10 @@ interface RecordProvider {
      * const programManager = new ProgramManager("https://api.provable.com/v2", keyProvider, recordProvider);
      * programManager.transfer(1, "aleo166q6ww6688cug7qxwe7nhctjpymydwzy2h7rscfmatqmfwnjvggqcad0at", "public", 0.5);
      */
-    findCreditsRecords(microcreditAmounts: number[], searchParameters: RecordSearchParams): Promise<OwnedRecord[]>;
+    findCreditsRecords(
+        microcreditAmounts: number[],
+        searchParameters: RecordSearchParams,
+    ): Promise<OwnedRecord[]>;
 
     /**
      * Find an arbitrary record
@@ -226,25 +237,43 @@ class NetworkRecordProvider implements RecordProvider {
      * programManager.transfer(1, "aleo166q6ww6688cug7qxwe7nhctjpymydwzy2h7rscfmatqmfwnjvggqcad0at", "public", 0.5);
      *
      * */
-    async findCreditsRecords(microcredits: number[], searchParameters: RecordSearchParams): Promise<OwnedRecord[]> {
+    async findCreditsRecords(
+        microcredits: number[],
+        searchParameters: RecordSearchParams,
+    ): Promise<OwnedRecord[]> {
         let startHeight = 0;
         let endHeight = 0;
         let maxAmount = undefined;
 
         if (searchParameters) {
-            if ("startHeight" in searchParameters && typeof searchParameters["startHeight"] == "number") {
+            if (
+                "startHeight" in searchParameters &&
+                typeof searchParameters["startHeight"] == "number"
+            ) {
                 startHeight = searchParameters["startHeight"];
             }
 
-            if ("endHeight" in searchParameters && typeof searchParameters["endHeight"] == "number") {
+            if (
+                "endHeight" in searchParameters &&
+                typeof searchParameters["endHeight"] == "number"
+            ) {
                 endHeight = searchParameters["endHeight"];
             }
 
-            if ("amounts" in searchParameters && Array.isArray(searchParameters["amounts"]) && searchParameters["amount"].every((item: any) => typeof item === 'number')) {
+            if (
+                "amounts" in searchParameters &&
+                Array.isArray(searchParameters["amounts"]) &&
+                searchParameters["amount"].every(
+                    (item: any) => typeof item === "number",
+                )
+            ) {
                 microcredits = searchParameters["amounts"];
             }
 
-            if ("maxAmount" in searchParameters && typeof searchParameters["maxAmount"] == "number") {
+            if (
+                "maxAmount" in searchParameters &&
+                typeof searchParameters["maxAmount"] == "number"
+            ) {
                 maxAmount = searchParameters["maxAmount"];
             }
         }
@@ -260,12 +289,21 @@ class NetworkRecordProvider implements RecordProvider {
             logAndThrow("Start height must be less than end height");
         }
 
-        const recordsPts = await this.networkClient.findRecords(startHeight, endHeight, searchParameters.unspent, ["credits.aleo"], microcredits, maxAmount, searchParameters.nonces, this.account.privateKey());
+        const recordsPts = await this.networkClient.findRecords(
+            startHeight,
+            endHeight,
+            searchParameters.unspent,
+            ["credits.aleo"],
+            microcredits,
+            maxAmount,
+            searchParameters.nonces,
+            this.account.privateKey(),
+        );
         return recordsPts.map((record) => ({
-                owner: record.owner().toString(),
-                program_name: 'credits.aleo',
-                record_name: 'credits',
-                record_plaintext: record.toString(),
+            owner: record.owner().toString(),
+            program_name: "credits.aleo",
+            record_name: "credits",
+            record_plaintext: record.toString(),
         }));
     }
 
@@ -294,11 +332,17 @@ class NetworkRecordProvider implements RecordProvider {
      * const programManager = new ProgramManager("https://api.provable.com/v2", keyProvider, recordProvider);
      * programManager.transfer(1, "aleo166q6ww6688cug7qxwe7nhctjpymydwzy2h7rscfmatqmfwnjvggqcad0at", "public", 0.5);
      */
-    async findCreditsRecord(microcredits: number, searchParameters: RecordSearchParams): Promise<OwnedRecord> {
+    async findCreditsRecord(
+        microcredits: number,
+        searchParameters: RecordSearchParams,
+    ): Promise<OwnedRecord> {
         let records = null;
 
         try {
-            records = await this.findCreditsRecords([microcredits], searchParameters);
+            records = await this.findCreditsRecords(
+                [microcredits],
+                searchParameters,
+            );
         } catch (e) {
             console.log("No records found with error:", e);
         }
@@ -314,7 +358,9 @@ class NetworkRecordProvider implements RecordProvider {
     /**
      * Find an arbitrary record. WARNING: This function is not implemented yet and will throw an error.
      */
-    async findRecord(searchParameters: RecordSearchParams): Promise<OwnedRecord> {
+    async findRecord(
+        searchParameters: RecordSearchParams,
+    ): Promise<OwnedRecord> {
         let records;
 
         try {
@@ -334,7 +380,9 @@ class NetworkRecordProvider implements RecordProvider {
     /**
      * Find multiple records from a specified program.
      */
-    async findRecords(searchParameters: RecordSearchParams): Promise<OwnedRecord[]> {
+    async findRecords(
+        searchParameters: RecordSearchParams,
+    ): Promise<OwnedRecord[]> {
         let startHeight = 0;
         let endHeight = 0;
         let amounts = undefined;
@@ -342,27 +390,51 @@ class NetworkRecordProvider implements RecordProvider {
         let programs = undefined;
 
         if (searchParameters) {
-            if ("startHeight" in searchParameters && typeof searchParameters["startHeight"] == "number") {
+            if (
+                "startHeight" in searchParameters &&
+                typeof searchParameters["startHeight"] == "number"
+            ) {
                 startHeight = searchParameters["startHeight"];
             }
 
-            if ("endHeight" in searchParameters && typeof searchParameters["endHeight"] == "number") {
+            if (
+                "endHeight" in searchParameters &&
+                typeof searchParameters["endHeight"] == "number"
+            ) {
                 endHeight = searchParameters["endHeight"];
             }
 
-            if ("amounts" in searchParameters && Array.isArray(searchParameters["amounts"]) && searchParameters["amounts"].every((item: any) => typeof item === 'number')) {
+            if (
+                "amounts" in searchParameters &&
+                Array.isArray(searchParameters["amounts"]) &&
+                searchParameters["amounts"].every(
+                    (item: any) => typeof item === "number",
+                )
+            ) {
                 amounts = searchParameters["amounts"];
             }
 
-            if ("maxAmount" in searchParameters && typeof searchParameters["maxAmount"] == "number") {
+            if (
+                "maxAmount" in searchParameters &&
+                typeof searchParameters["maxAmount"] == "number"
+            ) {
                 maxAmount = searchParameters["maxAmount"];
             }
 
-            if ("program" in searchParameters && typeof searchParameters["program"] == "string") {
+            if (
+                "program" in searchParameters &&
+                typeof searchParameters["program"] == "string"
+            ) {
                 programs = [searchParameters["program"]];
             }
 
-            if ("programs" in searchParameters && Array.isArray(searchParameters["programs"]) && searchParameters["programs"].every((item: any) => typeof item === "string")) {
+            if (
+                "programs" in searchParameters &&
+                Array.isArray(searchParameters["programs"]) &&
+                searchParameters["programs"].every(
+                    (item: any) => typeof item === "string",
+                )
+            ) {
                 programs = searchParameters["programs"];
             }
         }
@@ -378,17 +450,31 @@ class NetworkRecordProvider implements RecordProvider {
             logAndThrow("Start height must be less than end height");
         }
 
-        const recordPts = await this.networkClient.findRecords(startHeight, endHeight, searchParameters.unspent, programs, amounts, maxAmount, searchParameters.nonces, this.account.privateKey());
+        const recordPts = await this.networkClient.findRecords(
+            startHeight,
+            endHeight,
+            searchParameters.unspent,
+            programs,
+            amounts,
+            maxAmount,
+            searchParameters.nonces,
+            this.account.privateKey(),
+        );
         return recordPts.map((record) => ({
             record_plaintext: record.toString(),
         }));
     }
 
-    async encryptedRecords(recordsFilter: RecordSearchParams, responseFilter?: RecordsResponseFilter): Promise<EncryptedRecord[]> {
+    async encryptedRecords(
+        recordsFilter: RecordSearchParams,
+        responseFilter?: RecordsResponseFilter,
+    ): Promise<EncryptedRecord[]> {
         throw new Error("Not implemented");
     }
 
-    async checkSerialNumbers(serialNumbers: string[]): Promise<Record<string, boolean>> {
+    async checkSerialNumbers(
+        serialNumbers: string[],
+    ): Promise<Record<string, boolean>> {
         throw new Error("Not implemented");
     }
 
@@ -426,8 +512,4 @@ class BlockHeightSearch implements RecordSearchParams {
     }
 }
 
-export {
-    BlockHeightSearch,
-    NetworkRecordProvider,
-    RecordProvider,
-};
+export { BlockHeightSearch, NetworkRecordProvider, RecordProvider };

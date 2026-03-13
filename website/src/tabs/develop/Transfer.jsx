@@ -19,7 +19,9 @@ import axios from "axios";
 export const Transfer = () => {
     const [transferFeeRecord, setTransferFeeRecord] = useState(null);
     const [amountRecord, setAmountRecord] = useState(null);
-    const [transferUrl, setTransferUrl] = useState("https://api.provable.com/v2");
+    const [transferUrl, setTransferUrl] = useState(
+        "https://api.provable.com/v2",
+    );
     const [transferAmount, setTransferAmount] = useState("1.0");
     const [privateFee, setPrivateFee] = useState(false);
     const [recipient, setRecipient] = useState(null);
@@ -227,7 +229,9 @@ export const Transfer = () => {
                         style={{ width: "9rem" }}
                         placeholder={visibilityString()}
                         options={items}
-                        onChange={(item) => {setVisibility(item)}}
+                        onChange={(item) => {
+                            setVisibility(item);
+                        }}
                     ></Select>
                 </div>
                 <Form.Item

@@ -23,13 +23,14 @@ if (globalThis.Worker == null) {
                 }
 
                 url = url.href;
-
             } else {
-                throw new Error("Filepaths are unreliable, use `new URL(\"...\", import.meta.url)` instead.");
+                throw new Error(
+                    'Filepaths are unreliable, use `new URL("...", import.meta.url)` instead.',
+                );
             }
 
             if (!options || options.type !== "module") {
-                throw new Error("Workers must use \`type: \"module\"\`");
+                throw new Error('Workers must use \`type: "module"\`');
             }
 
             const code = `
@@ -80,7 +81,10 @@ if (globalThis.Worker == null) {
         }
 
         postMessage(message: any, transfer: Array<Transferable>): void;
-        postMessage(message: any, options?: StructuredSerializeOptions | undefined): void;
+        postMessage(
+            message: any,
+            options?: StructuredSerializeOptions | undefined,
+        ): void;
         postMessage(value: any, transfer: any) {
             this._worker.postMessage(value, transfer);
         }
@@ -96,7 +100,6 @@ if (globalThis.Worker == null) {
         }
     };
 }
-
 
 if (!$worker.isMainThread) {
     const globals = globalThis as unknown as DedicatedWorkerGlobalScope;
@@ -135,7 +138,6 @@ if (!$worker.isMainThread) {
         };
     };
 
-
     // We only start listening for messages / errors when the worker calls addEventListener
     const startOnMessage = memoize(() => {
         $worker.parentPort!.on("message", (data) => {
@@ -153,7 +155,6 @@ if (!$worker.isMainThread) {
         });
     });
 
-
     // Node workers don't have top-level events, so we have to make our own
     const workerEvents = new EventTarget();
 
@@ -161,7 +162,11 @@ if (!$worker.isMainThread) {
         process.exit();
     };
 
-    globals.addEventListener = (type: string, callback: EventListenerOrEventListenerObject | null, options?: boolean | EventListenerOptions | undefined) => {
+    globals.addEventListener = (
+        type: string,
+        callback: EventListenerOrEventListenerObject | null,
+        options?: boolean | EventListenerOptions | undefined,
+    ) => {
         workerEvents.addEventListener(type, callback, options);
 
         if (type === "message") {
@@ -173,12 +178,19 @@ if (!$worker.isMainThread) {
         }
     };
 
-    globals.removeEventListener = (type: string, callback: EventListenerOrEventListenerObject | null, options?: boolean | EventListenerOptions | undefined) => {
+    globals.removeEventListener = (
+        type: string,
+        callback: EventListenerOrEventListenerObject | null,
+        options?: boolean | EventListenerOptions | undefined,
+    ) => {
         workerEvents.removeEventListener(type, callback, options);
     };
 
     function postMessage(message: any, transfer: Transferable[]): void;
-    function postMessage(message: any, options?: StructuredSerializeOptions | undefined): void;
+    function postMessage(
+        message: any,
+        options?: StructuredSerializeOptions | undefined,
+    ): void;
     function postMessage(value: any, transfer: any) {
         $worker.parentPort!.postMessage(value, transfer);
     }

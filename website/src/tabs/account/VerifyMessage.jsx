@@ -65,10 +65,7 @@ export const VerifyMessage = () => {
         const signatureString = () =>
             signatureInput !== null ? signatureInput.toString() : "";
         return (
-            <Card
-                title="Verify a Message"
-                style={{ width: "100%"}}
-            >
+            <Card title="Verify a Message" style={{ width: "100%" }}>
                 <Form {...layout}>
                     <Form.Item label="Address" colon={false}>
                         <Input

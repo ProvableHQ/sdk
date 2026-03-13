@@ -1,247 +1,246 @@
 name: SDK
 
 on:
-  pull_request:
-  push:
-    branches:
-      - mainnet
-      - testnet
+    pull_request:
+    push:
+        branches:
+            - mainnet
+            - testnet
 
 env:
-  CARGO_TERM_COLOR: always
-  PUZZLE_PK: ${{ secrets.PUZZLE_PK }}
-  PUZZLE_VK: ${{ secrets.PUZZLE_VK }}
-  RECORD_SCANNER_URL: ${{ secrets.RECORD_SCANNER_URL }}
-  KONG_API_KEY: ${{ secrets.ALEO_DPS_API_KEY }}
-  CONSUMER_ID: ${{ secrets.ALEO_CONSUMER_ID }}
-
+    CARGO_TERM_COLOR: always
+    PUZZLE_PK: ${{ secrets.PUZZLE_PK }}
+    PUZZLE_VK: ${{ secrets.PUZZLE_VK }}
+    RECORD_SCANNER_URL: ${{ secrets.RECORD_SCANNER_URL }}
+    KONG_API_KEY: ${{ secrets.ALEO_DPS_API_KEY }}
+    CONSUMER_ID: ${{ secrets.ALEO_CONSUMER_ID }}
 
 jobs:
-  build:
-    name: build
-    runs-on: ubuntu-latest-m
-    steps:
-      - uses: actions/checkout@v4
-      - uses: ./.github/actions/setup-yarn
-      - uses: ./.github/actions/setup-rust
+    build:
+        name: build
+        runs-on: ubuntu-latest-m
+        steps:
+            - uses: actions/checkout@v4
+            - uses: ./.github/actions/setup-yarn
+            - uses: ./.github/actions/setup-rust
 
-      - run: |
-          yarn build:all
+            - run: |
+                  yarn build:all
 
-      - name: Upload build artifacts
-        uses: actions/upload-artifact@v4
-        with:
-          name: build
-          path: |
-            sdk/dist/
-            wasm/dist/
-            create-leo-app/dist/
+            - name: Upload build artifacts
+              uses: actions/upload-artifact@v4
+              with:
+                  name: build
+                  path: |
+                      sdk/dist/
+                      wasm/dist/
+                      create-leo-app/dist/
 
+    test-wasm:
+        name: test wasm
+        runs-on: ubuntu-latest-m
+        steps:
+            - uses: actions/checkout@v4
+            - uses: ./.github/actions/setup-yarn
 
-  test-wasm:
-    name: test wasm
-    runs-on: ubuntu-latest-m
-    steps:
-      - uses: actions/checkout@v4
-      - uses: ./.github/actions/setup-yarn
+            - run: |
+                  yarn test:wasm
 
-      - run: |
-          yarn test:wasm
+    test-sdk:
+        name: test sdk
+        runs-on: ubuntu-latest
+        needs: build
+        steps:
+            - uses: actions/checkout@v4
+            - uses: ./.github/actions/setup-yarn
+            - uses: ./.github/actions/use-build
 
+            - run: |
+                  yarn test:sdk
 
-  test-sdk:
-    name: test sdk
-    runs-on: ubuntu-latest
-    needs: build
-    steps:
-      - uses: actions/checkout@v4
-      - uses: ./.github/actions/setup-yarn
-      - uses: ./.github/actions/use-build
+    e2e:
+        name: "e2e"
+        runs-on: ubuntu-latest-m
+        needs: build
+        strategy:
+            fail-fast: false
+            matrix:
+                network: [testnet, mainnet, dynamic]
+        steps:
+            - uses: actions/checkout@v4
+            - uses: ./.github/actions/setup-yarn
+            - uses: ./.github/actions/use-build
 
-      - run: |
-          yarn test:sdk
+            - working-directory: e2e/${{ matrix.network }}
+              run: |
+                  yarn start
 
+    create-leo-app-cli:
+        name: "create-leo-app CLI"
+        runs-on: ubuntu-latest-m
+        needs: build
+        steps:
+            - uses: actions/checkout@v4
+            - uses: ./.github/actions/setup-yarn
+            - uses: ./.github/actions/use-build
 
-  e2e:
-    name: "e2e"
-    runs-on: ubuntu-latest-m
-    needs: build
-    strategy:
-      fail-fast: false
-      matrix:
-        network: [testnet, mainnet, dynamic]
-    steps:
-      - uses: actions/checkout@v4
-      - uses: ./.github/actions/setup-yarn
-      - uses: ./.github/actions/use-build
+            - working-directory: create-leo-app
+              run: |
+                  npm i -D tsx
+                  npx tsx src/index.ts test-app --template react-leo
 
-      - working-directory: e2e/${{ matrix.network }}
-        run: |
-          yarn start
+    create-leo-app-build:
+        name: "create-leo-app build"
+        runs-on: ubuntu-latest-m
+        needs: build
+        strategy:
+            fail-fast: false
+            matrix:
+                template:
+                    - extension
+                    - nextjs-ts
+                    - offline-public-transaction-ts
+                    - react-credits-aleo-functions-ts
+                    - react-leo
+                    #- react-managed-worker
+                    - react-ts
+                    - vanilla
+        steps:
+            - uses: actions/checkout@v4
+            - uses: ./.github/actions/setup-yarn
+            - uses: ./.github/actions/use-build
 
+            - working-directory: create-leo-app/template-${{ matrix.template }}
+              run: |
+                  yarn build
 
-  create-leo-app-cli:
-    name: "create-leo-app CLI"
-    runs-on: ubuntu-latest-m
-    needs: build
-    steps:
-      - uses: actions/checkout@v4
-      - uses: ./.github/actions/setup-yarn
-      - uses: ./.github/actions/use-build
+    create-leo-app-run:
+        name: "create-leo-app run"
+        runs-on: ubuntu-latest-m
+        needs: build
+        strategy:
+            fail-fast: false
+            matrix:
+                template:
+                    - node
+                    - node-credits-aleo-functions-ts
+                    - node-ts
+        steps:
+            - uses: actions/checkout@v4
+            - uses: ./.github/actions/setup-yarn
+            - uses: ./.github/actions/use-build
 
-      - working-directory: create-leo-app
-        run: |
-          npm i -D tsx
-          npx tsx src/index.ts test-app --template react-leo
+            - working-directory: create-leo-app/template-${{ matrix.template }}
+              run: |
+                  yarn start
 
+    create-leo-app-loyalty-program-local:
+        name: "create-leo-app loyalty-program (local)"
+        runs-on: ubuntu-latest-m
+        needs: build
+        steps:
+            - uses: actions/checkout@v4
+            - uses: ./.github/actions/setup-yarn
+            - uses: ./.github/actions/use-build
 
-  create-leo-app-build:
-    name: "create-leo-app build"
-    runs-on: ubuntu-latest-m
-    needs: build
-    strategy:
-      fail-fast: false
-      matrix:
-        template:
-          - extension
-          - nextjs-ts
-          - offline-public-transaction-ts
-          - react-credits-aleo-functions-ts
-          - react-leo
-          #- react-managed-worker
-          - react-ts
-          - vanilla
-    steps:
-      - uses: actions/checkout@v4
-      - uses: ./.github/actions/setup-yarn
-      - uses: ./.github/actions/use-build
+            - working-directory: create-leo-app/template-node-loyalty-program-ts
+              run: |
+                  yarn local
 
-      - working-directory: create-leo-app/template-${{ matrix.template }}
-        run: |
-          yarn build
+    create-leo-app-loyalty-program-delegated:
+        name: "create-leo-app loyalty-program (delegated + scanner)"
+        runs-on: ubuntu-latest-m
+        needs: build
+        env:
+            # Consumer ID (used for both DPS and RSS)
+            ALEO_CONSUMER_ID: ${{ secrets.ALEO_CONSUMER_ID }}
+            # DPS configuration
+            ALEO_DPS_URL: https://api.provable.com/prove/testnet
+            ALEO_DPS_API_KEY: ${{ secrets.ALEO_DPS_API_KEY }}
+            # RSS configuration
+            ALEO_RSS_URL: https://api.provable.com/scanner
+        steps:
+            - uses: actions/checkout@v4
+            - uses: ./.github/actions/setup-yarn
+            - uses: ./.github/actions/use-build
 
+            - name: Run delegated mode (creates on-chain records)
+              working-directory: create-leo-app/template-node-loyalty-program-ts
+              run: |
+                  yarn delegated
 
-  create-leo-app-run:
-    name: "create-leo-app run"
-    runs-on: ubuntu-latest-m
-    needs: build
-    strategy:
-      fail-fast: false
-      matrix:
-        template:
-          - node
-          - node-credits-aleo-functions-ts
-          - node-ts
-    steps:
-      - uses: actions/checkout@v4
-      - uses: ./.github/actions/setup-yarn
-      - uses: ./.github/actions/use-build
+            - name: Run scanner mode (finds on-chain records)
+              working-directory: create-leo-app/template-node-loyalty-program-ts
+              run: |
+                  yarn scanner
 
-      - working-directory: create-leo-app/template-${{ matrix.template }}
-        run: |
-          yarn start
+    clippy:
+        name: "clippy"
+        runs-on: ubuntu-latest
+        strategy:
+            fail-fast: false
+            matrix:
+                network: [testnet, mainnet]
+        steps:
+            - uses: actions/checkout@v4
+            - uses: ./.github/actions/setup-rust
 
+            - name: "cargo clippy"
+              working-directory: wasm
+              run: |
+                  cargo clippy --features ${{ matrix.network }}
 
-  create-leo-app-loyalty-program-local:
-    name: "create-leo-app loyalty-program (local)"
-    runs-on: ubuntu-latest-m
-    needs: build
-    steps:
-      - uses: actions/checkout@v4
-      - uses: ./.github/actions/setup-yarn
-      - uses: ./.github/actions/use-build
+    rustfmt:
+        name: "rustfmt"
+        runs-on: ubuntu-latest
+        steps:
+            - uses: actions/checkout@v4
+            - uses: ./.github/actions/setup-rust
 
-      - working-directory: create-leo-app/template-node-loyalty-program-ts
-        run: |
-          yarn local
+            - name: "cargo fmt"
+              working-directory: wasm
+              run: |
+                  cargo fmt --all --check
 
+    prettier:
+        name: "prettier"
+        runs-on: ubuntu-latest
+        steps:
+            - uses: actions/checkout@v4
+            - uses: ./.github/actions/setup-yarn
 
-  create-leo-app-loyalty-program-delegated:
-    name: "create-leo-app loyalty-program (delegated + scanner)"
-    runs-on: ubuntu-latest-m
-    needs: build
-    env:
-      # Consumer ID (used for both DPS and RSS)
-      ALEO_CONSUMER_ID: ${{ secrets.ALEO_CONSUMER_ID }}
-      # DPS configuration
-      ALEO_DPS_URL: https://api.provable.com/prove/testnet
-      ALEO_DPS_API_KEY: ${{ secrets.ALEO_DPS_API_KEY }}
-      # RSS configuration
-      ALEO_RSS_URL: https://api.provable.com/scanner
-    steps:
-      - uses: actions/checkout@v4
-      - uses: ./.github/actions/setup-yarn
-      - uses: ./.github/actions/use-build
+            - name: "prettier --check"
+              run: |
+                  yarn lint
 
-      - name: Run delegated mode (creates on-chain records)
-        working-directory: create-leo-app/template-node-loyalty-program-ts
-        run: |
-          yarn delegated
+    website:
+        name: website
+        runs-on: ubuntu-latest
+        needs: build
 
-      - name: Run scanner mode (finds on-chain records)
-        working-directory: create-leo-app/template-node-loyalty-program-ts
-        run: |
-          yarn scanner
+        steps:
+            - uses: actions/checkout@v4
+            - uses: ./.github/actions/setup-yarn
+            - uses: ./.github/actions/use-build
 
+            - name: Build Website
+              working-directory: website
+              run: |
+                  yarn build
 
-  clippy:
-    name: "clippy"
-    runs-on: ubuntu-latest
-    strategy:
-      fail-fast: false
-      matrix:
-        network: [testnet, mainnet]
-    steps:
-      - uses: actions/checkout@v4
-      - uses: ./.github/actions/setup-rust
+            - name: Test Deploy
+              id: unmodified
+              uses: JamesIves/github-pages-deploy-action@v4
+              with:
+                  token: ${{ secrets.GITHUB_TOKEN }}
+                  branch: gh-pages
+                  folder: website/dist
+                  clean-exclude: '["dev"]'
+                  dry-run: true
 
-      - name: "cargo clippy"
-        working-directory: wasm
-        run: |
-          cargo clippy --features ${{ matrix.network }}
-
-
-  rustfmt:
-    name: "rustfmt"
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - uses: ./.github/actions/setup-rust
-
-      - name: "cargo fmt"
-        working-directory: wasm
-        run: |
-          cargo fmt --all --check
-
-
-  website:
-    name: website
-    runs-on: ubuntu-latest
-    needs: build
-
-    steps:
-      - uses: actions/checkout@v4
-      - uses: ./.github/actions/setup-yarn
-      - uses: ./.github/actions/use-build
-
-      - name: Build Website
-        working-directory: website
-        run: |
-          yarn build
-
-      - name: Test Deploy
-        id: unmodified
-        uses: JamesIves/github-pages-deploy-action@v4
-        with:
-          token: ${{ secrets.GITHUB_TOKEN }}
-          branch: gh-pages
-          folder: website/dist
-          clean-exclude: '["dev"]'
-          dry-run: true
-
-      - name: Check step output
-        run: |
-          [[ \
-          ${{steps.unmodified.outputs.deployment-status}} = skipped || \
-          ${{steps.unmodified.outputs.deployment-status}} = success \
-          ]]
+            - name: Check step output
+              run: |
+                  [[ \
+                  ${{steps.unmodified.outputs.deployment-status}} = skipped || \
+                  ${{steps.unmodified.outputs.deployment-status}} = success \
+                  ]]

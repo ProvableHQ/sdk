@@ -1,17 +1,8 @@
-import {
-    FunctionKeyProvider,
-    KeySearchParams,
-} from "./interface.js";
+import { FunctionKeyProvider, KeySearchParams } from "./interface.js";
 
-import {
-    CachedKeyPair,
-    FunctionKeyPair,
-} from "../../models/keyPair.js"
+import { CachedKeyPair, FunctionKeyPair } from "../../models/keyPair.js";
 
-import {
-    ProvingKey,
-    VerifyingKey,
-} from "../../wasm.js";
+import { ProvingKey, VerifyingKey } from "../../wasm.js";
 
 import {
     CREDITS_PROGRAM_KEYS,
@@ -55,42 +46,60 @@ class OfflineSearchParams implements KeySearchParams {
      * Create a new OfflineSearchParams instance for the bond_public function of the credits.aleo program.
      */
     static bondPublicKeyParams(): OfflineSearchParams {
-        return new OfflineSearchParams(CREDITS_PROGRAM_KEYS.bond_public.locator, true);
+        return new OfflineSearchParams(
+            CREDITS_PROGRAM_KEYS.bond_public.locator,
+            true,
+        );
     }
 
     /**
      * Create a new OfflineSearchParams instance for the bond_validator function of the credits.aleo program.
      */
     static bondValidatorKeyParams(): OfflineSearchParams {
-        return new OfflineSearchParams(CREDITS_PROGRAM_KEYS.bond_validator.locator, true);
+        return new OfflineSearchParams(
+            CREDITS_PROGRAM_KEYS.bond_validator.locator,
+            true,
+        );
     }
 
     /**
      * Create a new OfflineSearchParams instance for the claim_unbond_public function of the credits.aleo program.
      */
     static claimUnbondPublicKeyParams(): OfflineSearchParams {
-        return new OfflineSearchParams(CREDITS_PROGRAM_KEYS.claim_unbond_public.locator, true);
+        return new OfflineSearchParams(
+            CREDITS_PROGRAM_KEYS.claim_unbond_public.locator,
+            true,
+        );
     }
 
     /**
      * Create a new OfflineSearchParams instance for the fee_private function of the credits.aleo program.
      */
     static feePrivateKeyParams(): OfflineSearchParams {
-        return new OfflineSearchParams(CREDITS_PROGRAM_KEYS.fee_private.locator, true);
+        return new OfflineSearchParams(
+            CREDITS_PROGRAM_KEYS.fee_private.locator,
+            true,
+        );
     }
 
     /**
      * Create a new OfflineSearchParams instance for the fee_public function of the credits.aleo program.
      */
     static feePublicKeyParams(): OfflineSearchParams {
-        return new OfflineSearchParams(CREDITS_PROGRAM_KEYS.fee_public.locator, true);
+        return new OfflineSearchParams(
+            CREDITS_PROGRAM_KEYS.fee_public.locator,
+            true,
+        );
     }
 
     /**
      * Create a new OfflineSearchParams instance for the inclusion prover function.
      */
     static inclusionKeyParams(): OfflineSearchParams {
-        return new OfflineSearchParams(CREDITS_PROGRAM_KEYS.inclusion.locator, true);
+        return new OfflineSearchParams(
+            CREDITS_PROGRAM_KEYS.inclusion.locator,
+            true,
+        );
     }
 
     /**
@@ -104,56 +113,80 @@ class OfflineSearchParams implements KeySearchParams {
      * Create a new OfflineSearchParams instance for the set_validator_state function of the credits.aleo program.
      */
     static setValidatorStateKeyParams(): OfflineSearchParams {
-        return new OfflineSearchParams(CREDITS_PROGRAM_KEYS.set_validator_state.locator, true);
+        return new OfflineSearchParams(
+            CREDITS_PROGRAM_KEYS.set_validator_state.locator,
+            true,
+        );
     }
 
     /**
      * Create a new OfflineSearchParams instance for the split function of the credits.aleo program.
      */
     static splitKeyParams(): OfflineSearchParams {
-        return new OfflineSearchParams(CREDITS_PROGRAM_KEYS.split.locator, true);
+        return new OfflineSearchParams(
+            CREDITS_PROGRAM_KEYS.split.locator,
+            true,
+        );
     }
 
     /**
      * Create a new OfflineSearchParams instance for the transfer_private function of the credits.aleo program.
      */
     static transferPrivateKeyParams(): OfflineSearchParams {
-        return new OfflineSearchParams(CREDITS_PROGRAM_KEYS.transfer_private.locator, true);
+        return new OfflineSearchParams(
+            CREDITS_PROGRAM_KEYS.transfer_private.locator,
+            true,
+        );
     }
 
     /**
      * Create a new OfflineSearchParams instance for the transfer_private_to_public function of the credits.aleo program.
      */
     static transferPrivateToPublicKeyParams(): OfflineSearchParams {
-        return new OfflineSearchParams(CREDITS_PROGRAM_KEYS.transfer_private_to_public.locator, true);
+        return new OfflineSearchParams(
+            CREDITS_PROGRAM_KEYS.transfer_private_to_public.locator,
+            true,
+        );
     }
 
     /**
      * Create a new OfflineSearchParams instance for the transfer_public function of the credits.aleo program.
      */
     static transferPublicKeyParams(): OfflineSearchParams {
-        return new OfflineSearchParams(CREDITS_PROGRAM_KEYS.transfer_public.locator, true);
+        return new OfflineSearchParams(
+            CREDITS_PROGRAM_KEYS.transfer_public.locator,
+            true,
+        );
     }
 
     /**
      * Create a new OfflineSearchParams instance for the transfer_public_as_signer function of the credits.aleo program.
      */
     static transferPublicAsSignerKeyParams(): OfflineSearchParams {
-        return new OfflineSearchParams(CREDITS_PROGRAM_KEYS.transfer_public_as_signer.locator, true);
+        return new OfflineSearchParams(
+            CREDITS_PROGRAM_KEYS.transfer_public_as_signer.locator,
+            true,
+        );
     }
 
     /**
      * Create a new OfflineSearchParams instance for the transfer_public_to_private function of the credits.aleo program.
      */
     static transferPublicToPrivateKeyParams(): OfflineSearchParams {
-        return new OfflineSearchParams(CREDITS_PROGRAM_KEYS.transfer_public_to_private.locator, true);
+        return new OfflineSearchParams(
+            CREDITS_PROGRAM_KEYS.transfer_public_to_private.locator,
+            true,
+        );
     }
 
     /**
      * Create a new OfflineSearchParams instance for the unbond_public function of the credits.aleo program.
      */
     static unbondPublicKeyParams(): OfflineSearchParams {
-        return new OfflineSearchParams(CREDITS_PROGRAM_KEYS.unbond_public.locator, true);
+        return new OfflineSearchParams(
+            CREDITS_PROGRAM_KEYS.unbond_public.locator,
+            true,
+        );
     }
 }
 
@@ -227,7 +260,7 @@ class OfflineKeyProvider implements FunctionKeyProvider {
      */
     bondPublicKeys(): Promise<FunctionKeyPair> {
         return this.functionKeys(OfflineSearchParams.bondPublicKeyParams());
-    };
+    }
 
     /**
      * Get bond_validator function keys from the credits.aleo program. The keys must be cached prior to calling this
@@ -237,8 +270,7 @@ class OfflineKeyProvider implements FunctionKeyProvider {
      */
     bondValidatorKeys(): Promise<FunctionKeyPair> {
         return this.functionKeys(OfflineSearchParams.bondValidatorKeyParams());
-    };
-
+    }
 
     /**
      * Cache a set of keys. This will overwrite any existing keys with the same keyId. The user can check if a keyId
@@ -250,7 +282,7 @@ class OfflineKeyProvider implements FunctionKeyProvider {
     cacheKeys(keyId: string, keys: FunctionKeyPair): void {
         const [provingKey, verifyingKey] = keys;
         this.cache.set(keyId, [provingKey.toBytes(), verifyingKey.toBytes()]);
-    };
+    }
 
     /**
      * Get unbond_public function keys from the credits.aleo program. The keys must be cached prior to calling this
@@ -259,8 +291,10 @@ class OfflineKeyProvider implements FunctionKeyProvider {
      * @returns {Promise<FunctionKeyPair>} Proving and verifying keys for the unbond_public function
      */
     claimUnbondPublicKeys(): Promise<FunctionKeyPair> {
-        return this.functionKeys(OfflineSearchParams.claimUnbondPublicKeyParams());
-    };
+        return this.functionKeys(
+            OfflineSearchParams.claimUnbondPublicKeyParams(),
+        );
+    }
 
     /**
      * Get arbitrary function key from the offline key provider cache.
@@ -289,18 +323,33 @@ class OfflineKeyProvider implements FunctionKeyProvider {
     functionKeys(params?: KeySearchParams): Promise<FunctionKeyPair> {
         return new Promise((resolve, reject) => {
             if (params === undefined) {
-                reject(new Error("No search parameters provided, cannot retrieve keys"));
+                reject(
+                    new Error(
+                        "No search parameters provided, cannot retrieve keys",
+                    ),
+                );
             } else {
                 const keyId = params.cacheKey;
                 const verifyCreditsKeys = params.verifyCreditsKeys;
                 if (this.cache.has(keyId)) {
-                    const [provingKeyBytes, verifyingKeyBytes] = this.cache.get(keyId) as CachedKeyPair;
+                    const [provingKeyBytes, verifyingKeyBytes] = this.cache.get(
+                        keyId,
+                    ) as CachedKeyPair;
                     const provingKey = ProvingKey.fromBytes(provingKeyBytes);
-                    const verifyingKey = VerifyingKey.fromBytes(verifyingKeyBytes);
+                    const verifyingKey =
+                        VerifyingKey.fromBytes(verifyingKeyBytes);
                     if (verifyCreditsKeys) {
-                        const keysMatchExpected = this.verifyCreditsKeys(keyId, provingKey, verifyingKey)
+                        const keysMatchExpected = this.verifyCreditsKeys(
+                            keyId,
+                            provingKey,
+                            verifyingKey,
+                        );
                         if (!keysMatchExpected) {
-                            reject (new Error(`Cached keys do not match expected keys for ${keyId}`));
+                            reject(
+                                new Error(
+                                    `Cached keys do not match expected keys for ${keyId}`,
+                                ),
+                            );
                         }
                     }
                     resolve([provingKey, verifyingKey]);
@@ -309,41 +358,82 @@ class OfflineKeyProvider implements FunctionKeyProvider {
                 }
             }
         });
-    };
+    }
 
     /**
      * Determines if the keys for a given credits function match the expected keys.
      *
      * @returns {boolean} Whether the keys match the expected keys
      */
-    verifyCreditsKeys(locator: string, provingKey: ProvingKey, verifyingKey: VerifyingKey): boolean {
+    verifyCreditsKeys(
+        locator: string,
+        provingKey: ProvingKey,
+        verifyingKey: VerifyingKey,
+    ): boolean {
         switch (locator) {
             case CREDITS_PROGRAM_KEYS.bond_public.locator:
-                return provingKey.isBondPublicProver() && verifyingKey.isBondPublicVerifier();
+                return (
+                    provingKey.isBondPublicProver() &&
+                    verifyingKey.isBondPublicVerifier()
+                );
             case CREDITS_PROGRAM_KEYS.claim_unbond_public.locator:
-                return provingKey.isClaimUnbondPublicProver() && verifyingKey.isClaimUnbondPublicVerifier();
+                return (
+                    provingKey.isClaimUnbondPublicProver() &&
+                    verifyingKey.isClaimUnbondPublicVerifier()
+                );
             case CREDITS_PROGRAM_KEYS.fee_private.locator:
-                return provingKey.isFeePrivateProver() && verifyingKey.isFeePrivateVerifier();
+                return (
+                    provingKey.isFeePrivateProver() &&
+                    verifyingKey.isFeePrivateVerifier()
+                );
             case CREDITS_PROGRAM_KEYS.fee_public.locator:
-                return provingKey.isFeePublicProver() && verifyingKey.isFeePublicVerifier();
+                return (
+                    provingKey.isFeePublicProver() &&
+                    verifyingKey.isFeePublicVerifier()
+                );
             case CREDITS_PROGRAM_KEYS.inclusion.locator:
-                return provingKey.isInclusionProver() && verifyingKey.isInclusionVerifier();
+                return (
+                    provingKey.isInclusionProver() &&
+                    verifyingKey.isInclusionVerifier()
+                );
             case CREDITS_PROGRAM_KEYS.join.locator:
-                return provingKey.isJoinProver() && verifyingKey.isJoinVerifier();
+                return (
+                    provingKey.isJoinProver() && verifyingKey.isJoinVerifier()
+                );
             case CREDITS_PROGRAM_KEYS.set_validator_state.locator:
-                return provingKey.isSetValidatorStateProver() && verifyingKey.isSetValidatorStateVerifier();
+                return (
+                    provingKey.isSetValidatorStateProver() &&
+                    verifyingKey.isSetValidatorStateVerifier()
+                );
             case CREDITS_PROGRAM_KEYS.split.locator:
-                return provingKey.isSplitProver() && verifyingKey.isSplitVerifier();
+                return (
+                    provingKey.isSplitProver() && verifyingKey.isSplitVerifier()
+                );
             case CREDITS_PROGRAM_KEYS.transfer_private.locator:
-                return provingKey.isTransferPrivateProver() && verifyingKey.isTransferPrivateVerifier();
+                return (
+                    provingKey.isTransferPrivateProver() &&
+                    verifyingKey.isTransferPrivateVerifier()
+                );
             case CREDITS_PROGRAM_KEYS.transfer_private_to_public.locator:
-                return provingKey.isTransferPrivateToPublicProver() && verifyingKey.isTransferPrivateToPublicVerifier();
+                return (
+                    provingKey.isTransferPrivateToPublicProver() &&
+                    verifyingKey.isTransferPrivateToPublicVerifier()
+                );
             case CREDITS_PROGRAM_KEYS.transfer_public.locator:
-                return provingKey.isTransferPublicProver() && verifyingKey.isTransferPublicVerifier();
+                return (
+                    provingKey.isTransferPublicProver() &&
+                    verifyingKey.isTransferPublicVerifier()
+                );
             case CREDITS_PROGRAM_KEYS.transfer_public_to_private.locator:
-                return provingKey.isTransferPublicToPrivateProver() && verifyingKey.isTransferPublicToPrivateVerifier();
+                return (
+                    provingKey.isTransferPublicToPrivateProver() &&
+                    verifyingKey.isTransferPublicToPrivateVerifier()
+                );
             case CREDITS_PROGRAM_KEYS.unbond_public.locator:
-                return provingKey.isUnbondPublicProver() && verifyingKey.isUnbondPublicVerifier();
+                return (
+                    provingKey.isUnbondPublicProver() &&
+                    verifyingKey.isUnbondPublicVerifier()
+                );
             default:
                 return false;
         }
@@ -357,7 +447,7 @@ class OfflineKeyProvider implements FunctionKeyProvider {
      */
     feePrivateKeys(): Promise<FunctionKeyPair> {
         return this.functionKeys(OfflineSearchParams.feePrivateKeyParams());
-    };
+    }
 
     /**
      * Get fee_public function keys from the credits.aleo program. The keys must be cached prior to calling this
@@ -367,7 +457,7 @@ class OfflineKeyProvider implements FunctionKeyProvider {
      */
     feePublicKeys(): Promise<FunctionKeyPair> {
         return this.functionKeys(OfflineSearchParams.feePublicKeyParams());
-    };
+    }
 
     /**
      * Get the inclusion prover keys from. The keys must be cached prior to calling this method for it to work.
@@ -376,7 +466,7 @@ class OfflineKeyProvider implements FunctionKeyProvider {
      */
     inclusionKeys(): Promise<FunctionKeyPair> {
         return this.functionKeys(OfflineSearchParams.inclusionKeyParams());
-    };
+    }
 
     /**
      * Get join function keys from the credits.aleo program. The keys must be cached prior to calling this
@@ -386,7 +476,7 @@ class OfflineKeyProvider implements FunctionKeyProvider {
      */
     joinKeys(): Promise<FunctionKeyPair> {
         return this.functionKeys(OfflineSearchParams.joinKeyParams());
-    };
+    }
 
     /**
      * Get split function keys from the credits.aleo program. The keys must be cached prior to calling this
@@ -396,7 +486,7 @@ class OfflineKeyProvider implements FunctionKeyProvider {
      */
     splitKeys(): Promise<FunctionKeyPair> {
         return this.functionKeys(OfflineSearchParams.splitKeyParams());
-    };
+    }
 
     /**
      * Get keys for a variant of the transfer function from the credits.aleo program.
@@ -422,19 +512,29 @@ class OfflineKeyProvider implements FunctionKeyProvider {
      */
     transferKeys(visibility: string): Promise<FunctionKeyPair> {
         if (PRIVATE_TRANSFER.has(visibility)) {
-            return this.functionKeys(OfflineSearchParams.transferPrivateKeyParams());
+            return this.functionKeys(
+                OfflineSearchParams.transferPrivateKeyParams(),
+            );
         } else if (PRIVATE_TO_PUBLIC_TRANSFER.has(visibility)) {
-            return this.functionKeys(OfflineSearchParams.transferPrivateToPublicKeyParams());
+            return this.functionKeys(
+                OfflineSearchParams.transferPrivateToPublicKeyParams(),
+            );
         } else if (PUBLIC_TRANSFER.has(visibility)) {
-            return this.functionKeys(OfflineSearchParams.transferPublicKeyParams());
+            return this.functionKeys(
+                OfflineSearchParams.transferPublicKeyParams(),
+            );
         } else if (PUBLIC_TRANSFER_AS_SIGNER.has(visibility)) {
-            return this.functionKeys(OfflineSearchParams.transferPublicAsSignerKeyParams());
+            return this.functionKeys(
+                OfflineSearchParams.transferPublicAsSignerKeyParams(),
+            );
         } else if (PUBLIC_TO_PRIVATE_TRANSFER.has(visibility)) {
-            return this.functionKeys(OfflineSearchParams.transferPublicToPrivateKeyParams());
+            return this.functionKeys(
+                OfflineSearchParams.transferPublicToPrivateKeyParams(),
+            );
         } else {
             throw new Error("Invalid visibility type");
         }
-    };
+    }
 
     /**
      * Get unbond_public function keys from the credits.aleo program
@@ -443,7 +543,7 @@ class OfflineKeyProvider implements FunctionKeyProvider {
      */
     async unBondPublicKeys(): Promise<FunctionKeyPair> {
         return this.functionKeys(OfflineSearchParams.unbondPublicKeyParams());
-    };
+    }
 
     /**
      * Insert the proving and verifying keys for the bond_public function into the cache. Only the proving key needs
@@ -454,9 +554,14 @@ class OfflineKeyProvider implements FunctionKeyProvider {
      */
     insertBondPublicKeys(provingKey: ProvingKey) {
         if (provingKey.isBondPublicProver()) {
-            this.cache.set(CREDITS_PROGRAM_KEYS.bond_public.locator, [provingKey.toBytes(), VerifyingKey.bondPublicVerifier().toBytes()]);
+            this.cache.set(CREDITS_PROGRAM_KEYS.bond_public.locator, [
+                provingKey.toBytes(),
+                VerifyingKey.bondPublicVerifier().toBytes(),
+            ]);
         } else {
-            throw new Error("Attempted to insert invalid proving keys for bond_public");
+            throw new Error(
+                "Attempted to insert invalid proving keys for bond_public",
+            );
         }
     }
 
@@ -469,9 +574,14 @@ class OfflineKeyProvider implements FunctionKeyProvider {
      */
     insertClaimUnbondPublicKeys(provingKey: ProvingKey) {
         if (provingKey.isClaimUnbondPublicProver()) {
-            this.cache.set(CREDITS_PROGRAM_KEYS.claim_unbond_public.locator, [provingKey.toBytes(), VerifyingKey.claimUnbondPublicVerifier().toBytes()]);
+            this.cache.set(CREDITS_PROGRAM_KEYS.claim_unbond_public.locator, [
+                provingKey.toBytes(),
+                VerifyingKey.claimUnbondPublicVerifier().toBytes(),
+            ]);
         } else {
-            throw new Error("Attempted to insert invalid proving keys for claim_unbond_public");
+            throw new Error(
+                "Attempted to insert invalid proving keys for claim_unbond_public",
+            );
         }
     }
 
@@ -484,9 +594,14 @@ class OfflineKeyProvider implements FunctionKeyProvider {
      */
     insertFeePrivateKeys(provingKey: ProvingKey) {
         if (provingKey.isFeePrivateProver()) {
-            this.cache.set(CREDITS_PROGRAM_KEYS.fee_private.locator, [provingKey.toBytes(), VerifyingKey.feePrivateVerifier().toBytes()]);
+            this.cache.set(CREDITS_PROGRAM_KEYS.fee_private.locator, [
+                provingKey.toBytes(),
+                VerifyingKey.feePrivateVerifier().toBytes(),
+            ]);
         } else {
-            throw new Error("Attempted to insert invalid proving keys for fee_private");
+            throw new Error(
+                "Attempted to insert invalid proving keys for fee_private",
+            );
         }
     }
 
@@ -499,9 +614,14 @@ class OfflineKeyProvider implements FunctionKeyProvider {
      */
     insertFeePublicKeys(provingKey: ProvingKey) {
         if (provingKey.isFeePublicProver()) {
-            this.cache.set(CREDITS_PROGRAM_KEYS.fee_public.locator, [provingKey.toBytes(), VerifyingKey.feePublicVerifier().toBytes()]);
+            this.cache.set(CREDITS_PROGRAM_KEYS.fee_public.locator, [
+                provingKey.toBytes(),
+                VerifyingKey.feePublicVerifier().toBytes(),
+            ]);
         } else {
-            throw new Error("Attempted to insert invalid proving keys for fee_public");
+            throw new Error(
+                "Attempted to insert invalid proving keys for fee_public",
+            );
         }
     }
 
@@ -514,9 +634,14 @@ class OfflineKeyProvider implements FunctionKeyProvider {
      */
     insertInclusionKeys(provingKey: ProvingKey) {
         if (provingKey.isInclusionProver()) {
-            this.cache.set(CREDITS_PROGRAM_KEYS.inclusion.locator, [provingKey.toBytes(), VerifyingKey.inclusionVerifier().toBytes()]);
+            this.cache.set(CREDITS_PROGRAM_KEYS.inclusion.locator, [
+                provingKey.toBytes(),
+                VerifyingKey.inclusionVerifier().toBytes(),
+            ]);
         } else {
-            throw new Error("Attempted to insert invalid proving keys for the inclusion prover");
+            throw new Error(
+                "Attempted to insert invalid proving keys for the inclusion prover",
+            );
         }
     }
 
@@ -529,9 +654,14 @@ class OfflineKeyProvider implements FunctionKeyProvider {
      */
     insertJoinKeys(provingKey: ProvingKey) {
         if (provingKey.isJoinProver()) {
-            this.cache.set(CREDITS_PROGRAM_KEYS.join.locator, [provingKey.toBytes(), VerifyingKey.joinVerifier().toBytes()]);
+            this.cache.set(CREDITS_PROGRAM_KEYS.join.locator, [
+                provingKey.toBytes(),
+                VerifyingKey.joinVerifier().toBytes(),
+            ]);
         } else {
-            throw new Error("Attempted to insert invalid proving keys for join");
+            throw new Error(
+                "Attempted to insert invalid proving keys for join",
+            );
         }
     }
 
@@ -544,9 +674,14 @@ class OfflineKeyProvider implements FunctionKeyProvider {
      */
     insertSetValidatorStateKeys(provingKey: ProvingKey) {
         if (provingKey.isSetValidatorStateProver()) {
-            this.cache.set(CREDITS_PROGRAM_KEYS.set_validator_state.locator, [provingKey.toBytes(), VerifyingKey.setValidatorStateVerifier().toBytes()]);
+            this.cache.set(CREDITS_PROGRAM_KEYS.set_validator_state.locator, [
+                provingKey.toBytes(),
+                VerifyingKey.setValidatorStateVerifier().toBytes(),
+            ]);
         } else {
-            throw new Error("Attempted to insert invalid proving keys for set_validator_state");
+            throw new Error(
+                "Attempted to insert invalid proving keys for set_validator_state",
+            );
         }
     }
 
@@ -559,9 +694,14 @@ class OfflineKeyProvider implements FunctionKeyProvider {
      */
     insertSplitKeys(provingKey: ProvingKey) {
         if (provingKey.isSplitProver()) {
-            this.cache.set(CREDITS_PROGRAM_KEYS.split.locator, [provingKey.toBytes(), VerifyingKey.splitVerifier().toBytes()]);
+            this.cache.set(CREDITS_PROGRAM_KEYS.split.locator, [
+                provingKey.toBytes(),
+                VerifyingKey.splitVerifier().toBytes(),
+            ]);
         } else {
-            throw new Error("Attempted to insert invalid proving keys for split");
+            throw new Error(
+                "Attempted to insert invalid proving keys for split",
+            );
         }
     }
 
@@ -574,9 +714,14 @@ class OfflineKeyProvider implements FunctionKeyProvider {
      */
     insertTransferPrivateKeys(provingKey: ProvingKey) {
         if (provingKey.isTransferPrivateProver()) {
-            this.cache.set(CREDITS_PROGRAM_KEYS.transfer_private.locator, [provingKey.toBytes(), VerifyingKey.transferPrivateVerifier().toBytes()]);
+            this.cache.set(CREDITS_PROGRAM_KEYS.transfer_private.locator, [
+                provingKey.toBytes(),
+                VerifyingKey.transferPrivateVerifier().toBytes(),
+            ]);
         } else {
-            throw new Error("Attempted to insert invalid proving keys for transfer_private");
+            throw new Error(
+                "Attempted to insert invalid proving keys for transfer_private",
+            );
         }
     }
 
@@ -589,9 +734,17 @@ class OfflineKeyProvider implements FunctionKeyProvider {
      */
     insertTransferPrivateToPublicKeys(provingKey: ProvingKey) {
         if (provingKey.isTransferPrivateToPublicProver()) {
-            this.cache.set(CREDITS_PROGRAM_KEYS.transfer_private_to_public.locator, [provingKey.toBytes(), VerifyingKey.transferPrivateToPublicVerifier().toBytes()]);
+            this.cache.set(
+                CREDITS_PROGRAM_KEYS.transfer_private_to_public.locator,
+                [
+                    provingKey.toBytes(),
+                    VerifyingKey.transferPrivateToPublicVerifier().toBytes(),
+                ],
+            );
         } else {
-            throw new Error("Attempted to insert invalid proving keys for transfer_private_to_public");
+            throw new Error(
+                "Attempted to insert invalid proving keys for transfer_private_to_public",
+            );
         }
     }
 
@@ -604,9 +757,14 @@ class OfflineKeyProvider implements FunctionKeyProvider {
      */
     insertTransferPublicKeys(provingKey: ProvingKey) {
         if (provingKey.isTransferPublicProver()) {
-            this.cache.set(CREDITS_PROGRAM_KEYS.transfer_public.locator, [provingKey.toBytes(), VerifyingKey.transferPublicVerifier().toBytes()]);
+            this.cache.set(CREDITS_PROGRAM_KEYS.transfer_public.locator, [
+                provingKey.toBytes(),
+                VerifyingKey.transferPublicVerifier().toBytes(),
+            ]);
         } else {
-            throw new Error("Attempted to insert invalid proving keys for transfer_public");
+            throw new Error(
+                "Attempted to insert invalid proving keys for transfer_public",
+            );
         }
     }
 
@@ -619,20 +777,32 @@ class OfflineKeyProvider implements FunctionKeyProvider {
      */
     insertTransferPublicToPrivateKeys(provingKey: ProvingKey) {
         if (provingKey.isTransferPublicToPrivateProver()) {
-            this.cache.set(CREDITS_PROGRAM_KEYS.transfer_public_to_private.locator, [provingKey.toBytes(), VerifyingKey.transferPublicToPrivateVerifier().toBytes()]);
+            this.cache.set(
+                CREDITS_PROGRAM_KEYS.transfer_public_to_private.locator,
+                [
+                    provingKey.toBytes(),
+                    VerifyingKey.transferPublicToPrivateVerifier().toBytes(),
+                ],
+            );
         } else {
-            throw new Error("Attempted to insert invalid proving keys for transfer_public_to_private");
+            throw new Error(
+                "Attempted to insert invalid proving keys for transfer_public_to_private",
+            );
         }
     }
 
     insertUnbondPublicKeys(provingKey: ProvingKey) {
         if (provingKey.isUnbondPublicProver()) {
-            this.cache.set(CREDITS_PROGRAM_KEYS.unbond_public.locator, [provingKey.toBytes(), VerifyingKey.unbondPublicVerifier().toBytes()]);
+            this.cache.set(CREDITS_PROGRAM_KEYS.unbond_public.locator, [
+                provingKey.toBytes(),
+                VerifyingKey.unbondPublicVerifier().toBytes(),
+            ]);
         } else {
-            throw new Error("Attempted to insert invalid proving keys for unbond_public");
+            throw new Error(
+                "Attempted to insert invalid proving keys for unbond_public",
+            );
         }
     }
 }
 
-
-export {OfflineKeyProvider, OfflineSearchParams}
+export { OfflineKeyProvider, OfflineSearchParams };

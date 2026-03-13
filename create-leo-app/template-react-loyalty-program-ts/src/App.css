@@ -1,459 +1,470 @@
 #root {
-  max-width: 1280px;
-  margin: 0 auto;
-  padding: 2rem;
-  text-align: center;
+    max-width: 1280px;
+    margin: 0 auto;
+    padding: 2rem;
+    text-align: center;
 }
 
 .logo {
-  height: 6em;
-  padding: 1.5em;
-  will-change: filter;
-  transition: filter 300ms;
+    height: 6em;
+    padding: 1.5em;
+    will-change: filter;
+    transition: filter 300ms;
 }
 .logo:hover {
-  filter: drop-shadow(0 0 2em #646cffaa);
+    filter: drop-shadow(0 0 2em #646cffaa);
 }
 .logo.react:hover {
-  filter: drop-shadow(0 0 2em #61dafbaa);
+    filter: drop-shadow(0 0 2em #61dafbaa);
 }
 
 @keyframes logo-spin {
-  from {
-    transform: rotate(0deg);
-  }
-  to {
-    transform: rotate(360deg);
-  }
+    from {
+        transform: rotate(0deg);
+    }
+    to {
+        transform: rotate(360deg);
+    }
 }
 
 @media (prefers-reduced-motion: no-preference) {
-  a:nth-of-type(2) .logo {
-    animation: logo-spin infinite 20s linear;
-  }
+    a:nth-of-type(2) .logo {
+        animation: logo-spin infinite 20s linear;
+    }
 }
 
 h1 {
-  font-size: 2.5em;
-  margin-bottom: 0.5em;
+    font-size: 2.5em;
+    margin-bottom: 0.5em;
 }
 
 .subtitle {
-  color: #888;
-  margin-bottom: 2em;
+    color: #888;
+    margin-bottom: 2em;
 }
 
 .card {
-  padding: 2em;
-  margin: 1em 0;
-  background: #1a1a1a;
-  border-radius: 8px;
-  text-align: left;
+    padding: 2em;
+    margin: 1em 0;
+    background: #1a1a1a;
+    border-radius: 8px;
+    text-align: left;
 }
 
 .card h2 {
-  margin-top: 0;
-  color: #fff;
-  font-size: 1.3em;
+    margin-top: 0;
+    color: #fff;
+    font-size: 1.3em;
 }
 
 .info-card ul {
-  text-align: left;
-  padding-left: 1.5em;
+    text-align: left;
+    padding-left: 1.5em;
 }
 
 .info-card li {
-  margin: 0.5em 0;
-  color: #ccc;
+    margin: 0.5em 0;
+    color: #ccc;
 }
 
 /* Status messages */
 .loading {
-  background: #2196f3;
-  color: white;
-  padding: 1em;
-  border-radius: 4px;
-  margin: 1em 0;
-  animation: pulse 2s infinite;
+    background: #2196f3;
+    color: white;
+    padding: 1em;
+    border-radius: 4px;
+    margin: 1em 0;
+    animation: pulse 2s infinite;
 }
 
 @keyframes pulse {
-  0%, 100% { opacity: 1; }
-  50% { opacity: 0.7; }
+    0%,
+    100% {
+        opacity: 1;
+    }
+    50% {
+        opacity: 0.7;
+    }
 }
 
 .status {
-  background: #333;
-  color: #4caf50;
-  padding: 1em;
-  border-radius: 4px;
-  margin: 1em 0;
-  font-family: monospace;
+    background: #333;
+    color: #4caf50;
+    padding: 1em;
+    border-radius: 4px;
+    margin: 1em 0;
+    font-family: monospace;
 }
 
 /* Account section */
 .account-info {
-  margin-top: 1em;
-  padding: 1em;
-  background: #2a2a2a;
-  border-radius: 4px;
+    margin-top: 1em;
+    padding: 1em;
+    background: #2a2a2a;
+    border-radius: 4px;
 }
 
 .account-info code {
-  background: #333;
-  padding: 0.2em 0.4em;
-  border-radius: 3px;
-  font-size: 0.9em;
+    background: #333;
+    padding: 0.2em 0.4em;
+    border-radius: 3px;
+    font-size: 0.9em;
 }
 
 .account-mode {
-  color: #888;
-  font-size: 0.85em;
-  margin-top: 0.5em;
+    color: #888;
+    font-size: 0.85em;
+    margin-top: 0.5em;
 }
 
 /* Card selector tabs (shown when multiple cards from splits) */
 .card-selector {
-  display: flex;
-  gap: 0.5em;
-  flex-wrap: wrap;
-  justify-content: center;
-  margin-bottom: 0.5em;
+    display: flex;
+    gap: 0.5em;
+    flex-wrap: wrap;
+    justify-content: center;
+    margin-bottom: 0.5em;
 }
 
 .card-tab {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 0.15em;
-  padding: 0.4em 0.8em;
-  border: 2px solid #444;
-  border-radius: 6px;
-  background: #2a2a2a;
-  cursor: pointer;
-  transition: border-color 0.2s, background-color 0.2s;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.15em;
+    padding: 0.4em 0.8em;
+    border: 2px solid #444;
+    border-radius: 6px;
+    background: #2a2a2a;
+    cursor: pointer;
+    transition:
+        border-color 0.2s,
+        background-color 0.2s;
 }
 
 .card-tab:hover:not(:disabled) {
-  background: #333;
+    background: #333;
 }
 
 .card-tab.active {
-  background: #1a2a1a;
+    background: #1a2a1a;
 }
 
 .card-tab-points {
-  font-weight: bold;
-  font-size: 1em;
-  color: #fff;
+    font-weight: bold;
+    font-size: 1em;
+    color: #fff;
 }
 
 .card-tab-tier {
-  font-size: 0.7em;
-  font-weight: 600;
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
+    font-size: 0.7em;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
 }
 
 /* Loyalty card display */
 .card-display {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 1em;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 1em;
 }
 
 .loyalty-card {
-  width: 280px;
-  height: 160px;
-  background: linear-gradient(135deg, #2a2a2a 0%, #1a1a1a 100%);
-  border-radius: 12px;
-  border: 3px solid;
-  padding: 1.5em;
-  display: flex;
-  flex-direction: column;
-  justify-content: space-between;
-  position: relative;
+    width: 280px;
+    height: 160px;
+    background: linear-gradient(135deg, #2a2a2a 0%, #1a1a1a 100%);
+    border-radius: 12px;
+    border: 3px solid;
+    padding: 1.5em;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    position: relative;
 }
 
 .tier-badge {
-  position: absolute;
-  top: 1em;
-  right: 1em;
-  padding: 0.3em 0.8em;
-  border-radius: 4px;
-  font-weight: bold;
-  font-size: 0.8em;
-  color: #000;
+    position: absolute;
+    top: 1em;
+    right: 1em;
+    padding: 0.3em 0.8em;
+    border-radius: 4px;
+    font-weight: bold;
+    font-size: 0.8em;
+    color: #000;
 }
 
 .points-display {
-  display: flex;
-  flex-direction: column;
-  align-items: flex-start;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
 }
 
 .points-value {
-  font-size: 3em;
-  font-weight: bold;
-  color: #fff;
+    font-size: 3em;
+    font-weight: bold;
+    color: #fff;
 }
 
 .points-label {
-  color: #888;
-  font-size: 0.9em;
-  text-transform: uppercase;
-  letter-spacing: 2px;
+    color: #888;
+    font-size: 0.9em;
+    text-transform: uppercase;
+    letter-spacing: 2px;
 }
 
 .points-controls {
-  display: flex;
-  gap: 0.5em;
-  align-items: center;
+    display: flex;
+    gap: 0.5em;
+    align-items: center;
 }
 
 .points-controls input {
-  width: 100px;
-  padding: 0.5em;
-  border: 1px solid #444;
-  border-radius: 4px;
-  background: #2a2a2a;
-  color: #fff;
+    width: 100px;
+    padding: 0.5em;
+    border: 1px solid #444;
+    border-radius: 4px;
+    background: #2a2a2a;
+    color: #fff;
 }
 
 /* Redeem section */
 .redeem-controls {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 1em;
-  align-items: flex-end;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 1em;
+    align-items: flex-end;
 }
 
 .input-group {
-  display: flex;
-  flex-direction: column;
-  gap: 0.3em;
+    display: flex;
+    flex-direction: column;
+    gap: 0.3em;
 }
 
 .input-group label {
-  font-size: 0.8em;
-  color: #888;
+    font-size: 0.8em;
+    color: #888;
 }
 
 .input-group select,
 .input-group input {
-  padding: 0.5em;
-  border: 1px solid #444;
-  border-radius: 4px;
-  background: #2a2a2a;
-  color: #fff;
-  min-width: 120px;
+    padding: 0.5em;
+    border: 1px solid #444;
+    border-radius: 4px;
+    background: #2a2a2a;
+    color: #fff;
+    min-width: 120px;
 }
 
 /* Voucher display */
 .voucher-display {
-  margin-top: 1.5em;
-  padding-top: 1.5em;
-  border-top: 1px solid #333;
+    margin-top: 1.5em;
+    padding-top: 1.5em;
+    border-top: 1px solid #333;
 }
 
 .voucher {
-  display: inline-block;
-  background: linear-gradient(135deg, #4caf50 0%, #2e7d32 100%);
-  border-radius: 8px;
-  padding: 1.5em 2em;
-  margin: 1em 0;
-  color: white;
+    display: inline-block;
+    background: linear-gradient(135deg, #4caf50 0%, #2e7d32 100%);
+    border-radius: 8px;
+    padding: 1.5em 2em;
+    margin: 1em 0;
+    color: white;
 }
 
 .voucher-type {
-  font-size: 1.2em;
-  font-weight: bold;
+    font-size: 1.2em;
+    font-weight: bold;
 }
 
 .voucher-value {
-  font-size: 0.9em;
-  opacity: 0.9;
-  margin-top: 0.5em;
+    font-size: 0.9em;
+    opacity: 0.9;
+    margin-top: 0.5em;
 }
 
 .voucher-id {
-  font-size: 0.75em;
-  opacity: 0.7;
-  margin-top: 0.5em;
-  font-family: monospace;
+    font-size: 0.75em;
+    opacity: 0.7;
+    margin-top: 0.5em;
+    font-family: monospace;
 }
 
 .vouchers-list {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 1em;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 1em;
 }
 
 .voucher-item {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 0.5em;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.5em;
 }
 
 .voucher-item .voucher {
-  margin: 0;
+    margin: 0;
 }
 
 .voucher-item button {
-  width: 100%;
+    width: 100%;
 }
 
 /* Card ID */
 .card-id {
-  font-size: 0.7em;
-  color: #666;
-  font-family: monospace;
-  margin-top: auto;
+    font-size: 0.7em;
+    color: #666;
+    font-family: monospace;
+    margin-top: auto;
 }
 
 /* Code block */
 .code-block {
-  background: #0d0d0d;
-  border: 1px solid #333;
-  border-radius: 6px;
-  padding: 1em;
-  font-size: 0.85em;
-  text-align: left;
-  overflow-x: auto;
-  color: #e0e0e0;
-  margin: 1em 0;
+    background: #0d0d0d;
+    border: 1px solid #333;
+    border-radius: 6px;
+    padding: 1em;
+    font-size: 0.85em;
+    text-align: left;
+    overflow-x: auto;
+    color: #e0e0e0;
+    margin: 1em 0;
 }
 
 .api-example {
-  margin-bottom: 0.5em;
-  color: #888;
+    margin-bottom: 0.5em;
+    color: #888;
 }
 
 /* Buttons */
 button {
-  border-radius: 8px;
-  border: 1px solid transparent;
-  padding: 0.6em 1.2em;
-  font-size: 1em;
-  font-weight: 500;
-  font-family: inherit;
-  background-color: #1a1a1a;
-  color: #e0e0e0;
-  cursor: pointer;
-  transition: border-color 0.25s, color 0.25s;
+    border-radius: 8px;
+    border: 1px solid transparent;
+    padding: 0.6em 1.2em;
+    font-size: 1em;
+    font-weight: 500;
+    font-family: inherit;
+    background-color: #1a1a1a;
+    color: #e0e0e0;
+    cursor: pointer;
+    transition:
+        border-color 0.25s,
+        color 0.25s;
 }
 
 button:hover:not(:disabled) {
-  border-color: #646cff;
-  color: #fff;
+    border-color: #646cff;
+    color: #fff;
 }
 
 button:focus,
 button:focus-visible {
-  outline: 4px auto -webkit-focus-ring-color;
+    outline: 4px auto -webkit-focus-ring-color;
 }
 
 button:disabled {
-  opacity: 0.5;
-  cursor: not-allowed;
+    opacity: 0.5;
+    cursor: not-allowed;
 }
 
 /* Info text */
 .info {
-  color: #888;
-  font-size: 0.9em;
-  margin-bottom: 1em;
+    color: #888;
+    font-size: 0.9em;
+    margin-bottom: 1em;
 }
 
 .mapping-result {
-  margin-top: 1em;
-  padding: 1em;
-  background: #2a2a2a;
-  border-radius: 4px;
-  font-family: monospace;
-  color: #4caf50;
+    margin-top: 1em;
+    padding: 1em;
+    background: #2a2a2a;
+    border-radius: 4px;
+    font-family: monospace;
+    color: #4caf50;
 }
 
 .read-the-docs {
-  color: #888;
+    color: #888;
 }
 
 /* Scanner section */
 .scanner-info {
-  color: #888;
-  font-size: 0.9em;
-  margin-bottom: 1em;
+    color: #888;
+    font-size: 0.9em;
+    margin-bottom: 1em;
 }
 
 .scanned-records {
-  margin-top: 1.5em;
+    margin-top: 1.5em;
 }
 
 .scanned-section {
-  margin-bottom: 1em;
+    margin-bottom: 1em;
 }
 
 .scanned-section h3 {
-  font-size: 1em;
-  color: #888;
-  margin-bottom: 0.5em;
+    font-size: 1em;
+    color: #888;
+    margin-bottom: 0.5em;
 }
 
 .scanned-list {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.5em;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5em;
 }
 
 .scanned-item {
-  display: flex;
-  gap: 0.5em;
-  padding: 0.5em 1em;
-  background: #2a2a2a;
-  border: 1px solid #444;
-  border-radius: 6px;
-  cursor: pointer;
-  transition: border-color 0.2s, background-color 0.2s;
+    display: flex;
+    gap: 0.5em;
+    padding: 0.5em 1em;
+    background: #2a2a2a;
+    border: 1px solid #444;
+    border-radius: 6px;
+    cursor: pointer;
+    transition:
+        border-color 0.2s,
+        background-color 0.2s;
 }
 
 .scanned-item:hover {
-  border-color: #646cff;
-  background: #333;
+    border-color: #646cff;
+    background: #333;
 }
 
 .scanned-item.selected {
-  border-color: #4caf50;
-  background: #1a3a1a;
+    border-color: #4caf50;
+    background: #1a3a1a;
 }
 
 .scanned-tier {
-  font-weight: bold;
+    font-weight: bold;
 }
 
 .scanned-points {
-  color: #888;
+    color: #888;
 }
 
 .scanned-type {
-  font-weight: bold;
-  color: #4caf50;
+    font-weight: bold;
+    color: #4caf50;
 }
 
 .scanned-value {
-  color: #888;
+    color: #888;
 }
 
 /* Responsive */
 @media (max-width: 600px) {
-  .redeem-controls {
-    flex-direction: column;
-    align-items: stretch;
-  }
+    .redeem-controls {
+        flex-direction: column;
+        align-items: stretch;
+    }
 
-  .loyalty-card {
-    width: 100%;
-    max-width: 280px;
-  }
+    .loyalty-card {
+        width: 100%;
+        max-width: 280px;
+    }
 }

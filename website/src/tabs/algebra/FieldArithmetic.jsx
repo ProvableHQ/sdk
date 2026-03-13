@@ -1,4 +1,4 @@
-import {useMemo, useState} from "react";
+import { useMemo, useState } from "react";
 import { Card, Divider, Form, Input, Select, Radio, Button } from "antd";
 import { CopyButton } from "../../components/CopyButton";
 import { useAleoWASM } from "../../aleo-wasm-hook";
@@ -27,7 +27,7 @@ export const FieldArithmetic = () => {
         { value: "div", label: "Divide (÷)" },
         { value: "pow", label: "Power (x^y)" },
         { value: "inv", label: "Additive Inverse (-x)" },
-        { value: "mulinv", label: "Multiplicative Inverse (1/x)"},
+        { value: "mulinv", label: "Multiplicative Inverse (1/x)" },
         { value: "equals", label: "Equals (==)" },
     ];
 
@@ -47,8 +47,10 @@ export const FieldArithmetic = () => {
     };
 
     const calculateResult = (num1, num2, op) => {
-        if (((op === "inv" || op === "mulinv") && num1 === "") ||
-            ((op !== "inv" && op !== "mulinv") && (num1 === "" || num2 === ""))) {
+        if (
+            ((op === "inv" || op === "mulinv") && num1 === "") ||
+            (op !== "inv" && op !== "mulinv" && (num1 === "" || num2 === ""))
+        ) {
             setResult("");
             return;
         }
@@ -64,11 +66,11 @@ export const FieldArithmetic = () => {
             if (op === "inv") {
                 resultField = field1.inverse();
             } else if (op === "mulinv") {
-                resultField = field1.divide(field1).divide(field1)
+                resultField = field1.divide(field1).divide(field1);
             } else {
                 let field2Text = num2;
                 if (!field2Text.includes("field")) {
-                    field2Text = field2Text + "field"
+                    field2Text = field2Text + "field";
                 }
                 const field2 = wasm.Field.fromString(field2Text);
 
@@ -107,22 +109,23 @@ export const FieldArithmetic = () => {
         }
     };
 
-    const layout = { 
-        labelCol: { span: 6 }, 
+    const layout = {
+        labelCol: { span: 6 },
         wrapperCol: { span: 18 },
-        style: { marginBottom: '24px' }
+        style: { marginBottom: "24px" },
     };
 
     return (
-        <Card
-            title="Finite Field Arithmetic"
-            style={{ width: "100%" }}
-        >
+        <Card title="Finite Field Arithmetic" style={{ width: "100%" }}>
             <Form {...layout}>
-                <Form.Item 
-                    label={<span style={{ whiteSpace: 'nowrap' }}>Field Element 1</span>}
+                <Form.Item
+                    label={
+                        <span style={{ whiteSpace: "nowrap" }}>
+                            Field Element 1
+                        </span>
+                    }
                     colon={false}
-                    style={{ marginBottom: '24px' }}
+                    style={{ marginBottom: "24px" }}
                 >
                     <Input.Group compact>
                         <Input
@@ -132,29 +135,35 @@ export const FieldArithmetic = () => {
                             allowClear
                             value={fieldValueOne}
                             onChange={onFirstNumberChange}
-                            style={{ width: 'calc(100% - 110px)' }}
+                            style={{ width: "calc(100% - 110px)" }}
                         />
-                        <Button 
+                        <Button
                             size="large"
-                            onClick={() => onFirstNumberChange({target:{value:generateRandomField()}})}
-                            style={{ width: '110px' }}
+                            onClick={() =>
+                                onFirstNumberChange({
+                                    target: { value: generateRandomField() },
+                                })
+                            }
+                            style={{ width: "110px" }}
                         >
                             Random
                         </Button>
                     </Input.Group>
                 </Form.Item>
 
-                <Form.Item 
-                    label={<span style={{ whiteSpace: 'nowrap' }}>Operation</span>}
+                <Form.Item
+                    label={
+                        <span style={{ whiteSpace: "nowrap" }}>Operation</span>
+                    }
                     colon={false}
-                    style={{ marginBottom: '24px' }}
+                    style={{ marginBottom: "24px" }}
                 >
                     <Radio.Group
                         value={operation}
                         onChange={(e) => onOperationChange(e.target.value)}
                         size="large"
                     >
-                        {operations.map(op => (
+                        {operations.map((op) => (
                             <Radio.Button key={op.value} value={op.value}>
                                 {op.label}
                             </Radio.Button>
@@ -163,10 +172,14 @@ export const FieldArithmetic = () => {
                 </Form.Item>
 
                 {operation !== "inv" && operation !== "mulinv" && (
-                    <Form.Item 
-                        label={<span style={{ whiteSpace: 'nowrap' }}>Field Element 2</span>}
+                    <Form.Item
+                        label={
+                            <span style={{ whiteSpace: "nowrap" }}>
+                                Field Element 2
+                            </span>
+                        }
                         colon={false}
-                        style={{ marginBottom: '24px' }}
+                        style={{ marginBottom: "24px" }}
                     >
                         <Input.Group compact>
                             <Input
@@ -176,12 +189,18 @@ export const FieldArithmetic = () => {
                                 value={fieldValueTwo}
                                 allowClear={true}
                                 onChange={onSecondNumberChange}
-                                style={{ width: 'calc(100% - 110px)' }}
+                                style={{ width: "calc(100% - 110px)" }}
                             />
-                            <Button 
+                            <Button
                                 size="large"
-                                onClick={() => onSecondNumberChange({target:{value:generateRandomField()}})}
-                                style={{ width: '110px' }}
+                                onClick={() =>
+                                    onSecondNumberChange({
+                                        target: {
+                                            value: generateRandomField(),
+                                        },
+                                    })
+                                }
+                                style={{ width: "110px" }}
                             >
                                 Random
                             </Button>
@@ -190,18 +209,16 @@ export const FieldArithmetic = () => {
                 )}
 
                 <Divider />
-                <Form.Item 
-                    label={<span style={{ whiteSpace: 'nowrap' }}>Result</span>}
+                <Form.Item
+                    label={<span style={{ whiteSpace: "nowrap" }}>Result</span>}
                     colon={false}
-                    style={{ marginBottom: '24px' }}
+                    style={{ marginBottom: "24px" }}
                 >
                     <Input
                         size="large"
                         placeholder="Result will appear here"
                         value={result}
-                        addonAfter={
-                            <CopyButton data={result} />
-                        }
+                        addonAfter={<CopyButton data={result} />}
                         disabled
                     />
                 </Form.Item>

@@ -1,4 +1,4 @@
-import {useMemo, useState} from "react";
+import { useMemo, useState } from "react";
 import { Button, Card, Col, Divider, Form, Input, Row } from "antd";
 import axios from "axios";
 import { CopyButton } from "../../components/CopyButton";
@@ -58,11 +58,11 @@ export const GetMappingNames = () => {
     const layout = { labelCol: { span: 4 }, wrapperCol: { span: 21 } };
 
     const mappingString = useMemo(() => {
-        return mapping !== null ? mapping : ""
+        return mapping !== null ? mapping : "";
     }, [mapping]);
 
     const programIDString = useMemo(() => {
-        return programID !== null ? programID : ""
+        return programID !== null ? programID : "";
     }, [programID]);
 
     return (
@@ -72,7 +72,6 @@ export const GetMappingNames = () => {
             extra={
                 <Button
                     type="primary"
-
                     size="middle"
                     onClick={() => {
                         tryRequest("credits.aleo");

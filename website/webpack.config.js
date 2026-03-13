@@ -7,10 +7,9 @@ import path from "path";
 
 const env = dotenv.config().parsed || {};
 const envKeys = Object.keys(env).reduce((acc, key) => {
-  acc[`process.env.${key}`] = JSON.stringify(env[key]);
-  return acc;
+    acc[`process.env.${key}`] = JSON.stringify(env[key]);
+    return acc;
 }, {});
-
 
 const appConfig = {
     mode: "production",
@@ -55,7 +54,8 @@ const appConfig = {
                 { from: "public", to: "public" },
                 { from: "_headers", to: "." },
                 { from: "_redirects", to: "." },
-                { from: "vercel.json", to: "." }],
+                { from: "vercel.json", to: "." },
+            ],
         }),
         new HtmlWebpackPlugin({
             template: "./index.html",
@@ -64,12 +64,14 @@ const appConfig = {
     ],
     optimization: {
         minimize: true,
-        minimizer: [new TerserPlugin({
-          terserOptions: {
-            module: true,
-          }
-        })],
-      },
+        minimizer: [
+            new TerserPlugin({
+                terserOptions: {
+                    module: true,
+                },
+            }),
+        ],
+    },
     performance: {
         hints: false,
         maxAssetSize: 13 * 1024 * 1024, // 12 MiB

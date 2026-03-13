@@ -10,7 +10,10 @@ await sodium.ready;
  *
  * @returns {string} the encrypted authorization in RFC 4648 standard Base64.
  */
-export function encryptAuthorization(publicKey: string, authorization: Authorization): string {
+export function encryptAuthorization(
+    publicKey: string,
+    authorization: Authorization,
+): string {
     // Ready the cryptobox lib.
     return encryptMessage(publicKey, authorization.toBytesLe());
 }
@@ -23,7 +26,10 @@ export function encryptAuthorization(publicKey: string, authorization: Authoriza
  *
  * @returns {string} the encrypted ProvingRequest in RFC 4648 standard Base64.
  */
-export function encryptProvingRequest(publicKey: string, provingRequest: ProvingRequest): string {
+export function encryptProvingRequest(
+    publicKey: string,
+    provingRequest: ProvingRequest,
+): string {
     return encryptMessage(publicKey, provingRequest.toBytesLe());
 }
 
@@ -48,7 +54,11 @@ export function encryptViewKey(publicKey: string, viewKey: ViewKey): string {
  *
  * @returns {string} the encrypted view key in RFC 4648 standard Base64.
  */
-export function encryptRegistrationRequest(publicKey: string, viewKey: ViewKey, start: number): string {
+export function encryptRegistrationRequest(
+    publicKey: string,
+    viewKey: ViewKey,
+    start: number,
+): string {
     // Turn the view key into a Uint8Array.
     const vk_bytes: Uint8Array = viewKey.toBytesLe();
     // Create a new array to hold the original bytes and the 4-byte start height.
@@ -107,6 +117,12 @@ export function zeroizeBytes(bytes: Uint8Array): void {
  * @returns {string} the encrypted bytes in RFC 4648 standard Base64.
  */
 function encryptMessage(publicKey: string, message: Uint8Array): string {
-    const publicKeyBytes = sodium.from_base64(publicKey, sodium.base64_variants.ORIGINAL);
-    return sodium.to_base64(sodium.crypto_box_seal(message, publicKeyBytes), sodium.base64_variants.ORIGINAL);
+    const publicKeyBytes = sodium.from_base64(
+        publicKey,
+        sodium.base64_variants.ORIGINAL,
+    );
+    return sodium.to_base64(
+        sodium.crypto_box_seal(message, publicKeyBytes),
+        sodium.base64_variants.ORIGINAL,
+    );
 }

@@ -1,4 +1,4 @@
-import {useMemo, useState} from "react";
+import { useMemo, useState } from "react";
 import { Card, Divider, Form, Input } from "antd";
 import { CopyButton } from "../../components/CopyButton";
 import { useAleoWASM } from "../../aleo-wasm-hook";
@@ -38,22 +38,16 @@ export const SignMessage = () => {
     const layout = { labelCol: { span: 3 }, wrapperCol: { span: 21 } };
 
     const signatureString = useMemo(() => {
-        return signingKey !== null ? signingKey : ""
+        return signingKey !== null ? signingKey : "";
     }, [signingKey]);
 
     const messageString = useMemo(() => {
-        return message !== null ? message : ""
+        return message !== null ? message : "";
     }, [signingKey]);
 
-
     if (aleo !== null) {
-
-
         return (
-            <Card
-                title="Sign a Message"
-                style={{ width: "100%" }}
-            >
+            <Card title="Sign a Message" style={{ width: "100%" }}>
                 <Form {...layout}>
                     <Form.Item label="Private Key" colon={false}>
                         <Input

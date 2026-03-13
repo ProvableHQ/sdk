@@ -4,54 +4,58 @@ import { rollup } from "rollup";
 import virtual from "@rollup/plugin-virtual";
 import rust from "@wasm-tool/rollup-plugin-rust";
 
-
 async function buildRollup(input, output) {
     const bundle = await rollup(input);
 
     try {
         await bundle.write(output);
-
     } finally {
         await bundle.close();
     }
 }
 
-
 async function buildWasm(network) {
-    await buildRollup({
-        input: {
-            "aleo_wasm": "./Cargo.toml",
-            "aleo_wasm_custom": "./Cargo.toml?custom",
+    await buildRollup(
+        {
+            input: {
+                aleo_wasm: "./Cargo.toml",
+                aleo_wasm_custom: "./Cargo.toml?custom",
+            },
+            plugins: [
+                rust({
+                    extraArgs: {
+                        cargo: [
+                            "--no-default-features",
+                            "--features",
+                            `browser,${network}`,
+                        ],
+                        rustc: ["-C", "link-arg=--max-memory=4294967296"],
+                        wasmOpt: [
+                            "-O",
+                            "--enable-threads",
+                            "--enable-bulk-memory",
+                            "--enable-bulk-memory-opt",
+                            "--enable-nontrapping-float-to-int",
+                        ],
+                    },
+
+                    experimental: {
+                        atomics: true,
+                        typescriptDeclarationDir: `dist/${network}`,
+                    },
+                }),
+            ],
         },
-        plugins: [
-            rust({
-                extraArgs: {
-                    cargo: [
-                        "--no-default-features",
-                        "--features", `browser,${network}`,
-                    ],
-                    rustc: [
-                        "-C", "link-arg=--max-memory=4294967296",
-                    ],
-                    wasmOpt: ["-O", "--enable-threads", "--enable-bulk-memory", "--enable-bulk-memory-opt", "--enable-nontrapping-float-to-int"],
-                },
-
-                experimental: {
-                    atomics: true,
-                    typescriptDeclarationDir: `dist/${network}`,
-                },
-            }),
-        ],
-    }, {
-        dir: `dist/${network}/tmp`,
-        format: "es",
-        sourcemap: true,
-        assetFileNames: `[name][extname]`,
-        chunkFileNames: `[name].js`,
-        entryFileNames: `[name].js`,
-    });
+        {
+            dir: `dist/${network}/tmp`,
+            format: "es",
+            sourcemap: true,
+            assetFileNames: `[name][extname]`,
+            chunkFileNames: `[name].js`,
+            entryFileNames: `[name].js`,
+        },
+    );
 }
-
 
 async function buildJS(network) {
     const js = `export * from "./dist/${network}/tmp/aleo_wasm.js";
@@ -68,22 +72,24 @@ export async function initThreadPool(threads) {
     await wasmInitThreadPool(new URL("worker.js", import.meta.url), threads);
 }`;
 
-    await buildRollup({
-        input: {
-            "index": "entry",
+    await buildRollup(
+        {
+            input: {
+                index: "entry",
+            },
+            plugins: [
+                virtual({
+                    entry: js,
+                }),
+            ],
         },
-        plugins: [
-            virtual({
-                "entry": js,
-            }),
-        ],
-    }, {
-        dir: `dist/${network}`,
-        format: "es",
-        sourcemap: true,
-    });
+        {
+            dir: `dist/${network}`,
+            format: "es",
+            sourcemap: true,
+        },
+    );
 }
-
 
 async function buildWorker(network) {
     const worker = `import { init } from "./dist/${network}/tmp/aleo_wasm_custom.js";
@@ -118,22 +124,24 @@ async function initializeWorker() {
 
 await initializeWorker();`;
 
-    await buildRollup({
-        input: {
-            "worker": "entry",
+    await buildRollup(
+        {
+            input: {
+                worker: "entry",
+            },
+            plugins: [
+                virtual({
+                    entry: worker,
+                }),
+            ],
         },
-        plugins: [
-            virtual({
-                "entry": worker,
-            }),
-        ],
-    }, {
-        dir: `dist/${network}`,
-        format: "es",
-        sourcemap: true,
-    });
+        {
+            dir: `dist/${network}`,
+            format: "es",
+            sourcemap: true,
+        },
+    );
 }
-
 
 async function buildTypes(network) {
     const js = `/**
@@ -147,14 +155,13 @@ export * from "./aleo_wasm.js";`;
 
     const worker = `export {};`;
 
-    await $fs.mkdir(`dist/${network}`, { recursive: true })
+    await $fs.mkdir(`dist/${network}`, { recursive: true });
 
     await Promise.all([
         $fs.writeFile(`dist/${network}/index.d.ts`, js),
         $fs.writeFile(`dist/${network}/worker.d.ts`, worker),
     ]);
 }
-
 
 // This uses multiple Rollup builds, instead of 1 build.
 //
@@ -169,15 +176,9 @@ export * from "./aleo_wasm.js";`;
 // and `worker.js` builds, so we build the Wasm, and then
 // build the `index.js` and `worker.js` separately.
 async function build(network) {
-    await Promise.all([
-        buildTypes(network),
-        buildWasm(network),
-    ]);
+    await Promise.all([buildTypes(network), buildWasm(network)]);
 
-    await Promise.all([
-        buildJS(network),
-        buildWorker(network),
-    ]);
+    await Promise.all([buildJS(network), buildWorker(network)]);
 
     await $fs.rename(
         $path.join("dist", network, "tmp", "aleo_wasm.wasm"),
@@ -190,13 +191,9 @@ async function build(network) {
     ]);
 }
 
-
 console.time("Building wasm");
 
-const networks = [
-    "testnet",
-    "mainnet",
-];
+const networks = ["testnet", "mainnet"];
 
 await Promise.all(networks.map(build));
 

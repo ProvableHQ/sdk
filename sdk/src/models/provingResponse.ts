@@ -57,10 +57,8 @@ export function isProvingResponse(value: unknown): value is ProvingResponse {
 }
 
 /** Type guard: value is a ProveApiErrorBody. */
-export function isProveApiErrorBody(value: unknown): value is ProveApiErrorBody {
-    return (
-        typeof value === "object" &&
-        value !== null &&
-        "message" in value
-    );
+export function isProveApiErrorBody(
+    value: unknown,
+): value is ProveApiErrorBody {
+    return typeof value === "object" && value !== null && "message" in value;
 }

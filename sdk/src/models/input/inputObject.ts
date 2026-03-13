@@ -8,8 +8,8 @@ import { PlaintextObject } from "../plaintext/plaintext.js";
  * Object representation of an Input as raw JSON returned from a SnarkOS node.
  */
 export interface InputObject {
-    type: "string",
-    id: "string" | Field,
-    tag?: string | Field,
-    value?: Ciphertext | Plaintext | PlaintextObject,
+    type: "string";
+    id: "string" | Field;
+    tag?: string | Field;
+    value?: Ciphertext | Plaintext | PlaintextObject;
 }

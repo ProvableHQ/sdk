@@ -1,4 +1,4 @@
 export interface EncryptedProvingRequest {
-    key_id: string,
-    ciphertext: string,
+    key_id: string;
+    ciphertext: string;
 }

@@ -390,12 +390,7 @@ export const ExecuteLegacy = () => {
             title="Execute Program"
             style={{ width: "100%" }}
             extra={
-                <Button
-                    type="primary"
-
-                    size="middle"
-                    onClick={demo}
-                >
+                <Button type="primary" size="middle" onClick={demo}>
                     Demo
                 </Button>
             }
@@ -557,7 +552,6 @@ export const ExecuteLegacy = () => {
                         <Space>
                             <Button
                                 type="primary"
-
                                 size="middle"
                                 onClick={execute}
                             >

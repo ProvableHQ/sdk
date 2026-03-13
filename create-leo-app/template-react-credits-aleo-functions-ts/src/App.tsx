@@ -198,7 +198,9 @@ function App() {
                                         type="text"
                                         value={publicAmount}
                                         onChange={(e) =>
-                                            setPublicAmount(Number(e.target.value) || 0)
+                                            setPublicAmount(
+                                                Number(e.target.value) || 0,
+                                            )
                                         }
                                         placeholder="50000"
                                     />
@@ -260,7 +262,9 @@ function App() {
                                         type="text"
                                         value={pubToPrivAmount}
                                         onChange={(e) =>
-                                            setPubToPrivAmount(Number(e.target.value) || 0)
+                                            setPubToPrivAmount(
+                                                Number(e.target.value) || 0,
+                                            )
                                         }
                                         placeholder="50000"
                                     />
@@ -343,7 +347,9 @@ function App() {
                                         type="text"
                                         value={privateAmount}
                                         onChange={(e) =>
-                                            setPrivateAmount(Number(e.target.value) || 0)
+                                            setPrivateAmount(
+                                                Number(e.target.value) || 0,
+                                            )
                                         }
                                         placeholder="50000"
                                     />
@@ -416,7 +422,9 @@ function App() {
                                         type="text"
                                         value={privToPubAmount}
                                         onChange={(e) =>
-                                            setPrivToPubAmount(Number(e.target.value) || 0)
+                                            setPrivToPubAmount(
+                                                Number(e.target.value) || 0,
+                                            )
                                         }
                                         placeholder="50000"
                                     />
@@ -547,7 +555,9 @@ function App() {
                                         type="text"
                                         value={splitAmount}
                                         onChange={(e) =>
-                                            setSplitAmount(Number(e.target.value) || 0)
+                                            setSplitAmount(
+                                                Number(e.target.value) || 0,
+                                            )
                                         }
                                         placeholder="250000"
                                     />

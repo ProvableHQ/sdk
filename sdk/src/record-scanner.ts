@@ -5,7 +5,13 @@ import { EncryptedRegistrationRequest } from "./models/record-scanner/encryptedR
 import { OwnedFilter } from "./models/record-scanner/ownedFilter";
 import { OwnedRecord } from "./models/record-provider/ownedRecord";
 import { RecordProvider } from "./record-provider";
-import { Field, Poseidon4, RecordCiphertext, RecordPlaintext, ViewKey } from "./wasm";
+import {
+    Field,
+    Poseidon4,
+    RecordCiphertext,
+    RecordPlaintext,
+    ViewKey,
+} from "./wasm";
 import { RecordsFilter } from "./models/record-scanner/recordsFilter";
 import { RegisterResult } from "./models/record-scanner/registrationResult.js";
 import { RevokeResult } from "./models/record-scanner/revokeResult.js";
@@ -55,7 +61,7 @@ export interface RecordScannerJWTData {
  */
 export interface RecordScannerOptions {
     url: string;
-    apiKey?: string | { header: string, value: string };
+    apiKey?: string | { header: string; value: string };
     consumerId?: string;
     jwtData?: RecordScannerJWTData;
     viewKeys?: ViewKey[];
@@ -112,7 +118,7 @@ class RecordScanner implements RecordProvider {
     readonly cacheViewKeysOnRegister?: boolean;
     readonly url: string;
     private readonly baseUrl: string;
-    private apiKey?: { header: string, value: string };
+    private apiKey?: { header: string; value: string };
     private consumerId?: string;
     private jwtData?: RecordScannerJWTData;
     private uuid?: Field;
@@ -129,8 +135,13 @@ class RecordScanner implements RecordProvider {
         const network = "/%%NETWORK%%";
 
         // If the user has configured a network in their uri, throw.
-        if (options.url.endsWith("/mainnet") || options.url.endsWith("/testnet")) {
-            throw new Error("The record scanning url should not include the specific network, this is automatically configured by the Provable SDK.");
+        if (
+            options.url.endsWith("/mainnet") ||
+            options.url.endsWith("/testnet")
+        ) {
+            throw new Error(
+                "The record scanning url should not include the specific network, this is automatically configured by the Provable SDK.",
+            );
         }
 
         // Configure the url to use the network the SDK is using.
@@ -140,8 +151,13 @@ class RecordScanner implements RecordProvider {
         this.url = options.url + network;
 
         // Get any view keys passed in the options.
-        this.viewKeys = options.viewKeys ?
-            Object.fromEntries(options.viewKeys.map(viewKey => [this.computeUUID(viewKey), viewKey]))
+        this.viewKeys = options.viewKeys
+            ? Object.fromEntries(
+                  options.viewKeys.map((viewKey) => [
+                      this.computeUUID(viewKey),
+                      viewKey,
+                  ]),
+              )
             : undefined;
 
         // Set the view key caching flag if provided (default: true).
@@ -157,10 +173,13 @@ class RecordScanner implements RecordProvider {
         }
 
         // Configure authentication options.
-        this.apiKey = typeof options.apiKey === "string" ? {
-            header: "X-Provable-API-Key",
-            value: options.apiKey
-        } : options.apiKey;
+        this.apiKey =
+            typeof options.apiKey === "string"
+                ? {
+                      header: "X-Provable-API-Key",
+                      value: options.apiKey,
+                  }
+                : options.apiKey;
         this.consumerId = options.consumerId;
         this.jwtData = options.jwtData;
         this.autoReRegister = options.autoReRegister;
@@ -172,8 +191,11 @@ class RecordScanner implements RecordProvider {
      *
      * @param {string | { header: string, value: string }} apiKey The API key to use for the record scanner.
      */
-    setApiKey(apiKey: string | { header: string, value: string }) {
-        this.apiKey = typeof apiKey === "string" ? { header: "X-Provable-API-Key", value: apiKey } : apiKey;
+    setApiKey(apiKey: string | { header: string; value: string }) {
+        this.apiKey =
+            typeof apiKey === "string"
+                ? { header: "X-Provable-API-Key", value: apiKey }
+                : apiKey;
     }
 
     /**
@@ -219,7 +241,9 @@ class RecordScanner implements RecordProvider {
      */
     addViewKey(viewKey: ViewKey) {
         const uuid = this.computeUUID(viewKey).toString();
-        this.viewKeys = this.viewKeys ? { ...this.viewKeys, [uuid]: viewKey } : { [uuid]: viewKey };
+        this.viewKeys = this.viewKeys
+            ? { ...this.viewKeys, [uuid]: viewKey }
+            : { [uuid]: viewKey };
     }
 
     /**
@@ -246,7 +270,8 @@ class RecordScanner implements RecordProvider {
         if (cachedVk) return cachedVk;
         // Otherwise use the account's view key if it matches this UUID.
         const accountVk = this.account?.viewKey();
-        if (accountVk && this.computeUUID(accountVk).toString() === uuid) return accountVk;
+        if (accountVk && this.computeUUID(accountVk).toString() === uuid)
+            return accountVk;
         return undefined;
     }
 
@@ -276,15 +301,15 @@ class RecordScanner implements RecordProvider {
      * @param {string} consumerId The consumer ID for the JWT endpoint.
      * @returns {Promise<RecordScannerJWTData>} The new JWT data.
      */
-    private async refreshJwt(apiKey: string, consumerId: string): Promise<RecordScannerJWTData> {
-        const response = await post(
-            `${this.baseUrl}/jwts/${consumerId}`,
-            {
-                headers: {
-                    "X-Provable-API-Key": apiKey,
-                },
-            }
-        );
+    private async refreshJwt(
+        apiKey: string,
+        consumerId: string,
+    ): Promise<RecordScannerJWTData> {
+        const response = await post(`${this.baseUrl}/jwts/${consumerId}`, {
+            headers: {
+                "X-Provable-API-Key": apiKey,
+            },
+        });
         const authHeader = response.headers.get("authorization");
         if (!authHeader) {
             throw new Error("No authorization header in JWT refresh response");
@@ -304,7 +329,8 @@ class RecordScanner implements RecordProvider {
     private async getAuthHeaders(): Promise<Record<string, string>> {
         let jwtData = this.jwtData;
         // Consider JWT expired a few minutes early to avoid race at boundary.
-        const isExpired = jwtData && Date.now() >= jwtData.expiration - FIVE_MINUTES;
+        const isExpired =
+            jwtData && Date.now() >= jwtData.expiration - FIVE_MINUTES;
         if (!jwtData || isExpired) {
             const apiKey = this.apiKey?.value;
             if (apiKey && this.consumerId) {
@@ -322,11 +348,14 @@ class RecordScanner implements RecordProvider {
 
     /**
      * Set the UUID for the record scanner.
-     * 
+     *
      * @param {Field | ViewKey} keyMaterial The UUID to use for the record scanner. If a ViewKey is provided, the UUID will be computed from the key.
      */
     setUuid(keyMaterial: Field | ViewKey) {
-        this.uuid = keyMaterial instanceof ViewKey ? this.computeUUID(keyMaterial) : keyMaterial;
+        this.uuid =
+            keyMaterial instanceof ViewKey
+                ? this.computeUUID(keyMaterial)
+                : keyMaterial;
     }
 
     /**
@@ -355,7 +384,10 @@ class RecordScanner implements RecordProvider {
      * @param {number} startBlock The block height to start scanning from.
      * @returns {Promise<RegisterResult>} `{ ok: true, data }` on success, or `{ ok: false, status, error }` on failure.
      */
-    async register(viewKey: ViewKey, startBlock: number): Promise<RegisterResult> {
+    async register(
+        viewKey: ViewKey,
+        startBlock: number,
+    ): Promise<RegisterResult> {
         try {
             const request: RegistrationRequest = {
                 view_key: viewKey.to_string(),
@@ -394,7 +426,7 @@ class RecordScanner implements RecordProvider {
      */
     async getPubkey(): Promise<CryptoBoxPubKey> {
         const response = await this.request(
-            new Request(`${this.url}/pubkey`, { method: "GET" })
+            new Request(`${this.url}/pubkey`, { method: "GET" }),
         );
         return parseJSON(await response.text()) as CryptoBoxPubKey;
     }
@@ -414,7 +446,11 @@ class RecordScanner implements RecordProvider {
             // Get the ephemeral public key from the record scanner.
             const pubkey = await this.getPubkey();
             // Encrypt the registration request using the ephemeral public key.
-            const ciphertext = encryptRegistrationRequest(pubkey.public_key, viewKey, startBlock);
+            const ciphertext = encryptRegistrationRequest(
+                pubkey.public_key,
+                viewKey,
+                startBlock,
+            );
             const payload: EncryptedRegistrationRequest = {
                 key_id: pubkey.key_id,
                 ciphertext,
@@ -458,7 +494,10 @@ class RecordScanner implements RecordProvider {
                 this.viewKeys = undefined;
             }
         }
-        if (this.account != null && this.computeUUID(this.account.viewKey()).toString() === uuidStr) {
+        if (
+            this.account != null &&
+            this.computeUUID(this.account.viewKey()).toString() === uuidStr
+        ) {
             this.account = undefined;
         }
     }
@@ -475,9 +514,14 @@ class RecordScanner implements RecordProvider {
     async revoke(uuid?: string | Field): Promise<RevokeResult> {
         const resolvedUuid = uuid ?? this.uuid;
         if (!resolvedUuid) {
-            throw new UUIDError("No UUID configured for the record scanner and no UUID provided.");
+            throw new UUIDError(
+                "No UUID configured for the record scanner and no UUID provided.",
+            );
         }
-        const uuidStr = typeof resolvedUuid === "string" ? resolvedUuid : resolvedUuid.toString();
+        const uuidStr =
+            typeof resolvedUuid === "string"
+                ? resolvedUuid
+                : resolvedUuid.toString();
         if (!this.uuidIsValid(uuidStr)) {
             throw new UUIDError(`UUID provided ${uuidStr} is invalid`, uuidStr);
         }
@@ -504,7 +548,9 @@ class RecordScanner implements RecordProvider {
      * @param {RecordsFilter} recordsFilter The filter to use to find the records and filter the response.
      * @returns {Promise<EncryptedRecordsResult>} The encrypted records or an error if the request failed.
      */
-    async encrypted(recordsFilter: RecordsFilter): Promise<EncryptedRecordsResult> {
+    async encrypted(
+        recordsFilter: RecordsFilter,
+    ): Promise<EncryptedRecordsResult> {
         try {
             const response = await this.request(
                 new Request(`${this.url}/records/encrypted`, {
@@ -526,10 +572,15 @@ class RecordScanner implements RecordProvider {
      * @param {RecordsFilter} recordsFilter The filter to use to find the records and filter the response.
      * @returns {Promise<EncryptedRecord[]>} The encrypted records.
      */
-    async encryptedRecords(recordsFilter: RecordsFilter): Promise<EncryptedRecord[]> {
+    async encryptedRecords(
+        recordsFilter: RecordsFilter,
+    ): Promise<EncryptedRecord[]> {
         const result = await this.encrypted(recordsFilter);
         if (result.ok) return result.data;
-        throw new RecordScannerRequestError(result.error.message, result.status);
+        throw new RecordScannerRequestError(
+            result.error.message,
+            result.status,
+        );
     }
 
     /**
@@ -560,10 +611,15 @@ class RecordScanner implements RecordProvider {
      * @param {string[]} serialNumbers The serial numbers to check.
      * @returns {Promise<Record<string, boolean>>} Map of Aleo Record serial numbers and whether they appeared in any inputs on chain. If boolean corresponding to the Serial Number has a true value, that Record is considered spent by the Aleo Network.
      */
-    async checkSerialNumbers(serialNumbers: string[]): Promise<Record<string, boolean>> {
+    async checkSerialNumbers(
+        serialNumbers: string[],
+    ): Promise<Record<string, boolean>> {
         const result = await this.serialNumbers(serialNumbers);
         if (result.ok) return result.data;
-        throw new RecordScannerRequestError(result.error.message, result.status);
+        throw new RecordScannerRequestError(
+            result.error.message,
+            result.status,
+        );
     }
 
     /**
@@ -591,14 +647,17 @@ class RecordScanner implements RecordProvider {
 
     /**
      * Check if tags appear in any record inputs on-chain, indicating that the records they belong to have been spent.
-     * 
+     *
      * @param {string[]} tags The tags to check.
      * @returns {Promise<Record<string, boolean>>} Map of Aleo Record tags and whether they appeared in any inputs on chain. If boolean corresponding to the tag has a true value, that Record is considered spent by the Aleo Network.
      */
     async checkTags(tags: string[]): Promise<Record<string, boolean>> {
         const result = await this.tags(tags);
         if (result.ok) return result.data;
-        throw new RecordScannerRequestError(result.error.message, result.status);
+        throw new RecordScannerRequestError(
+            result.error.message,
+            result.status,
+        );
     }
 
     /**
@@ -637,7 +696,7 @@ class RecordScanner implements RecordProvider {
 
     /**
      * Find a record in the record scanning service.
-     * 
+     *
      * @param {OwnedFilter} searchParameters The filter to use to find the record.
      * @returns {Promise<OwnedRecord>} The record.
      */
@@ -688,7 +747,9 @@ class RecordScanner implements RecordProvider {
         };
 
         // When decryption is enabled and a view key exists for this UUID, decrypt records in place before returning.
-        const attemptDecrypt = (result: OwnedRecordsResult): OwnedRecordsResult => {
+        const attemptDecrypt = (
+            result: OwnedRecordsResult,
+        ): OwnedRecordsResult => {
             if (result.ok && this.decryptEnabled) {
                 const viewKey = this.getViewKeyForUuid(uuid);
                 if (viewKey) this.decrypt(viewKey, result.data);
@@ -720,7 +781,7 @@ class RecordScanner implements RecordProvider {
 
     /**
      * Find records using the record scanning service.
-     * 
+     *
      * @param {OwnedFilter} searchParameters The filter to use to find the records.
      * @returns {Promise<OwnedRecord[]>} The records.
      */
@@ -729,7 +790,10 @@ class RecordScanner implements RecordProvider {
         const result = await this.owned(searchParameters);
         // If the request was successful, return the records otherwise throw an error.
         if (result.ok) return result.data;
-        throw new RecordScannerRequestError(result.error.message, result.status);
+        throw new RecordScannerRequestError(
+            result.error.message,
+            result.status,
+        );
     }
 
     /**
@@ -768,15 +832,22 @@ class RecordScanner implements RecordProvider {
 
     /**
      * Find a credits.aleo record in the record scanning service.
-     * 
+     *
      * @param {number} microcredits The amount of microcredits to find.
      * @param {OwnedFilter} searchParameters The filter to use to find the record.
      * @returns {Promise<OwnedRecord>} The record.
      */
-    async findCreditsRecord(microcredits: number, searchParameters: OwnedFilter): Promise<OwnedRecord> {
+    async findCreditsRecord(
+        microcredits: number,
+        searchParameters: OwnedFilter,
+    ): Promise<OwnedRecord> {
         const uuid = <string>this.getUUID(searchParameters);
         if (!uuid) {
-            throw new UUIDError(`No uuid found in the record scanner filter`, uuid, searchParameters);
+            throw new UUIDError(
+                `No uuid found in the record scanner filter`,
+                uuid,
+                searchParameters,
+            );
         }
 
         if (!this.decryptEnabled) {
@@ -807,11 +878,13 @@ class RecordScanner implements RecordProvider {
             });
 
             // First record whose plaintext microcredits >= requested amount.
-            const record = records.find(r => {
+            const record = records.find((r) => {
                 const plaintext = this.getPlaintext(r);
                 if (!plaintext) return false;
                 try {
-                    const amountStr = plaintext.getMember("microcredits").toString();
+                    const amountStr = plaintext
+                        .getMember("microcredits")
+                        .toString();
                     const amount = parseInt(amountStr.replace("u64", ""));
                     return amount >= microcredits;
                 } catch {
@@ -835,15 +908,22 @@ class RecordScanner implements RecordProvider {
 
     /**
      * Find credits records greater than or equal to the specified amounts using the record scanning service.
-     * 
+     *
      * @param {number[]} microcreditAmounts The amounts of microcredits to find.
      * @param {OwnedFilter} searchParameters The filter to use to find the records.
      * @returns {Promise<OwnedRecord[]>} The records
      */
-    async findCreditsRecords(microcreditAmounts: number[], searchParameters: OwnedFilter): Promise<OwnedRecord[]> {
+    async findCreditsRecords(
+        microcreditAmounts: number[],
+        searchParameters: OwnedFilter,
+    ): Promise<OwnedRecord[]> {
         const uuid = <string>this.getUUID(searchParameters);
         if (!uuid) {
-            throw new UUIDError(`No uuid found in the record scanner filter, and none configured within the record scanner`, uuid, searchParameters);
+            throw new UUIDError(
+                `No uuid found in the record scanner filter, and none configured within the record scanner`,
+                uuid,
+                searchParameters,
+            );
         }
 
         if (!this.decryptEnabled) {
@@ -873,12 +953,16 @@ class RecordScanner implements RecordProvider {
                 uuid,
             });
             // Keep only records whose plaintext microcredits match one of the requested amounts.
-            return records.filter(r => {
+            return records.filter((r) => {
                 const plaintext = this.getPlaintext(r);
                 if (!plaintext) return false;
                 try {
-                    const amount = plaintext.getMember("microcredits").toString();
-                    return microcreditAmounts.includes(parseInt(amount.replace("u64", "")));
+                    const amount = plaintext
+                        .getMember("microcredits")
+                        .toString();
+                    return microcreditAmounts.includes(
+                        parseInt(amount.replace("u64", "")),
+                    );
                 } catch {
                     return false;
                 }
@@ -913,7 +997,8 @@ class RecordScanner implements RecordProvider {
             if (!response.ok) {
                 const text = await response.text();
                 throw new RecordScannerRequestError(
-                    text || `Request to ${req.url} failed with status ${response.status}`,
+                    text ||
+                        `Request to ${req.url} failed with status ${response.status}`,
                     response.status,
                 );
             }
@@ -933,7 +1018,11 @@ class RecordScanner implements RecordProvider {
      */
     computeUUID(viewKey: ViewKey): Field {
         // Construct the material needed for the Poseidon oracle.
-        const inputs = [Field.newDomainSeparator(RECORD_DOMAIN), viewKey.toField(), Field.one()]
+        const inputs = [
+            Field.newDomainSeparator(RECORD_DOMAIN),
+            viewKey.toField(),
+            Field.one(),
+        ];
         // Calculate the uuid.
         const hasher = new Poseidon4();
         return hasher.hash(inputs);

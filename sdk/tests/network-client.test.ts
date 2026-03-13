@@ -41,7 +41,7 @@ describe("NodeConnection", () => {
 
     beforeEach(() => {
         connection = new AleoNetworkClient("https://api.provable.com/v2");
-        windowFetchSpy = sinon.spy(globalThis, 'fetch');
+        windowFetchSpy = sinon.spy(globalThis, "fetch");
     });
 
     afterEach(() => {
@@ -97,13 +97,18 @@ describe("NodeConnection", () => {
             expect(typeof programV0).equal("string");
 
             // Ensure the program returned is of the correct object..
-            const programWasm = await connection.getProgramObject("credits.aleo");
-            const programWasmV0 = await connection.getProgramObject("credits.aleo", 0);
+            const programWasm =
+                await connection.getProgramObject("credits.aleo");
+            const programWasmV0 = await connection.getProgramObject(
+                "credits.aleo",
+                0,
+            );
             expect(programWasm.id()).equals("credits.aleo");
             expect(programWasmV0.id()).equals("credits.aleo");
 
             // Ensure the edition returned is correct.
-            const creditsEdition = await connection.getLatestProgramEdition("credits.aleo");
+            const creditsEdition =
+                await connection.getLatestProgramEdition("credits.aleo");
             expect(creditsEdition == 0).to.equal(true);
         });
 
@@ -337,15 +342,16 @@ describe("NodeConnection", () => {
                     ? testnetAcceptedTx
                     : mainnetAcceptedTx
                 : isTestnet
-                    ? testnetRejectedTx
-                    : mainnetRejectedTx;
+                  ? testnetRejectedTx
+                  : mainnetRejectedTx;
         }
 
         it("should return confirmed transaction data for an accepted tx ID", async () => {
             if (connection.network === "mainnet") {
                 const connection = new AleoNetworkClient(host);
                 const txId = getTxId(connection, "accepted");
-                const data = await connection.waitForTransactionConfirmation(txId);
+                const data =
+                    await connection.waitForTransactionConfirmation(txId);
                 expect(data.status).to.equal("accepted");
                 expect(data.type).to.be.a("string");
             }
@@ -363,14 +369,18 @@ describe("NodeConnection", () => {
             } catch (err: any) {
                 console.log(err.message);
                 if (connection.network === "mainnet") {
-                    expect(err.message).to.include("was rejected by the network");
+                    expect(err.message).to.include(
+                        "was rejected by the network",
+                    );
                 }
             }
         });
 
         it("should throw for a malformed tx ID", async () => {
             const connection = new AleoNetworkClient(host);
-            expectThrows(() => connection.waitForTransactionConfirmation(invalidTx));
+            expectThrows(() =>
+                connection.waitForTransactionConfirmation(invalidTx),
+            );
         });
     });
 
@@ -477,8 +487,8 @@ describe("NodeConnection", () => {
         });
     });
 
-    describe('Test API methods that return wasm objects', () => {
-        it('Plaintext returned from the API should have expected properties', async () => {
+    describe("Test API methods that return wasm objects", () => {
+        it("Plaintext returned from the API should have expected properties", async () => {
             if (connection.network === "testnet") {
                 // Check a struct variant of a plaintext object.
                 let plaintext = await connection.getProgramMappingPlaintext(
@@ -511,7 +521,9 @@ describe("NodeConnection", () => {
         it("should have correct data within the wasm object and summary object for an execution transaction", async () => {
             // Get the first transaction at block 24700 on testnet.
             if (connection.network === "testnet") {
-                const transaction = await connection.getTransactionObject("at1fjy6s9md2v4rgcn3j3q4qndtfaa2zvg58a4uha0rujvrn4cumu9qfazxdd");
+                const transaction = await connection.getTransactionObject(
+                    "at1fjy6s9md2v4rgcn3j3q4qndtfaa2zvg58a4uha0rujvrn4cumu9qfazxdd",
+                );
                 const transition = <Transition>transaction.transitions()[0];
                 const summary = <TransactionObject>transaction.summary(true);
 
@@ -622,7 +634,9 @@ describe("NodeConnection", () => {
         it.skip("should have correct data within the wasm object and summary object for a deployment transaction", async () => {
             // Get the deployment transaction for token_registry.aleo
             if (connection.network === "mainnet") {
-                const transaction = await connection.getTransactionObject("at15mwg0jyhvpjjrfxwrlwzn8puusnmy7r3xzvpjht4e5gzgnp68q9qd0qqec");
+                const transaction = await connection.getTransactionObject(
+                    "at15mwg0jyhvpjjrfxwrlwzn8puusnmy7r3xzvpjht4e5gzgnp68q9qd0qqec",
+                );
                 const summary = <TransactionObject>transaction.summary(true);
                 const deployment = <DeploymentObject>summary.deployment;
 
@@ -650,7 +664,7 @@ describe("NodeConnection", () => {
             }
         });
 
-        it('Should give the correct JSON response when requesting multiple transactions', async () => {
+        it("Should give the correct JSON response when requesting multiple transactions", async () => {
             if (connection.network === "testnet") {
                 const transactions = await connection.getTransactions(27400);
                 expect(transactions.length).equal(4);
@@ -732,18 +746,18 @@ describe("NodeConnection", () => {
     });
 
     describe("getProgramImports", () => {
-        it("should not fetch the same program multiple times with overlapping imports", async function() {
+        it("should not fetch the same program multiple times with overlapping imports", async function () {
             // Only run on testnet - amm_orcl_intrfc_v.aleo only exists on testnet
             if (connection.network !== "testnet") {
                 this.skip();
                 return;
             }
-            
+
             // Track all calls to getProgram to detect duplicates
             const fetchedPrograms = new Map<string, number>();
             const originalGetProgram = connection.getProgram.bind(connection);
-            
-            connection.getProgram = async function(programId: string) {
+
+            connection.getProgram = async function (programId: string) {
                 const count = (fetchedPrograms.get(programId) || 0) + 1;
                 fetchedPrograms.set(programId, count);
                 return originalGetProgram(programId);
@@ -751,22 +765,32 @@ describe("NodeConnection", () => {
 
             // Test with amm_orcl_intrfc_v.aleo which has 23 imports with heavy overlap
             // This program previously caused exponentially recursive API calls resulting in rate limiting.
-            const imports = await connection.getProgramImports("amm_orcl_intrfc_v.aleo");
-            
+            const imports = await connection.getProgramImports(
+                "amm_orcl_intrfc_v.aleo",
+            );
+
             // Verify we got all the imports
             expect(Object.keys(imports).length).to.be.greaterThan(0);
-            
+
             // Verify each program was fetched exactly once (no duplicates)
-            const duplicates = Array.from(fetchedPrograms.entries())
-                .filter(([_, count]) => count > 1);
-            
+            const duplicates = Array.from(fetchedPrograms.entries()).filter(
+                ([_, count]) => count > 1,
+            );
+
             if (duplicates.length > 0) {
-                const duplicateNames = duplicates.map(([name, count]) => `${name} (${count}x)`).join(', ');
-                throw new Error(`Programs fetched multiple times: ${duplicateNames}`);
+                const duplicateNames = duplicates
+                    .map(([name, count]) => `${name} (${count}x)`)
+                    .join(", ");
+                throw new Error(
+                    `Programs fetched multiple times: ${duplicateNames}`,
+                );
             }
-            
+
             // Verify total API calls equals number of unique imports
-            const totalCalls = Array.from(fetchedPrograms.values()).reduce((a, b) => a + b, 0);
+            const totalCalls = Array.from(fetchedPrograms.values()).reduce(
+                (a, b) => a + b,
+                0,
+            );
             expect(totalCalls).to.equal(fetchedPrograms.size);
         });
     });
@@ -776,7 +800,7 @@ describe("AleoNetworkClient JWT refresh URL", () => {
     let fetchStub: sinon.SinonStub;
 
     beforeEach(() => {
-        fetchStub = sinon.stub(globalThis, 'fetch');
+        fetchStub = sinon.stub(globalThis, "fetch");
     });
 
     afterEach(() => {
@@ -784,12 +808,36 @@ describe("AleoNetworkClient JWT refresh URL", () => {
     });
 
     const jwtEdgeCases = [
-        { label: "standard Provable API", host: "https://api.provable.com/v2", expectedOrigin: "https://api.provable.com" },
-        { label: "custom host with path", host: "https://custom-api.example.com/v2", expectedOrigin: "https://custom-api.example.com" },
-        { label: "host with deep path", host: "https://api.example.com/v2/extra", expectedOrigin: "https://api.example.com" },
-        { label: "host with port", host: "https://custom-api.example.com:8080/v2", expectedOrigin: "https://custom-api.example.com:8080" },
-        { label: "host with trailing slash", host: "https://api.provable.com/v2/", expectedOrigin: "https://api.provable.com" },
-        { label: "localhost with port", host: "http://localhost:3030", expectedOrigin: "http://localhost:3030" },
+        {
+            label: "standard Provable API",
+            host: "https://api.provable.com/v2",
+            expectedOrigin: "https://api.provable.com",
+        },
+        {
+            label: "custom host with path",
+            host: "https://custom-api.example.com/v2",
+            expectedOrigin: "https://custom-api.example.com",
+        },
+        {
+            label: "host with deep path",
+            host: "https://api.example.com/v2/extra",
+            expectedOrigin: "https://api.example.com",
+        },
+        {
+            label: "host with port",
+            host: "https://custom-api.example.com:8080/v2",
+            expectedOrigin: "https://custom-api.example.com:8080",
+        },
+        {
+            label: "host with trailing slash",
+            host: "https://api.provable.com/v2/",
+            expectedOrigin: "https://api.provable.com",
+        },
+        {
+            label: "localhost with port",
+            host: "http://localhost:3030",
+            expectedOrigin: "http://localhost:3030",
+        },
     ];
 
     jwtEdgeCases.forEach(({ label, host, expectedOrigin }) => {
@@ -801,17 +849,28 @@ describe("AleoNetworkClient JWT refresh URL", () => {
             fetchStub.resolves({
                 ok: true,
                 status: 200,
-                headers: new Headers({ authorization: "Bearer test-jwt-token" }),
-                json: () => Promise.resolve({ exp: Math.floor(Date.now() / 1000) + 3600 }),
+                headers: new Headers({
+                    authorization: "Bearer test-jwt-token",
+                }),
+                json: () =>
+                    Promise.resolve({
+                        exp: Math.floor(Date.now() / 1000) + 3600,
+                    }),
                 text: () => Promise.resolve(JSON.stringify({ status: "ok" })),
             });
 
             try {
-                await client.submitProvingRequestSafe({ provingRequest: "test-request" });
-            } catch { }
+                await client.submitProvingRequestSafe({
+                    provingRequest: "test-request",
+                });
+            } catch {}
 
-            const firstCallUrl = fetchStub.firstCall.args[0]?.toString() ?? fetchStub.firstCall.args[0]?.url;
-            expect(firstCallUrl).to.equal(`${expectedOrigin}/jwts/test-consumer-id`);
+            const firstCallUrl =
+                fetchStub.firstCall.args[0]?.toString() ??
+                fetchStub.firstCall.args[0]?.url;
+            expect(firstCallUrl).to.equal(
+                `${expectedOrigin}/jwts/test-consumer-id`,
+            );
         });
     });
 });
