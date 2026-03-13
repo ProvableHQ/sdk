@@ -24,3 +24,7 @@ package-lock.json
 .yarn
 
 .env
+
+## Claude
+.claude
+**/CLAUDE.md
