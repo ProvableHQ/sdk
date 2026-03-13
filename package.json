@@ -36,5 +36,8 @@
   "devDependencies": {
     "prettier": "3.4.2",
     "wasm-pack": "^0.13.1"
+  },
+  "dependencies": {
+    "@provablehq/wasm": "^0.9.17"
   }
 }
