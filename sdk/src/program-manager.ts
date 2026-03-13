@@ -3763,7 +3763,7 @@ class ProgramManager {
     async computeExternalSigningInputs(options: ExternalSigningOptions): Promise<ExternalSigningInput> {
         const { programName, functionName, inputs, inputTypes, isRoot, checksum, viewKey} = options;
         try {
-            const raw = <ExternalSigningInput>(await ExecutionRequest.computeExternalSigningInputs(programName, functionName, inputs, inputTypes, isRoot, checksum ?? null, viewKey ?? null));
+            const raw = <ExternalSigningInput & { signer?: Address; skTag?: Field }>(await ExecutionRequest.computeExternalSigningInputs(programName, functionName, inputs, inputTypes, isRoot, checksum ?? null, viewKey ?? null));
             // Normalize to ExternalSigningInput (camelCase): WASM may return function_id
             const functionId = (raw as { functionId?: string }).functionId ?? (raw as { function_id?: string }).function_id;
             return {
@@ -3771,6 +3771,8 @@ class ProgramManager {
                 isRoot: raw.isRoot,
                 requestInputs: raw.requestInputs,
                 checksum: raw.checksum ?? undefined,
+                signer: raw.signer,
+                skTag: raw.skTag,
             };
         } catch (e: unknown) {
             const msg = e instanceof Error ? e.message : String(e);

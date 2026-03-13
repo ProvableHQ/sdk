@@ -559,7 +559,7 @@ describe('Program Manager', async () => {
             expect(signedRequest.inputs().length).to.equal(2);
             expect(externalSigningInputs.requestInputs.length).to.equal(signedRequest.inputs().length);
 
-            // Build the same request via fromExternallySignedData using externally-signed fields from the signed request.
+            // Build the same request via fromExternallySignedData using view_key to compute input_ids.
             const externallySignedRequest = ExecutionRequest.fromExternallySignedData(
                 "credits.aleo",
                 "transfer_public",
@@ -567,7 +567,10 @@ describe('Program Manager', async () => {
                 transferPublicInputTypes,
                 signedRequest.signature(),
                 signedRequest.tvk(),
+                signedRequest.signer(),
+                signedRequest.sk_tag(),
                 viewKey,
+                undefined, // compute input_ids from view_key
                 undefined, // no record inputs
             );
             expect(externallySignedRequest.program_id()).to.equal(signedRequest.program_id());
@@ -575,6 +578,22 @@ describe('Program Manager', async () => {
             expect(externallySignedRequest.inputs().length).to.equal(signedRequest.inputs().length);
             expect(externallySignedRequest.input_ids().length).to.equal(signedRequest.input_ids().length);
             expect(externallySignedRequest.toString()).to.equal(signedRequest.toString());
+
+            // Build the same request via fromExternallySignedData using pre-computed input_ids (view_key not needed).
+            const externallySignedFromInputIds = ExecutionRequest.fromExternallySignedData(
+                "credits.aleo",
+                "transfer_public",
+                transferPublicInputs,
+                transferPublicInputTypes,
+                signedRequest.signature(),
+                signedRequest.tvk(),
+                signedRequest.signer(),
+                signedRequest.sk_tag(),
+                undefined, // view_key not needed when input_ids provided
+                signedRequest.input_ids(),
+                undefined,
+            );
+            expect(externallySignedFromInputIds.toString()).to.equal(signedRequest.toString());
         });
 
         it('Should match ExecutionRequest.sign for transfer_private', async () => {
@@ -582,6 +601,7 @@ describe('Program Manager', async () => {
             const privateKey = PrivateKey.from_string(beaconPrivateKeyString);
             const beaconRecord = RecordPlaintext.fromString(recordBeaconOwned);
             const gamma = beaconRecord.gamma("credits.aleo", "credits", privateKey);
+            const beaconViewKey = ViewKey.from_private_key(PrivateKey.from_string(beaconPrivateKeyString));
             const externalSigningInputs = await programManager.computeExternalSigningInputs({
                 programName: "credits.aleo",
                 functionName: "transfer_private",
@@ -589,8 +609,10 @@ describe('Program Manager', async () => {
                 inputTypes: transferPrivateInputTypes,
                 isRoot: true,
                 checksum: null,
-                viewKey: ViewKey.from_private_key(PrivateKey.from_string(beaconPrivateKeyString)),
+                viewKey: beaconViewKey,
             });
+            expect(externalSigningInputs.signer).to.be.ok;
+            expect(externalSigningInputs.skTag).to.be.ok;
             const signedRequest = ExecutionRequest.sign(
                 privateKey,
                 "credits.aleo",
@@ -608,6 +630,7 @@ describe('Program Manager', async () => {
 
             const signature = signedRequest.signature();
             const tvk = signedRequest.tvk();
+            // Use pre-computed input_ids to avoid view_key Option conversion issues across the WASM boundary
             const externallySignedRequest = ExecutionRequest.fromExternallySignedData(
                 "credits.aleo",
                 "transfer_private",
@@ -615,8 +638,11 @@ describe('Program Manager', async () => {
                 transferPrivateInputTypes,
                 signature,
                 tvk,
-                ViewKey.from_private_key(PrivateKey.from_string(beaconPrivateKeyString)),
-                [gamma],
+                signedRequest.signer(),
+                signedRequest.sk_tag(),
+                undefined, // view_key not needed when input_ids provided
+                signedRequest.input_ids(),
+                undefined, // gammas not needed when input_ids provided
             );
             expect(externallySignedRequest.program_id()).to.equal(signedRequest.program_id());
             expect(externallySignedRequest.function_name()).to.equal(signedRequest.function_name());

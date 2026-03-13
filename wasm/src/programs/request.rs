@@ -218,22 +218,23 @@ impl ExecutionRequest {
         Ok(ExecutionRequest(request))
     }
 
-    /// Builds a request from external signing options and externally-signed fields, computing `sk_tag` and `scm` internally.
+    /// Builds a request from external signing options and externally-signed fields.
     ///
-    /// For record inputs, the caller must provide the record input IDs (which require `sk_sig` to compute).
-    /// These can be obtained from a signed request's `input_ids()` or from the external signing output.
+    /// Either `input_ids` or `view_key` must be provided. If `input_ids` is provided, use them
+    /// directly (e.g. from a signed request's `input_ids()` or external signing output). If
+    /// `input_ids` is not provided, `view_key` is required to compute them from inputs and gammas.
     ///
     /// @param {string} program_id The id of the program.
     /// @param {string} function_name The function name.
     /// @param {string[]} inputs The inputs to the function.
     /// @param {string[]} input_types The input types of the function.
-    /// @param {boolean} is_root Flag to indicate if this is the top level function in the call graph.
-    /// @param {Field | undefined} program_checksum The program checksum (required if the program has a constructor).
     /// @param {Signature} signature The externally-computed signature.
     /// @param {Field} tvk The transition view key.
-    /// @param {Field} tcm The transition commitment.
-    /// @param {ViewKey} view_key The view key of the signer.
-    /// @param {Group[] | undefined] gammas An array of gammas output from the external signing.
+    /// @param {Address} signer The signer address (from computeExternalSigningInputs or ExecutionRequest.signer).
+    /// @param {Field} sk_tag The tag secret key (from computeExternalSigningInputs or ExecutionRequest.sk_tag).
+    /// @param {ViewKey | undefined} view_key The view key of the signer (required when input_ids is not provided).
+    /// @param {string[] | undefined} input_ids Pre-computed input IDs (from ExecutionRequest.input_ids() or external signing).
+    /// @param {Group[] | undefined} gammas An array of gammas (required when computing input_ids for record inputs).
     #[wasm_bindgen(js_name = "fromExternallySignedData")]
     #[allow(clippy::too_many_arguments)]
     pub fn from_externally_signed_data(
@@ -243,9 +244,20 @@ impl ExecutionRequest {
         input_types: Array,
         signature: Signature,
         tvk: Field,
-        view_key: ViewKey,
+        signer: Address,
+        sk_tag: Field,
+        view_key: Option<ViewKey>,
+        input_ids: Option<Array>,
         gammas: Option<Array>,
     ) -> Result<ExecutionRequest, String> {
+        // Validate: either input_ids is provided, or view_key is provided to compute them.
+        if input_ids.is_none() && view_key.is_none() {
+            return Err(
+                "Either input_ids or view_key must be provided."
+                    .to_string(),
+            );
+        }
+
         // Parse the input and function name strings.
         let program_id = ProgramIDNative::from_str(&program_id).map_err(|e| e.to_string())?;
         let function_name = IdentifierNative::from_str(&function_name).map_err(|e| e.to_string())?;
@@ -259,11 +271,11 @@ impl ExecutionRequest {
             ));
         }
 
-        // Collect input_types into a Vec for record_count and length checks.
+        // Collect inputs and input_types into native Vecs.
         let mut inputs_native = Vec::with_capacity(inputs_length as usize);
         for (i, input) in inputs.iter().enumerate() {
             let input_string =
-                input.as_string().ok_or(format!("Input type had invalid string encoding at index {i}"))?;
+                input.as_string().ok_or(format!("Input had invalid string encoding at index {i}"))?;
             let input = ValueNative::from_str(&input_string).map_err(|e| e.to_string())?;
             inputs_native.push(input);
         }
@@ -276,99 +288,119 @@ impl ExecutionRequest {
             input_types_native.push(input_type);
         }
 
-        // Derive the signer, sk_tag, scm and tcm.
-        let signer = Address::from_view_key(&view_key);
-        let sk_tag = GraphKey::from_view_key(&view_key).sk_tag();
+        // Compute scm and tcm from signer and tvk.
         let scm =
             CurrentNetwork::hash_psd2(&[*signer.to_group().to_x_coordinate(), *tvk]).map_err(|e| e.to_string())?;
         let tcm = CurrentNetwork::hash_psd2(&[*tvk]).map_err(|e| e.to_string())?;
 
-        // Compute the network id and function id.
         let network_id = U16Native::new(CurrentNetwork::ID);
         let function_id = compute_function_id(&network_id, &program_id, &function_name).map_err(|e| e.to_string())?;
 
-        // Compute the record count.
-        let record_count = input_types_native.iter().filter(|t| matches!(t, ValueTypeNative::Record(_))).count();
+        let input_ids_native = if let Some(ids_array) = input_ids {
+            // Parse pre-computed input_ids from strings.
+            let mut parsed = Vec::with_capacity(ids_array.length() as usize);
+            for (i, id_js) in ids_array.iter().enumerate() {
+                let id_str = id_js
+                    .as_string()
+                    .ok_or(format!("input_ids[{i}] must be a string"))?;
+                let id_native =
+                    InputIDNative::from_str(&id_str).map_err(|e| format!("Failed to parse input_ids[{i}]: {e}"))?;
+                parsed.push(id_native);
+            }
+            if parsed.len() != inputs_native.len() {
+                return Err(format!(
+                    "input_ids length ({}) must match inputs length ({})",
+                    parsed.len(),
+                    inputs_native.len()
+                ));
+            }
+            parsed
+        } else {
+            // Compute input_ids from view_key, inputs, and gammas.
+            let view_key = view_key.as_ref().ok_or("view_key is required when input_ids is not provided")?;
 
-        // Ensure the number of gammas match the number of records.
-        let mut gammas_native =
-            native_type_from_wasm_object_array!(gammas.unwrap_or(Array::new()), Group, GroupNative)?;
-        let gamma_length = gammas_native.len();
-        if record_count != gamma_length {
-            return Err(format!(
-                "The number of gammas must match the number of record inputs. {gamma_length} gammas specified for {record_count} record input(s)",
-            ));
-        }
+            let record_count = input_types_native.iter().filter(|t| matches!(t, ValueTypeNative::Record(_))).count();
+            let mut gammas_native =
+                native_type_from_wasm_object_array!(gammas.unwrap_or(Array::new()), Group, GroupNative)?;
+            if record_count != gammas_native.len() {
+                return Err(format!(
+                    "The number of gammas must match the number of record inputs. {} gammas specified for {} record input(s)",
+                    gammas_native.len(),
+                    record_count
+                ));
+            }
 
-        // Iterate the raw JS arrays, parsing each input fresh so it is owned.
-        let mut input_ids = Vec::with_capacity(inputs_native.len());
-        for (index, (input, input_type)) in inputs_native.iter().zip(input_types_native.iter()).enumerate() {
-            let index_field = FieldNative::from_u16(
-                u16::try_from(index).map_err(|_| format!("Input index {index} exceeds maximum allowed value"))?,
-            );
+            let mut computed_ids = Vec::with_capacity(inputs_native.len());
+            for (index, (input, input_type)) in inputs_native.iter().zip(input_types_native.iter()).enumerate() {
+                let index_field = FieldNative::from_u16(
+                    u16::try_from(index).map_err(|_| format!("Input index {index} exceeds maximum allowed value"))?,
+                );
 
-            match &input_type {
-                ValueTypeNative::Constant(_) | ValueTypeNative::Public(_) => {
-                    let mut preimage = vec![function_id];
-                    preimage.extend(input.to_fields().map_err(|e| e.to_string())?);
-                    preimage.push(tcm);
-                    preimage.push(index_field);
-                    let input_hash = CurrentNetwork::hash_psd8(&preimage).map_err(|e| e.to_string())?;
-                    input_ids.push(match input_type {
-                        ValueTypeNative::Constant(_) => InputIDNative::Constant(input_hash),
-                        _ => InputIDNative::Public(input_hash),
-                    });
-                }
-                ValueTypeNative::Private(_) => {
-                    let input_view_key =
-                        CurrentNetwork::hash_psd4(&[function_id, *tvk, index_field]).map_err(|e| e.to_string())?;
-                    let ciphertext = match input {
-                        ValueNative::Plaintext(plaintext) => {
-                            plaintext.encrypt_symmetric(input_view_key).map_err(|e| e.to_string())?
-                        }
-                        _ => return Err("Expected a plaintext input for private type".to_string()),
-                    };
-                    let input_hash = CurrentNetwork::hash_psd8(&ciphertext.to_fields().map_err(|e| e.to_string())?)
-                        .map_err(|e| e.to_string())?;
-                    input_ids.push(InputIDNative::Private(input_hash));
-                }
-                ValueTypeNative::Record(record_name) => {
-                    // Get the record input.
-                    let record_input = match input {
-                        ValueNative::Record(record) => record,
-                        _ => return Err("Expected a record input for record type".to_string()),
-                    };
-                    // Compute the record's view key and commitment.
-                    let record_view_key = (*record_input.nonce() * **view_key).to_x_coordinate();
-                    let commitment = record_input
-                        .to_commitment(&program_id, record_name, &record_view_key)
-                        .map_err(|e| e.to_string())?;
+                match &input_type {
+                    ValueTypeNative::Constant(_) | ValueTypeNative::Public(_) => {
+                        let mut preimage = vec![function_id];
+                        preimage.extend(input.to_fields().map_err(|e| e.to_string())?);
+                        preimage.push(tcm);
+                        preimage.push(index_field);
+                        let input_hash = CurrentNetwork::hash_psd8(&preimage).map_err(|e| e.to_string())?;
+                        computed_ids.push(match input_type {
+                            ValueTypeNative::Constant(_) => InputIDNative::Constant(input_hash),
+                            _ => InputIDNative::Public(input_hash),
+                        });
+                    }
+                    ValueTypeNative::Private(_) => {
+                        let input_view_key =
+                            CurrentNetwork::hash_psd4(&[function_id, *tvk, index_field]).map_err(|e| e.to_string())?;
+                        let ciphertext = match input {
+                            ValueNative::Plaintext(plaintext) => {
+                                plaintext.encrypt_symmetric(input_view_key).map_err(|e| e.to_string())?
+                            }
+                            _ => return Err("Expected a plaintext input for private type".to_string()),
+                        };
+                        let input_hash = CurrentNetwork::hash_psd8(&ciphertext.to_fields().map_err(|e| e.to_string())?)
+                            .map_err(|e| e.to_string())?;
+                        computed_ids.push(InputIDNative::Private(input_hash));
+                    }
+                    ValueTypeNative::Record(record_name) => {
+                        let record_input = match input {
+                            ValueNative::Record(record) => record,
+                            _ => return Err("Expected a record input for record type".to_string()),
+                        };
+                        let record_view_key = (*record_input.nonce() * ***view_key).to_x_coordinate();
+                        let commitment = record_input
+                            .to_commitment(&program_id, record_name, &record_view_key)
+                            .map_err(|e| e.to_string())?;
 
-                    // Get the gammas from the externally provided array of gammas.
-                    let gamma = gammas_native.pop().unwrap();
-
-                    // Compute the record nullifiers (serial number and tag).
-                    let serial_number = RecordPlaintextNative::serial_number_from_gamma(&gamma, commitment)
-                        .map_err(|e| e.to_string())?;
-                    let tag = RecordPlaintextNative::tag(*sk_tag, commitment).map_err(|e| e.to_string())?;
-                    input_ids.push(InputIDNative::Record(commitment, gamma, record_view_key, serial_number, tag));
-                }
-                ValueTypeNative::ExternalRecord(_) => {
-                    return Err("external_record inputs are not yet supported in fromExternallySignedData".to_string());
-                }
-                ValueTypeNative::Future(_) => {
-                    return Err("Future inputs are not supported".to_string());
+                        let gamma = gammas_native.pop().unwrap();
+                        let serial_number = RecordPlaintextNative::serial_number_from_gamma(&gamma, commitment)
+                            .map_err(|e| e.to_string())?;
+                        let tag = RecordPlaintextNative::tag(*sk_tag, commitment).map_err(|e| e.to_string())?;
+                        computed_ids.push(InputIDNative::Record(
+                            commitment,
+                            gamma,
+                            record_view_key,
+                            serial_number,
+                            tag,
+                        ));
+                    }
+                    ValueTypeNative::ExternalRecord(_) => {
+                        return Err("external_record inputs are not yet supported in fromExternallySignedData".to_string());
+                    }
+                    ValueTypeNative::Future(_) => {
+                        return Err("Future inputs are not supported".to_string());
+                    }
                 }
             }
-        }
+            computed_ids
+        };
 
         let request = RequestNative::from((
             *signer,
             network_id,
             program_id,
             function_name,
-            input_ids,
-            inputs_native, // use the separately collected Vec
+            input_ids_native,
+            inputs_native,
             *signature,
             *sk_tag,
             *tvk,
@@ -544,13 +576,25 @@ impl ExecutionRequest {
             input_data.push(&request_sign_input);
         }
 
-        // Return the serialized input data.
-        Ok(object! {
+        // Build the result object.
+        let result = object! {
             "function_id": JsValue::from(&function_id.to_string()),
             "isRoot": JsValue::from(&is_root_field.to_string()),
             "checksum": program_checksum.map(|checksum| JsValue::from(&checksum.to_string())),
             "requestInputs": input_data,
-        })
+        };
+
+        // When view_key is provided, compute and add signer and sk_tag for fromExternallySignedData.
+        if let Some(vk) = view_key {
+            let signer = Address::from_view_key(&vk);
+            let sk_tag = GraphKey::from_view_key(&vk).sk_tag();
+            Reflect::set(&result, &JsValue::from_str("signer"), &JsValue::from(signer))
+                .map_err(|_| "Failed to set signer".to_string())?;
+            Reflect::set(&result, &JsValue::from_str("skTag"), &JsValue::from(sk_tag))
+                .map_err(|_| "Failed to set skTag".to_string())?;
+        }
+
+        Ok(result)
     }
 }
 
@@ -655,7 +699,10 @@ mod tests {
             input_types,
             signed_request.signature(),
             signed_request.tvk(),
-            view_key,
+            signed_request.signer(),
+            signed_request.sk_tag(),
+            Some(view_key),
+            None, // compute input_ids from view_key
             None, // no record inputs
         )
         .expect("from_externally_signed_data should succeed");
@@ -665,6 +712,31 @@ mod tests {
         assert_eq!(externally_signed_request.inputs().length(), signed_request.inputs().length());
         assert_eq!(externally_signed_request.input_ids().length(), signed_request.input_ids().length());
         assert_eq!(externally_signed_request.to_string(), signed_request.to_string());
+
+        // Test the input_ids path: pass pre-computed input_ids with view_key as None.
+        let inputs2 = array![TRANSFER_PUBLIC_INPUTS[0].to_string(), TRANSFER_PUBLIC_INPUTS[1].to_string()];
+        let input_types2 =
+            array![TRANSFER_PUBLIC_INPUT_TYPES[0].to_string(), TRANSFER_PUBLIC_INPUT_TYPES[1].to_string()];
+        let externally_signed_from_input_ids = ExecutionRequest::from_externally_signed_data(
+            "credits.aleo".to_string(),
+            "transfer_public".to_string(),
+            inputs2,
+            input_types2,
+            signed_request.signature(),
+            signed_request.tvk(),
+            signed_request.signer(),
+            signed_request.sk_tag(),
+            None, // view_key not needed when input_ids provided
+            Some(signed_request.input_ids()),
+            None,
+        )
+        .expect("from_externally_signed_data with input_ids should succeed");
+
+        assert_eq!(
+            externally_signed_from_input_ids.to_string(),
+            signed_request.to_string(),
+            "Request built from input_ids should match signed request"
+        );
     }
 
     #[wasm_bindgen_test]
@@ -702,7 +774,10 @@ mod tests {
             input_types,
             signed_request.signature(),
             signed_request.tvk(),
-            view_key,
+            signed_request.signer(),
+            signed_request.sk_tag(),
+            Some(view_key),
+            None, // compute input_ids from view_key and gammas
             Some(gammas),
         )
         .expect("from_externally_signed_data should succeed");

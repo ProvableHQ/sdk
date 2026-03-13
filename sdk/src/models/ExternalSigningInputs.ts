@@ -1,4 +1,4 @@
-import { Field, ViewKey } from "@provablehq/wasm";
+import { Address, Field, ViewKey } from "@provablehq/wasm";
 
 /**
  * Type surrounding the input to an external signing request.
@@ -26,12 +26,16 @@ export interface RequestSignInput {
  * @property {string} isRoot - Field representation of a boolean indicating whether this is a top-level transition (i.e. "0field" or "1field").
  * @property {RequestSignInput[]} requestInputs - The inputs to the function being executed.
  * @property {string} [checksum] - The Ed/BLS-377 base field representation of the program checksum (for programs that contain constructors).
+ * @property {Address} [signer] - The signer address (present when viewKey was provided to computeExternalSigningInputs).
+ * @property {Field} [skTag] - The tag secret key (present when viewKey was provided to computeExternalSigningInputs).
  */
 export interface ExternalSigningInput {
     functionId: string;
     isRoot: string;
     requestInputs: RequestSignInput[]
     checksum?: string;
+    signer?: Address;
+    skTag?: Field;
 }
 
 /**
