@@ -794,13 +794,13 @@ class ProgramManager {
             functionName,
             priorityFee,
             privateFee,
-            inputs,
             recordSearchParams,
             keySearchParams,
             privateKey,
             offlineQuery,
         } = options;
 
+        let inputs = options.inputs;
         let feeRecord = options.feeRecord;
         let provingKey = options.provingKey;
         let verifyingKey = options.verifyingKey;
@@ -834,6 +834,9 @@ class ProgramManager {
         if (!(programObject instanceof Program)) {
             logAndThrow(`Failed to validate program ${programName}`);
         }
+
+        // Verify the inputs and do any typecasting necessary.
+        inputs = programObject.processInputs(functionName, inputs);
 
         // Get the program name if it is not provided in the parameters.
         if (programName === undefined) {
@@ -1164,12 +1167,10 @@ class ProgramManager {
         options: AuthorizationOptions,
     ): Promise<Authorization> {
         // Destructure the options object to access the parameters.
-        const {
-            functionName,
-            inputs,
-        } = options;
+        const { functionName } = options;
 
         const privateKey = options.privateKey;
+        let inputs = options.inputs;
         let program = options.programSource;
         let programName = options.programName;
         let imports = options.programImports;
@@ -1189,10 +1190,14 @@ class ProgramManager {
         } else if (program instanceof Program) {
             program = program.toString();
         }
+        const programObject = Program.fromString(program);
+
+        // Verify the inputs and do any typecasting necessary.
+        inputs = programObject.processInputs(functionName, inputs);
 
         // Get the program name if it is not provided in the parameters.
         if (programName === undefined) {
-            programName = Program.fromString(program).id();
+            programName = programObject.id();
         }
 
         // Get the private key from the account if it is not provided in the parameters.
@@ -1210,9 +1215,14 @@ class ProgramManager {
 
         if (edition == undefined) {
             try {
-                edition = await this.networkClient.getLatestProgramEdition(programName);
+                edition =
+                    await this.networkClient.getLatestProgramEdition(
+                        programName,
+                    );
             } catch (e: any) {
-                console.warn(`Error finding edition for ${programName}. Network response: '${e.message}'. Assuming edition 0.`);
+                console.warn(
+                    `Error finding edition for ${programName}. Network response: '${e.message}'. Assuming edition 0.`,
+                );
                 edition = 0;
             }
         }
@@ -1238,7 +1248,7 @@ class ProgramManager {
             functionName,
             inputs,
             imports,
-            edition
+            edition,
         );
     }
 
@@ -1274,12 +1284,10 @@ class ProgramManager {
         options: AuthorizationOptions,
     ): Promise<Authorization> {
         // Destructure the options object to access the parameters.
-        const {
-            functionName,
-            inputs,
-        } = options;
+        const { functionName } = options;
 
         const privateKey = options.privateKey;
+        let inputs = options.inputs;
         let program = options.programSource;
         let programName = options.programName;
         let imports = options.programImports;
@@ -1299,10 +1307,14 @@ class ProgramManager {
         } else if (program instanceof Program) {
             program = program.toString();
         }
+        const programObject = Program.fromString(program);
+
+        // Verify the inputs and do any typecasting necessary.
+        inputs = programObject.processInputs(functionName, inputs);
 
         // Get the program name if it is not provided in the parameters.
         if (programName === undefined) {
-            programName = Program.fromString(program).id();
+            programName = programObject.id();
         }
 
         // Get the private key from the account if it is not provided in the parameters.
@@ -1334,9 +1346,14 @@ class ProgramManager {
 
         if (edition == undefined) {
             try {
-                edition = await this.networkClient.getLatestProgramEdition(programName);
+                edition =
+                    await this.networkClient.getLatestProgramEdition(
+                        programName,
+                    );
             } catch (e: any) {
-                console.warn(`Error finding edition for ${programName}. Network response: '${e.message}'. Assuming edition 0.`);
+                console.warn(
+                    `Error finding edition for ${programName}. Network response: '${e.message}'. Assuming edition 0.`,
+                );
                 edition = 0;
             }
         }
@@ -1348,7 +1365,7 @@ class ProgramManager {
             functionName,
             inputs,
             imports,
-            edition
+            edition,
         );
     }
 
@@ -1391,15 +1408,17 @@ class ProgramManager {
             functionName,
             priorityFee,
             privateFee,
-            inputs,
             recordSearchParams,
             broadcast = false,
             unchecked = false,
         } = options;
 
         const baseFee = options.baseFee ? options.baseFee : 0;
+        let inputs = options.inputs;
         const privateKey = options.privateKey;
-        const useFeeMaster = options.useFeeMaster ? options.useFeeMaster : false;
+        const useFeeMaster = options.useFeeMaster
+            ? options.useFeeMaster
+            : false;
         let program = options.programSource;
         let programName = options.programName;
         let feeRecord = options.feeRecord;
@@ -1421,16 +1440,25 @@ class ProgramManager {
             program = program.toString();
         }
 
+        // Verify the inputs and do any typecasting necessary.
+        const programObject = Program.fromString(program);
+        inputs = programObject.processInputs(functionName, inputs);
+
         // Get the program name if it is not provided in the parameters.
         if (programName === undefined) {
-            programName = Program.fromString(program).id();
+            programName = programObject.id();
         }
 
         if (edition == undefined) {
             try {
-                edition = await this.networkClient.getLatestProgramEdition(programName);
+                edition =
+                    await this.networkClient.getLatestProgramEdition(
+                        programName,
+                    );
             } catch (e: any) {
-                console.warn(`Error finding edition for ${programName}. Network response: '${e.message}'. Assuming edition 0.`);
+                console.warn(
+                    `Error finding edition for ${programName}. Network response: '${e.message}'. Assuming edition 0.`,
+                );
                 edition = 0;
             }
         }
@@ -1468,7 +1496,14 @@ class ProgramManager {
                 let fee = priorityFee;
                 // If a fee record wasn't provided, estimate the fee that needs to be paid.
                 if (!feeRecord) {
-                    const baseFee = Number(await this.estimateExecutionFee({programName, functionName, program: program.toString(), imports}));
+                    const baseFee = Number(
+                        await this.estimateExecutionFee({
+                            programName,
+                            functionName,
+                            program: program.toString(),
+                            imports,
+                        }),
+                    );
                     fee = baseFee + priorityFee;
                 }
 
@@ -1477,11 +1512,11 @@ class ProgramManager {
                     fee,
                     [],
                     feeRecord,
-                    recordSearchParams
-                )
+                    recordSearchParams,
+                );
             } else {
                 // If it's specified NOT to use a privateFee, use a public fee.
-                feeRecord = undefined
+                feeRecord = undefined;
             }
         } catch (e: any) {
             logAndThrow(
@@ -1502,7 +1537,7 @@ class ProgramManager {
             broadcast,
             unchecked,
             edition,
-            useFeeMaster
+            useFeeMaster,
         );
     }
 
@@ -1977,7 +2012,7 @@ class ProgramManager {
      * Pre-synthesize proving and verifying keys for a program
      *
      * @param program {string} The program source code to synthesize keys for
-     * @param function_id {string} The function id to synthesize keys for
+     * @param functionName {string} The function name to synthesize keys for
      * @param inputs {Array<string>}  Sample inputs to the function
      * @param privateKey {PrivateKey | undefined} Optional private key to use for the key synthesis
      *
@@ -1985,7 +2020,7 @@ class ProgramManager {
      */
     async synthesizeKeys(
         program: string,
-        function_id: string,
+        functionName: string,
         inputs: Array<string>,
         privateKey?: PrivateKey,
     ): Promise<FunctionKeyPair> {
@@ -2001,13 +2036,17 @@ class ProgramManager {
             }
         }
 
+        // Verify the inputs and do any typecasting necessary.
+        const programObject = Program.fromString(program);
+        inputs = programObject.processInputs(functionName, inputs);
+
         // Attempt to run an offline execution of the program and extract the proving and verifying keys
         try {
             imports = await this.networkClient.getProgramImports(program);
             const keyPair = await WasmProgramManager.synthesizeKeyPair(
                 executionPrivateKey,
                 program,
-                function_id,
+                functionName,
                 inputs,
                 imports,
             );
@@ -3326,38 +3365,33 @@ class ProgramManager {
             functionName,
             priorityFee,
             privateFee,
-            inputs,
             recordSearchParams,
             privateKey,
         } = options;
 
         let feeRecord = options.feeRecord;
+        let inputs = options.inputs;
         let program = options.program;
         let programName = options.programName;
         let imports = options.imports;
         let edition = options.edition;
 
-        let programObject;
         // Ensure the function exists on the network
         if (program === undefined) {
             try {
-                programObject = await this.networkClient.getProgramObject(programName);
-                program = <string>programObject.toString();
+                program = <string>await this.networkClient.getProgram(programName);
             } catch (e: any) {
                 logAndThrow(
                     `Error finding ${programName}. Network response: '${e.message}'. Please ensure you're connected to a valid Aleo network the program is deployed to the network.`,
                 );
             }
-        } else if (typeof program == "string") {
-            try {
-                programObject = Program.fromString(program);
-            } catch (e: any) {
-                logAndThrow(`Program sources passed for ${programName} were invalid: ${e}`);
-            }
         } else if (program instanceof Program) {
-            programObject = program;
             program = program.toString();
         }
+
+        // Verify the inputs and do any typecasting necessary.
+        const programObject = Program.fromString(program);
+        inputs = programObject.processInputs(functionName, inputs);
 
         if (!(programObject instanceof Program)) {
             logAndThrow(`Failed to validate program ${programName}`);
@@ -3370,9 +3404,14 @@ class ProgramManager {
 
         if (edition == undefined) {
             try {
-                edition = await this.networkClient.getLatestProgramEdition(programName);
+                edition =
+                    await this.networkClient.getLatestProgramEdition(
+                        programName,
+                    );
             } catch (e: any) {
-                console.warn(`Error finding edition for ${programName}. Network response: '${e.message}'. Assuming edition 0.`);
+                console.warn(
+                    `Error finding edition for ${programName}. Network response: '${e.message}'. Assuming edition 0.`,
+                );
                 edition = 0;
             }
         }
@@ -3396,10 +3435,20 @@ class ProgramManager {
                 let fee = priorityFee;
                 // If a private fee is specified, but no fee record is provided, estimate the fee and find a matching record.
                 if (!feeRecord) {
-                    console.log("Private fee specified, but no private fee record provided, estimating fee and finding a matching fee record.")
+                    console.log(
+                        "Private fee specified, but no private fee record provided, estimating fee and finding a matching fee record.",
+                    );
                     const programString = programObject.toString();
-                    const imports = await this.networkClient.getProgramImports(programString);
-                    const baseFee = Number(WasmProgramManager.estimateDeploymentFee(programString, imports));
+                    const imports =
+                        await this.networkClient.getProgramImports(
+                            programString,
+                        );
+                    const baseFee = Number(
+                        WasmProgramManager.estimateDeploymentFee(
+                            programString,
+                            imports,
+                        ),
+                    );
                     fee = baseFee + priorityFee;
                 }
 
@@ -3408,11 +3457,11 @@ class ProgramManager {
                     fee,
                     [],
                     feeRecord,
-                    recordSearchParams
-                )
+                    recordSearchParams,
+                );
             } else {
                 // If it's specified NOT to use a privateFee, use a public fee.
-                feeRecord = undefined
+                feeRecord = undefined;
             }
         } catch (e: any) {
             logAndThrow(
@@ -3433,7 +3482,7 @@ class ProgramManager {
                 );
             }
         }
-        
+
         // Build a transaction without a proof
         return await WasmProgramManager.buildDevnodeExecutionTransaction(
             executionPrivateKey,
@@ -3444,7 +3493,7 @@ class ProgramManager {
             feeRecord,
             this.host,
             imports,
-            edition
+            edition,
         );
     }
     

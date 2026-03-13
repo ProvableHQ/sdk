@@ -16,9 +16,25 @@
 
 use crate::{
     account::Address,
-    types::native::{CurrentNetwork, IdentifierNative, ProgramNative},
+    types::native::{
+        CurrentNetwork,
+        FunctionNative,
+        IdentifierLiteralNative,
+        IdentifierNative,
+        InstructionNative,
+        LiteralNative,
+        LiteralTypeNative,
+        PlaintextNative,
+        PlaintextTypeNative,
+        ProgramNative,
+        ValueNative,
+        ValueTypeNative,
+    },
 };
-use snarkvm_console::program::{EntryType, PlaintextType, ValueType};
+use snarkvm_console::{
+    prelude::ToField,
+    program::{EntryType, Plaintext, PlaintextType, ValueType},
+};
 
 use js_sys::{Array, Object, Reflect};
 use std::{ops::Deref, str::FromStr};
@@ -495,6 +511,154 @@ impl Program {
         }
         imports
     }
+
+    /// Get the number of dynamic calls for a specific function.
+    ///
+    /// @param {string} function_id The function name within the program.
+    /// @returns {number} The number of dynamic calls within the function.
+    #[wasm_bindgen(js_name = "dynamicCallCount")]
+    pub fn dynamic_call_count(&self, function_id: &str) -> Result<u16, String> {
+        let function = self.get_function(function_id)?;
+        let num_dynamic_calls = function
+            .instructions()
+            .iter()
+            .filter(|instruction| {
+                if let InstructionNative::CallDynamic(_) = instruction {
+                    return true;
+                }
+                false
+            })
+            .count();
+        Ok(num_dynamic_calls as u16)
+    }
+
+    /// Verify inputs are the correct types and in the case of dynamic calls, ensure any types field inputs are converted.
+    ///
+    /// @param {string} function_id The name of the function.
+    /// @param {string[]} inputs The list of inputs to the function.
+    /// @returns {string[]} The processed list of inputs.
+    #[wasm_bindgen(js_name = "processInputs")]
+    pub fn process_inputs(&self, function_id: &str, inputs: Vec<String>) -> Result<Vec<String>, String> {
+        // Get the function and input types it expects.
+        let function = self.get_function(function_id)?;
+        let input_types = function.input_types();
+        let program_id = self.0.id();
+
+        // Ensure the length of the inputs are what is expected.
+        let num_inputs = inputs.len();
+        let num_expected_inputs = input_types.len();
+        if num_inputs == !num_expected_inputs {
+            return Err(format!(
+                "Input length mismatch for {program_id}:{function_id}. {num_expected_inputs} inputs were expected, but {num_inputs} were provided."
+            ));
+        }
+
+        // Verify the input types and implicitly cast identifier and string types to string.
+        let mut processed_inputs = Vec::with_capacity(num_inputs);
+        for (i, (input, input_type)) in inputs.into_iter().zip(input_types.into_iter()).enumerate() {
+            let value = ValueNative::from_str(&input).map_err(|_| {
+                format!("Input {input} at index {i} is not a valid input, expected type: {input_type}.")
+            })?;
+            match value {
+                ValueNative::Record(_) | ValueNative::DynamicRecord(_) => match input_type {
+                    ValueTypeNative::Record(_) | ValueTypeNative::DynamicRecord => processed_inputs.push(input),
+                    _ => {
+                        return Err(format!(
+                            "A record input was given at input index {i}, but an input type of {input_type} was expected."
+                        ));
+                    }
+                },
+                ValueNative::Future(_) | ValueNative::DynamicFuture(_) => {
+                    return Err(format!(
+                        "A future was given at input index {i}. Futures are not allowed in function inputs."
+                    ));
+                }
+                ValueNative::Plaintext(PlaintextNative::Struct(_, _)) => match input_type {
+                    ValueTypeNative::Private(PlaintextTypeNative::Struct(_))
+                    | ValueTypeNative::Public(PlaintextTypeNative::Struct(_))
+                    | ValueTypeNative::Constant(PlaintextTypeNative::Struct(_)) => processed_inputs.push(input),
+                    _ => {
+                        return Err(format!(
+                            "A struct was given at input {i}, but an input type of {input_type} was expected."
+                        ));
+                    }
+                },
+                ValueNative::Plaintext(PlaintextNative::Array(_, _)) => match input_type {
+                    ValueTypeNative::Private(PlaintextTypeNative::Array(_))
+                    | ValueTypeNative::Public(PlaintextTypeNative::Array(_))
+                    | ValueTypeNative::Constant(PlaintextTypeNative::Array(_)) => processed_inputs.push(input),
+                    _ => {
+                        return Err(format!(
+                            "An array was given at input {i}, but an input type of {input_type} was expected."
+                        ));
+                    }
+                },
+                ValueNative::Plaintext(Plaintext::Literal(literal, _)) => {
+                    match input_type {
+                        ValueTypeNative::Private(PlaintextTypeNative::Literal(literal_type))
+                        | ValueTypeNative::Public(PlaintextTypeNative::Literal(literal_type))
+                        | ValueTypeNative::Constant(PlaintextTypeNative::Literal(literal_type)) => {
+                            match (literal, literal_type) {
+                                (LiteralNative::Address(_), LiteralTypeNative::Address) => processed_inputs.push(input),
+                                (LiteralNative::Field(_), LiteralTypeNative::Field) => processed_inputs.push(input),
+                                (LiteralNative::Group(_), LiteralTypeNative::Group) => processed_inputs.push(input),
+                                (LiteralNative::I8(_), LiteralTypeNative::I8) => processed_inputs.push(input),
+                                (LiteralNative::I16(_), LiteralTypeNative::I16) => processed_inputs.push(input),
+                                (LiteralNative::I32(_), LiteralTypeNative::I32) => processed_inputs.push(input),
+                                (LiteralNative::I64(_), LiteralTypeNative::I64) => processed_inputs.push(input),
+                                (LiteralNative::I128(_), LiteralTypeNative::I128) => processed_inputs.push(input),
+                                (LiteralNative::Identifier(_), LiteralTypeNative::Identifier) => {
+                                    processed_inputs.push(input)
+                                }
+                                (LiteralNative::Identifier(identifier), LiteralTypeNative::Field) => {
+                                    // If the input is an identifier or string, but the register requires a field, cast it to a field.
+                                    processed_inputs.push(identifier.to_field().map_err(|e| e.to_string())?.to_string())
+                                }
+                                (LiteralNative::U8(_), LiteralTypeNative::U8) => processed_inputs.push(input),
+                                (LiteralNative::U16(_), LiteralTypeNative::U16) => processed_inputs.push(input),
+                                (LiteralNative::U32(_), LiteralTypeNative::U32) => processed_inputs.push(input),
+                                (LiteralNative::U64(_), LiteralTypeNative::U64) => processed_inputs.push(input),
+                                (LiteralNative::U128(_), LiteralTypeNative::U128) => processed_inputs.push(input),
+                                (LiteralNative::Scalar(_), LiteralTypeNative::Scalar) => processed_inputs.push(input),
+                                (LiteralNative::Signature(_), LiteralTypeNative::Signature) => {
+                                    processed_inputs.push(input)
+                                }
+                                (LiteralNative::String(_), LiteralTypeNative::String) => processed_inputs.push(input),
+                                (LiteralNative::String(string_type), LiteralTypeNative::Field) => {
+                                    let field = IdentifierLiteralNative::new(&*string_type)
+                                        .map_err(|e| e.to_string())?
+                                        .to_field()
+                                        .map_err(|e| e.to_string())?
+                                        .to_string();
+                                    processed_inputs.push(field);
+                                }
+                                _ => {
+                                    return Err(format!(
+                                        "Input {input} was given at index {i}, but an input type of {input_type} was expected."
+                                    ));
+                                }
+                            }
+                        }
+                        _ => {
+                            return Err(format!(
+                                "Input {input} was given at index {i}, but an input type of {input_type} was expected."
+                            ));
+                        }
+                    }
+                }
+            }
+        }
+
+        Ok(processed_inputs)
+    }
+
+    /// Get a function from the program.
+    fn get_function(&self, function_id: &str) -> Result<FunctionNative, String> {
+        let identifier = IdentifierNative::from_str(function_id).map_err(|e| e.to_string())?;
+        self.0
+            .get_function(&identifier)
+            .map_err(|_| format!("Function {function_id} does not exist in program {}", self.0.id().to_string()))
+    }
 }
 
 impl Deref for Program {
@@ -536,6 +700,7 @@ mod tests {
     use super::*;
     use crate::{array, object};
 
+    use crate::test::AMM;
     use wasm_bindgen_test::*;
 
     const TOKEN_ISSUE: &str = r#"program token_issue.aleo;
@@ -861,5 +1026,12 @@ function add_and_double:
         let imports = program.get_imports().to_vec();
         assert_eq!(&imports[0].as_string().unwrap(), "double_test.aleo");
         assert_eq!(&imports[1].as_string().unwrap(), "addition_test.aleo");
+    }
+
+    #[wasm_bindgen_test]
+    fn test_get_dynamic_calls() {
+        let program = Program::from_string(AMM).unwrap();
+        let dynamic_call_count = program.dynamic_call_count("buy_token_b").unwrap();
+        assert_eq!(dynamic_call_count, 2);
     }
 }

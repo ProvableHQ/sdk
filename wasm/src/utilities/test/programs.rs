@@ -217,6 +217,63 @@ function join5:
     cast self.signer r13 into r14 as PuzzleArcadeTicket.record;
     output r14 as PuzzleArcadeTicket.record;"#;
 
+/// AMM program that implements dynamic dispatch.
+pub const AMM: &str = r#"
+        program amm.aleo;
+
+        struct reserves:
+            // corresponds to credits_a.aleo
+            token_a as u64;
+            // corresponds to credits_b.aleo
+            token_b as u64;
+
+        mapping reserves_mapping:
+            key as address.public;
+            value as reserves.public;
+
+        function buy_token_b:
+            // credits_a
+            input r0 as field.public;
+            // credits_b
+            input r1 as field.public;
+            // aleo
+            input r2 as field.public;
+            // transfer_private_to_public function
+            input r3 as field.public;
+            // transfer_public_to_private function
+            input r4 as field.public;
+            // credits_a record
+            input r5 as dynamic.record;
+            // Token a amount to send
+            input r6 as u64.public;
+            // Token b amount to receive
+            input r7 as u64.public;
+            cast r6 r7 into r8 as reserves;
+            call.dynamic r0 r2 r3 with r5 aleo1rrj2mgall8mw57lcpkkvkxwqkawpc5rjarqm57w8gux2ahnt9sxqf0md56 r6 (as dynamic.record address.public u64.public) into r9 r10 (as dynamic.record dynamic.future);
+            call.dynamic r1 r2 r4 with self.signer r6 (as address.private u64.public) into r11 r12 (as dynamic.record dynamic.future);
+            async buy_token_b r6 r7 r10 r12 into r13;
+            // token_a change record
+            output r9 as dynamic.record;
+            // token_b receiver record
+            output r11 as dynamic.record;
+            output r13 as amm.aleo/buy_token_b.future;
+
+        finalize buy_token_b:
+            // token_a amount
+            input r0 as u64.public;
+            // token_b amount
+            input r1 as u64.public;
+            input r2 as dynamic.future;
+            input r3 as dynamic.future;
+            await r2;
+            await r3;
+            // Note: Reserve update logic is omitted intentionally — this test program only
+            // exercises the dynamic dispatch and future-await mechanics, not AMM state changes.
+
+        constructor:
+            assert.eq true true;
+"#;
+
 pub const PUZZLE_SPINNER_V002_INPUT_0: &str = r#"{
   owner: aleo12a4wll9ax6w5355jph0dr5wt2vla5sss2t4cnch0tc3vzh643v8qcfvc7a.private,
   amount: 1000000u64.private,

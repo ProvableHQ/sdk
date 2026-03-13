@@ -25,9 +25,12 @@ use snarkvm_console::{
         Entry,
         Future,
         Identifier,
+        IdentifierLiteral,
         Literal,
+        LiteralType,
         Locator,
         Plaintext,
+        PlaintextType,
         ProgramID,
         ProgramOwner,
         Record,
@@ -42,8 +45,10 @@ use snarkvm_console::{
 use snarkvm_ledger_block::{Deployment, Execution, Fee, Input, Output, Transaction, Transition};
 use snarkvm_synthesizer::{
     Authorization,
+    Instruction,
     Process,
     Program,
+    program::FunctionCore,
     snark::{Certificate, ProvingKey, VerifyingKey},
 };
 
@@ -92,9 +97,12 @@ pub type CiphertextNative = Ciphertext<CurrentNetwork>;
 pub type CiphertextEntryNative = Entry<CurrentNetwork, CiphertextNative>;
 pub type FutureNative = Future<CurrentNetwork>;
 pub type IdentifierNative = Identifier<CurrentNetwork>;
+pub type IdentifierLiteralNative = IdentifierLiteral<CurrentNetwork>;
 pub type LiteralNative = Literal<CurrentNetwork>;
+pub type LiteralTypeNative = LiteralType;
 pub type LocatorNative = Locator<CurrentNetwork>;
 pub type PlaintextNative = Plaintext<CurrentNetwork>;
+pub type PlaintextTypeNative = PlaintextType<CurrentNetwork>;
 pub type PlaintextEntryNative = Entry<CurrentNetwork, PlaintextNative>;
 pub type ProgramIDNative = ProgramID<CurrentNetwork>;
 pub type ProgramNative = Program<CurrentNetwork>;
@@ -117,6 +125,8 @@ pub type ValueTypeNative = ValueType<CurrentNetwork>;
 
 // Synthesizer types
 pub type AuthorizationNative = Authorization<CurrentNetwork>;
+pub type FunctionNative = FunctionCore<CurrentNetwork>;
+pub type InstructionNative = Instruction<CurrentNetwork>;
 pub type ProcessNative = Process<CurrentNetwork>;
 pub type ProvingKeyNative = ProvingKey<CurrentNetwork>;
 pub type RequestNative = Request<CurrentNetwork>;
