@@ -26,5 +26,6 @@ package-lock.json
 .env
 
 ## Claude
-.claude
 **/CLAUDE.md
+.claude/settings.local.json
+!.claude/CLAUDE.md

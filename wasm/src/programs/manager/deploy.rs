@@ -389,20 +389,16 @@ impl ProgramManager {
         let consensus_version = CurrentNetwork::CONSENSUS_VERSION(latest_height).map_err(|err| err.to_string())?;
 
         // Build dummy VKs for all functions.
+        let devnode_vk = VerifyingKeyNative::from_str(DEVNODE_VERIFIER_KEY).map_err(|err| err.to_string())?;
+        let devnode_cert = CertificateNative::from_str(DEVNODE_CERTIFICATE).map_err(|err| err.to_string())?;
         let mut verifying_keys = Vec::with_capacity(program.functions().len() + program.records().len());
         for function_name in program.functions().keys() {
-            let verifying_key =
-                VerifyingKeyNative::from_str(DEVNODE_VERIFIER_KEY).map_err(|err| err.to_string())?;
-            let certificate = CertificateNative::from_str(DEVNODE_CERTIFICATE).map_err(|err| err.to_string())?;
-            verifying_keys.push((*function_name, (verifying_key, certificate)));
+            verifying_keys.push((*function_name, (devnode_vk.clone(), devnode_cert.clone())));
         }
         // V14+: also include dummy VKs for records.
         if consensus_version >= ConsensusVersion::V14 {
             for record_name in program.records().keys() {
-                let verifying_key =
-                    VerifyingKeyNative::from_str(DEVNODE_VERIFIER_KEY).map_err(|err| err.to_string())?;
-                let certificate = CertificateNative::from_str(DEVNODE_CERTIFICATE).map_err(|err| err.to_string())?;
-                verifying_keys.push((*record_name, (verifying_key, certificate)));
+                verifying_keys.push((*record_name, (devnode_vk.clone(), devnode_cert.clone())));
             }
         }
 
@@ -528,19 +524,16 @@ impl ProgramManager {
             log("Program must have at least one function");
             Err("Program must have at least one function".to_string())?;
         }
+        let devnode_vk = VerifyingKeyNative::from_str(DEVNODE_VERIFIER_KEY).map_err(|err| err.to_string())?;
+        let devnode_cert = CertificateNative::from_str(DEVNODE_CERTIFICATE).map_err(|err| err.to_string())?;
         let mut verifying_keys = Vec::with_capacity(program.functions().len() + program.records().len());
         for function_name in program.functions().keys() {
-            let verifying_key = VerifyingKeyNative::from_str(DEVNODE_VERIFIER_KEY).map_err(|err| err.to_string())?;
-            let certificate = CertificateNative::from_str(DEVNODE_CERTIFICATE).map_err(|err| err.to_string())?;
-            verifying_keys.push((*function_name, (verifying_key, certificate)));
+            verifying_keys.push((*function_name, (devnode_vk.clone(), devnode_cert.clone())));
         }
         // V14+: also include dummy VKs for records.
         if consensus_version >= ConsensusVersion::V14 {
             for record_name in program.records().keys() {
-                let verifying_key =
-                    VerifyingKeyNative::from_str(DEVNODE_VERIFIER_KEY).map_err(|err| err.to_string())?;
-                let certificate = CertificateNative::from_str(DEVNODE_CERTIFICATE).map_err(|err| err.to_string())?;
-                verifying_keys.push((*record_name, (verifying_key, certificate)));
+                verifying_keys.push((*record_name, (devnode_vk.clone(), devnode_cert.clone())));
             }
         }
 
