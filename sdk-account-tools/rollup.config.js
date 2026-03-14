@@ -15,25 +15,9 @@ export default {
     },
     external: [
         // Used by node-polyfill
-        "node:worker_threads",
-        "node:os",
-        "node:fs",
-        "node:crypto",
-        "mime/lite",
-        "sync-request",
-        "xmlhttprequest-ssl",
-        // Used by the account-tools SDK
-        "comlink",
-        "core-js/proposals/json-parse-with-source.js",
+        "node:fs"
     ],
     plugins: [
-        replace({
-            preventAssignment: true,
-            delimiters: ['', ''],
-            values: {
-                '%%VERSION%%': $package.version,
-            },
-        }),
         typescript({
             tsconfig: "tsconfig.json",
             clean: true,

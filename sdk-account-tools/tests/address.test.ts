@@ -1,6 +1,4 @@
-// import "../src/node-polyfill.js";
 import { expect } from "chai";
-// import { Address } from "@provablehq/account-tools";
 import { Address } from "../dist/node.js"
 
 const beaconAddressString = "aleo1rhgdu77hgyqd3xjj8ucu3jj9r2krwz6mnzyd80gncr5fxcwlh5rsvzp9px";
