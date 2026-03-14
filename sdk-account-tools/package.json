@@ -39,7 +39,7 @@
   },
   "homepage": "https://github.com/ProvableHQ/sdk#readme",
   "dependencies": {
-    "@provablehq/account-tools": "^0.1.1",
+    "@provablehq/wasm-account-tools": "^0.1.1",
     "comlink": "^4.4.2",
     "mime": "^4.0.6",
     "sync-request": "^6.1.0",

@@ -13,7 +13,7 @@ async function updateVersion(path, newVersion) {
 
 
 // Updates the `package.json` file so it uses the correct
-// version of `@provablehq/wasm`, `@provablehq/wasm-address`, and `@provablehq/sdk`
+// version of `@provablehq/wasm`, `@provablehq/wasm-account-tools`, and `@provablehq/sdk`
 async function updateDependency(path, newVersion) {
     const json = await readFile(path, { encoding: "utf8" });
 
