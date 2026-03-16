@@ -453,14 +453,21 @@ impl ProgramManager {
 
         // Get the state root.
         let state_root = latest_stateroot(node_url).await.map_err(|e| e.to_string())?;
-        let fee = FeeNative::from(fee_authorization.transitions().into_iter().next().unwrap().1, state_root, None)
-            .map_err(|err| err.to_string())?;
+        let fee = FeeNative::from(
+            fee_authorization
+                .transitions()
+                .into_iter()
+                .next()
+                .ok_or("No fee transition found".to_string())?
+                .1,
+            state_root,
+            None,
+        )
+        .map_err(|err| err.to_string())?;
 
         log("Creating deployment transaction");
         Ok(Transaction::from(
-            TransactionNative::from_deployment(owner, deployment, fee)
-                .map_err(|err| err.to_string())
-                .map_err(|e| e.to_string())?,
+            TransactionNative::from_deployment(owner, deployment, fee).map_err(|err| err.to_string())?,
         ))
     }
 
@@ -595,14 +602,21 @@ impl ProgramManager {
 
         // Get the state root.
         let state_root = latest_stateroot(node_url).await.map_err(|e| e.to_string())?;
-        let fee = FeeNative::from(fee_authorization.transitions().into_iter().next().unwrap().1, state_root, None)
-            .map_err(|err| err.to_string())?;
+        let fee = FeeNative::from(
+            fee_authorization
+                .transitions()
+                .into_iter()
+                .next()
+                .ok_or("No fee transition found".to_string())?
+                .1,
+            state_root,
+            None,
+        )
+        .map_err(|err| err.to_string())?;
 
         log("Creating deployment transaction");
         Ok(Transaction::from(
-            TransactionNative::from_deployment(owner, deployment, fee)
-                .map_err(|err| err.to_string())
-                .map_err(|e| e.to_string())?,
+            TransactionNative::from_deployment(owner, deployment, fee).map_err(|err| err.to_string())?,
         ))
     }
 }
