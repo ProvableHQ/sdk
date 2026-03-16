@@ -53,6 +53,34 @@ pub fn get_or_init_consensus_version_heights(heights: Option<String>) -> js_sys:
     pairs.iter().map(|(_, height)| wasm_bindgen::JsValue::from_f64(*height as f64)).collect::<js_sys::Array>()
 }
 
+/// Initialize development mode by setting consensus version heights to [0..ConsensusVersion::latest()].
+///
+/// This function automatically sets up development consensus heights without requiring
+/// manual specification of the number of consensus versions. It should be called before
+/// initializing the thread pool when working with a local development network.
+///
+/// @returns {Array} An array of block heights at which each consensus version applies.
+///
+/// @example
+/// import { initDevMode, initThreadPool } from "@provablehq/sdk";
+///
+/// // Initialize dev mode before the thread pool
+/// initDevMode();
+/// await initThreadPool();
+/// // Rest of the code...
+#[wasm_bindgen::prelude::wasm_bindgen(js_name = initDevMode)]
+pub fn init_dev_mode() -> js_sys::Array {
+    // Get the latest consensus version index
+    let latest = snarkvm_console::network::ConsensusVersion::latest();
+    let num_versions = latest as u32 + 1;
+
+    // Create a comma-separated string of heights from 0 to num_versions-1
+    let heights: String = (0..num_versions).map(|i| i.to_string()).collect::<Vec<_>>().join(",");
+
+    // Initialize the consensus version heights
+    get_or_init_consensus_version_heights(Some(heights))
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
