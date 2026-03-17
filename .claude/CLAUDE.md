@@ -121,15 +121,8 @@ Demo app at provable.tools. React 19 + Vite + Ant Design + CodeMirror. Not publi
 - The Rust toolchain version is pinned in `rust-toolchain.toml`
 - Tests must be Rollup-bundled to `sdk/tmp/` before Mocha can run them
 
-## SDK Safety Rules (Always Apply)
+## SDK Guide
 
-When generating code that uses the Provable SDK, follow these rules. See `.claude/INJECT.md` for the full version.
-
-- **Imports**: Always use network-specific imports (`@provablehq/sdk/testnet.js` or `/mainnet.js`), never the bare package
-- **API URL**: Use `https://api.provable.com/v2` as the host. `AleoNetworkClient` appends the network automatically
-- **Private keys**: Never hardcode, log, or expose. Load from environment variables. Always call `account.destroy()` or use `using` for cleanup
-- **Fees**: Never hardcode fee amounts. Use `estimateExecutionFee()`, `estimateDeploymentFee()`, or `estimateFeeForAuthorization()`
-- **Records**: Track used nonces to avoid double-spending. Exclude used nonces when finding fee records
-- **Confirmation**: Never assume a submitted transaction is confirmed. Always poll `getTransaction()` with a timeout
-- **DPS vs Local**: Delegated proving (DPS) does not require `initThreadPool()`. Only call it for local proving
-- **Network**: Default to testnet. Mainnet involves real funds — confirm before proceeding
+When generating code that uses the Provable SDK, read `docs/sdk-guide/README.md` for universal rules,
+quick start patterns, and a verification checklist. Detailed guides for each capability (transfers,
+delegated proving, records, deployment, etc.) are in `docs/sdk-guide/*.md`.

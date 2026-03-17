@@ -1,0 +1,8 @@
+# Provable SDK — Windsurf Rules
+
+Before generating code that uses `@provablehq/sdk`, read the SDK guide:
+
+- **Start here:** `docs/sdk-guide/README.md` — universal rules, quick start, and verification checklist
+- **Detailed guides:** `docs/sdk-guide/*.md` — transfers, delegated proving, records, deployment, etc.
+
+Key rules: use network-specific imports (`@provablehq/sdk/testnet.js`), never hardcode fees or private keys, always poll for transaction confirmation.
