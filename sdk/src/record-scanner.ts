@@ -274,11 +274,11 @@ class RecordScanner implements RecordProvider {
      */
     private async refreshJwt(apiKey: string, consumerId: string): Promise<RecordScannerJWTData> {
         const response = await post(
-            `${this.url}/jwts/${consumerId}`,
+            `https://api.provable.com/jwts/${consumerId}`,
             {
                 headers: {
-                    "X-Provable-API-Key": apiKey,
-                },
+                    'X-Provable-API-Key': apiKey
+                }
             }
         );
         const authHeader = response.headers.get("authorization");
