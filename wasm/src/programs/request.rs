@@ -218,11 +218,10 @@ impl ExecutionRequest {
         Ok(ExecutionRequest(request))
     }
 
-    /// Builds a request from external signing options and externally-signed fields.
+    /// Builds a request from externally-signed data using externally-supplied record view keys.
     ///
-    /// Either `input_ids` or `view_key` must be provided. If `input_ids` is provided, use them
-    /// directly (e.g. from a signed request's `input_ids()` or external signing output). If
-    /// `input_ids` is not provided, `view_key` is required to compute them from inputs and gammas.
+    /// For record inputs, the caller provides `record_view_keys` and `gammas` directly.
+    /// The method uses these to compute commitment, serial number, tag, and InputID for each record.
     ///
     /// @param {string} program_id The id of the program.
     /// @param {string} function_name The function name.
@@ -230,11 +229,10 @@ impl ExecutionRequest {
     /// @param {string[]} input_types The input types of the function.
     /// @param {Signature} signature The externally-computed signature.
     /// @param {Field} tvk The transition view key.
-    /// @param {Address} signer The signer address (from computeExternalSigningInputs or ExecutionRequest.signer).
-    /// @param {Field} sk_tag The tag secret key (from computeExternalSigningInputs or ExecutionRequest.sk_tag).
-    /// @param {ViewKey | undefined} view_key The view key of the signer (required when input_ids is not provided).
-    /// @param {string[] | undefined} input_ids Pre-computed input IDs (from ExecutionRequest.input_ids() or external signing).
-    /// @param {Group[] | undefined} gammas An array of gammas (required when computing input_ids for record inputs).
+    /// @param {Address} signer The signer address.
+    /// @param {Field} sk_tag The tag secret key.
+    /// @param {Field[] | undefined} record_view_keys Pre-computed record view keys (required when there are record inputs).
+    /// @param {Group[] | undefined} gammas An array of gammas (required when there are record inputs).
     #[wasm_bindgen(js_name = "fromExternallySignedData")]
     #[allow(clippy::too_many_arguments)]
     pub fn from_externally_signed_data(
@@ -246,165 +244,181 @@ impl ExecutionRequest {
         tvk: Field,
         signer: Address,
         sk_tag: Field,
-        view_key: Option<ViewKey>,
-        input_ids: Option<Array>,
+        record_view_keys: Option<Array>,
         gammas: Option<Array>,
     ) -> Result<ExecutionRequest, String> {
-        // Validate: either input_ids is provided, or view_key is provided to compute them.
-        if input_ids.is_none() && view_key.is_none() {
-            return Err("Either input_ids or view_key must be provided.".to_string());
+        let (program_id, function_name, inputs_native, input_types_native, scm, tcm, network_id, function_id) =
+            Self::parse_common_args(&program_id, &function_name, &inputs, &input_types, &signer, &tvk)?;
+
+        let mut record_view_keys_native =
+            native_type_from_wasm_object_array!(record_view_keys.unwrap_or(Array::new()), Field, FieldNative)?;
+
+        let input_ids_native = Self::compute_input_ids_with_record_view_keys(
+            &inputs_native,
+            &input_types_native,
+            &program_id,
+            &sk_tag,
+            &tvk,
+            function_id,
+            tcm,
+            &mut record_view_keys_native,
+            gammas,
+        )?;
+
+        Self::assemble_request(signer, network_id, program_id, function_name, input_ids_native, inputs_native, signature, sk_tag, tvk, tcm, scm)
+    }
+
+    /// Builds a request from externally-signed data using a view key to derive record view keys.
+    ///
+    /// For record inputs, the method computes `record_view_key = (nonce * view_key).to_x_coordinate()`
+    /// for each record, then uses it with the supplied `gammas` to compute commitment, serial number,
+    /// tag, and InputID.
+    ///
+    /// @param {string} program_id The id of the program.
+    /// @param {string} function_name The function name.
+    /// @param {string[]} inputs The inputs to the function.
+    /// @param {string[]} input_types The input types of the function.
+    /// @param {Signature} signature The externally-computed signature.
+    /// @param {Field} tvk The transition view key.
+    /// @param {Address} signer The signer address.
+    /// @param {Field} sk_tag The tag secret key.
+    /// @param {ViewKey} view_key The view key of the signer.
+    /// @param {Group[] | undefined} gammas An array of gammas (required when there are record inputs).
+    #[wasm_bindgen(js_name = "fromExternallySignedDataWithViewKey")]
+    #[allow(clippy::too_many_arguments)]
+    pub fn from_externally_signed_data_with_view_key(
+        program_id: String,
+        function_name: String,
+        inputs: Array,
+        input_types: Array,
+        signature: Signature,
+        tvk: Field,
+        signer: Address,
+        sk_tag: Field,
+        view_key: ViewKey,
+        gammas: Option<Array>,
+    ) -> Result<ExecutionRequest, String> {
+        let (program_id, function_name, inputs_native, input_types_native, scm, tcm, network_id, function_id) =
+            Self::parse_common_args(&program_id, &function_name, &inputs, &input_types, &signer, &tvk)?;
+
+        // Derive record_view_keys from the view key for each record input.
+        let mut record_view_keys_native = Vec::new();
+        for (input, input_type) in inputs_native.iter().zip(input_types_native.iter()) {
+            if let ValueTypeNative::Record(_) = input_type {
+                let record_input = match input {
+                    ValueNative::Record(record) => record,
+                    _ => return Err("Expected a record input for record type".to_string()),
+                };
+                let record_view_key = (*record_input.nonce() * **view_key).to_x_coordinate();
+                record_view_keys_native.push(record_view_key);
+            }
         }
 
-        // Parse the input and function name strings.
-        let program_id = ProgramIDNative::from_str(&program_id).map_err(|e| e.to_string())?;
-        let function_name = IdentifierNative::from_str(&function_name).map_err(|e| e.to_string())?;
+        let input_ids_native = Self::compute_input_ids_with_record_view_keys(
+            &inputs_native,
+            &input_types_native,
+            &program_id,
+            &sk_tag,
+            &tvk,
+            function_id,
+            tcm,
+            &mut record_view_keys_native,
+            gammas,
+        )?;
 
-        // Ensure input types and inputs are the same length.
-        let input_types_length = input_types.length();
-        let inputs_length = inputs.length();
-        if input_types_length != inputs_length {
+        Self::assemble_request(signer, network_id, program_id, function_name, input_ids_native, inputs_native, signature, sk_tag, tvk, tcm, scm)
+    }
+
+    /// Builds a request from externally-signed data with pre-computed input IDs.
+    ///
+    /// Each element of `input_ids` is either:
+    /// - A `Field` for constant, public, or private inputs (the input hash).
+    /// - A JS Array `[Field, Group, Field, Field, Field]` for record inputs
+    ///   (commitment, gamma, record_view_key, serial_number, tag).
+    ///
+    /// The `input_types` array is used to determine the InputID variant for scalar fields.
+    ///
+    /// @param {string} program_id The id of the program.
+    /// @param {string} function_name The function name.
+    /// @param {string[]} inputs The inputs to the function.
+    /// @param {string[]} input_types The input types of the function.
+    /// @param {Signature} signature The externally-computed signature.
+    /// @param {Field} tvk The transition view key.
+    /// @param {Address} signer The signer address.
+    /// @param {Field} sk_tag The tag secret key.
+    /// @param {(Field | [Field, Group, Field, Field, Field])[]} input_ids Pre-computed input IDs.
+    #[wasm_bindgen(js_name = "fromExternallySignedDataWithInputIds")]
+    #[allow(clippy::too_many_arguments)]
+    pub fn from_externally_signed_data_with_input_ids(
+        program_id: String,
+        function_name: String,
+        inputs: Array,
+        input_types: Array,
+        signature: Signature,
+        tvk: Field,
+        signer: Address,
+        sk_tag: Field,
+        input_ids: Array,
+    ) -> Result<ExecutionRequest, String> {
+        let (program_id, function_name, inputs_native, input_types_native, scm, tcm, network_id, _function_id) =
+            Self::parse_common_args(&program_id, &function_name, &inputs, &input_types, &signer, &tvk)?;
+
+        if input_ids.length() as usize != inputs_native.len() {
             return Err(format!(
-                "input_types and inputs must have the same length. Input array length: {inputs_length} - input type array length: {input_types_length}"
+                "input_ids length ({}) must match inputs length ({})",
+                input_ids.length(),
+                inputs_native.len()
             ));
         }
 
-        // Collect inputs and input_types into native Vecs.
-        let mut inputs_native = Vec::with_capacity(inputs_length as usize);
-        for (i, input) in inputs.iter().enumerate() {
-            let input_string = input.as_string().ok_or(format!("Input had invalid string encoding at index {i}"))?;
-            let input = ValueNative::from_str(&input_string).map_err(|e| e.to_string())?;
-            inputs_native.push(input);
-        }
+        let mut input_ids_native = Vec::with_capacity(inputs_native.len());
+        for (i, (id_js, input_type)) in input_ids.iter().zip(input_types_native.iter()).enumerate() {
+            if Array::is_array(&id_js) {
+                // Record input: [Field, Group, Field, Field, Field] = [commitment, gamma, record_view_key, serial_number, tag]
+                let id_array = Array::from(&id_js);
+                if id_array.length() != 5 {
+                    return Err(format!(
+                        "input_ids[{i}] is an array but has length {} (expected 5 for record: [commitment, gamma, record_view_key, serial_number, tag])",
+                        id_array.length()
+                    ));
+                }
+                let commitment = FieldNative::from(Field::try_from_js_value(id_array.get(0))
+                    .map_err(|_| format!("input_ids[{i}][0] (commitment) must be a Field"))?);
+                let gamma = GroupNative::from(Group::try_from_js_value(id_array.get(1))
+                    .map_err(|_| format!("input_ids[{i}][1] (gamma) must be a Group"))?);
+                let record_view_key = FieldNative::from(Field::try_from_js_value(id_array.get(2))
+                    .map_err(|_| format!("input_ids[{i}][2] (record_view_key) must be a Field"))?);
+                let serial_number = FieldNative::from(Field::try_from_js_value(id_array.get(3))
+                    .map_err(|_| format!("input_ids[{i}][3] (serial_number) must be a Field"))?);
+                let tag = FieldNative::from(Field::try_from_js_value(id_array.get(4))
+                    .map_err(|_| format!("input_ids[{i}][4] (tag) must be a Field"))?);
 
-        let mut input_types_native = Vec::with_capacity(inputs_length as usize);
-        for (i, input_type) in input_types.iter().enumerate() {
-            let input_type_string =
-                input_type.as_string().ok_or(format!("Input type had invalid string encoding at index {i}"))?;
-            let input_type = ValueTypeNative::from_str(&input_type_string).map_err(|e| e.to_string())?;
-            input_types_native.push(input_type);
-        }
-
-        // Compute scm and tcm from signer and tvk.
-        let scm =
-            CurrentNetwork::hash_psd2(&[*signer.to_group().to_x_coordinate(), *tvk]).map_err(|e| e.to_string())?;
-        let tcm = CurrentNetwork::hash_psd2(&[*tvk]).map_err(|e| e.to_string())?;
-
-        let network_id = U16Native::new(CurrentNetwork::ID);
-        let function_id = compute_function_id(&network_id, &program_id, &function_name).map_err(|e| e.to_string())?;
-
-        let input_ids_native = if let Some(ids_array) = input_ids {
-            // Parse pre-computed input_ids from strings.
-            let mut parsed = Vec::with_capacity(ids_array.length() as usize);
-            for (i, id_js) in ids_array.iter().enumerate() {
-                let id_str = id_js.as_string().ok_or(format!("input_ids[{i}] must be a string"))?;
-                let id_native =
-                    InputIDNative::from_str(&id_str).map_err(|e| format!("Failed to parse input_ids[{i}]: {e}"))?;
-                parsed.push(id_native);
-            }
-            if parsed.len() != inputs_native.len() {
-                return Err(format!(
-                    "input_ids length ({}) must match inputs length ({})",
-                    parsed.len(),
-                    inputs_native.len()
-                ));
-            }
-            parsed
-        } else {
-            // Compute input_ids from view_key, inputs, and gammas.
-            let view_key = view_key.as_ref().ok_or("view_key is required when input_ids is not provided")?;
-
-            let record_count = input_types_native.iter().filter(|t| matches!(t, ValueTypeNative::Record(_))).count();
-            let mut gammas_native =
-                native_type_from_wasm_object_array!(gammas.unwrap_or(Array::new()), Group, GroupNative)?;
-            if record_count != gammas_native.len() {
-                return Err(format!(
-                    "The number of gammas must match the number of record inputs. {} gammas specified for {} record input(s)",
-                    gammas_native.len(),
-                    record_count
-                ));
-            }
-
-            let mut computed_ids = Vec::with_capacity(inputs_native.len());
-            for (index, (input, input_type)) in inputs_native.iter().zip(input_types_native.iter()).enumerate() {
-                let index_field = FieldNative::from_u16(
-                    u16::try_from(index).map_err(|_| format!("Input index {index} exceeds maximum allowed value"))?,
-                );
-
-                match &input_type {
-                    ValueTypeNative::Constant(_) | ValueTypeNative::Public(_) => {
-                        let mut preimage = vec![function_id];
-                        preimage.extend(input.to_fields().map_err(|e| e.to_string())?);
-                        preimage.push(tcm);
-                        preimage.push(index_field);
-                        let input_hash = CurrentNetwork::hash_psd8(&preimage).map_err(|e| e.to_string())?;
-                        computed_ids.push(match input_type {
-                            ValueTypeNative::Constant(_) => InputIDNative::Constant(input_hash),
-                            _ => InputIDNative::Public(input_hash),
-                        });
-                    }
-                    ValueTypeNative::Private(_) => {
-                        let input_view_key =
-                            CurrentNetwork::hash_psd4(&[function_id, *tvk, index_field]).map_err(|e| e.to_string())?;
-                        let ciphertext = match input {
-                            ValueNative::Plaintext(plaintext) => {
-                                plaintext.encrypt_symmetric(input_view_key).map_err(|e| e.to_string())?
-                            }
-                            _ => return Err("Expected a plaintext input for private type".to_string()),
-                        };
-                        let input_hash = CurrentNetwork::hash_psd8(&ciphertext.to_fields().map_err(|e| e.to_string())?)
-                            .map_err(|e| e.to_string())?;
-                        computed_ids.push(InputIDNative::Private(input_hash));
-                    }
-                    ValueTypeNative::Record(record_name) => {
-                        let record_input = match input {
-                            ValueNative::Record(record) => record,
-                            _ => return Err("Expected a record input for record type".to_string()),
-                        };
-                        let record_view_key = (*record_input.nonce() * ***view_key).to_x_coordinate();
-                        let commitment = record_input
-                            .to_commitment(&program_id, record_name, &record_view_key)
-                            .map_err(|e| e.to_string())?;
-
-                        let gamma = gammas_native.pop().unwrap();
-                        let serial_number = RecordPlaintextNative::serial_number_from_gamma(&gamma, commitment)
-                            .map_err(|e| e.to_string())?;
-                        let tag = RecordPlaintextNative::tag(*sk_tag, commitment).map_err(|e| e.to_string())?;
-                        computed_ids.push(InputIDNative::Record(
-                            commitment,
-                            gamma,
-                            record_view_key,
-                            serial_number,
-                            tag,
-                        ));
-                    }
+                input_ids_native.push(InputIDNative::Record(commitment, gamma, record_view_key, serial_number, tag));
+            } else {
+                // Scalar input: a single Field — variant determined by input_type.
+                let input_hash = FieldNative::from(Field::try_from_js_value(id_js)
+                    .map_err(|_| format!("input_ids[{i}] must be a Field or an Array"))?);
+                let input_id = match input_type {
+                    ValueTypeNative::Constant(_) => InputIDNative::Constant(input_hash),
+                    ValueTypeNative::Public(_) => InputIDNative::Public(input_hash),
+                    ValueTypeNative::Private(_) => InputIDNative::Private(input_hash),
                     ValueTypeNative::ExternalRecord(_) => {
-                        return Err(
-                            "external_record inputs are not yet supported in fromExternallySignedData".to_string()
-                        );
+                        return Err("external_record inputs are not yet supported in fromExternallySignedDataWithInputIds".to_string());
                     }
                     ValueTypeNative::Future(_) => {
                         return Err("Future inputs are not supported".to_string());
                     }
-                }
+                    ValueTypeNative::Record(_) => {
+                        return Err(format!(
+                            "input_ids[{i}] is a scalar Field but input_type is record — expected [Field, Group, Field, Field, Field]"
+                        ));
+                    }
+                };
+                input_ids_native.push(input_id);
             }
-            computed_ids
-        };
+        }
 
-        let request = RequestNative::from((
-            *signer,
-            network_id,
-            program_id,
-            function_name,
-            input_ids_native,
-            inputs_native,
-            *signature,
-            *sk_tag,
-            *tvk,
-            tcm,
-            scm,
-        ));
-
-        Ok(ExecutionRequest(request))
+        Self::assemble_request(signer, network_id, program_id, function_name, input_ids_native, inputs_native, signature, sk_tag, tvk, tcm, scm)
     }
 
     /// Verify the input types within a request.
@@ -594,6 +608,185 @@ impl ExecutionRequest {
     }
 }
 
+/// Private helper methods shared by the three `fromExternallySignedData*` methods.
+impl ExecutionRequest {
+    /// Parses and validates the common arguments shared by all three externally-signed methods.
+    fn parse_common_args(
+        program_id: &str,
+        function_name: &str,
+        inputs: &Array,
+        input_types: &Array,
+        signer: &Address,
+        tvk: &Field,
+    ) -> Result<(ProgramIDNative, IdentifierNative, Vec<ValueNative>, Vec<ValueTypeNative>, FieldNative, FieldNative, U16Native, FieldNative), String> {
+        let program_id = ProgramIDNative::from_str(program_id).map_err(|e| e.to_string())?;
+        let function_name = IdentifierNative::from_str(function_name).map_err(|e| e.to_string())?;
+
+        let input_types_length = input_types.length();
+        let inputs_length = inputs.length();
+        if input_types_length != inputs_length {
+            return Err(format!(
+                "input_types and inputs must have the same length. Input array length: {inputs_length} - input type array length: {input_types_length}"
+            ));
+        }
+
+        let mut inputs_native = Vec::with_capacity(inputs_length as usize);
+        for (i, input) in inputs.iter().enumerate() {
+            let input_string = input.as_string().ok_or(format!("Input had invalid string encoding at index {i}"))?;
+            let input = ValueNative::from_str(&input_string).map_err(|e| e.to_string())?;
+            inputs_native.push(input);
+        }
+
+        let mut input_types_native = Vec::with_capacity(inputs_length as usize);
+        for (i, input_type) in input_types.iter().enumerate() {
+            let input_type_string =
+                input_type.as_string().ok_or(format!("Input type had invalid string encoding at index {i}"))?;
+            let input_type = ValueTypeNative::from_str(&input_type_string).map_err(|e| e.to_string())?;
+            input_types_native.push(input_type);
+        }
+
+        let scm =
+            CurrentNetwork::hash_psd2(&[*signer.to_group().to_x_coordinate(), **tvk]).map_err(|e| e.to_string())?;
+        let tcm = CurrentNetwork::hash_psd2(&[**tvk]).map_err(|e| e.to_string())?;
+
+        let network_id = U16Native::new(CurrentNetwork::ID);
+        let function_id = compute_function_id(&network_id, &program_id, &function_name).map_err(|e| e.to_string())?;
+
+        Ok((program_id, function_name, inputs_native, input_types_native, scm, tcm, network_id, function_id))
+    }
+
+    /// Computes input IDs using supplied record view keys (consumed in order for record inputs).
+    fn compute_input_ids_with_record_view_keys(
+        inputs_native: &[ValueNative],
+        input_types_native: &[ValueTypeNative],
+        program_id: &ProgramIDNative,
+        sk_tag: &Field,
+        tvk: &Field,
+        function_id: FieldNative,
+        tcm: FieldNative,
+        record_view_keys: &mut Vec<FieldNative>,
+        gammas: Option<Array>,
+    ) -> Result<Vec<InputIDNative>, String> {
+        let record_count = input_types_native.iter().filter(|t| matches!(t, ValueTypeNative::Record(_))).count();
+        let mut gammas_native =
+            native_type_from_wasm_object_array!(gammas.unwrap_or(Array::new()), Group, GroupNative)?;
+
+        if record_count != gammas_native.len() {
+            return Err(format!(
+                "The number of gammas must match the number of record inputs. {} gammas specified for {} record input(s)",
+                gammas_native.len(),
+                record_count
+            ));
+        }
+        if record_count != record_view_keys.len() {
+            return Err(format!(
+                "The number of record_view_keys must match the number of record inputs. {} record_view_keys specified for {} record input(s)",
+                record_view_keys.len(),
+                record_count
+            ));
+        }
+
+        // Reverse so we can pop in order.
+        record_view_keys.reverse();
+        gammas_native.reverse();
+
+        let mut computed_ids = Vec::with_capacity(inputs_native.len());
+        for (index, (input, input_type)) in inputs_native.iter().zip(input_types_native.iter()).enumerate() {
+            let index_field = FieldNative::from_u16(
+                u16::try_from(index).map_err(|_| format!("Input index {index} exceeds maximum allowed value"))?,
+            );
+
+            match &input_type {
+                ValueTypeNative::Constant(_) | ValueTypeNative::Public(_) => {
+                    let mut preimage = vec![function_id];
+                    preimage.extend(input.to_fields().map_err(|e| e.to_string())?);
+                    preimage.push(tcm);
+                    preimage.push(index_field);
+                    let input_hash = CurrentNetwork::hash_psd8(&preimage).map_err(|e| e.to_string())?;
+                    computed_ids.push(match input_type {
+                        ValueTypeNative::Constant(_) => InputIDNative::Constant(input_hash),
+                        _ => InputIDNative::Public(input_hash),
+                    });
+                }
+                ValueTypeNative::Private(_) => {
+                    let input_view_key =
+                        CurrentNetwork::hash_psd4(&[function_id, **tvk, index_field]).map_err(|e| e.to_string())?;
+                    let ciphertext = match input {
+                        ValueNative::Plaintext(plaintext) => {
+                            plaintext.encrypt_symmetric(input_view_key).map_err(|e| e.to_string())?
+                        }
+                        _ => return Err("Expected a plaintext input for private type".to_string()),
+                    };
+                    let input_hash = CurrentNetwork::hash_psd8(&ciphertext.to_fields().map_err(|e| e.to_string())?)
+                        .map_err(|e| e.to_string())?;
+                    computed_ids.push(InputIDNative::Private(input_hash));
+                }
+                ValueTypeNative::Record(record_name) => {
+                    let record_input = match input {
+                        ValueNative::Record(record) => record,
+                        _ => return Err("Expected a record input for record type".to_string()),
+                    };
+                    let record_view_key = record_view_keys.pop().unwrap();
+                    let commitment = record_input
+                        .to_commitment(program_id, record_name, &record_view_key)
+                        .map_err(|e| e.to_string())?;
+
+                    let gamma = gammas_native.pop().unwrap();
+                    let serial_number = RecordPlaintextNative::serial_number_from_gamma(&gamma, commitment)
+                        .map_err(|e| e.to_string())?;
+                    let tag = RecordPlaintextNative::tag(**sk_tag, commitment).map_err(|e| e.to_string())?;
+                    computed_ids.push(InputIDNative::Record(
+                        commitment,
+                        gamma,
+                        record_view_key,
+                        serial_number,
+                        tag,
+                    ));
+                }
+                ValueTypeNative::ExternalRecord(_) => {
+                    return Err(
+                        "external_record inputs are not yet supported in fromExternallySignedData".to_string()
+                    );
+                }
+                ValueTypeNative::Future(_) => {
+                    return Err("Future inputs are not supported".to_string());
+                }
+            }
+        }
+        Ok(computed_ids)
+    }
+
+    /// Assembles a `RequestNative` from the computed parts.
+    fn assemble_request(
+        signer: Address,
+        network_id: U16Native,
+        program_id: ProgramIDNative,
+        function_name: IdentifierNative,
+        input_ids: Vec<InputIDNative>,
+        inputs: Vec<ValueNative>,
+        signature: Signature,
+        sk_tag: Field,
+        tvk: Field,
+        tcm: FieldNative,
+        scm: FieldNative,
+    ) -> Result<ExecutionRequest, String> {
+        let request = RequestNative::from((
+            *signer,
+            network_id,
+            program_id,
+            function_name,
+            input_ids,
+            inputs,
+            *signature,
+            *sk_tag,
+            *tvk,
+            tcm,
+            scm,
+        ));
+        Ok(ExecutionRequest(request))
+    }
+}
+
 impl Deref for ExecutionRequest {
     type Target = RequestNative;
 
@@ -670,6 +863,7 @@ mod tests {
 
     #[wasm_bindgen_test]
     fn test_execution_request_from_externally_signed_data_matches_sign() {
+        // Uses fromExternallySignedDataWithViewKey (no records, view_key path).
         let private_key = PrivateKey::from_string(PRIVATE_KEY_STR).unwrap();
         let view_key = ViewKey::from_private_key(&private_key);
         let inputs = array![TRANSFER_PUBLIC_INPUTS[0].to_string(), TRANSFER_PUBLIC_INPUTS[1].to_string()];
@@ -688,7 +882,7 @@ mod tests {
         )
         .expect("sign should succeed");
 
-        let externally_signed_request = ExecutionRequest::from_externally_signed_data(
+        let externally_signed_request = ExecutionRequest::from_externally_signed_data_with_view_key(
             "credits.aleo".to_string(),
             "transfer_public".to_string(),
             inputs,
@@ -697,46 +891,21 @@ mod tests {
             signed_request.tvk(),
             signed_request.signer(),
             signed_request.sk_tag(),
-            Some(view_key),
-            None, // compute input_ids from view_key
+            view_key,
             None, // no record inputs
         )
-        .expect("from_externally_signed_data should succeed");
+        .expect("from_externally_signed_data_with_view_key should succeed");
 
         assert_eq!(externally_signed_request.program_id(), signed_request.program_id());
         assert_eq!(externally_signed_request.function_name(), signed_request.function_name());
         assert_eq!(externally_signed_request.inputs().length(), signed_request.inputs().length());
         assert_eq!(externally_signed_request.input_ids().length(), signed_request.input_ids().length());
         assert_eq!(externally_signed_request.to_string(), signed_request.to_string());
-
-        // Test the input_ids path: pass pre-computed input_ids with view_key as None.
-        let inputs2 = array![TRANSFER_PUBLIC_INPUTS[0].to_string(), TRANSFER_PUBLIC_INPUTS[1].to_string()];
-        let input_types2 =
-            array![TRANSFER_PUBLIC_INPUT_TYPES[0].to_string(), TRANSFER_PUBLIC_INPUT_TYPES[1].to_string()];
-        let externally_signed_from_input_ids = ExecutionRequest::from_externally_signed_data(
-            "credits.aleo".to_string(),
-            "transfer_public".to_string(),
-            inputs2,
-            input_types2,
-            signed_request.signature(),
-            signed_request.tvk(),
-            signed_request.signer(),
-            signed_request.sk_tag(),
-            None, // view_key not needed when input_ids provided
-            Some(signed_request.input_ids()),
-            None,
-        )
-        .expect("from_externally_signed_data with input_ids should succeed");
-
-        assert_eq!(
-            externally_signed_from_input_ids.to_string(),
-            signed_request.to_string(),
-            "Request built from input_ids should match signed request"
-        );
     }
 
     #[wasm_bindgen_test]
     fn test_execution_request_from_externally_signed_data_matches_sign_transfer_private() {
+        // Uses fromExternallySignedDataWithViewKey (records, view_key path).
         let private_key = PrivateKey::from_string(BEACON_PRIVATE_KEY_STR).unwrap();
         let view_key = ViewKey::from_private_key(&private_key);
         let record_beacon_owned = "{ owner: aleo1rhgdu77hgyqd3xjj8ucu3jj9r2krwz6mnzyd80gncr5fxcwlh5rsvzp9px.private, microcredits: 1000000u64.private, _nonce: 3634848344765318974603121890869676775499130077229666060613233255327643175219group.public, _version: 1u8.public }";
@@ -763,7 +932,7 @@ mod tests {
         )
         .expect("sign should succeed");
 
-        let externally_signed_request = ExecutionRequest::from_externally_signed_data(
+        let externally_signed_request = ExecutionRequest::from_externally_signed_data_with_view_key(
             "credits.aleo".to_string(),
             "transfer_private".to_string(),
             inputs,
@@ -772,11 +941,10 @@ mod tests {
             signed_request.tvk(),
             signed_request.signer(),
             signed_request.sk_tag(),
-            Some(view_key),
-            None, // compute input_ids from view_key and gammas
+            view_key,
             Some(gammas),
         )
-        .expect("from_externally_signed_data should succeed");
+        .expect("from_externally_signed_data_with_view_key should succeed");
 
         assert_eq!(externally_signed_request.program_id(), signed_request.program_id());
         assert_eq!(externally_signed_request.function_name(), signed_request.function_name());
@@ -891,6 +1059,410 @@ mod tests {
         let data = Reflect::get(&second_input, &JsValue::from_str("data")).unwrap();
         let data_array = js_sys::Array::from(&data);
         assert!(data_array.length() >= 1, "data should be a non-empty array of fields");
+    }
+
+    // =========================================================================
+    // Tests for the three new fromExternallySignedData* methods
+    // =========================================================================
+
+    /// Helper: sign a transfer_public request and return it.
+    fn sign_transfer_public(private_key: &str) -> ExecutionRequest {
+        let pk = PrivateKey::from_string(private_key).unwrap();
+        let inputs = array![TRANSFER_PUBLIC_INPUTS[0].to_string(), TRANSFER_PUBLIC_INPUTS[1].to_string()];
+        let input_types =
+            array![TRANSFER_PUBLIC_INPUT_TYPES[0].to_string(), TRANSFER_PUBLIC_INPUT_TYPES[1].to_string()];
+        ExecutionRequest::sign(
+            pk,
+            "credits.aleo".to_string(),
+            "transfer_public".to_string(),
+            inputs,
+            input_types,
+            None,
+            None,
+            true,
+        )
+        .expect("sign should succeed")
+    }
+
+    const RECORD_BEACON_OWNED: &str = "{ owner: aleo1rhgdu77hgyqd3xjj8ucu3jj9r2krwz6mnzyd80gncr5fxcwlh5rsvzp9px.private, microcredits: 1000000u64.private, _nonce: 3634848344765318974603121890869676775499130077229666060613233255327643175219group.public, _version: 1u8.public }";
+
+    /// Helper: sign a transfer_private request and return it along with the gamma.
+    fn sign_transfer_private() -> (ExecutionRequest, Group) {
+        let pk = PrivateKey::from_string(BEACON_PRIVATE_KEY_STR).unwrap();
+        let inputs = array![
+            RECORD_BEACON_OWNED.to_string(),
+            "aleo1rhgdu77hgyqd3xjj8ucu3jj9r2krwz6mnzyd80gncr5fxcwlh5rsvzp9px".to_string(),
+            "100u64".to_string(),
+        ];
+        let input_types =
+            array!["credits.record".to_string(), "address.private".to_string(), "u64.private".to_string()];
+        let record = RecordPlaintext::from_string(RECORD_BEACON_OWNED).unwrap();
+        let gamma = record.gamma("credits.aleo", "credits", &pk).unwrap();
+
+        let request = ExecutionRequest::sign(
+            pk,
+            "credits.aleo".to_string(),
+            "transfer_private".to_string(),
+            inputs,
+            input_types,
+            None,
+            None,
+            true,
+        )
+        .expect("sign should succeed");
+        (request, gamma)
+    }
+
+    // --- Method 1: fromExternallySignedData (record_view_keys + gammas) ---
+
+    #[wasm_bindgen_test]
+    fn test_from_externally_signed_data_no_records() {
+        // No record inputs — record_view_keys and gammas are None.
+        let signed = sign_transfer_public(PRIVATE_KEY_STR);
+        let inputs = array![TRANSFER_PUBLIC_INPUTS[0].to_string(), TRANSFER_PUBLIC_INPUTS[1].to_string()];
+        let input_types =
+            array![TRANSFER_PUBLIC_INPUT_TYPES[0].to_string(), TRANSFER_PUBLIC_INPUT_TYPES[1].to_string()];
+
+        let result = ExecutionRequest::from_externally_signed_data(
+            "credits.aleo".to_string(),
+            "transfer_public".to_string(),
+            inputs,
+            input_types,
+            signed.signature(),
+            signed.tvk(),
+            signed.signer(),
+            signed.sk_tag(),
+            None, // no record_view_keys
+            None, // no gammas
+        )
+        .expect("fromExternallySignedData with no records should succeed");
+
+        assert_eq!(result.to_string(), signed.to_string());
+    }
+
+    #[wasm_bindgen_test]
+    fn test_from_externally_signed_data_with_records() {
+        // Record inputs — supply externally-computed record_view_keys and gammas.
+        let private_key = PrivateKey::from_string(BEACON_PRIVATE_KEY_STR).unwrap();
+        let view_key = ViewKey::from_private_key(&private_key);
+        let (signed, gamma) = sign_transfer_private();
+
+        // Compute record_view_key externally (same computation the view_key path does).
+        let record_native = RecordPlaintextNative::from_str(RECORD_BEACON_OWNED).unwrap();
+        let record_view_key = (*record_native.nonce() * **view_key).to_x_coordinate();
+        let record_view_keys = array![Field::from(record_view_key)];
+        let gammas = array![gamma];
+
+        let inputs = array![
+            RECORD_BEACON_OWNED.to_string(),
+            "aleo1rhgdu77hgyqd3xjj8ucu3jj9r2krwz6mnzyd80gncr5fxcwlh5rsvzp9px".to_string(),
+            "100u64".to_string(),
+        ];
+        let input_types =
+            array!["credits.record".to_string(), "address.private".to_string(), "u64.private".to_string()];
+
+        let result = ExecutionRequest::from_externally_signed_data(
+            "credits.aleo".to_string(),
+            "transfer_private".to_string(),
+            inputs,
+            input_types,
+            signed.signature(),
+            signed.tvk(),
+            signed.signer(),
+            signed.sk_tag(),
+            Some(record_view_keys),
+            Some(gammas),
+        )
+        .expect("fromExternallySignedData with records should succeed");
+
+        assert_eq!(result.to_string(), signed.to_string());
+    }
+
+    // --- Method 2: fromExternallySignedDataWithViewKey ---
+
+    #[wasm_bindgen_test]
+    fn test_from_externally_signed_data_with_view_key_no_records() {
+        let private_key = PrivateKey::from_string(PRIVATE_KEY_STR).unwrap();
+        let view_key = ViewKey::from_private_key(&private_key);
+        let signed = sign_transfer_public(PRIVATE_KEY_STR);
+
+        let inputs = array![TRANSFER_PUBLIC_INPUTS[0].to_string(), TRANSFER_PUBLIC_INPUTS[1].to_string()];
+        let input_types =
+            array![TRANSFER_PUBLIC_INPUT_TYPES[0].to_string(), TRANSFER_PUBLIC_INPUT_TYPES[1].to_string()];
+
+        let result = ExecutionRequest::from_externally_signed_data_with_view_key(
+            "credits.aleo".to_string(),
+            "transfer_public".to_string(),
+            inputs,
+            input_types,
+            signed.signature(),
+            signed.tvk(),
+            signed.signer(),
+            signed.sk_tag(),
+            view_key,
+            None, // no record inputs
+        )
+        .expect("fromExternallySignedDataWithViewKey with no records should succeed");
+
+        assert_eq!(result.to_string(), signed.to_string());
+    }
+
+    #[wasm_bindgen_test]
+    fn test_from_externally_signed_data_with_view_key_records() {
+        let private_key = PrivateKey::from_string(BEACON_PRIVATE_KEY_STR).unwrap();
+        let view_key = ViewKey::from_private_key(&private_key);
+        let (signed, gamma) = sign_transfer_private();
+        let gammas = array![gamma];
+
+        let inputs = array![
+            RECORD_BEACON_OWNED.to_string(),
+            "aleo1rhgdu77hgyqd3xjj8ucu3jj9r2krwz6mnzyd80gncr5fxcwlh5rsvzp9px".to_string(),
+            "100u64".to_string(),
+        ];
+        let input_types =
+            array!["credits.record".to_string(), "address.private".to_string(), "u64.private".to_string()];
+
+        let result = ExecutionRequest::from_externally_signed_data_with_view_key(
+            "credits.aleo".to_string(),
+            "transfer_private".to_string(),
+            inputs,
+            input_types,
+            signed.signature(),
+            signed.tvk(),
+            signed.signer(),
+            signed.sk_tag(),
+            view_key,
+            Some(gammas),
+        )
+        .expect("fromExternallySignedDataWithViewKey with records should succeed");
+
+        assert_eq!(result.to_string(), signed.to_string());
+    }
+
+    // --- Method 3: fromExternallySignedDataWithInputIds ---
+
+    #[wasm_bindgen_test]
+    fn test_from_externally_signed_data_with_input_ids_public() {
+        // Public inputs — each input_id is a single Field computed from the hash.
+        let signed = sign_transfer_public(PRIVATE_KEY_STR);
+
+        // Compute the public input hashes the same way the protocol does:
+        // hash_psd8([function_id, ...input.to_fields(), tcm, index])
+        let network_id = U16Native::new(CurrentNetwork::ID);
+        let program_id = ProgramIDNative::from_str("credits.aleo").unwrap();
+        let function_name_native = IdentifierNative::from_str("transfer_public").unwrap();
+        let function_id = compute_function_id(&network_id, &program_id, &function_name_native).unwrap();
+        let tcm = CurrentNetwork::hash_psd2(&[*signed.tvk()]).unwrap();
+
+        let input_values = [
+            ValueNative::from_str(TRANSFER_PUBLIC_INPUTS[0]).unwrap(),
+            ValueNative::from_str(TRANSFER_PUBLIC_INPUTS[1]).unwrap(),
+        ];
+
+        let input_ids = Array::new();
+        for (index, input) in input_values.iter().enumerate() {
+            let index_field = FieldNative::from_u16(index as u16);
+            let mut preimage = vec![function_id];
+            preimage.extend(input.to_fields().unwrap());
+            preimage.push(tcm);
+            preimage.push(index_field);
+            let input_hash = CurrentNetwork::hash_psd8(&preimage).unwrap();
+            input_ids.push(&JsValue::from(Field::from(input_hash)));
+        }
+
+        let inputs = array![TRANSFER_PUBLIC_INPUTS[0].to_string(), TRANSFER_PUBLIC_INPUTS[1].to_string()];
+        let input_types =
+            array![TRANSFER_PUBLIC_INPUT_TYPES[0].to_string(), TRANSFER_PUBLIC_INPUT_TYPES[1].to_string()];
+
+        let result = ExecutionRequest::from_externally_signed_data_with_input_ids(
+            "credits.aleo".to_string(),
+            "transfer_public".to_string(),
+            inputs,
+            input_types,
+            signed.signature(),
+            signed.tvk(),
+            signed.signer(),
+            signed.sk_tag(),
+            input_ids,
+        )
+        .expect("fromExternallySignedDataWithInputIds with public inputs should succeed");
+
+        assert_eq!(result.to_string(), signed.to_string());
+    }
+
+    #[wasm_bindgen_test]
+    fn test_from_externally_signed_data_with_input_ids_records() {
+        // Record inputs — input_id is [Field, Group, Field, Field, Field].
+        let private_key = PrivateKey::from_string(BEACON_PRIVATE_KEY_STR).unwrap();
+        let view_key = ViewKey::from_private_key(&private_key);
+        let (signed, gamma_wasm) = sign_transfer_private();
+
+        // Compute all input IDs natively, as a user would provide them.
+        let network_id = U16Native::new(CurrentNetwork::ID);
+        let program_id = ProgramIDNative::from_str("credits.aleo").unwrap();
+        let function_name_native = IdentifierNative::from_str("transfer_private").unwrap();
+        let function_id = compute_function_id(&network_id, &program_id, &function_name_native).unwrap();
+        let tcm = CurrentNetwork::hash_psd2(&[*signed.tvk()]).unwrap();
+
+        let record_native = RecordPlaintextNative::from_str(RECORD_BEACON_OWNED).unwrap();
+        let record_view_key = (*record_native.nonce() * **view_key).to_x_coordinate();
+        let record_name = IdentifierNative::from_str("credits").unwrap();
+        let commitment = record_native.to_commitment(&program_id, &record_name, &record_view_key).unwrap();
+        let gamma_native = GroupNative::from(gamma_wasm.clone());
+        let serial_number = RecordPlaintextNative::serial_number_from_gamma(&gamma_native, commitment).unwrap();
+        let sk_tag_native = FieldNative::from(signed.sk_tag());
+        let tag = RecordPlaintextNative::tag(sk_tag_native, commitment).unwrap();
+
+        // Input 0: record → [commitment, gamma, record_view_key, serial_number, tag]
+        let record_tuple = Array::new();
+        record_tuple.push(&JsValue::from(Field::from(commitment)));
+        record_tuple.push(&JsValue::from(gamma_wasm));
+        record_tuple.push(&JsValue::from(Field::from(record_view_key)));
+        record_tuple.push(&JsValue::from(Field::from(serial_number)));
+        record_tuple.push(&JsValue::from(Field::from(tag)));
+
+        // Input 1: address.private → hash
+        let input1 = ValueNative::from_str("aleo1rhgdu77hgyqd3xjj8ucu3jj9r2krwz6mnzyd80gncr5fxcwlh5rsvzp9px").unwrap();
+        let input1_view_key = CurrentNetwork::hash_psd4(&[function_id, *signed.tvk(), FieldNative::from_u16(1)]).unwrap();
+        let ciphertext1 = match &input1 {
+            ValueNative::Plaintext(pt) => pt.encrypt_symmetric(input1_view_key).unwrap(),
+            _ => panic!("Expected plaintext"),
+        };
+        let hash1 = CurrentNetwork::hash_psd8(&ciphertext1.to_fields().unwrap()).unwrap();
+
+        // Input 2: u64.private → hash
+        let input2 = ValueNative::from_str("100u64").unwrap();
+        let input2_view_key = CurrentNetwork::hash_psd4(&[function_id, *signed.tvk(), FieldNative::from_u16(2)]).unwrap();
+        let ciphertext2 = match &input2 {
+            ValueNative::Plaintext(pt) => pt.encrypt_symmetric(input2_view_key).unwrap(),
+            _ => panic!("Expected plaintext"),
+        };
+        let hash2 = CurrentNetwork::hash_psd8(&ciphertext2.to_fields().unwrap()).unwrap();
+
+        let input_ids = Array::new();
+        input_ids.push(&record_tuple);
+        input_ids.push(&JsValue::from(Field::from(hash1)));
+        input_ids.push(&JsValue::from(Field::from(hash2)));
+
+        let inputs = array![
+            RECORD_BEACON_OWNED.to_string(),
+            "aleo1rhgdu77hgyqd3xjj8ucu3jj9r2krwz6mnzyd80gncr5fxcwlh5rsvzp9px".to_string(),
+            "100u64".to_string(),
+        ];
+        let input_types =
+            array!["credits.record".to_string(), "address.private".to_string(), "u64.private".to_string()];
+
+        let result = ExecutionRequest::from_externally_signed_data_with_input_ids(
+            "credits.aleo".to_string(),
+            "transfer_private".to_string(),
+            inputs,
+            input_types,
+            signed.signature(),
+            signed.tvk(),
+            signed.signer(),
+            signed.sk_tag(),
+            input_ids,
+        )
+        .expect("fromExternallySignedDataWithInputIds with records should succeed");
+
+        assert_eq!(result.to_string(), signed.to_string());
+    }
+
+    // --- Error cases for the new methods ---
+
+    #[wasm_bindgen_test]
+    fn test_from_externally_signed_data_mismatched_record_view_keys_count() {
+        let (signed, gamma) = sign_transfer_private();
+        let gammas = array![gamma];
+
+        let inputs = array![
+            RECORD_BEACON_OWNED.to_string(),
+            "aleo1rhgdu77hgyqd3xjj8ucu3jj9r2krwz6mnzyd80gncr5fxcwlh5rsvzp9px".to_string(),
+            "100u64".to_string(),
+        ];
+        let input_types =
+            array!["credits.record".to_string(), "address.private".to_string(), "u64.private".to_string()];
+
+        // Provide gammas but no record_view_keys — should fail.
+        let result = ExecutionRequest::from_externally_signed_data(
+            "credits.aleo".to_string(),
+            "transfer_private".to_string(),
+            inputs,
+            input_types,
+            signed.signature(),
+            signed.tvk(),
+            signed.signer(),
+            signed.sk_tag(),
+            None, // missing record_view_keys
+            Some(gammas),
+        );
+        assert!(result.is_err(), "Should fail when record_view_keys missing for record inputs");
+    }
+
+    #[wasm_bindgen_test]
+    fn test_from_externally_signed_data_with_input_ids_length_mismatch() {
+        let signed = sign_transfer_public(PRIVATE_KEY_STR);
+
+        let inputs = array![TRANSFER_PUBLIC_INPUTS[0].to_string(), TRANSFER_PUBLIC_INPUTS[1].to_string()];
+        let input_types =
+            array![TRANSFER_PUBLIC_INPUT_TYPES[0].to_string(), TRANSFER_PUBLIC_INPUT_TYPES[1].to_string()];
+
+        // Provide only 1 input_id for 2 inputs.
+        let input_ids = Array::new();
+        let dummy_field = Field::from_string("0field").unwrap();
+        input_ids.push(&JsValue::from(dummy_field));
+
+        let result = ExecutionRequest::from_externally_signed_data_with_input_ids(
+            "credits.aleo".to_string(),
+            "transfer_public".to_string(),
+            inputs,
+            input_types,
+            signed.signature(),
+            signed.tvk(),
+            signed.signer(),
+            signed.sk_tag(),
+            input_ids,
+        );
+        assert!(result.is_err(), "Should fail when input_ids length doesn't match inputs length");
+    }
+
+    #[wasm_bindgen_test]
+    fn test_from_externally_signed_data_with_input_ids_scalar_for_record_type_fails() {
+        // Passing a scalar Field for a record-typed input should fail.
+        let (signed, _gamma) = sign_transfer_private();
+
+        let inputs = array![
+            RECORD_BEACON_OWNED.to_string(),
+            "aleo1rhgdu77hgyqd3xjj8ucu3jj9r2krwz6mnzyd80gncr5fxcwlh5rsvzp9px".to_string(),
+            "100u64".to_string(),
+        ];
+        let input_types =
+            array!["credits.record".to_string(), "address.private".to_string(), "u64.private".to_string()];
+
+        // Pass a scalar Field for the record input instead of [Field, Group, Field, Field, Field].
+        let input_ids = Array::new();
+        let dummy_field = Field::from_string("0field").unwrap();
+        input_ids.push(&JsValue::from(dummy_field.clone()));
+        input_ids.push(&JsValue::from(dummy_field.clone()));
+        input_ids.push(&JsValue::from(dummy_field));
+
+        let result = ExecutionRequest::from_externally_signed_data_with_input_ids(
+            "credits.aleo".to_string(),
+            "transfer_private".to_string(),
+            inputs,
+            input_types,
+            signed.signature(),
+            signed.tvk(),
+            signed.signer(),
+            signed.sk_tag(),
+            input_ids,
+        );
+        assert!(result.is_err(), "Should fail when scalar Field passed for record input type");
+        let err = match result {
+            Err(e) => e,
+            Ok(_) => panic!("Expected error"),
+        };
+        assert!(err.contains("record"), "Error should mention record type mismatch");
     }
 
     #[wasm_bindgen_test]
