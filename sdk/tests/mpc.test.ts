@@ -15,9 +15,18 @@ import {
     toViewKey,
     toSignature,
     toAddress,
-    buildRequestFromExternallySignedData,
-    buildRequestFromExternallySignedDataWithViewKey,
-    buildRequestFromExternallySignedDataWithInputIds,
+    buildExecutionRequestFromExternallySignedData,
+} from "../src/node.js";
+import type {
+    FieldLike,
+    SignatureLike,
+    AddressLike,
+    InputStrategy,
+} from "../src/node.js";
+import {
+    isViewKeyStrategy,
+    isInputIdStrategy,
+    isRecordViewKeyStrategy,
 } from "../src/node.js";
 import {
     privateKeyString,
@@ -169,25 +178,27 @@ describe('MPC Utilities', () => {
         });
     });
 
-    describe('buildRequestFromExternallySignedData', () => {
-        it('builds a request with public inputs using string parameters', () => {
-            const tvk = Field.fromString("1field");
-            const skTag = Field.fromString("1field");
-            const sigString = signature.to_string();
-            const tvkString = tvk.toString();
-            const skTagString = skTag.toString();
+    describe('buildExecutionRequestFromExternallySignedData', () => {
+        const commonParams = {
+            programId: "credits.aleo",
+            functionName: "transfer_public",
+            inputs: [addressString, "100u64"],
+            inputTypes: ["address.public", "u64.public"],
+            signature: signature as SignatureLike,
+            tvk: Field.fromString("1field") as FieldLike,
+            signer: address as AddressLike,
+            skTag: Field.fromString("1field") as FieldLike,
+        };
 
+        it('builds a request with public inputs using string parameters', () => {
             try {
-                const result = buildRequestFromExternallySignedData(
-                    "credits.aleo",
-                    "transfer_public",
-                    [addressString, "100u64"],
-                    ["address.public", "u64.public"],
-                    sigString,
-                    tvkString,
-                    addressString,
-                    skTagString,
-                );
+                const result = buildExecutionRequestFromExternallySignedData({
+                    ...commonParams,
+                    signature: signature.to_string(),
+                    tvk: "1field",
+                    signer: addressString,
+                    skTag: "1field",
+                });
                 expect(result).instanceof(ExecutionRequest);
             } catch (e: unknown) {
                 const msg = e instanceof Error ? e.message : String(e);
@@ -197,20 +208,14 @@ describe('MPC Utilities', () => {
         });
 
         it('accepts Uint8Array parameters for signature, tvk, address, sk_tag', () => {
-            const tvk = Field.fromString("1field");
-            const skTag = Field.fromString("1field");
-
             try {
-                const result = buildRequestFromExternallySignedData(
-                    "credits.aleo",
-                    "transfer_public",
-                    [addressString, "100u64"],
-                    ["address.public", "u64.public"],
-                    signature.toBytesLe(),
-                    tvk.toBytesLe(),
-                    address.toBytesLe(),
-                    skTag.toBytesLe(),
-                );
+                const result = buildExecutionRequestFromExternallySignedData({
+                    ...commonParams,
+                    signature: signature.toBytesLe(),
+                    tvk: Field.fromString("1field").toBytesLe(),
+                    signer: address.toBytesLe(),
+                    skTag: Field.fromString("1field").toBytesLe(),
+                });
                 expect(result).instanceof(ExecutionRequest);
             } catch (e: unknown) {
                 const msg = e instanceof Error ? e.message : String(e);
@@ -220,20 +225,8 @@ describe('MPC Utilities', () => {
         });
 
         it('accepts WASM object parameters directly', () => {
-            const tvk = Field.fromString("1field");
-            const skTag = Field.fromString("1field");
-
             try {
-                const result = buildRequestFromExternallySignedData(
-                    "credits.aleo",
-                    "transfer_public",
-                    [addressString, "100u64"],
-                    ["address.public", "u64.public"],
-                    signature,
-                    tvk,
-                    address,
-                    skTag,
-                );
+                const result = buildExecutionRequestFromExternallySignedData(commonParams);
                 expect(result).instanceof(ExecutionRequest);
             } catch (e: unknown) {
                 const msg = e instanceof Error ? e.message : String(e);
@@ -241,25 +234,10 @@ describe('MPC Utilities', () => {
                 expect(msg).to.not.include("is not a Uint8Array");
             }
         });
-    });
 
-    describe('buildRequestFromExternallySignedDataWithViewKey', () => {
-        it('accepts a view key as string', () => {
-            const tvk = Field.fromString("1field");
-            const skTag = Field.fromString("1field");
-
+        it('accepts a view key resolution as string', () => {
             try {
-                buildRequestFromExternallySignedDataWithViewKey(
-                    "credits.aleo",
-                    "transfer_public",
-                    [addressString, "100u64"],
-                    ["address.public", "u64.public"],
-                    signature,
-                    tvk,
-                    address,
-                    skTag,
-                    viewKeyString,
-                );
+                buildExecutionRequestFromExternallySignedData(commonParams, { viewKey: viewKeyString });
             } catch (e: unknown) {
                 const msg = e instanceof Error ? e.message : String(e);
                 expect(msg).to.not.include("is not a string");
@@ -267,48 +245,21 @@ describe('MPC Utilities', () => {
             }
         });
 
-        it('accepts a view key as Uint8Array', () => {
-            const tvk = Field.fromString("1field");
-            const skTag = Field.fromString("1field");
-
+        it('accepts a view key resolution as Uint8Array', () => {
             try {
-                buildRequestFromExternallySignedDataWithViewKey(
-                    "credits.aleo",
-                    "transfer_public",
-                    [addressString, "100u64"],
-                    ["address.public", "u64.public"],
-                    signature,
-                    tvk,
-                    address,
-                    skTag,
-                    viewKey.toBytesLe(),
-                );
+                buildExecutionRequestFromExternallySignedData(commonParams, { viewKey: viewKey.toBytesLe() });
             } catch (e: unknown) {
                 const msg = e instanceof Error ? e.message : String(e);
                 expect(msg).to.not.include("is not a string");
                 expect(msg).to.not.include("is not a Uint8Array");
             }
         });
-    });
 
-    describe('buildRequestFromExternallySignedDataWithInputIds', () => {
         it('accepts Field input IDs (public inputs)', () => {
-            const tvk = Field.fromString("1field");
-            const skTag = Field.fromString("1field");
             const inputId = Field.fromString("1field");
 
             try {
-                buildRequestFromExternallySignedDataWithInputIds(
-                    "credits.aleo",
-                    "transfer_public",
-                    [addressString, "100u64"],
-                    ["address.public", "u64.public"],
-                    signature,
-                    tvk,
-                    address,
-                    skTag,
-                    [inputId, inputId],
-                );
+                buildExecutionRequestFromExternallySignedData(commonParams, { inputIds: [inputId, inputId] });
             } catch (e: unknown) {
                 const msg = e instanceof Error ? e.message : String(e);
                 expect(msg).to.not.include("is not a string");
@@ -317,23 +268,14 @@ describe('MPC Utilities', () => {
         });
 
         it('accepts tuple input IDs (record inputs)', () => {
-            const tvk = Field.fromString("1field");
-            const skTag = Field.fromString("1field");
             const f = Field.fromString("1field");
             const g = Group.fromString("2group");
             const recordInputId: [Field, Group, Field, Field, Field] = [f, g, f, f, f];
 
             try {
-                buildRequestFromExternallySignedDataWithInputIds(
-                    "credits.aleo",
-                    "transfer_public",
-                    [addressString],
-                    ["address.public"],
-                    signature,
-                    tvk,
-                    address,
-                    skTag,
-                    [recordInputId],
+                buildExecutionRequestFromExternallySignedData(
+                    { ...commonParams, inputs: [addressString], inputTypes: ["address.public"] },
+                    { inputIds: [recordInputId] },
                 );
             } catch (e: unknown) {
                 const msg = e instanceof Error ? e.message : String(e);
@@ -343,21 +285,8 @@ describe('MPC Utilities', () => {
         });
 
         it('accepts string input IDs', () => {
-            const tvk = Field.fromString("1field");
-            const skTag = Field.fromString("1field");
-
             try {
-                buildRequestFromExternallySignedDataWithInputIds(
-                    "credits.aleo",
-                    "transfer_public",
-                    [addressString, "100u64"],
-                    ["address.public", "u64.public"],
-                    signature,
-                    tvk,
-                    address,
-                    skTag,
-                    ["1field", "1field"],
-                );
+                buildExecutionRequestFromExternallySignedData(commonParams, { inputIds: ["1field", "1field"] });
             } catch (e: unknown) {
                 const msg = e instanceof Error ? e.message : String(e);
                 expect(msg).to.not.include("is not a string");
@@ -366,22 +295,10 @@ describe('MPC Utilities', () => {
         });
 
         it('accepts Uint8Array input IDs', () => {
-            const tvk = Field.fromString("1field");
-            const skTag = Field.fromString("1field");
             const fieldBytes = Field.fromString("1field").toBytesLe();
 
             try {
-                buildRequestFromExternallySignedDataWithInputIds(
-                    "credits.aleo",
-                    "transfer_public",
-                    [addressString, "100u64"],
-                    ["address.public", "u64.public"],
-                    signature,
-                    tvk,
-                    address,
-                    skTag,
-                    [fieldBytes, fieldBytes],
-                );
+                buildExecutionRequestFromExternallySignedData(commonParams, { inputIds: [fieldBytes, fieldBytes] });
             } catch (e: unknown) {
                 const msg = e instanceof Error ? e.message : String(e);
                 expect(msg).to.not.include("is not a string");
@@ -390,8 +307,6 @@ describe('MPC Utilities', () => {
         });
 
         it('accepts tuple input IDs with string/Uint8Array elements', () => {
-            const tvk = Field.fromString("1field");
-            const skTag = Field.fromString("1field");
             const groupBytes = Group.fromString("2group").toBytesLe();
             const fieldBytes = Field.fromString("1field").toBytesLe();
             const recordInputId: [string, Uint8Array, string, Uint8Array, string] = [
@@ -399,22 +314,58 @@ describe('MPC Utilities', () => {
             ];
 
             try {
-                buildRequestFromExternallySignedDataWithInputIds(
-                    "credits.aleo",
-                    "transfer_public",
-                    [addressString],
-                    ["address.public"],
-                    signature,
-                    tvk,
-                    address,
-                    skTag,
-                    [recordInputId],
+                buildExecutionRequestFromExternallySignedData(
+                    { ...commonParams, inputs: [addressString], inputTypes: ["address.public"] },
+                    { inputIds: [recordInputId] },
                 );
             } catch (e: unknown) {
                 const msg = e instanceof Error ? e.message : String(e);
                 expect(msg).to.not.include("is not a string");
                 expect(msg).to.not.include("is not a Uint8Array");
             }
+        });
+
+        it('throws on invalid strategy', () => {
+            expect(() => buildExecutionRequestFromExternallySignedData(commonParams, { bogus: true } as unknown as InputStrategy)).to.throw(
+                "buildExecutionRequestFromExternallySignedData: strategy must be a RecordViewKeyStrategy",
+            );
+        });
+    });
+
+    describe('InputStrategy type guards', () => {
+        it('isRecordViewKeyStrategy identifies empty object', () => {
+            const s: InputStrategy = {};
+            expect(isRecordViewKeyStrategy(s)).to.be.true;
+            expect(isViewKeyStrategy(s)).to.be.false;
+            expect(isInputIdStrategy(s)).to.be.false;
+        });
+
+        it('isRecordViewKeyStrategy identifies recordViewKeys + gammas', () => {
+            const s: InputStrategy = { recordViewKeys: ["1field"], gammas: ["2group"] };
+            expect(isRecordViewKeyStrategy(s)).to.be.true;
+            expect(isViewKeyStrategy(s)).to.be.false;
+            expect(isInputIdStrategy(s)).to.be.false;
+        });
+
+        it('isViewKeyStrategy identifies viewKey', () => {
+            const s: InputStrategy = { viewKey: viewKeyString };
+            expect(isViewKeyStrategy(s)).to.be.true;
+            expect(isRecordViewKeyStrategy(s)).to.be.false;
+            expect(isInputIdStrategy(s)).to.be.false;
+        });
+
+        it('isViewKeyStrategy identifies viewKey + gammas', () => {
+            const s: InputStrategy = { viewKey: viewKeyString, gammas: ["2group"] };
+            expect(isViewKeyStrategy(s)).to.be.true;
+            expect(isRecordViewKeyStrategy(s)).to.be.false;
+            expect(isInputIdStrategy(s)).to.be.false;
+        });
+
+        it('isInputIdStrategy identifies inputIds', () => {
+            const s: InputStrategy = { inputIds: ["1field"] };
+            expect(isInputIdStrategy(s)).to.be.true;
+            expect(isRecordViewKeyStrategy(s)).to.be.false;
+            expect(isViewKeyStrategy(s)).to.be.false;
         });
     });
 
@@ -522,7 +473,7 @@ describe('MPC ExecutionRequest integration', () => {
         expect(signedRequest.inputs().length).to.equal(2);
         expect(externalSigningInputs.requestInputs.length).to.equal(signedRequest.inputs().length);
 
-        // Build the same request via fromExternallySignedDataWithViewKey using view_key to compute input_ids.
+        // Build the same request via buildExecutionRequestFromExternallySignedDataWithViewKey using view_key to compute input_ids.
         const externallySignedRequest = ExecutionRequest.fromExternallySignedDataWithViewKey(
             "credits.aleo",
             "transfer_public",
@@ -540,7 +491,7 @@ describe('MPC ExecutionRequest integration', () => {
         expect(externallySignedRequest.input_ids().length).to.equal(signedRequest.input_ids().length);
         expect(externallySignedRequest.toString()).to.equal(signedRequest.toString());
 
-        // Build the same request via fromExternallySignedDataWithInputIds using pre-computed input_ids.
+        // Build the same request via buildExecutionRequestFromExternallySignedDataWithInputIds using pre-computed input_ids.
         const externallySignedFromInputIds = ExecutionRequest.fromExternallySignedDataWithInputIds(
             "credits.aleo",
             "transfer_public",
@@ -589,7 +540,7 @@ describe('MPC ExecutionRequest integration', () => {
 
         const sig = signedRequest.signature();
         const tvk = signedRequest.tvk();
-        // Use pre-computed input_ids via fromExternallySignedDataWithInputIds
+        // Use pre-computed input_ids via buildExecutionRequestFromExternallySignedDataWithInputIds
         const externallySignedRequest = ExecutionRequest.fromExternallySignedDataWithInputIds(
             "credits.aleo",
             "transfer_private",

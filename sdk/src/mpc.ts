@@ -3,172 +3,106 @@ import {
     ExecutionRequest,
     Field,
     Group,
-    Signature,
-    ViewKey,
 } from "./wasm.js";
 import { ExternalSigningInput, ExternalSigningOptions } from "./models/ExternalSigningInputs.js";
 import { logAndThrow } from "./utils.js";
+import {
+    toField,
+    toGroup,
+    toViewKey,
+    toSignature,
+    toAddress,
+    isViewKeyStrategy,
+    isInputIdStrategy,
+    isRecordViewKeyStrategy,
+} from "./models/mpc.js";
+import type {
+    ExecutionRequestParams,
+    InputStrategy,
+} from "./models/mpc.js";
 
-/** A Field, a string representation, or raw LE bytes. */
-export type FieldLike = Field | string | Uint8Array;
-/** A Group, a Field (x-coordinate), a string representation, or raw LE bytes. */
-export type GroupLike = Group | Field | string | Uint8Array;
-/** A ViewKey, a string representation, or raw LE bytes. */
-export type ViewKeyLike = ViewKey | string | Uint8Array;
-/** A Signature, a string representation, or raw LE bytes. */
-export type SignatureLike = Signature | string | Uint8Array;
-/** An Address, a string representation, or raw LE bytes. */
-export type AddressLike = Address | string | Uint8Array;
-/** An input ID is either a single Field-like (public/private) or a 5-tuple (record) with flexible deserialization. */
-export type InputID = FieldLike | [FieldLike, GroupLike, FieldLike, FieldLike, FieldLike];
+// Re-export everything from models/mpc for consumers
+export * from "./models/mpc.js";
 
 // ---------------------------------------------------------------------------
-// Converters
+// buildExecutionRequestFromExternallySignedData
 // ---------------------------------------------------------------------------
 
-export function toField(value: FieldLike): Field {
-    if (value instanceof Field) return value;
-    if (typeof value === "string") return Field.fromString(value);
-    if (value instanceof Uint8Array) return Field.fromBytesLe(value);
-    throw new Error("toField: expected Field, string, or Uint8Array");
-}
+/**
+ * Build an ExecutionRequest from externally signed data.
+ *
+ * The `strategy` parameter determines how record input IDs are resolved:
+ * - `{ recordViewKeys?, gammas? }` — explicit record view keys and gammas
+ * - `{ viewKey, gammas? }` — derive record view keys from a ViewKey
+ * - `{ inputIds }` — pre-computed input IDs (Field or [Field, Group, Field, Field, Field] tuples)
+ *
+ * @throws {Error} If `strategy` is not a valid `InputStrategy` variant.
+ *
+ * @example
+ * // With explicit record view keys
+ * buildExecutionRequestFromExternallySignedData(
+ *   { programId, functionName, inputs, inputTypes, signature, tvk, signer, skTag },
+ *   { recordViewKeys: [...], gammas: [...] },
+ * );
+ *
+ * // With a view key
+ * buildExecutionRequestFromExternallySignedData(
+ *   { programId, functionName, inputs, inputTypes, signature, tvk, signer, skTag },
+ *   { viewKey: "AViewKey1..." },
+ * );
+ *
+ * // With pre-computed input IDs
+ * buildExecutionRequestFromExternallySignedData(
+ *   { programId, functionName, inputs, inputTypes, signature, tvk, signer, skTag },
+ *   { inputIds: [...] },
+ * );
+ */
+export function buildExecutionRequestFromExternallySignedData(
+    params: ExecutionRequestParams,
+    strategy: InputStrategy = {},
+): ExecutionRequest {
+    const { programId, functionName, inputs, inputTypes, signature, tvk, signer, skTag } = params;
+    const sig = toSignature(signature);
+    const tvkField = toField(tvk);
+    const signerAddr = toAddress(signer);
+    const skTagField = toField(skTag);
 
-export function toGroup(value: GroupLike): Group {
-    if (value instanceof Group) return value;
-    if (value instanceof Field) return Group.fromField(value);
-    if (typeof value === "string") {
-        // If the string contains "field", treat it as an x-coordinate
-        if (value.includes("field")) return Group.fromFieldString(value);
-        return Group.fromString(value);
+    if (isInputIdStrategy(strategy)) {
+        const convertedIds = strategy.inputIds.map((id) => {
+            if (Array.isArray(id)) {
+                return [toField(id[0]), toGroup(id[1]), toField(id[2]), toField(id[3]), toField(id[4])] as [Field, Group, Field, Field, Field];
+            }
+            return toField(id);
+        });
+        return ExecutionRequest.fromExternallySignedDataWithInputIds(
+            programId, functionName, inputs, inputTypes,
+            sig, tvkField, signerAddr, skTagField,
+            convertedIds,
+        );
     }
-    if (value instanceof Uint8Array) {
-        // Try group deserialization first, fall back to field-to-group
-        try {
-            return Group.fromBytesLe(value);
-        } catch {
-            return Group.fromField(Field.fromBytesLe(value));
-        }
+
+    if (isViewKeyStrategy(strategy)) {
+        return ExecutionRequest.fromExternallySignedDataWithViewKey(
+            programId, functionName, inputs, inputTypes,
+            sig, tvkField, signerAddr, skTagField,
+            toViewKey(strategy.viewKey),
+            strategy.gammas ? strategy.gammas.map(toGroup) : undefined,
+        );
     }
-    throw new Error("toGroup: expected Group, Field, string, or Uint8Array");
-}
 
-export function toViewKey(value: ViewKeyLike): ViewKey {
-    if (value instanceof ViewKey) return value;
-    if (typeof value === "string") return ViewKey.from_string(value);
-    if (value instanceof Uint8Array) return ViewKey.fromBytesLe(value);
-    throw new Error("toViewKey: expected ViewKey, string, or Uint8Array");
-}
+    if (isRecordViewKeyStrategy(strategy)) {
+        return ExecutionRequest.fromExternallySignedData(
+            programId, functionName, inputs, inputTypes,
+            sig, tvkField, signerAddr, skTagField,
+            strategy.recordViewKeys ? strategy.recordViewKeys.map(toField) : undefined,
+            strategy.gammas ? strategy.gammas.map(toGroup) : undefined,
+        );
+    }
 
-export function toSignature(value: SignatureLike): Signature {
-    if (value instanceof Signature) return value;
-    if (typeof value === "string") return Signature.from_string(value);
-    if (value instanceof Uint8Array) return Signature.fromBytesLe(value);
-    throw new Error("toSignature: expected Signature, string, or Uint8Array");
-}
-
-export function toAddress(value: AddressLike): Address {
-    if (value instanceof Address) return value;
-    if (typeof value === "string") return Address.from_string(value);
-    if (value instanceof Uint8Array) return Address.fromBytesLe(value);
-    throw new Error("toAddress: expected Address, string, or Uint8Array");
-}
-
-// ---------------------------------------------------------------------------
-// Wrapper functions
-// ---------------------------------------------------------------------------
-
-/**
- * Build an ExecutionRequest from externally signed data with explicit
- * record_view_keys and gammas.
- */
-export function buildRequestFromExternallySignedData(
-    programId: string,
-    functionName: string,
-    inputs: string[],
-    inputTypes: string[],
-    signature: SignatureLike,
-    tvk: FieldLike,
-    signer: AddressLike,
-    skTag: FieldLike,
-    recordViewKeys?: FieldLike[],
-    gammas?: GroupLike[],
-): ExecutionRequest {
-    return ExecutionRequest.fromExternallySignedData(
-        programId,
-        functionName,
-        inputs,
-        inputTypes,
-        toSignature(signature),
-        toField(tvk),
-        toAddress(signer),
-        toField(skTag),
-        recordViewKeys ? recordViewKeys.map(toField) : undefined,
-        gammas ? gammas.map(toGroup) : undefined,
-    );
-}
-
-/**
- * Build an ExecutionRequest from externally signed data using a ViewKey
- * to derive record_view_keys internally.
- */
-export function buildRequestFromExternallySignedDataWithViewKey(
-    programId: string,
-    functionName: string,
-    inputs: string[],
-    inputTypes: string[],
-    signature: SignatureLike,
-    tvk: FieldLike,
-    signer: AddressLike,
-    skTag: FieldLike,
-    viewKey: ViewKeyLike,
-    gammas?: GroupLike[],
-): ExecutionRequest {
-    return ExecutionRequest.fromExternallySignedDataWithViewKey(
-        programId,
-        functionName,
-        inputs,
-        inputTypes,
-        toSignature(signature),
-        toField(tvk),
-        toAddress(signer),
-        toField(skTag),
-        toViewKey(viewKey),
-        gammas ? gammas.map(toGroup) : undefined,
-    );
-}
-
-/**
- * Build an ExecutionRequest from externally signed data with pre-computed
- * input IDs. Each input ID is either a Field (public/private/constant) or
- * a [Field, Group, Field, Field, Field] tuple (record).
- */
-export function buildRequestFromExternallySignedDataWithInputIds(
-    programId: string,
-    functionName: string,
-    inputs: string[],
-    inputTypes: string[],
-    signature: SignatureLike,
-    tvk: FieldLike,
-    signer: AddressLike,
-    skTag: FieldLike,
-    inputIds: InputID[],
-): ExecutionRequest {
-    const convertedIds = inputIds.map((id) => {
-        if (Array.isArray(id)) {
-            return [toField(id[0]), toGroup(id[1]), toField(id[2]), toField(id[3]), toField(id[4])] as [Field, Group, Field, Field, Field];
-        }
-        return toField(id);
-    });
-    return ExecutionRequest.fromExternallySignedDataWithInputIds(
-        programId,
-        functionName,
-        inputs,
-        inputTypes,
-        toSignature(signature),
-        toField(tvk),
-        toAddress(signer),
-        toField(skTag),
-        convertedIds,
+    throw new Error(
+        "buildExecutionRequestFromExternallySignedData: strategy must be a RecordViewKeyStrategy ({ recordViewKeys?, gammas? }), "
+        + "ViewKeyStrategy ({ viewKey, gammas? }), or InputIdStrategy ({ inputIds }). "
+        + `Received: ${JSON.stringify(strategy)}`,
     );
 }
 

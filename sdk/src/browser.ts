@@ -312,14 +312,18 @@ export {
 export { encryptAuthorization, encryptProvingRequest, encryptViewKey, encryptRegistrationRequest, zeroizeBytes } from "./security.js";
 
 export {
+    // Converters
     toField,
     toGroup,
     toViewKey,
     toSignature,
     toAddress,
-    buildRequestFromExternallySignedData,
-    buildRequestFromExternallySignedDataWithViewKey,
-    buildRequestFromExternallySignedDataWithInputIds,
+    // Type guards
+    isViewKeyStrategy,
+    isInputIdStrategy,
+    isRecordViewKeyStrategy,
+    // Builder
+    buildExecutionRequestFromExternallySignedData,
     computeExternalSigningInputs,
 } from "./mpc.js";
 export type {
@@ -329,4 +333,9 @@ export type {
     SignatureLike,
     AddressLike,
     InputID,
+    ExecutionRequestParams,
+    RecordViewKeyStrategy,
+    ViewKeyStrategy,
+    InputIdStrategy,
+    InputStrategy,
 } from "./mpc.js";
