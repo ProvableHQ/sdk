@@ -108,8 +108,30 @@ impl ExecutionRequest {
     }
 
     /// Returns the input IDs for the transition.
+    ///
+    /// Each element is either a WASM `Field` (for constant/public/private/external_record inputs)
+    /// or a JS Array `[Field, Group, Field, Field, Field]` (for record inputs: commitment, gamma,
+    /// record_view_key, serial_number, tag).
     pub fn input_ids(&self) -> Array {
-        self.0.input_ids().iter().map(|input_id| JsValue::from_str(&input_id.to_string())).collect::<Array>()
+        self.0
+            .input_ids()
+            .iter()
+            .map(|input_id| match input_id {
+                InputIDNative::Constant(f)
+                | InputIDNative::Public(f)
+                | InputIDNative::Private(f)
+                | InputIDNative::ExternalRecord(f) => JsValue::from(Field::from(*f)),
+                InputIDNative::Record(commitment, gamma, record_view_key, serial_number, tag) => {
+                    let tuple = Array::new();
+                    tuple.push(&JsValue::from(Field::from(*commitment)));
+                    tuple.push(&JsValue::from(Group::from(*gamma)));
+                    tuple.push(&JsValue::from(Field::from(*record_view_key)));
+                    tuple.push(&JsValue::from(Field::from(*serial_number)));
+                    tuple.push(&JsValue::from(Field::from(*tag)));
+                    JsValue::from(tuple)
+                }
+            })
+            .collect::<Array>()
     }
 
     /// Returns the function inputs as an array of strings.
