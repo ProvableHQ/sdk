@@ -88,8 +88,8 @@ Multi-threading is not required for all contexts:
 - Track used nonces to avoid double-spending records
 - After finding an input record, exclude its nonce when finding the fee record:
   ```ts
-  const inputRecord = await recordProvider.findCreditsRecord(amount, true, []);
-  const feeRecord = await recordProvider.findCreditsRecord(fee, true, [inputRecord.nonce()]);
+  const inputRecord = await recordProvider.findCreditsRecord(amount, { unspent: true, nonces: [] });
+  const feeRecord = await recordProvider.findCreditsRecord(fee, { unspent: true, nonces: [inputRecord.nonce()] });
   ```
 - Handle `RecordNotFoundError` by checking balance first
 - Use `RecordScanner.findCreditsRecord()` with `unspent: true` for production use

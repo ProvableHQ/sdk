@@ -91,14 +91,16 @@ Store `PROVABLE_API_KEY` and `PROVABLE_CONSUMER_ID` in environment variables. JW
 
 ### 4. Delegated Proving (DPS)
 
-Build authorization locally (fast, no thread pool), submit to API for proof generation:
+Build a ProvingRequest locally (fast, no thread pool), submit to API for remote proof generation:
 
 ```ts
-const auth = await pm.buildAuthorization({ programName, functionName, inputs });
-const fee = await pm.estimateFeeForAuthorization({ programName, authorization: auth });
-const feeAuth = await pm.buildFeeAuthorization({ deploymentOrExecutionId: auth.toExecutionId().toString(), baseFeeCredits: Number(fee) / 1_000_000, priorityFeeCredits: 0 });
-const tx = await pm.buildTransactionFromAuthorization({ programName, authorization: auth, feeAuthorization: feeAuth });
-const txId = await pm.networkClient.submitTransaction(tx.toString());
+const provingRequest = await pm.provingRequest({
+    programName: "credits.aleo",
+    functionName: "transfer_public",
+    inputs: ["aleo1recipient...", "1000000u64"],
+    priorityFee: 0, privateFee: false, broadcast: true,
+});
+const response = await pm.networkClient.submitProvingRequest({ provingRequest });
 ```
 
 Full DPS flow with error handling: [delegated-proving.md](reference/delegated-proving.md).
@@ -110,7 +112,7 @@ import { RecordScanner } from "@provablehq/sdk/testnet.js";
 
 const scanner = new RecordScanner({ url: "https://api.provable.com/v2", apiKey, consumerId, decryptEnabled: true, autoReRegister: true });
 await scanner.register(account.viewKey(), 0);
-const record = await scanner.findCreditsRecord(1_000_000, true, []);
+const record = await scanner.findCreditsRecord(1_000_000, { unspent: true, nonces: [] });
 ```
 
 Nonce management and multi-record patterns: [records.md](reference/records.md).

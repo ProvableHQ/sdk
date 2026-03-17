@@ -21,12 +21,11 @@ const viewKey = account.viewKey();
 await scanner.register(viewKey, 0);  // 0 = scan from genesis
 
 // Step 2: Find a credit record with sufficient balance
-const record = await scanner.findCreditsRecord(
-    1_000_000,  // minimum microcredits needed
-    true,       // unspent only
-    [],         // nonces to exclude (already used)
-    {},         // additional filters
-);
+// RecordScanner.findCreditsRecord takes (microcredits, searchParameters: OwnedFilter)
+const record = await scanner.findCreditsRecord(1_000_000, {
+    unspent: true,
+    nonces: [],  // nonces to exclude (already used)
+});
 
 console.log("Found record:", record.toString());
 ```
@@ -38,14 +37,16 @@ import { NetworkRecordProvider } from "@provablehq/sdk/testnet.js";
 
 const recordProvider = new NetworkRecordProvider(account, pm.networkClient);
 
-// Find a single credit record
-const record = await recordProvider.findCreditsRecord(1_000_000, true, []);
+// findCreditsRecord takes (microcredits, searchParameters: RecordSearchParams)
+const record = await recordProvider.findCreditsRecord(1_000_000, {
+    unspent: true,
+    nonces: [],
+});
 
 // Find multiple records (e.g., for input + fee)
 const records = await recordProvider.findCreditsRecords(
-    [500_000, 1_000_000],  // amounts needed
-    true,                   // unspent only
-    [],                     // nonces to exclude
+    [500_000, 1_000_000],
+    { unspent: true, nonces: [] },
 );
 ```
 
@@ -57,11 +58,17 @@ Track used nonces to avoid double-spending across multi-step operations:
 const usedNonces: string[] = [];
 
 // First operation: find and use a record
-const record1 = await scanner.findCreditsRecord(amount1, true, usedNonces);
+const record1 = await scanner.findCreditsRecord(amount1, {
+    unspent: true,
+    nonces: usedNonces,
+});
 usedNonces.push(record1.nonce());
 
 // Second operation: find another record, excluding the first
-const record2 = await scanner.findCreditsRecord(amount2, true, usedNonces);
+const record2 = await scanner.findCreditsRecord(amount2, {
+    unspent: true,
+    nonces: usedNonces,
+});
 usedNonces.push(record2.nonce());
 ```
 
@@ -69,8 +76,14 @@ usedNonces.push(record2.nonce());
 when searching for the fee record:
 
 ```ts
-const inputRecord = await scanner.findCreditsRecord(amount, true, []);
-const feeRecord = await scanner.findCreditsRecord(fee, true, [inputRecord.nonce()]);
+const inputRecord = await scanner.findCreditsRecord(amount, {
+    unspent: true,
+    nonces: [],
+});
+const feeRecord = await scanner.findCreditsRecord(fee, {
+    unspent: true,
+    nonces: [inputRecord.nonce()],
+});
 ```
 
 ## Decrypt Records

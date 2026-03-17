@@ -1,7 +1,7 @@
 # Delegated Proving (DPS)
 
-Build an Authorization locally (fast, lightweight — no thread pool needed), then submit
-to the Provable API for proof generation. The API returns a ready-to-broadcast transaction.
+Build a `ProvingRequest` locally (fast, lightweight — no thread pool needed), then submit
+to the Provable API for remote proof generation. The API returns a completed transaction.
 
 ## Full Flow
 
@@ -19,39 +19,99 @@ const keyProvider = new AleoKeyProvider();
 keyProvider.useCache(true);
 pm.setKeyProvider(keyProvider);
 
-// Step 1: Build authorization (fast — signs the execution intent)
+// Step 1: Build a ProvingRequest (lightweight — packages the execution intent)
+const provingRequest = await pm.provingRequest({
+    programName: "credits.aleo",
+    functionName: "transfer_public",
+    inputs: ["aleo1recipient...", "1000000u64"],
+    priorityFee: 0,
+    privateFee: false,
+    broadcast: true,  // Have the DPS broadcast the transaction after proving
+});
+
+// Step 2: Submit the ProvingRequest to the DPS for remote proof generation
+const response = await pm.networkClient.submitProvingRequest({
+    provingRequest,
+});
+
+// response contains the proven transaction (and broadcast result if broadcast: true)
+console.log("Proving response:", response);
+```
+
+## ProvingRequest Options
+
+```ts
+const provingRequest = await pm.provingRequest({
+    programName: "credits.aleo",
+    functionName: "transfer_public",
+    inputs: ["aleo1recipient...", "1000000u64"],
+    priorityFee: 0,
+    privateFee: false,
+    broadcast: false,       // false = get the proven tx back without broadcasting
+    unchecked: false,       // true = skip input validation (advanced)
+    baseFee: 0,             // override base fee (optional, estimated if omitted)
+    useFeeMaster: false,    // use DPS fee master account (optional)
+});
+```
+
+## Safe Submission (No Throw)
+
+Use `submitProvingRequestSafe` for structured error handling:
+
+```ts
+const result = await pm.networkClient.submitProvingRequestSafe({
+    provingRequest,
+});
+
+if (result.ok) {
+    console.log("Success:", result.data);
+} else {
+    console.error("Failed:", result.error.message);
+    console.error("Status:", result.status);
+}
+```
+
+## Authorization Flow (Local Proving from Authorization)
+
+If you need to build an authorization first (e.g., for fee estimation or inspection)
+and then prove locally, use `buildTransactionFromAuthorization`:
+
+```ts
+// Step 1: Build authorization
 const authorization = await pm.buildAuthorization({
     programName: "credits.aleo",
     functionName: "transfer_public",
     inputs: ["aleo1recipient...", "1000000u64"],
 });
 
-// Step 2: Get the execution ID and estimate the fee
+// Step 2: Estimate fee
 const executionId = authorization.toExecutionId().toString();
 const baseFeeMicrocredits = await pm.estimateFeeForAuthorization({
     programName: "credits.aleo",
     authorization,
 });
-const baseFeeCredits = Number(baseFeeMicrocredits) / 1_000_000;
 
 // Step 3: Build fee authorization
 const feeAuthorization = await pm.buildFeeAuthorization({
     deploymentOrExecutionId: executionId,
-    baseFeeCredits,
+    baseFeeCredits: Number(baseFeeMicrocredits) / 1_000_000,
     priorityFeeCredits: 0,
 });
 
-// Step 4: Build the full transaction (submitted to DPS for proving)
+// Step 4: Execute locally (this does LOCAL proving, not DPS)
 const tx = await pm.buildTransactionFromAuthorization({
     programName: "credits.aleo",
     authorization,
     feeAuthorization,
 });
 
-// Step 5: Submit to the network
 const txId = await pm.networkClient.submitTransaction(tx.toString());
-console.log("Submitted:", txId);
 ```
+
+> **Note:** `buildTransactionFromAuthorization` performs **local proving** via
+> `WasmProgramManager.executeAuthorization`. It does NOT submit to DPS.
+> For true delegated proving, use `pm.provingRequest()` +
+> `pm.networkClient.submitProvingRequest()` as shown in the Full Flow above.
 
 ## When to Use DPS
 
