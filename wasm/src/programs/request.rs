@@ -265,7 +265,19 @@ impl ExecutionRequest {
             gammas,
         )?;
 
-        Self::assemble_request(signer, network_id, program_id, function_name, input_ids_native, inputs_native, signature, sk_tag, tvk, tcm, scm)
+        Self::assemble_request(
+            signer,
+            network_id,
+            program_id,
+            function_name,
+            input_ids_native,
+            inputs_native,
+            signature,
+            sk_tag,
+            tvk,
+            tcm,
+            scm,
+        )
     }
 
     /// Builds a request from externally-signed data using a view key to derive record view keys.
@@ -326,7 +338,19 @@ impl ExecutionRequest {
             gammas,
         )?;
 
-        Self::assemble_request(signer, network_id, program_id, function_name, input_ids_native, inputs_native, signature, sk_tag, tvk, tcm, scm)
+        Self::assemble_request(
+            signer,
+            network_id,
+            program_id,
+            function_name,
+            input_ids_native,
+            inputs_native,
+            signature,
+            sk_tag,
+            tvk,
+            tcm,
+            scm,
+        )
     }
 
     /// Builds a request from externally-signed data with pre-computed input IDs.
@@ -382,28 +406,43 @@ impl ExecutionRequest {
                         id_array.length()
                     ));
                 }
-                let commitment = FieldNative::from(Field::try_from_js_value(id_array.get(0))
-                    .map_err(|_| format!("input_ids[{i}][0] (commitment) must be a Field"))?);
-                let gamma = GroupNative::from(Group::try_from_js_value(id_array.get(1))
-                    .map_err(|_| format!("input_ids[{i}][1] (gamma) must be a Group"))?);
-                let record_view_key = FieldNative::from(Field::try_from_js_value(id_array.get(2))
-                    .map_err(|_| format!("input_ids[{i}][2] (record_view_key) must be a Field"))?);
-                let serial_number = FieldNative::from(Field::try_from_js_value(id_array.get(3))
-                    .map_err(|_| format!("input_ids[{i}][3] (serial_number) must be a Field"))?);
-                let tag = FieldNative::from(Field::try_from_js_value(id_array.get(4))
-                    .map_err(|_| format!("input_ids[{i}][4] (tag) must be a Field"))?);
+                let commitment = FieldNative::from(
+                    Field::try_from_js_value(id_array.get(0))
+                        .map_err(|_| format!("input_ids[{i}][0] (commitment) must be a Field"))?,
+                );
+                let gamma = GroupNative::from(
+                    Group::try_from_js_value(id_array.get(1))
+                        .map_err(|_| format!("input_ids[{i}][1] (gamma) must be a Group"))?,
+                );
+                let record_view_key = FieldNative::from(
+                    Field::try_from_js_value(id_array.get(2))
+                        .map_err(|_| format!("input_ids[{i}][2] (record_view_key) must be a Field"))?,
+                );
+                let serial_number = FieldNative::from(
+                    Field::try_from_js_value(id_array.get(3))
+                        .map_err(|_| format!("input_ids[{i}][3] (serial_number) must be a Field"))?,
+                );
+                let tag = FieldNative::from(
+                    Field::try_from_js_value(id_array.get(4))
+                        .map_err(|_| format!("input_ids[{i}][4] (tag) must be a Field"))?,
+                );
 
                 input_ids_native.push(InputIDNative::Record(commitment, gamma, record_view_key, serial_number, tag));
             } else {
                 // Scalar input: a single Field — variant determined by input_type.
-                let input_hash = FieldNative::from(Field::try_from_js_value(id_js)
-                    .map_err(|_| format!("input_ids[{i}] must be a Field or an Array"))?);
+                let input_hash = FieldNative::from(
+                    Field::try_from_js_value(id_js)
+                        .map_err(|_| format!("input_ids[{i}] must be a Field or an Array"))?,
+                );
                 let input_id = match input_type {
                     ValueTypeNative::Constant(_) => InputIDNative::Constant(input_hash),
                     ValueTypeNative::Public(_) => InputIDNative::Public(input_hash),
                     ValueTypeNative::Private(_) => InputIDNative::Private(input_hash),
                     ValueTypeNative::ExternalRecord(_) => {
-                        return Err("external_record inputs are not yet supported in fromExternallySignedDataWithInputIds".to_string());
+                        return Err(
+                            "external_record inputs are not yet supported in fromExternallySignedDataWithInputIds"
+                                .to_string(),
+                        );
                     }
                     ValueTypeNative::Future(_) => {
                         return Err("Future inputs are not supported".to_string());
@@ -418,7 +457,19 @@ impl ExecutionRequest {
             }
         }
 
-        Self::assemble_request(signer, network_id, program_id, function_name, input_ids_native, inputs_native, signature, sk_tag, tvk, tcm, scm)
+        Self::assemble_request(
+            signer,
+            network_id,
+            program_id,
+            function_name,
+            input_ids_native,
+            inputs_native,
+            signature,
+            sk_tag,
+            tvk,
+            tcm,
+            scm,
+        )
     }
 
     /// Verify the input types within a request.
@@ -618,7 +669,19 @@ impl ExecutionRequest {
         input_types: &Array,
         signer: &Address,
         tvk: &Field,
-    ) -> Result<(ProgramIDNative, IdentifierNative, Vec<ValueNative>, Vec<ValueTypeNative>, FieldNative, FieldNative, U16Native, FieldNative), String> {
+    ) -> Result<
+        (
+            ProgramIDNative,
+            IdentifierNative,
+            Vec<ValueNative>,
+            Vec<ValueTypeNative>,
+            FieldNative,
+            FieldNative,
+            U16Native,
+            FieldNative,
+        ),
+        String,
+    > {
         let program_id = ProgramIDNative::from_str(program_id).map_err(|e| e.to_string())?;
         let function_name = IdentifierNative::from_str(function_name).map_err(|e| e.to_string())?;
 
@@ -735,18 +798,10 @@ impl ExecutionRequest {
                     let serial_number = RecordPlaintextNative::serial_number_from_gamma(&gamma, commitment)
                         .map_err(|e| e.to_string())?;
                     let tag = RecordPlaintextNative::tag(**sk_tag, commitment).map_err(|e| e.to_string())?;
-                    computed_ids.push(InputIDNative::Record(
-                        commitment,
-                        gamma,
-                        record_view_key,
-                        serial_number,
-                        tag,
-                    ));
+                    computed_ids.push(InputIDNative::Record(commitment, gamma, record_view_key, serial_number, tag));
                 }
                 ValueTypeNative::ExternalRecord(_) => {
-                    return Err(
-                        "external_record inputs are not yet supported in fromExternallySignedData".to_string()
-                    );
+                    return Err("external_record inputs are not yet supported in fromExternallySignedData".to_string());
                 }
                 ValueTypeNative::Future(_) => {
                     return Err("Future inputs are not supported".to_string());
@@ -1323,7 +1378,8 @@ mod tests {
 
         // Input 1: address.private → hash
         let input1 = ValueNative::from_str("aleo1rhgdu77hgyqd3xjj8ucu3jj9r2krwz6mnzyd80gncr5fxcwlh5rsvzp9px").unwrap();
-        let input1_view_key = CurrentNetwork::hash_psd4(&[function_id, *signed.tvk(), FieldNative::from_u16(1)]).unwrap();
+        let input1_view_key =
+            CurrentNetwork::hash_psd4(&[function_id, *signed.tvk(), FieldNative::from_u16(1)]).unwrap();
         let ciphertext1 = match &input1 {
             ValueNative::Plaintext(pt) => pt.encrypt_symmetric(input1_view_key).unwrap(),
             _ => panic!("Expected plaintext"),
@@ -1332,7 +1388,8 @@ mod tests {
 
         // Input 2: u64.private → hash
         let input2 = ValueNative::from_str("100u64").unwrap();
-        let input2_view_key = CurrentNetwork::hash_psd4(&[function_id, *signed.tvk(), FieldNative::from_u16(2)]).unwrap();
+        let input2_view_key =
+            CurrentNetwork::hash_psd4(&[function_id, *signed.tvk(), FieldNative::from_u16(2)]).unwrap();
         let ciphertext2 = match &input2 {
             ValueNative::Plaintext(pt) => pt.encrypt_symmetric(input2_view_key).unwrap(),
             _ => panic!("Expected plaintext"),

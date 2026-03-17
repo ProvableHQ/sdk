@@ -310,3 +310,23 @@ export {
 } from "./keys/verifier/interface.js";
 
 export { encryptAuthorization, encryptProvingRequest, encryptViewKey, encryptRegistrationRequest, zeroizeBytes } from "./security.js";
+
+export {
+    toField,
+    toGroup,
+    toViewKey,
+    toSignature,
+    toAddress,
+    buildRequestFromExternallySignedData,
+    buildRequestFromExternallySignedDataWithViewKey,
+    buildRequestFromExternallySignedDataWithInputIds,
+    computeExternalSigningInputs,
+} from "./mpc.js";
+export type {
+    FieldLike,
+    GroupLike,
+    ViewKeyLike,
+    SignatureLike,
+    AddressLike,
+    InputID,
+} from "./mpc.js";

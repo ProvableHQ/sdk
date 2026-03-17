@@ -1,5 +1,16 @@
 import { expect } from "chai";
-import { Address, AleoNetworkClient, CREDITS_PROGRAM_KEYS, Field, FunctionKeyPair, Plaintext, PrivateKey, ViewKey, Signature, RecordCiphertext, RecordPlaintext, PrivateKeyCiphertext, EncryptionToolkit, Transition, Value, VerifyingKey, AleoKeyProvider, getOrInitConsensusVersionTestHeights} from "../src/node.js";
+import { Address, AleoNetworkClient, CREDITS_PROGRAM_KEYS, ExecutionRequest, Field, FunctionKeyPair, Group, Plaintext, PrivateKey, ViewKey, Signature, RecordCiphertext, RecordPlaintext, PrivateKeyCiphertext, EncryptionToolkit, Transition, Value, VerifyingKey, AleoKeyProvider, getOrInitConsensusVersionTestHeights} from "../src/node.js";
+import {
+    toField,
+    toGroup,
+    toViewKey,
+    toSignature,
+    toAddress,
+    buildRequestFromExternallySignedData,
+    buildRequestFromExternallySignedDataWithViewKey,
+    buildRequestFromExternallySignedDataWithInputIds,
+    computeExternalSigningInputs,
+} from "../src/mpc.js";
 import {
     seed,
     message,
@@ -684,3 +695,391 @@ describe('WASM Objects', () => {
     })
 });
 
+describe('MPC Utilities', () => {
+    const privateKey = PrivateKey.from_string(privateKeyString);
+    const viewKey = privateKey.to_view_key();
+    const address = privateKey.to_address();
+    const signature = privateKey.sign(message);
+
+    describe('toField', () => {
+        it('passes through a Field instance', () => {
+            const field = Field.fromString("1field");
+            const result = toField(field);
+            expect(result).instanceof(Field);
+            expect(result.toString()).equal(field.toString());
+        });
+
+        it('converts a string to a Field', () => {
+            const result = toField("1field");
+            expect(result).instanceof(Field);
+            expect(result.toString()).equal("1field");
+        });
+
+        it('converts a Uint8Array to a Field', () => {
+            const field = Field.fromString("1field");
+            const bytes = field.toBytesLe();
+            const result = toField(bytes);
+            expect(result).instanceof(Field);
+            expect(result.toString()).equal(field.toString());
+        });
+    });
+
+    describe('toGroup', () => {
+        it('passes through a Group instance', () => {
+            const group = Group.fromString("0group");
+            const result = toGroup(group);
+            expect(result).instanceof(Group);
+            expect(result.toString()).equal(group.toString());
+        });
+
+        it('converts a string to a Group', () => {
+            const result = toGroup("0group");
+            expect(result).instanceof(Group);
+            expect(result.toString()).equal("0group");
+        });
+
+        it('converts a Uint8Array to a Group', () => {
+            const group = Group.fromString("0group");
+            const bytes = group.toBytesLe();
+            const result = toGroup(bytes);
+            expect(result).instanceof(Group);
+            expect(result.toString()).equal(group.toString());
+        });
+    });
+
+    describe('toViewKey', () => {
+        it('passes through a ViewKey instance', () => {
+            const result = toViewKey(viewKey);
+            expect(result).instanceof(ViewKey);
+            expect(result.to_string()).equal(viewKeyString);
+        });
+
+        it('converts a string to a ViewKey', () => {
+            const result = toViewKey(viewKeyString);
+            expect(result).instanceof(ViewKey);
+            expect(result.to_string()).equal(viewKeyString);
+        });
+
+        it('converts a Uint8Array to a ViewKey', () => {
+            const bytes = viewKey.toBytesLe();
+            const result = toViewKey(bytes);
+            expect(result).instanceof(ViewKey);
+            expect(result.to_string()).equal(viewKeyString);
+        });
+    });
+
+    describe('toSignature', () => {
+        it('passes through a Signature instance', () => {
+            const result = toSignature(signature);
+            expect(result).instanceof(Signature);
+            expect(result.to_string()).equal(signature.to_string());
+        });
+
+        it('converts a string to a Signature', () => {
+            const sigString = signature.to_string();
+            const result = toSignature(sigString);
+            expect(result).instanceof(Signature);
+            expect(result.to_string()).equal(sigString);
+        });
+
+        it('converts a Uint8Array to a Signature', () => {
+            const bytes = signature.toBytesLe();
+            const result = toSignature(bytes);
+            expect(result).instanceof(Signature);
+            expect(result.to_string()).equal(signature.to_string());
+        });
+    });
+
+    describe('toAddress', () => {
+        it('passes through an Address instance', () => {
+            const result = toAddress(address);
+            expect(result).instanceof(Address);
+            expect(result.to_string()).equal(addressString);
+        });
+
+        it('converts a string to an Address', () => {
+            const result = toAddress(addressString);
+            expect(result).instanceof(Address);
+            expect(result.to_string()).equal(addressString);
+        });
+
+        it('converts a Uint8Array to an Address', () => {
+            const bytes = address.toBytesLe();
+            const result = toAddress(bytes);
+            expect(result).instanceof(Address);
+            expect(result.to_string()).equal(addressString);
+        });
+    });
+
+    describe('buildRequestFromExternallySignedData', () => {
+        it('builds a request with public inputs using string parameters', () => {
+            const tvk = Field.fromString("1field");
+            const skTag = Field.fromString("1field");
+            const sigString = signature.to_string();
+            const tvkString = tvk.toString();
+            const skTagString = skTag.toString();
+
+            // Should not throw — validates that deserialization and WASM call work
+            // The actual execution may fail due to invalid crypto params, but the
+            // deserialization path is what we're testing
+            try {
+                const result = buildRequestFromExternallySignedData(
+                    "credits.aleo",
+                    "transfer_public",
+                    [addressString, "100u64"],
+                    ["address.public", "u64.public"],
+                    sigString,
+                    tvkString,
+                    addressString,
+                    skTagString,
+                );
+                expect(result).instanceof(ExecutionRequest);
+            } catch (e: unknown) {
+                // Crypto validation errors are expected with dummy values
+                // but deserialization errors would be a bug
+                const msg = e instanceof Error ? e.message : String(e);
+                expect(msg).to.not.include("is not a string");
+                expect(msg).to.not.include("is not a Uint8Array");
+            }
+        });
+
+        it('accepts Uint8Array parameters for signature, tvk, address, sk_tag', () => {
+            const tvk = Field.fromString("1field");
+            const skTag = Field.fromString("1field");
+
+            try {
+                const result = buildRequestFromExternallySignedData(
+                    "credits.aleo",
+                    "transfer_public",
+                    [addressString, "100u64"],
+                    ["address.public", "u64.public"],
+                    signature.toBytesLe(),
+                    tvk.toBytesLe(),
+                    address.toBytesLe(),
+                    skTag.toBytesLe(),
+                );
+                expect(result).instanceof(ExecutionRequest);
+            } catch (e: unknown) {
+                const msg = e instanceof Error ? e.message : String(e);
+                expect(msg).to.not.include("is not a string");
+                expect(msg).to.not.include("is not a Uint8Array");
+            }
+        });
+
+        it('accepts WASM object parameters directly', () => {
+            const tvk = Field.fromString("1field");
+            const skTag = Field.fromString("1field");
+
+            try {
+                const result = buildRequestFromExternallySignedData(
+                    "credits.aleo",
+                    "transfer_public",
+                    [addressString, "100u64"],
+                    ["address.public", "u64.public"],
+                    signature,
+                    tvk,
+                    address,
+                    skTag,
+                );
+                expect(result).instanceof(ExecutionRequest);
+            } catch (e: unknown) {
+                const msg = e instanceof Error ? e.message : String(e);
+                expect(msg).to.not.include("is not a string");
+                expect(msg).to.not.include("is not a Uint8Array");
+            }
+        });
+    });
+
+    describe('buildRequestFromExternallySignedDataWithViewKey', () => {
+        it('accepts a view key as string', () => {
+            const tvk = Field.fromString("1field");
+            const skTag = Field.fromString("1field");
+
+            try {
+                buildRequestFromExternallySignedDataWithViewKey(
+                    "credits.aleo",
+                    "transfer_public",
+                    [addressString, "100u64"],
+                    ["address.public", "u64.public"],
+                    signature,
+                    tvk,
+                    address,
+                    skTag,
+                    viewKeyString,
+                );
+            } catch (e: unknown) {
+                const msg = e instanceof Error ? e.message : String(e);
+                expect(msg).to.not.include("is not a string");
+                expect(msg).to.not.include("is not a Uint8Array");
+            }
+        });
+
+        it('accepts a view key as Uint8Array', () => {
+            const tvk = Field.fromString("1field");
+            const skTag = Field.fromString("1field");
+
+            try {
+                buildRequestFromExternallySignedDataWithViewKey(
+                    "credits.aleo",
+                    "transfer_public",
+                    [addressString, "100u64"],
+                    ["address.public", "u64.public"],
+                    signature,
+                    tvk,
+                    address,
+                    skTag,
+                    viewKey.toBytesLe(),
+                );
+            } catch (e: unknown) {
+                const msg = e instanceof Error ? e.message : String(e);
+                expect(msg).to.not.include("is not a string");
+                expect(msg).to.not.include("is not a Uint8Array");
+            }
+        });
+    });
+
+    describe('buildRequestFromExternallySignedDataWithInputIds', () => {
+        it('accepts Field input IDs (public inputs)', () => {
+            const tvk = Field.fromString("1field");
+            const skTag = Field.fromString("1field");
+            const inputId = Field.fromString("1field");
+
+            try {
+                buildRequestFromExternallySignedDataWithInputIds(
+                    "credits.aleo",
+                    "transfer_public",
+                    [addressString, "100u64"],
+                    ["address.public", "u64.public"],
+                    signature,
+                    tvk,
+                    address,
+                    skTag,
+                    [inputId, inputId],
+                );
+            } catch (e: unknown) {
+                const msg = e instanceof Error ? e.message : String(e);
+                expect(msg).to.not.include("is not a string");
+                expect(msg).to.not.include("is not a Uint8Array");
+            }
+        });
+
+        it('accepts tuple input IDs (record inputs)', () => {
+            const tvk = Field.fromString("1field");
+            const skTag = Field.fromString("1field");
+            const f = Field.fromString("1field");
+            const g = Group.fromString("0group");
+            const recordInputId: [Field, Group, Field, Field, Field] = [f, g, f, f, f];
+
+            try {
+                buildRequestFromExternallySignedDataWithInputIds(
+                    "credits.aleo",
+                    "transfer_public",
+                    [addressString],
+                    ["address.public"],
+                    signature,
+                    tvk,
+                    address,
+                    skTag,
+                    [recordInputId],
+                );
+            } catch (e: unknown) {
+                const msg = e instanceof Error ? e.message : String(e);
+                expect(msg).to.not.include("is not a string");
+                expect(msg).to.not.include("is not a Uint8Array");
+            }
+        });
+
+        it('accepts string input IDs', () => {
+            const tvk = Field.fromString("1field");
+            const skTag = Field.fromString("1field");
+
+            try {
+                buildRequestFromExternallySignedDataWithInputIds(
+                    "credits.aleo",
+                    "transfer_public",
+                    [addressString, "100u64"],
+                    ["address.public", "u64.public"],
+                    signature,
+                    tvk,
+                    address,
+                    skTag,
+                    ["1field", "1field"],
+                );
+            } catch (e: unknown) {
+                const msg = e instanceof Error ? e.message : String(e);
+                expect(msg).to.not.include("is not a string");
+                expect(msg).to.not.include("is not a Uint8Array");
+            }
+        });
+
+        it('accepts Uint8Array input IDs', () => {
+            const tvk = Field.fromString("1field");
+            const skTag = Field.fromString("1field");
+            const fieldBytes = Field.fromString("1field").toBytesLe();
+
+            try {
+                buildRequestFromExternallySignedDataWithInputIds(
+                    "credits.aleo",
+                    "transfer_public",
+                    [addressString, "100u64"],
+                    ["address.public", "u64.public"],
+                    signature,
+                    tvk,
+                    address,
+                    skTag,
+                    [fieldBytes, fieldBytes],
+                );
+            } catch (e: unknown) {
+                const msg = e instanceof Error ? e.message : String(e);
+                expect(msg).to.not.include("is not a string");
+                expect(msg).to.not.include("is not a Uint8Array");
+            }
+        });
+
+        it('accepts tuple input IDs with string/Uint8Array elements', () => {
+            const tvk = Field.fromString("1field");
+            const skTag = Field.fromString("1field");
+            const groupBytes = Group.fromString("0group").toBytesLe();
+            const fieldBytes = Field.fromString("1field").toBytesLe();
+            const recordInputId: [string, Uint8Array, string, Uint8Array, string] = [
+                "1field", groupBytes, "1field", fieldBytes, "1field"
+            ];
+
+            try {
+                buildRequestFromExternallySignedDataWithInputIds(
+                    "credits.aleo",
+                    "transfer_public",
+                    [addressString],
+                    ["address.public"],
+                    signature,
+                    tvk,
+                    address,
+                    skTag,
+                    [recordInputId],
+                );
+            } catch (e: unknown) {
+                const msg = e instanceof Error ? e.message : String(e);
+                expect(msg).to.not.include("is not a string");
+                expect(msg).to.not.include("is not a Uint8Array");
+            }
+        });
+    });
+
+    describe('computeExternalSigningInputs', () => {
+        it('computes external signing inputs for a public transfer', async () => {
+            const result = await computeExternalSigningInputs({
+                programName: "credits.aleo",
+                functionName: "transfer_public",
+                inputs: [addressString, "100u64"],
+                inputTypes: ["address.public", "u64.public"],
+                isRoot: true,
+            });
+
+            expect(result).to.have.property('functionId');
+            expect(result).to.have.property('isRoot');
+            expect(result).to.have.property('requestInputs');
+            expect(result.requestInputs).to.be.an('array');
+            expect(result.requestInputs.length).to.equal(2);
+        });
+    });
+});

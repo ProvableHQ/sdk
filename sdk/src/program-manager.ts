@@ -43,7 +43,7 @@ import {
 } from "./constants.js";
 
 import { logAndThrow } from "./utils.js";
-import { ExternalSigningInput, ExternalSigningOptions } from "./models/ExternalSigningInputs.js";
+import { ExternalSigningOptions } from "./models/ExternalSigningInputs.js";
 
 /**
  * Represents the options for deploying and upgrading a transaction in the Aleo network.
@@ -3741,44 +3741,6 @@ class ProgramManager {
         );
     }
 
-    /**
-     * Computes the function ID and serialized input data for a program function call.
-     * Used by external signing wallets and other applications that need publicly computable inputs
-     * for building a signed execution request (e.g. before calling {@link ExecutionRequest.sign}).
-     *
-     * @param {ExternalSigningOptions} options - Program name, function name, inputs, input_types, root flag, an optional program checksum, and an optional view key.
-     * @throws Throws if parsing the program ID, function name, or inputs fails or if the inputs do not match the type signatures passed in the input_types parameter.
-     *
-     * @example
-     * const externalSigningInputs = await programManager.computeExternalSigningInputs({
-     *   programName: "credits.aleo",
-     *   functionName: "transfer_public",
-     *   inputs: ["aleo1...", "100u64"],
-     *   isRoot: true,
-     *   checksum: null,
-     * });
-     *
-     * @returns {ExternalSigningInput} A JSON object for inputs to external signing algorithms.
-     */
-    async computeExternalSigningInputs(options: ExternalSigningOptions): Promise<ExternalSigningInput> {
-        const { programName, functionName, inputs, inputTypes, isRoot, checksum, viewKey} = options;
-        try {
-            const raw = <ExternalSigningInput & { signer?: Address; skTag?: Field }>(await ExecutionRequest.computeExternalSigningInputs(programName, functionName, inputs, inputTypes, isRoot, checksum ?? null, viewKey ?? null));
-            // Normalize to ExternalSigningInput (camelCase): WASM may return function_id
-            const functionId = (raw as { functionId?: string }).functionId ?? (raw as { function_id?: string }).function_id;
-            return {
-                functionId: functionId!,
-                isRoot: raw.isRoot,
-                requestInputs: raw.requestInputs,
-                checksum: raw.checksum ?? undefined,
-                signer: raw.signer,
-                skTag: raw.skTag,
-            };
-        } catch (e: unknown) {
-            const msg = e instanceof Error ? e.message : String(e);
-            logAndThrow(`Error computing public message payload: ${msg}`);
-        }
-    }
 }
 
 // Ensure the transfer type requires an amount record
