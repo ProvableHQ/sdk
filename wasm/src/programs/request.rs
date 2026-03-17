@@ -175,6 +175,46 @@ impl ExecutionRequest {
     pub fn scm(&self) -> Field {
         Field::from(self.0.scm())
     }
+
+    // -----------------------------------------------------------------------
+    // camelCase aliases (backwards-compatible additions to the JS API)
+    // -----------------------------------------------------------------------
+
+    /// Alias for `network_id` (camelCase).
+    #[wasm_bindgen(js_name = "networkId")]
+    pub fn network_id_camel(&self) -> u16 {
+        self.network_id()
+    }
+
+    /// Alias for `program_id` (camelCase).
+    #[wasm_bindgen(js_name = "programId")]
+    pub fn program_id_camel(&self) -> String {
+        self.program_id()
+    }
+
+    /// Alias for `function_name` (camelCase).
+    #[wasm_bindgen(js_name = "functionName")]
+    pub fn function_name_camel(&self) -> String {
+        self.function_name()
+    }
+
+    /// Alias for `input_ids` (camelCase).
+    #[wasm_bindgen(js_name = "inputIds")]
+    pub fn input_ids_camel(&self) -> Array {
+        self.input_ids()
+    }
+
+    /// Alias for `sk_tag` (camelCase).
+    #[wasm_bindgen(js_name = "skTag")]
+    pub fn sk_tag_camel(&self) -> Field {
+        self.sk_tag()
+    }
+
+    /// Alias for `to_tpk` (camelCase).
+    #[wasm_bindgen(js_name = "toTpk")]
+    pub fn to_tpk_camel(&self) -> Group {
+        self.to_tpk()
+    }
 }
 
 #[wasm_bindgen]
