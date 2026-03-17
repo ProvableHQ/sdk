@@ -11,8 +11,8 @@ import { logAndThrow } from "./utils.js";
 
 /** A Field, a string representation, or raw LE bytes. */
 export type FieldLike = Field | string | Uint8Array;
-/** A Group, a string representation, or raw LE bytes. */
-export type GroupLike = Group | string | Uint8Array;
+/** A Group, a Field (x-coordinate), a string representation, or raw LE bytes. */
+export type GroupLike = Group | Field | string | Uint8Array;
 /** A ViewKey, a string representation, or raw LE bytes. */
 export type ViewKeyLike = ViewKey | string | Uint8Array;
 /** A Signature, a string representation, or raw LE bytes. */
@@ -35,9 +35,21 @@ export function toField(value: FieldLike): Field {
 
 export function toGroup(value: GroupLike): Group {
     if (value instanceof Group) return value;
-    if (typeof value === "string") return Group.fromString(value);
-    if (value instanceof Uint8Array) return Group.fromBytesLe(value);
-    throw new Error("toGroup: expected Group, string, or Uint8Array");
+    if (value instanceof Field) return Group.fromField(value);
+    if (typeof value === "string") {
+        // If the string contains "field", treat it as an x-coordinate
+        if (value.includes("field")) return Group.fromFieldString(value);
+        return Group.fromString(value);
+    }
+    if (value instanceof Uint8Array) {
+        // Try group deserialization first, fall back to field-to-group
+        try {
+            return Group.fromBytesLe(value);
+        } catch {
+            return Group.fromField(Field.fromBytesLe(value));
+        }
+    }
+    throw new Error("toGroup: expected Group, Field, string, or Uint8Array");
 }
 
 export function toViewKey(value: ViewKeyLike): ViewKey {
@@ -81,7 +93,7 @@ export function buildRequestFromExternallySignedData(
     recordViewKeys?: FieldLike[],
     gammas?: GroupLike[],
 ): ExecutionRequest {
-    return ExecutionRequest.from_externally_signed_data(
+    return ExecutionRequest.fromExternallySignedData(
         programId,
         functionName,
         inputs,
@@ -111,7 +123,7 @@ export function buildRequestFromExternallySignedDataWithViewKey(
     viewKey: ViewKeyLike,
     gammas?: GroupLike[],
 ): ExecutionRequest {
-    return ExecutionRequest.from_externally_signed_data_with_view_key(
+    return ExecutionRequest.fromExternallySignedDataWithViewKey(
         programId,
         functionName,
         inputs,
@@ -147,7 +159,7 @@ export function buildRequestFromExternallySignedDataWithInputIds(
         }
         return toField(id);
     });
-    return ExecutionRequest.from_externally_signed_data_with_input_ids(
+    return ExecutionRequest.fromExternallySignedDataWithInputIds(
         programId,
         functionName,
         inputs,
