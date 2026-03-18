@@ -99,7 +99,7 @@ export type FieldOutput<F extends OutputFormat> = F extends "bytes" ? Uint8Array
  * @property {FieldOutput<F>} [tag] - The tag of the record represented as an Ed/BLS-377 base field element.
  */
 export interface RequestSignInput<F extends OutputFormat = "string"> {
-    outputType: "constant" | "public" | "private" | "record" | "external_records";
+    outputType: "constant" | "public" | "private" | "record" | "external_record";
     index: FieldOutput<F>;
     data: FieldOutput<F>[];
     name?: string;
