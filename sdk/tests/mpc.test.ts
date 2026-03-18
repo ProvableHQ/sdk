@@ -572,6 +572,14 @@ describe('MPC ExecutionRequest integration', () => {
         });
         expect(externalSigningInputs.signer).to.be.a("string");
         expect(externalSigningInputs.skTag).to.be.a("string");
+
+        // Verify per-input recordViewKey is set on the record input
+        expect(externalSigningInputs.requestInputs[0].recordViewKey).to.be.a("string");
+        expect(externalSigningInputs.requestInputs[0].recordViewKey).to.match(/field$/);
+
+        // Verify non-record inputs don't have recordViewKey
+        expect(externalSigningInputs.requestInputs[1].recordViewKey).to.be.undefined;
+        expect(externalSigningInputs.requestInputs[2].recordViewKey).to.be.undefined;
         const signedRequest = ExecutionRequest.sign(
             privateKey,
             "credits.aleo",
@@ -606,6 +614,101 @@ describe('MPC ExecutionRequest integration', () => {
         expect(externallySignedRequest.inputs().length).to.equal(signedRequest.inputs().length);
         expect(externallySignedRequest.input_ids().length).to.equal(signedRequest.input_ids().length);
         expect(externallySignedRequest.toString()).to.equal(signedRequest.toString());
+    });
+
+    it('Should not include recordViewKey on inputs when no viewKey is provided', async () => {
+        const externalSigningInputs = await computeExternalSigningInputs({
+            programName: "credits.aleo",
+            functionName: "transfer_private",
+            inputs: transferPrivateInputs,
+            inputTypes: transferPrivateInputTypes,
+            isRoot: true,
+            checksum: null,
+        });
+        // Record input should not have recordViewKey without a view key
+        expect(externalSigningInputs.requestInputs[0].recordViewKey).to.be.undefined;
+    });
+
+    it('Should return per-input recordViewKey in bytes format when outputFormat is bytes', async () => {
+        // Create separate ViewKey instances since WASM consumes them on each call
+        const strViewKey = ViewKey.from_private_key(PrivateKey.from_string(beaconPrivateKeyString));
+        const bytesViewKey = ViewKey.from_private_key(PrivateKey.from_string(beaconPrivateKeyString));
+        const strResult = await computeExternalSigningInputs({
+            programName: "credits.aleo",
+            functionName: "transfer_private",
+            inputs: transferPrivateInputs,
+            inputTypes: transferPrivateInputTypes,
+            isRoot: true,
+            checksum: null,
+            viewKey: strViewKey,
+        });
+        const bytesResult = await computeExternalSigningInputs({
+            programName: "credits.aleo",
+            functionName: "transfer_private",
+            inputs: transferPrivateInputs,
+            inputTypes: transferPrivateInputTypes,
+            isRoot: true,
+            checksum: null,
+            viewKey: bytesViewKey,
+            outputFormat: "bytes",
+        });
+
+        // Verify per-input recordViewKey in bytes format
+        expect(bytesResult.requestInputs[0].recordViewKey).to.be.instanceOf(Uint8Array);
+        const perInputRvkFromBytes = Field.fromBytesLe(bytesResult.requestInputs[0].recordViewKey!).toString();
+        expect(perInputRvkFromBytes).to.equal(strResult.requestInputs[0].recordViewKey);
+
+        // Non-record inputs should not have recordViewKey
+        expect(bytesResult.requestInputs[1].recordViewKey).to.be.undefined;
+    });
+
+    it('Should produce per-input recordViewKey usable with buildExecutionRequestFromExternallySignedData', async () => {
+        const privateKey = PrivateKey.from_string(beaconPrivateKeyString);
+        const beaconRecord = RecordPlaintext.fromString(recordBeaconOwned);
+        const gamma = beaconRecord.gamma("credits.aleo", "credits", privateKey);
+        const beaconViewKey = ViewKey.from_private_key(privateKey);
+        const externalSigningInputs = await computeExternalSigningInputs({
+            programName: "credits.aleo",
+            functionName: "transfer_private",
+            inputs: transferPrivateInputs,
+            inputTypes: transferPrivateInputTypes,
+            isRoot: true,
+            checksum: null,
+            viewKey: beaconViewKey,
+        });
+
+        const signedRequest = ExecutionRequest.sign(
+            privateKey,
+            "credits.aleo",
+            "transfer_private",
+            transferPrivateInputs,
+            transferPrivateInputTypes,
+            undefined,
+            undefined,
+            true,
+        );
+
+        // Extract recordViewKeys from per-input data
+        const recordViewKeys = externalSigningInputs.requestInputs
+            .filter(input => input.recordViewKey != null)
+            .map(input => input.recordViewKey!);
+
+        // Use the extracted recordViewKeys to build a request
+        const requestFromRecordViewKeys = buildExecutionRequestFromExternallySignedData(
+            {
+                programId: "credits.aleo",
+                functionName: "transfer_private",
+                inputs: transferPrivateInputs,
+                inputTypes: transferPrivateInputTypes,
+                signature: signedRequest.signature(),
+                tvk: signedRequest.tvk(),
+                signer: signedRequest.signer(),
+                skTag: signedRequest.sk_tag(),
+            },
+            { recordViewKeys, gammas: [gamma] },
+        );
+
+        expect(requestFromRecordViewKeys.toString()).to.equal(signedRequest.toString());
     });
 
     it('Should compute external signing inputs and return ExternalSigningInput shape for private transfer', async () => {

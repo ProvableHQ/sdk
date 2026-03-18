@@ -679,6 +679,16 @@ impl ExecutionRequest {
                 // Compute the sk_tag from the view key.
                 let sk_tag = GraphKey::from_view_key(vk).sk_tag();
                 let record_view_key = (*record_input.nonce() * ***vk).to_x_coordinate();
+
+                // Store the record view key on the per-input object.
+                let record_view_key_str = Field::from(record_view_key).to_string();
+                Reflect::set(
+                    &request_sign_input,
+                    &JsValue::from_str("recordViewKey"),
+                    &JsValue::from_str(&record_view_key_str),
+                )
+                .map_err(|_| "Failed to set recordViewKey".to_string())?;
+
                 // Compute the commitment for the record input.
                 let commitment = record_input
                     .to_commitment(&program_id, &record_name, &record_view_key)
@@ -1176,6 +1186,78 @@ mod tests {
         let data = Reflect::get(&second_input, &JsValue::from_str("data")).unwrap();
         let data_array = js_sys::Array::from(&data);
         assert!(data_array.length() >= 1, "data should be a non-empty array of fields");
+    }
+
+    #[wasm_bindgen_test]
+    fn test_compute_external_signing_inputs_transfer_private_with_view_key() {
+        let private_key = PrivateKey::from_string(BEACON_PRIVATE_KEY_STR).unwrap();
+        let view_key = ViewKey::from_private_key(&private_key);
+
+        let inputs = array![
+            RECORD_BEACON_OWNED.to_string(),
+            "aleo1rhgdu77hgyqd3xjj8ucu3jj9r2krwz6mnzyd80gncr5fxcwlh5rsvzp9px".to_string(),
+            "100u64".to_string(),
+        ];
+        let input_types =
+            array!["credits.record".to_string(), "address.private".to_string(), "u64.private".to_string()];
+
+        let result = ExecutionRequest::compute_external_signing_inputs(
+            "credits.aleo".to_string(),
+            "transfer_private".to_string(),
+            inputs,
+            input_types,
+            true,
+            None,
+            Some(view_key.clone()),
+        )
+        .expect("compute_external_signing_inputs should succeed");
+
+        // Verify the per-input recordViewKey matches the expected computation.
+        let record_native = RecordPlaintextNative::from_str(RECORD_BEACON_OWNED).unwrap();
+        let expected_record_view_key = (*record_native.nonce() * **view_key).to_x_coordinate();
+
+        let request_inputs = Reflect::get(&result, &JsValue::from_str("requestInputs")).unwrap();
+        let request_inputs_array = js_sys::Array::from(&request_inputs);
+        let first_input = Reflect::get(&request_inputs_array, &JsValue::from(0u32)).unwrap();
+        let per_input_rvk = Reflect::get(&first_input, &JsValue::from_str("recordViewKey"))
+            .ok()
+            .and_then(|v| v.as_string())
+            .expect("recordViewKey should be set on the record input");
+        assert_eq!(per_input_rvk, expected_record_view_key.to_string());
+
+        // Check that non-record inputs do not have recordViewKey.
+        let second_input = Reflect::get(&request_inputs_array, &JsValue::from(1u32)).unwrap();
+        let second_rvk = Reflect::get(&second_input, &JsValue::from_str("recordViewKey")).unwrap();
+        assert!(second_rvk.is_undefined(), "non-record input should not have recordViewKey");
+    }
+
+    #[wasm_bindgen_test]
+    fn test_compute_external_signing_inputs_no_view_key_no_record_view_key() {
+        // Without a view key, per-input recordViewKey should not be present.
+        let inputs = array![
+            RECORD_BEACON_OWNED.to_string(),
+            "aleo1rhgdu77hgyqd3xjj8ucu3jj9r2krwz6mnzyd80gncr5fxcwlh5rsvzp9px".to_string(),
+            "100u64".to_string(),
+        ];
+        let input_types =
+            array!["credits.record".to_string(), "address.private".to_string(), "u64.private".to_string()];
+
+        let result = ExecutionRequest::compute_external_signing_inputs(
+            "credits.aleo".to_string(),
+            "transfer_private".to_string(),
+            inputs,
+            input_types,
+            true,
+            None,
+            None,
+        )
+        .expect("compute_external_signing_inputs should succeed");
+
+        let request_inputs = Reflect::get(&result, &JsValue::from_str("requestInputs")).unwrap();
+        let request_inputs_array = js_sys::Array::from(&request_inputs);
+        let first_input = Reflect::get(&request_inputs_array, &JsValue::from(0u32)).unwrap();
+        let rvk = Reflect::get(&first_input, &JsValue::from_str("recordViewKey")).unwrap();
+        assert!(rvk.is_undefined(), "recordViewKey should not be present without view_key");
     }
 
     // =========================================================================

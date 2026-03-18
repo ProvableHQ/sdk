@@ -216,5 +216,6 @@ function serializeRequestSignInputToBytes(input: RequestSignInput<"string">): Re
         name: input.name,
         h: input.h ? fieldStringToBytes(input.h) : undefined,
         tag: input.tag ? fieldStringToBytes(input.tag) : undefined,
+        recordViewKey: input.recordViewKey ? fieldStringToBytes(input.recordViewKey) : undefined,
     };
 }

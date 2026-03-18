@@ -97,6 +97,7 @@ export type FieldOutput<F extends OutputFormat> = F extends "bytes" ? Uint8Array
  * @property {string} [name] - The name of the record being requested.
  * @property {FieldOutput<F>} [h] - The h value of the record represented as an Ed/BLS-377 base field element.
  * @property {FieldOutput<F>} [tag] - The tag of the record represented as an Ed/BLS-377 base field element.
+ * @property {FieldOutput<F>} [recordViewKey] - The record view key (present for record inputs when viewKey was provided).
  */
 export interface RequestSignInput<F extends OutputFormat = "string"> {
     outputType: "constant" | "public" | "private" | "record" | "external_record";
@@ -105,6 +106,7 @@ export interface RequestSignInput<F extends OutputFormat = "string"> {
     name?: string;
     h?: FieldOutput<F>;
     tag?: FieldOutput<F>;
+    recordViewKey?: FieldOutput<F>;
 }
 
 /**
