@@ -43,16 +43,18 @@ pm.setKeyStore(keyStore);
 Never store plaintext private keys. Use `PrivateKeyCiphertext`:
 
 ```ts
-import { PrivateKeyCiphertext } from "@provablehq/sdk/testnet.js";
+import { PrivateKey, PrivateKeyCiphertext } from "@provablehq/sdk/testnet.js";
 
 // Encrypt for storage
-const encrypted = PrivateKeyCiphertext.encryptPrivateKey(privateKey, password);
+const encrypted = privateKey.toCiphertext(password);
 const encryptedString = encrypted.toString();
 // Store encryptedString safely (file, database, env var)
 
 // Decrypt when needed
-const restored = PrivateKeyCiphertext.fromString(encryptedString)
-    .decryptToPrivateKey(password);
+const restored = PrivateKey.fromPrivateKeyCiphertext(
+    PrivateKeyCiphertext.fromString(encryptedString),
+    password,
+);
 ```
 
 ## Custom Cryptography (libsodium)

@@ -96,8 +96,8 @@ Multi-threading is not required for all contexts:
 
 ### Fee Management
 
-- NEVER hardcode fee amounts — always use `estimateExecutionFee()` or `estimateDeploymentFee()`
-  or `estimateFeeForAuthorization()` to get the base fee
+- NEVER hardcode fee amounts — use `estimateExecutionFee()` or `estimateFeeForAuthorization()`
+  to get the base fee. Deployment fees are estimated automatically by `buildDeploymentTransaction`.
 - Always include a `priorityFee` parameter (even if 0)
 - Handle insufficient balance errors before attempting transactions:
   ```ts
@@ -129,8 +129,8 @@ Multi-threading is not required for all contexts:
   for (let i = 0; i < 60; i++) {
       try {
           const result = await client.getTransaction(txId);
-          if (result) { confirmed = true; break; }
-      } catch { /* not confirmed yet */ }
+          confirmed = true; break;  // if getTransaction succeeds, the tx is confirmed
+      } catch { /* throws when not found — not confirmed yet */ }
       await new Promise(r => setTimeout(r, 2000));
   }
   ```

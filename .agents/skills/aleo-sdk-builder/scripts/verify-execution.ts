@@ -30,8 +30,8 @@ function verifyExecution(filePath: string): { valid: boolean; errors: string[]; 
     }
 
     // Check for DPS without unnecessary initThreadPool
-    if (content.includes("buildAuthorization") && content.includes("initThreadPool")) {
-        warnings.push("initThreadPool() found alongside DPS (buildAuthorization). Thread pool is not needed for delegated proving.");
+    if ((content.includes("buildAuthorization") || content.includes("provingRequest")) && content.includes("initThreadPool")) {
+        warnings.push("initThreadPool() found alongside DPS (buildAuthorization/provingRequest). Thread pool is not needed for delegated proving.");
     }
 
     // Check for key provider setup when doing local proving

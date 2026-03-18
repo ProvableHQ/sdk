@@ -105,7 +105,7 @@ const tx = await pm.buildTransactionFromAuthorization({
     feeAuthorization,
 });
 
-const txId = await pm.networkClient.submitTransaction(tx.toString());
+const txId = await pm.networkClient.submitTransaction(tx);
 ```
 
 > **Note:** `buildTransactionFromAuthorization` performs **local proving** via

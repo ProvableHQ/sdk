@@ -31,6 +31,7 @@ const txId = await pm.networkClient.submitTransaction(tx);
 
 ```bash
 cargo install leo-lang
+# Standard devnet-only key — not used on mainnet
 leo devnode start --private-key APrivateKey1zkp8CZNn3yeCseEtxuVPbDCwSyhGW6yZKUYKfgXmcpoGPWH
 ```
 
@@ -52,7 +53,7 @@ const execTx = await pm.buildDevnodeExecutionTransaction({
     priorityFee: 0,
     privateFee: false,
 });
-await pm.networkClient.submitTransaction(execTx.toString());
+await pm.networkClient.submitTransaction(execTx);
 ```
 
 Note: `buildDevnodeExecutionTransaction` takes an `ExecuteOptions` object (same shape
