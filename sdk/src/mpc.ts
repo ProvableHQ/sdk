@@ -4,7 +4,6 @@ import {
     Field,
     Group,
 } from "./wasm.js";
-import { ExternalSigningInput, ExternalSigningOptions } from "./models/ExternalSigningInputs.js";
 import { logAndThrow } from "./utils.js";
 import {
     toField,
@@ -17,6 +16,8 @@ import {
     isRecordViewKeyStrategy,
 } from "./models/mpc.js";
 import type {
+    ExternalSigningInput,
+    ExternalSigningOptions,
     ExecutionRequestParams,
     InputStrategy,
 } from "./models/mpc.js";
@@ -131,17 +132,24 @@ export function buildExecutionRequestFromExternallySignedData(
  */
 export async function computeExternalSigningInputs(options: ExternalSigningOptions): Promise<ExternalSigningInput> {
     const { programName, functionName, inputs, inputTypes, isRoot, checksum, viewKey } = options;
+
+    // Convert FieldLike/ViewKeyLike to WASM types (or null)
+    const checksumField = checksum != null ? toField(checksum) : null;
+    const viewKeyObj = viewKey != null ? toViewKey(viewKey) : null;
+
     try {
-        const raw = <ExternalSigningInput & { signer?: Address; skTag?: Field }>(await ExecutionRequest.computeExternalSigningInputs(programName, functionName, inputs, inputTypes, isRoot, checksum ?? null, viewKey ?? null));
+        const raw = <{ functionId?: string; function_id?: string; isRoot: string; requestInputs: ExternalSigningInput["requestInputs"]; checksum?: string; signer?: Address; skTag?: Field }>(
+            await ExecutionRequest.computeExternalSigningInputs(programName, functionName, inputs, inputTypes, isRoot, checksumField, viewKeyObj)
+        );
         // Normalize to ExternalSigningInput (camelCase): WASM may return function_id
-        const functionId = (raw as { functionId?: string }).functionId ?? (raw as { function_id?: string }).function_id;
+        const functionId = raw.functionId ?? raw.function_id;
         return {
             functionId: functionId!,
             isRoot: raw.isRoot,
             requestInputs: raw.requestInputs,
             checksum: raw.checksum ?? undefined,
-            signer: raw.signer,
-            skTag: raw.skTag,
+            signer: raw.signer ? raw.signer.to_string() : undefined,
+            skTag: raw.skTag ? raw.skTag.toString() : undefined,
         };
     } catch (e: unknown) {
         const msg = e instanceof Error ? e.message : String(e);

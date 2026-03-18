@@ -75,6 +75,70 @@ export function toAddress(value: AddressLike): Address {
 }
 
 // ---------------------------------------------------------------------------
+// computeExternalSigningInputs types
+// ---------------------------------------------------------------------------
+
+/**
+ * Type surrounding the input to an external signing request.
+ *
+ * @property {string} outputType - The type of output being requested.
+ * @property {string} index - The index of the output being requested represented as an Ed/BLS-377 base field element.
+ * @property {string[]} data - The data being requested represented as Ed/BLS-377 base field elements.
+ * @property {string} [name] - The name of the record being requested.
+ * @property {string} [h] - The h value of the record being requested represented as an Ed/BLS-377 base field element.
+ * @property {string} [tag] - The tag of the record being requested represented as an Ed/BLS-377 base field element.
+ */
+export interface RequestSignInput {
+    outputType: "constant" | "public" | "private" | "record" | "external_records";
+    index: string;
+    data: string[];
+    name?: string;
+    h?: string;
+    tag?: string;
+}
+
+/**
+ * Type representing the output of an external signing request.
+ * All WASM objects (Address, Field) are serialized to strings for transport.
+ *
+ * @property {string} functionId - The ID of the function the request is for serialized to Ed/BLS-377 base field elements.
+ * @property {string} isRoot - Field representation of a boolean indicating whether this is a top-level transition.
+ * @property {RequestSignInput[]} requestInputs - The inputs to the function being executed.
+ * @property {string} [checksum] - The Ed/BLS-377 base field representation of the program checksum.
+ * @property {string} [signer] - The signer address string (present when viewKey was provided).
+ * @property {string} [skTag] - The tag secret key string (present when viewKey was provided).
+ */
+export interface ExternalSigningInput {
+    functionId: string;
+    isRoot: string;
+    requestInputs: RequestSignInput[];
+    checksum?: string;
+    signer?: string;
+    skTag?: string;
+}
+
+/**
+ * Type representing the options for pre-computing the inputs to an external signing request.
+ *
+ * @property {string} programName - The name of the program containing the function to execute.
+ * @property {string} functionName - The name of the function to execute within the program.
+ * @property {string[]} inputs - The inputs to the function being executed.
+ * @property {string[]} inputTypes - The input types of the function (e.g. ["address.public", "u64.public"]).
+ * @property {boolean} isRoot - Whether this transition is the first transition being executed in a transaction.
+ * @property {FieldLike} [checksum] - The optional checksum of the program.
+ * @property {ViewKeyLike} [viewKey] - The optional view key used to derive signer and skTag.
+ */
+export interface ExternalSigningOptions {
+    programName: string;
+    functionName: string;
+    inputs: string[];
+    inputTypes: string[];
+    isRoot: boolean;
+    checksum?: FieldLike | null;
+    viewKey?: ViewKeyLike | null;
+}
+
+// ---------------------------------------------------------------------------
 // ExecutionRequest builder types
 // ---------------------------------------------------------------------------
 

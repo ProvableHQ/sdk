@@ -43,7 +43,7 @@ import {
 } from "./constants.js";
 
 import { logAndThrow } from "./utils.js";
-import { ExternalSigningOptions } from "./models/ExternalSigningInputs.js";
+import { ExternalSigningOptions } from "./models/mpc.js";
 
 /**
  * Represents the options for deploying and upgrading a transaction in the Aleo network.

@@ -521,8 +521,8 @@ describe('MPC ExecutionRequest integration', () => {
             checksum: null,
             viewKey: beaconViewKey,
         });
-        expect(externalSigningInputs.signer).to.be.ok;
-        expect(externalSigningInputs.skTag).to.be.ok;
+        expect(externalSigningInputs.signer).to.be.a("string");
+        expect(externalSigningInputs.skTag).to.be.a("string");
         const signedRequest = ExecutionRequest.sign(
             privateKey,
             "credits.aleo",
