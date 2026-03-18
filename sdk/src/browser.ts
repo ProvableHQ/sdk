@@ -67,6 +67,7 @@ import {
     AleoKeyProvider,
     AleoKeyProviderParams,
     AleoKeyProviderInitParams,
+    AleoKeyProviderOptions,
 } from "./keys/provider/memory.js";
 import {
     KeyFingerprint,
@@ -93,6 +94,31 @@ import {
 } from "./record-provider.js";
 import { RecordScanner, RecordScannerJWTData, RecordScannerOptions } from "./record-scanner.js";
 import { SealanceMerkleTree } from "./integrations/sealance/merkle-tree.js";
+import { NonceTracker } from "./nonce-tracker.js";
+import { PolicyGuard, PolicyConfig } from "./policy.js";
+import {
+    SDKError,
+    SDKErrorCode,
+    InsufficientBalanceError,
+    FeeRecordNotFoundError,
+    RecordParseError,
+    ProgramNotFoundError,
+    ProgramAlreadyExistsError,
+    AccountNotSetError,
+    NetworkError,
+    ProverUnavailableError,
+    RateLimitedError,
+    ExecutionVerificationError,
+    PolicyViolationError,
+    KeyVerificationError as SDKKeyVerificationError,
+} from "./errors.js";
+import {
+    verifyExecution as verifyExecutionDiagnostic,
+    checkExecutionOutputs,
+    VerificationResult,
+    OutputCheck,
+    OutputCheckResult,
+} from "./verification.js";
 
 // @TODO: This function is no longer needed, remove it.
 async function initializeWasm() {
@@ -281,6 +307,29 @@ export {
     TransitionObject,
     UUIDError,
     VerifyingKeys,
+    AleoKeyProviderOptions,
+    NonceTracker,
+    PolicyGuard,
+    PolicyConfig,
+    SDKError,
+    SDKErrorCode,
+    InsufficientBalanceError,
+    FeeRecordNotFoundError,
+    RecordParseError,
+    ProgramNotFoundError,
+    ProgramAlreadyExistsError,
+    AccountNotSetError,
+    NetworkError,
+    ProverUnavailableError,
+    RateLimitedError,
+    ExecutionVerificationError,
+    PolicyViolationError,
+    SDKKeyVerificationError,
+    verifyExecutionDiagnostic,
+    checkExecutionOutputs,
+    VerificationResult,
+    OutputCheck,
+    OutputCheckResult,
 };
 
 export {

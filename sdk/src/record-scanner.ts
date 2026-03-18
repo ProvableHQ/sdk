@@ -963,6 +963,65 @@ class RecordScanner implements RecordProvider {
         }
         return this.uuid?.toString();
     }
+
+    /**
+     * Ensure the view key is registered with the record scanning service.
+     * If already registered (scanner has a UUID), returns the existing UUID.
+     * If not registered (or returns 422), registers via the encrypted flow.
+     *
+     * @param {ViewKey} viewKey The view key to register.
+     * @param {number} [startHeight=0] The block height to start scanning from.
+     * @returns {Promise<string>} The registration UUID.
+     */
+    async ensureRegistered(viewKey: ViewKey, startHeight: number = 0): Promise<string> {
+        // If we already have a UUID, verify it's still valid by checking status
+        if (this.uuid) {
+            try {
+                const statusResult = await this.status(this.uuid);
+                if (statusResult.ok) {
+                    return this.uuid.toString();
+                }
+            } catch {
+                // UUID is no longer valid, fall through to re-register
+            }
+        }
+
+        // Register via the encrypted flow
+        const result = await this.registerEncrypted(viewKey, startHeight);
+        if (result.ok) {
+            return result.data.uuid;
+        }
+
+        throw new RecordScannerRequestError(
+            `Failed to register view key: ${result.error?.message ?? "unknown error"}`,
+            result.status ?? 0,
+        );
+    }
+
+    /**
+     * Verify that a record is still unspent by computing its serial number and checking on-chain.
+     * Call this immediately before building a transaction to minimize the race window.
+     *
+     * @param {OwnedRecord} record The record to verify.
+     * @returns {Promise<{ unspent: boolean; serialNumber: string; checkedAt: number }>}
+     */
+    async verifyRecordUnspent(record: OwnedRecord): Promise<{
+        unspent: boolean;
+        tag: string;
+        checkedAt: number;
+    }> {
+        if (!record.tag) {
+            throw new Error("Record does not have a tag, cannot verify spent status.");
+        }
+
+        // The tag field from OwnedRecord is the record's tag used for spent checks
+        const result = await this.checkTags([record.tag]);
+        return {
+            unspent: !result[record.tag],
+            tag: record.tag,
+            checkedAt: Date.now(),
+        };
+    }
 }
 
 export { RecordScanner };

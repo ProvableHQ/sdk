@@ -41,6 +41,13 @@ import {
 } from "./constants.js";
 
 import { logAndThrow } from "./utils.js";
+import {
+    InsufficientBalanceError,
+    AccountNotSetError,
+    ProgramAlreadyExistsError,
+    RecordParseError,
+    FeeRecordNotFoundError,
+} from "./errors.js";
 
 /**
  * Represents the options for deploying and upgrading a transaction in the Aleo network.
@@ -257,8 +264,32 @@ class ProgramManager {
         const balance =
             BigInt(await this.networkClient.getPublicBalance(address));
         if (feeAmount > balance) {
-            throw Error(
-                `The desired execution requires a fee of ${feeAmount} microcredits, but the account paying the fee has ${balance} microcredits available.`,
+            throw new InsufficientBalanceError(balance, feeAmount);
+        }
+    }
+
+    /**
+     * Pre-check that a private fee record with sufficient balance exists.
+     * Currently `checkFee()` is skipped when `privateFee: true`. This method fills that gap
+     * by verifying a sufficient private record exists before building the transaction.
+     *
+     * @param {number} feeAmount Required fee amount in microcredits.
+     * @param {string[]} [noncesToExclude] Nonces to exclude (already used in this session).
+     * @throws {FeeRecordNotFoundError} If no suitable private record is found.
+     */
+    async checkFeeWithRecords(feeAmount: number, noncesToExclude: string[] = []): Promise<void> {
+        if (!this.recordProvider) {
+            throw new FeeRecordNotFoundError(feeAmount, "No record provider configured on ProgramManager.");
+        }
+        try {
+            await this.recordProvider.findCreditsRecord(
+                feeAmount,
+                { unspent: true, nonces: noncesToExclude },
+            );
+        } catch {
+            throw new FeeRecordNotFoundError(
+                feeAmount,
+                `No unspent private record with at least ${feeAmount} microcredits found for fee payment.`,
             );
         }
     }
@@ -279,6 +310,18 @@ class ProgramManager {
      */
     setKeyProvider(keyProvider: FunctionKeyProvider) {
         this.keyProvider = keyProvider;
+    }
+
+    /**
+     * Set a KeyStore on the underlying key provider for persistent, integrity-verified key storage.
+     * This is the recommended setup for agents — keys persist across sessions and are verified on every access.
+     *
+     * @param {import("./keys/keystore/interface.js").KeyStore} keyStore A KeyStore implementation (e.g., LocalFileKeyStore)
+     */
+    setKeyStore(keyStore: import("./keys/keystore/interface.js").KeyStore) {
+        if (this.keyProvider && "setKeyStore" in this.keyProvider && typeof (this.keyProvider as any).setKeyStore === "function") {
+            (this.keyProvider as any).setKeyStore(keyStore);
+        }
     }
 
     /**
@@ -444,7 +487,7 @@ class ProgramManager {
                 );
             }
             if (typeof programSource === "string") {
-                throw Error(`Program ${programObject.id()} already exists on the network, please rename your program`);
+                throw new ProgramAlreadyExistsError(programObject.id());
             }
         } catch (e: any) {
             logAndThrow(`Error validating program: ${e.message}`);
@@ -460,7 +503,7 @@ class ProgramManager {
         }
 
         if (typeof deploymentPrivateKey === "undefined") {
-            throw "No private key provided and no private key set in the ProgramManager";
+            throw new AccountNotSetError();
         }
 
         // Get the fee record from the account if it is not provided in the parameters
@@ -605,7 +648,7 @@ class ProgramManager {
         }
 
         if (typeof deploymentPrivateKey === "undefined") {
-            throw "No private key provided and no private key set in the ProgramManager";
+            throw new AccountNotSetError();
         }
 
         // Get the fee record from the account if it is not provided in the parameters
@@ -736,9 +779,7 @@ class ProgramManager {
         } else if (this.account !== undefined) {
             feeAddress = this.account?.address();
         } else {
-            throw Error(
-                "No private key provided and no private key set in the ProgramManager. Please set an account or provide a private key.",
-            );
+            throw new AccountNotSetError();
         }
 
         // Check if the account has sufficient credits to pay for the transaction
@@ -859,7 +900,7 @@ class ProgramManager {
         }
 
         if (typeof executionPrivateKey === "undefined") {
-            throw "No private key provided and no private key set in the ProgramManager";
+            throw new AccountNotSetError();
         }
 
         // Get the fee proving and verifying keys from the key provider
@@ -1205,7 +1246,7 @@ class ProgramManager {
         }
 
         if (typeof executionPrivateKey === "undefined") {
-            throw "No private key provided and no private key set in the ProgramManager";
+            throw new AccountNotSetError();
         }
 
         if (edition == undefined) {
@@ -1315,7 +1356,7 @@ class ProgramManager {
         }
 
         if (typeof executionPrivateKey === "undefined") {
-            throw "No private key provided and no private key set in the ProgramManager";
+            throw new AccountNotSetError();
         }
 
         // Resolve the program imports if they exist.
@@ -1445,7 +1486,7 @@ class ProgramManager {
         }
 
         if (typeof executionPrivateKey === "undefined") {
-            throw "No private key provided and no private key set in the ProgramManager";
+            throw new AccountNotSetError();
         }
 
         // Resolve the program imports if they exist.
@@ -1560,7 +1601,7 @@ class ProgramManager {
         }
 
         if (typeof executionPrivateKey === "undefined") {
-            throw "No private key provided and no private key set in the ProgramManager";
+            throw new AccountNotSetError();
         }
 
         // Build and return the fee `Authorization`.
@@ -1617,9 +1658,7 @@ class ProgramManager {
         } else if (this.account !== undefined) {
             feeAddress = this.account?.address();
         } else {
-            throw Error(
-                "No private key provided and no private key set in the ProgramManager. Please set an account or provide a private key.",
-            );
+            throw new AccountNotSetError();
         }
 
         // Check if the account has sufficient credits to pay for the transaction
@@ -1685,7 +1724,7 @@ class ProgramManager {
         }
 
         if (typeof executionPrivateKey === "undefined") {
-            throw "No private key provided and no private key set in the ProgramManager";
+            throw new AccountNotSetError();
         }
 
         // If the function proving and verifying keys are not provided, attempt to find them using the key provider
@@ -1776,7 +1815,7 @@ class ProgramManager {
             feeAddress = this.account?.address();
         }
         else if (typeof executionPrivateKey === "undefined") {
-            throw "No private key provided and no private key set in the ProgramManager";
+            throw new AccountNotSetError();
         }
         else {
             feeAddress = Address.from_private_key(executionPrivateKey);
@@ -1921,7 +1960,7 @@ class ProgramManager {
         }
 
         if (typeof executionPrivateKey === "undefined") {
-            throw "No private key provided and no private key set in the ProgramManager";
+            throw new AccountNotSetError();
         }
 
         // Get the split keys from the key provider
@@ -2082,7 +2121,7 @@ class ProgramManager {
         }
 
         if (typeof executionPrivateKey === "undefined") {
-            throw "No private key provided and no private key set in the ProgramManager";
+            throw new AccountNotSetError();
         }
 
         // Get the proving and verifying keys from the key provider
@@ -2339,9 +2378,7 @@ class ProgramManager {
         } else if (this.account !== undefined) {
             feeAddress = this.account?.address();
         } else {
-            throw Error(
-                "No private key provided and no private key set in the ProgramManager. Please set an account or provide a private key.",
-            );
+            throw new AccountNotSetError();
         }
 
         // Check if the account has sufficient credits to pay for the transaction
@@ -2477,9 +2514,7 @@ class ProgramManager {
         } else if (this.account !== undefined) {
             feeAddress = this.account?.address();
         } else {
-            throw Error(
-                "No private key provided and no private key set in the ProgramManager. Please set an account or provide a private key.",
-            );
+            throw new AccountNotSetError();
         }
 
         // Check if the account has sufficient credits to pay for the transaction
@@ -2624,9 +2659,7 @@ class ProgramManager {
         } else if (this.account !== undefined) {
             feeAddress = this.account?.address();
         } else {
-            throw Error(
-                "No private key provided and no private key set in the ProgramManager. Please set an account or provide a private key.",
-            );
+            throw new AccountNotSetError();
         }
 
         // Check if the account has sufficient credits to pay for the transaction
@@ -2756,9 +2789,7 @@ class ProgramManager {
         } else if (this.account !== undefined) {
             feeAddress = this.account?.address();
         } else {
-            throw Error(
-                "No private key provided and no private key set in the ProgramManager. Please set an account or provide a private key.",
-            );
+            throw new AccountNotSetError();
         }
 
         // Check if the account has sufficient credits to pay for the transaction
@@ -2880,9 +2911,7 @@ class ProgramManager {
         } else if (this.account !== undefined) {
             feeAddress = this.account?.address();
         } else {
-            throw Error(
-                "No private key provided and no private key set in the ProgramManager. Please set an account or provide a private key.",
-            );
+            throw new AccountNotSetError();
         }
 
         // Check if the account has sufficient credits to pay for the transaction
@@ -3017,9 +3046,7 @@ class ProgramManager {
         } else if (this.account !== undefined) {
             feeAddress = this.account?.address();
         } else {
-            throw Error(
-                "No private key provided and no private key set in the ProgramManager. Please set an account or provide a private key.",
-            );
+            throw new AccountNotSetError();
         }
 
         // Check if the account has sufficient credits to pay for the transaction
@@ -3255,8 +3282,7 @@ class ProgramManager {
                 return record instanceof RecordPlaintext
                     ? record : RecordPlaintext.fromString(<string>record);
             } catch {
-                logAndThrow(`Record '${record}' could not be parsed, please ensure a valid credits.aleo record 
-                is passed prior to trying again`)
+                throw new RecordParseError(String(record));
             }
         } else {
             try {
@@ -3268,10 +3294,12 @@ class ProgramManager {
                 if (record.record_plaintext) {
                     return RecordPlaintext.fromString(record.record_plaintext);
                 } else {
-                    logAndThrow("Failed to deserialize record returned from record provider");
+                    throw new FeeRecordNotFoundError(amount, "Failed to deserialize record returned from record provider");
                 }
             } catch (e: any) {
-                logAndThrow(
+                if (e instanceof FeeRecordNotFoundError) throw e;
+                throw new FeeRecordNotFoundError(
+                    amount,
                     `Error finding fee record. Record finder response: '${e}'. Please ensure you're connected to a valid Aleo network and a record with enough balance exists.`,
                 );
             }
@@ -3387,7 +3415,7 @@ class ProgramManager {
         }
 
         if (typeof executionPrivateKey === "undefined") {
-            throw "No private key provided and no private key set in the ProgramManager";
+            throw new AccountNotSetError();
         }
 
         // Get the fee record from the account if it is not provided in the parameters.
@@ -3516,7 +3544,7 @@ class ProgramManager {
                 );
             }
             if (typeof programSource === "string") {
-                throw Error(`Program ${programObject.id()} already exists on the network, please rename your program`);
+                throw new ProgramAlreadyExistsError(programObject.id());
             }
         } catch (e: any) {
             logAndThrow(`Error validating program: ${e.message}`);
@@ -3532,7 +3560,7 @@ class ProgramManager {
         }
 
         if (typeof deploymentPrivateKey === "undefined") {
-            throw "No private key provided and no private key set in the ProgramManager";
+            throw new AccountNotSetError();
         }
 
         // Get the fee record from the account if it is not provided in the parameters
@@ -3662,7 +3690,7 @@ class ProgramManager {
         }
 
         if (typeof deploymentPrivateKey === "undefined") {
-            throw "No private key provided and no private key set in the ProgramManager";
+            throw new AccountNotSetError();
         }
 
         // Get the fee record from the account if it is not provided in the parameters

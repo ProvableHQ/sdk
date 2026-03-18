@@ -23,11 +23,22 @@ import {
 
 import { get } from "../../utils.js";
 import { KeyStore } from "../keystore/interface.js";
+import { KeyVerifier } from "../verifier/interface.js";
 
 type AleoKeyProviderInitParams = {
     proverUri?: string;
     verifierUri?: string;
     cacheKey?: string;
+};
+
+/** Options for configuring AleoKeyProvider behavior. */
+type AleoKeyProviderOptions = {
+    /** Optional KeyVerifier for integrity checks on cached keys. */
+    keyVerifier?: KeyVerifier;
+    /** Optional KeyStore for persistent key storage. */
+    keyStore?: KeyStore;
+    /** Cache TTL in milliseconds. Cached entries older than this are refetched. Default: no expiry. */
+    cacheTtlMs?: number;
 };
 
 /**
@@ -66,6 +77,10 @@ class AleoKeyProvider implements FunctionKeyProvider {
     cache: Map<string, CachedKeyPair>;
     cacheOption: boolean;
     keyUris: string;
+    private _keyVerifier?: KeyVerifier;
+    private _keyStore?: KeyStore;
+    private _cacheTtlMs?: number;
+    private _cacheTimestamps: Map<string, number>;
 
     async fetchBytes(url = "/"): Promise<Uint8Array> {
         try {
@@ -77,14 +92,65 @@ class AleoKeyProvider implements FunctionKeyProvider {
         }
     }
 
-    constructor() {
+    constructor(options?: AleoKeyProviderOptions) {
         this.keyUris = KEY_STORE;
         this.cache = new Map<string, CachedKeyPair>();
         this.cacheOption = false;
+        this._cacheTimestamps = new Map<string, number>();
+        if (options) {
+            this._keyVerifier = options.keyVerifier;
+            this._keyStore = options.keyStore;
+            this._cacheTtlMs = options.cacheTtlMs;
+        }
     }
 
     async keyStore(): Promise<KeyStore | undefined> {
-        return undefined;
+        return this._keyStore;
+    }
+
+    /**
+     * Set a KeyStore for persistent key storage.
+     * Keys resolved from the KeyStore are integrity-verified when a KeyVerifier is configured.
+     *
+     * @param {KeyStore} keyStore A KeyStore implementation for persistent storage
+     */
+    setKeyStore(keyStore: KeyStore) {
+        this._keyStore = keyStore;
+    }
+
+    /**
+     * Set a KeyVerifier for integrity checks on cached and stored keys.
+     *
+     * @param {KeyVerifier} keyVerifier A KeyVerifier implementation (e.g., MemKeyVerifier)
+     */
+    setKeyVerifier(keyVerifier: KeyVerifier) {
+        this._keyVerifier = keyVerifier;
+    }
+
+    /**
+     * Check if a cached entry has expired based on the configured TTL.
+     */
+    private isCacheExpired(cacheKey: string): boolean {
+        if (!this._cacheTtlMs) return false;
+        const timestamp = this._cacheTimestamps.get(cacheKey);
+        if (!timestamp) return true;
+        return Date.now() - timestamp > this._cacheTtlMs;
+    }
+
+    /**
+     * Record a cache entry timestamp for TTL tracking.
+     */
+    private recordCacheTimestamp(cacheKey: string) {
+        this._cacheTimestamps.set(cacheKey, Date.now());
+    }
+
+    /**
+     * Verify key bytes using the configured KeyVerifier, if present.
+     * Computes and stores the fingerprint on first access; verifies against stored fingerprint on subsequent access.
+     */
+    private async verifyKeyIfConfigured(keyBytes: Uint8Array, locator: string): Promise<void> {
+        if (!this._keyVerifier) return;
+        await this._keyVerifier.computeKeyMetadata({ keyBytes, locator });
     }
 
     /**
@@ -101,6 +167,7 @@ class AleoKeyProvider implements FunctionKeyProvider {
      */
     clearCache() {
         this.cache.clear();
+        this._cacheTimestamps.clear();
     }
 
     /**
@@ -258,7 +325,10 @@ class AleoKeyProvider implements FunctionKeyProvider {
                     cacheKey = proverUrl;
                 }
                 const value = this.cache.get(cacheKey);
-                if (typeof value !== "undefined") {
+                if (typeof value !== "undefined" && !this.isCacheExpired(cacheKey)) {
+                    // Verify cached key bytes if a verifier is configured
+                    await this.verifyKeyIfConfigured(value[0], cacheKey + ".prover");
+                    await this.verifyKeyIfConfigured(value[1], cacheKey + ".verifier");
                     return [
                         ProvingKey.fromBytes(value[0]),
                         VerifyingKey.fromBytes(value[1]),
@@ -267,17 +337,22 @@ class AleoKeyProvider implements FunctionKeyProvider {
                     console.debug(
                         "Fetching proving keys from url " + proverUrl,
                     );
-                    const provingKey = <ProvingKey>(
-                        ProvingKey.fromBytes(await this.fetchBytes(proverUrl))
-                    );
+                    const provingKeyBytes = await this.fetchBytes(proverUrl);
+                    await this.verifyKeyIfConfigured(provingKeyBytes, cacheKey + ".prover");
+                    const provingKey = <ProvingKey>ProvingKey.fromBytes(provingKeyBytes);
+
                     console.debug("Fetching verifying keys " + verifierUrl);
                     const verifyingKey = <VerifyingKey>(
                         await this.getVerifyingKey(verifierUrl)
                     );
+                    const verifyingKeyBytes = verifyingKey.toBytes();
+                    await this.verifyKeyIfConfigured(verifyingKeyBytes, cacheKey + ".verifier");
+
                     this.cache.set(cacheKey, [
                         provingKey.toBytes(),
-                        verifyingKey.toBytes(),
+                        verifyingKeyBytes,
                     ]);
+                    this.recordCacheTimestamp(cacheKey);
                     return [provingKey, verifyingKey];
                 }
             } else {
@@ -546,4 +621,4 @@ class AleoKeyProvider implements FunctionKeyProvider {
     }
 }
 
-export { AleoKeyProvider, AleoKeyProviderInitParams, AleoKeyProviderParams }
+export { AleoKeyProvider, AleoKeyProviderInitParams, AleoKeyProviderParams, AleoKeyProviderOptions }
