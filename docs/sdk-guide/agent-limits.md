@@ -20,7 +20,7 @@ pre-flight/post-flight pipeline for agent transactions.
 ### Post-flight (after successful submission)
 
 7. **PolicyGuard.recordSpend(amount)** — update cumulative tracking
-8. **verifyExecution(response, blockHeight)** — confirm proof validity (returns `VerificationResult`)
+8. **verifyExecutionDiagnostic(response, blockHeight)** — confirm proof validity (returns `VerificationResult`)
 9. **checkExecutionOutputs(outputs, checks)** — confirm outputs match expectations
 
 ## Bounds Memory
@@ -50,7 +50,7 @@ tracker.size;            // 2
 | Error | Code | Retryable | When |
 |-------|------|-----------|------|
 | `InsufficientBalanceError` | `INSUFFICIENT_BALANCE` | No | Public balance < fee |
-| `RecordNotFoundError` | `RECORD_NOT_FOUND` | No | No private record with enough balance |
+| `FeeRecordNotFoundError` | `RECORD_NOT_FOUND` | No | No private record with enough balance |
 | `PolicyViolationError` | `POLICY_VIOLATION` | No | Amount or program exceeds configured limit |
 | `AccountNotSetError` | `ACCOUNT_NOT_SET` | No | No private key configured |
 | `ProgramAlreadyExistsError` | `PROGRAM_ALREADY_EXISTS` | No | Deploy of existing program |

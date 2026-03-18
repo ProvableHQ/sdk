@@ -118,7 +118,19 @@ export function checkExecutionOutputs(
 
     for (const check of checks) {
         const key = `transition[${check.transitionIndex}].output[${check.outputIndex}]`;
-        const idx = check.transitionIndex * 100 + check.outputIndex; // simplified flat index
+
+        // Outputs is a flat array; transitionIndex and outputIndex are treated as a
+        // two-level address. We require callers to provide the actual flat index via
+        // outputIndex when the outputs array doesn't carry per-transition structure.
+        // When transitionIndex > 0, we offset by transitionIndex * outputsPerTransition.
+        // Since we don't know the per-transition count, we use outputIndex directly as
+        // the flat index and validate transitionIndex == 0 for flat arrays.
+        if (check.transitionIndex !== 0) {
+            failures.push(`${key}: transitionIndex > 0 is not supported for flat output arrays — use outputIndex as the flat index`);
+            continue;
+        }
+
+        const idx = check.outputIndex;
 
         if (idx >= outputs.length) {
             failures.push(`${key}: output does not exist (only ${outputs.length} outputs)`);

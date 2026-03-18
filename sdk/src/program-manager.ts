@@ -317,11 +317,14 @@ class ProgramManager {
      * This is the recommended setup for agents — keys persist across sessions and are verified on every access.
      *
      * @param {import("./keys/keystore/interface.js").KeyStore} keyStore A KeyStore implementation (e.g., LocalFileKeyStore)
+     * @returns {boolean} true if the key store was applied, false if the key provider doesn't support it
      */
-    setKeyStore(keyStore: import("./keys/keystore/interface.js").KeyStore) {
+    setKeyStore(keyStore: import("./keys/keystore/interface.js").KeyStore): boolean {
         if (this.keyProvider && "setKeyStore" in this.keyProvider && typeof (this.keyProvider as any).setKeyStore === "function") {
             (this.keyProvider as any).setKeyStore(keyStore);
+            return true;
         }
+        return false;
     }
 
     /**

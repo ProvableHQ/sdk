@@ -17,17 +17,17 @@ agent that manages keys or submits transactions.
 After executing a program, verify the proof is valid:
 
 ```typescript
-import { verifyExecution } from "@provablehq/sdk/mainnet.js";
+import { verifyExecutionDiagnostic } from "@provablehq/sdk/mainnet.js";
 
-const result = verifyExecution(executionResponse, blockHeight, imports, importedVerifyingKeys);
+const result = verifyExecutionDiagnostic(executionResponse, blockHeight, imports, importedVerifyingKeys);
 if (!result.valid) {
     console.error(`Verification failed: ${result.error}`);
 }
 ```
 
-- `verifyExecution()` returns a `VerificationResult` with diagnostic error messages.
+- `verifyExecutionDiagnostic()` returns a `VerificationResult` with diagnostic error messages.
 - After local proving, verification is called automatically during transaction construction.
-- For offline-built transactions, call `verifyExecution()` before submitting.
+- For offline-built transactions, call `verifyExecutionDiagnostic()` before submitting.
 
 ### Output Validation
 
@@ -74,9 +74,9 @@ const scanner = new RecordScanner(options);
 const uuid = await scanner.ensureRegistered(viewKey);
 
 // Verify a specific record is still unspent
-const { unspent, serialNumber, checkedAt } = await scanner.verifyRecordUnspent(record);
+const { unspent, tag, checkedAt } = await scanner.verifyRecordUnspent(record);
 if (!unspent) {
-    console.error(`Record ${serialNumber} has been spent`);
+    console.error(`Record ${tag} has been spent`);
 }
 ```
 
@@ -140,7 +140,7 @@ All agent-relevant errors extend `SDKError` with machine-readable codes:
 import {
     SDKError,
     InsufficientBalanceError,
-    RecordNotFoundError,
+    FeeRecordNotFoundError,
     PolicyViolationError,
 } from "@provablehq/sdk/mainnet.js";
 

@@ -85,9 +85,9 @@ export class PolicyGuard {
             !this.config.allowedPrograms.includes(programName)
         ) {
             throw new PolicyViolationError(
-                "allowedPrograms",
+                `allowedPrograms: "${programName}" is not in the allowlist [${this.config.allowedPrograms.join(", ")}]`,
                 0,
-                0,
+                this.config.allowedPrograms.length,
             );
         }
 
