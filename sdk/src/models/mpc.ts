@@ -78,41 +78,54 @@ export function toAddress(value: AddressLike): Address {
 // computeExternalSigningInputs types
 // ---------------------------------------------------------------------------
 
+/** Output format discriminant for `computeExternalSigningInputs`. */
+export type OutputFormat = "string" | "bytes";
+
+/** Maps an {@link OutputFormat} to the concrete field-element representation. */
+export type FieldOutput<F extends OutputFormat> = F extends "bytes" ? Uint8Array : string;
+
 /**
  * Type surrounding the input to an external signing request.
  *
+ * The generic parameter `F` controls whether field elements are serialised as
+ * human-readable strings (`"string"`, the default) or raw little-endian bytes
+ * (`"bytes"`).
+ *
  * @property {string} outputType - The type of output being requested.
- * @property {string} index - The index of the output being requested represented as an Ed/BLS-377 base field element.
- * @property {string[]} data - The data being requested represented as Ed/BLS-377 base field elements.
+ * @property {FieldOutput<F>} index - The index of the output represented as an Ed/BLS-377 base field element.
+ * @property {FieldOutput<F>[]} data - The data represented as Ed/BLS-377 base field elements.
  * @property {string} [name] - The name of the record being requested.
- * @property {string} [h] - The h value of the record being requested represented as an Ed/BLS-377 base field element.
- * @property {string} [tag] - The tag of the record being requested represented as an Ed/BLS-377 base field element.
+ * @property {FieldOutput<F>} [h] - The h value of the record represented as an Ed/BLS-377 base field element.
+ * @property {FieldOutput<F>} [tag] - The tag of the record represented as an Ed/BLS-377 base field element.
  */
-export interface RequestSignInput {
+export interface RequestSignInput<F extends OutputFormat = "string"> {
     outputType: "constant" | "public" | "private" | "record" | "external_records";
-    index: string;
-    data: string[];
+    index: FieldOutput<F>;
+    data: FieldOutput<F>[];
     name?: string;
-    h?: string;
-    tag?: string;
+    h?: FieldOutput<F>;
+    tag?: FieldOutput<F>;
 }
 
 /**
  * Type representing the output of an external signing request.
- * All WASM objects (Address, Field) are serialized to strings for transport.
  *
- * @property {string} functionId - The ID of the function the request is for serialized to Ed/BLS-377 base field elements.
- * @property {string} isRoot - Field representation of a boolean indicating whether this is a top-level transition.
- * @property {RequestSignInput[]} requestInputs - The inputs to the function being executed.
- * @property {string} [checksum] - The Ed/BLS-377 base field representation of the program checksum.
+ * The generic parameter `F` controls whether field elements are serialised as
+ * human-readable strings (`"string"`, the default) or raw little-endian bytes
+ * (`"bytes"`).
+ *
+ * @property {FieldOutput<F>} functionId - The function ID as Ed/BLS-377 base field element(s).
+ * @property {boolean} isRoot - Whether this is a top-level transition.
+ * @property {RequestSignInput<F>[]} requestInputs - The inputs to the function being executed.
+ * @property {FieldOutput<F>} [checksum] - The Ed/BLS-377 base field representation of the program checksum.
  * @property {string} [signer] - The signer address string (present when viewKey was provided).
  * @property {string} [skTag] - The tag secret key string (present when viewKey was provided).
  */
-export interface ExternalSigningInput {
-    functionId: string;
-    isRoot: string;
-    requestInputs: RequestSignInput[];
-    checksum?: string;
+export interface ExternalSigningInput<F extends OutputFormat = "string"> {
+    functionId: FieldOutput<F>;
+    isRoot: boolean;
+    requestInputs: RequestSignInput<F>[];
+    checksum?: FieldOutput<F>;
     signer?: string;
     skTag?: string;
 }
@@ -127,6 +140,7 @@ export interface ExternalSigningInput {
  * @property {boolean} isRoot - Whether this transition is the first transition being executed in a transaction.
  * @property {FieldLike} [checksum] - The optional checksum of the program.
  * @property {ViewKeyLike} [viewKey] - The optional view key used to derive signer and skTag.
+ * @property {OutputFormat} [outputFormat] - Controls whether field elements are serialised as strings (default) or Uint8Arrays.
  */
 export interface ExternalSigningOptions {
     programName: string;
@@ -136,6 +150,7 @@ export interface ExternalSigningOptions {
     isRoot: boolean;
     checksum?: FieldLike | null;
     viewKey?: ViewKeyLike | null;
+    outputFormat?: OutputFormat;
 }
 
 // ---------------------------------------------------------------------------

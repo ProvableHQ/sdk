@@ -337,4 +337,6 @@ export type {
     ExternalSigningInput,
     ExternalSigningOptions,
     RequestSignInput,
+    OutputFormat,
+    FieldOutput,
 } from "./mpc.js";

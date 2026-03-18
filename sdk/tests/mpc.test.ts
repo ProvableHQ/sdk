@@ -370,7 +370,7 @@ describe('MPC Utilities', () => {
     });
 
     describe('computeExternalSigningInputs', () => {
-        it('computes external signing inputs for a public transfer', async () => {
+        it('computes external signing inputs for a public transfer (string format)', async () => {
             const result = await computeExternalSigningInputs({
                 programName: "credits.aleo",
                 functionName: "transfer_public",
@@ -379,11 +379,60 @@ describe('MPC Utilities', () => {
                 isRoot: true,
             });
 
-            expect(result).to.have.property('functionId');
-            expect(result).to.have.property('isRoot');
-            expect(result).to.have.property('requestInputs');
+            expect(result.functionId).to.be.a('string');
+            expect(result.isRoot).to.equal(true);
             expect(result.requestInputs).to.be.an('array');
             expect(result.requestInputs.length).to.equal(2);
+            expect(result.requestInputs[0].index).to.be.a('string');
+            expect(result.requestInputs[0].data[0]).to.be.a('string');
+        });
+
+        it('computes external signing inputs for a public transfer (bytes format)', async () => {
+            const result = await computeExternalSigningInputs({
+                programName: "credits.aleo",
+                functionName: "transfer_public",
+                inputs: [addressString, "100u64"],
+                inputTypes: ["address.public", "u64.public"],
+                isRoot: true,
+                outputFormat: "bytes",
+            });
+
+            expect(result.functionId).to.be.instanceOf(Uint8Array);
+            expect(result.isRoot).to.equal(true);
+            expect(result.requestInputs).to.be.an('array');
+            expect(result.requestInputs.length).to.equal(2);
+            expect(result.requestInputs[0].index).to.be.instanceOf(Uint8Array);
+            expect(result.requestInputs[0].data[0]).to.be.instanceOf(Uint8Array);
+        });
+
+        it('bytes and string outputs round-trip through Field', async () => {
+            const strResult = await computeExternalSigningInputs({
+                programName: "credits.aleo",
+                functionName: "transfer_public",
+                inputs: [addressString, "100u64"],
+                inputTypes: ["address.public", "u64.public"],
+                isRoot: true,
+            });
+            const bytesResult = await computeExternalSigningInputs({
+                programName: "credits.aleo",
+                functionName: "transfer_public",
+                inputs: [addressString, "100u64"],
+                inputTypes: ["address.public", "u64.public"],
+                isRoot: true,
+                outputFormat: "bytes",
+            });
+
+            // functionId round-trips
+            const functionIdFromBytes = Field.fromBytesLe(bytesResult.functionId).toString();
+            expect(functionIdFromBytes).to.equal(strResult.functionId);
+
+            // first input index round-trips
+            const indexFromBytes = Field.fromBytesLe(bytesResult.requestInputs[0].index).toString();
+            expect(indexFromBytes).to.equal(strResult.requestInputs[0].index);
+
+            // first input data[0] round-trips
+            const dataFromBytes = Field.fromBytesLe(bytesResult.requestInputs[0].data[0]).toString();
+            expect(dataFromBytes).to.equal(strResult.requestInputs[0].data[0]);
         });
     });
 });
@@ -421,7 +470,7 @@ describe('MPC ExecutionRequest integration', () => {
         expect(externalSigningInputs.functionId).to.be.a("string");
         expect(externalSigningInputs.functionId.length).to.be.greaterThan(0);
         expect(externalSigningInputs.functionId).to.match(/field$/);
-        expect(externalSigningInputs.isRoot).to.equal("1field");
+        expect(externalSigningInputs.isRoot).to.equal(true);
         expect(externalSigningInputs.checksum).to.satisfy((v: unknown) => v === null || v === undefined);
         expect(externalSigningInputs.requestInputs).to.be.an("array").with.lengthOf(2);
 
@@ -576,7 +625,7 @@ describe('MPC ExecutionRequest integration', () => {
         expect(externalSigningInputs.functionId).to.be.a("string");
         expect(externalSigningInputs.functionId.length).to.be.greaterThan(0);
         expect(externalSigningInputs.functionId).to.match(/field$/);
-        expect(externalSigningInputs.isRoot).to.equal("1field");
+        expect(externalSigningInputs.isRoot).to.equal(true);
         expect(externalSigningInputs.checksum).to.satisfy((v: unknown) => v === null || v === undefined);
         expect(externalSigningInputs.requestInputs).to.be.an("array").with.lengthOf(3);
 
