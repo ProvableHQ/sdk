@@ -139,6 +139,16 @@ export function checkExecutionOutputs(
 
         const output = outputs[idx];
 
+        // Validate output type using string heuristics:
+        // - record ciphertexts always start with "record1"
+        // - "public" and "future" are non-record outputs
+        const isRecord = output.startsWith("record1");
+        if (check.expectedType === "record" && !isRecord) {
+            failures.push(`${key}: expected record output (starts with "record1"), got "${output}"`);
+        } else if ((check.expectedType === "public" || check.expectedType === "future") && isRecord) {
+            failures.push(`${key}: expected ${check.expectedType} output, got record ciphertext`);
+        }
+
         if (check.expectedValue !== undefined && output !== check.expectedValue) {
             failures.push(`${key}: expected value "${check.expectedValue}", got "${output}"`);
         }

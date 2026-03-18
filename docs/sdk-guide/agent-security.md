@@ -38,7 +38,7 @@ import { checkExecutionOutputs } from "@provablehq/sdk/mainnet.js";
 
 const result = checkExecutionOutputs(outputs, [
     { transitionIndex: 0, outputIndex: 0, expectedType: "record" },
-    { transitionIndex: 0, outputIndex: 1, expectedValue: "1000u64" },
+    { transitionIndex: 0, outputIndex: 1, expectedType: "public", expectedValue: "1000u64" },
 ]);
 if (!result.passed) {
     console.error("Output check failures:", result.failures);
