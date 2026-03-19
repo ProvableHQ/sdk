@@ -111,6 +111,7 @@ export interface RecordScannerOptions {
 class RecordScanner implements RecordProvider {
     readonly cacheViewKeysOnRegister?: boolean;
     readonly url: string;
+    private readonly baseUrl: string;
     private apiKey?: { header: string, value: string };
     private consumerId?: string;
     private jwtData?: RecordScannerJWTData;
@@ -133,6 +134,9 @@ class RecordScanner implements RecordProvider {
         }
 
         // Configure the url to use the network the SDK is using.
+        // baseUrl is the API root (origin only) — used for JWT refresh which
+        // lives at /jwts/{consumerId} on the API root, not under /scanner.
+        this.baseUrl = new URL(options.url).origin;
         this.url = options.url + network;
 
         // Get any view keys passed in the options.
@@ -274,7 +278,7 @@ class RecordScanner implements RecordProvider {
      */
     private async refreshJwt(apiKey: string, consumerId: string): Promise<RecordScannerJWTData> {
         const response = await post(
-            `${this.url}/jwts/${consumerId}`,
+            `${this.baseUrl}/jwts/${consumerId}`,
             {
                 headers: {
                     "X-Provable-API-Key": apiKey,
