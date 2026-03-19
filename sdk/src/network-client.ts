@@ -1825,7 +1825,7 @@ class AleoNetworkClient {
         // Check to see if the JWT needs refreshing.
         const isExpired = jwtData && Date.now() >= jwtData.expiration - FIVE_MINUTES;
         if (!jwtData || isExpired) {
-            if (options.apiKey && options.consumerId) {
+            if (apiKey && consumerId) {
                 jwtData = await this.refreshJwt(apiKey!, consumerId!);
                 this.jwtData = jwtData;
                 options.jwtData = jwtData;
