@@ -624,42 +624,42 @@ impl ExecutionRequest {
 
             match &input_type {
                 ValueTypeNative::Constant(_) => {
-                    Reflect::set(&request_sign_input, &JsValue::from_str("outputType"), &JsValue::from_str("constant"))
-                        .map_err(|_| "Failed to set outputType".to_string())?;
+                    Reflect::set(&request_sign_input, &JsValue::from_str("signingInputType"), &JsValue::from_str("constant"))
+                        .map_err(|_| "Failed to set signingInputType".to_string())?;
                 }
                 ValueTypeNative::Public(_) => {
-                    Reflect::set(&request_sign_input, &JsValue::from_str("outputType"), &JsValue::from_str("public"))
-                        .map_err(|_| "Failed to set outputType".to_string())?;
+                    Reflect::set(&request_sign_input, &JsValue::from_str("signingInputType"), &JsValue::from_str("public"))
+                        .map_err(|_| "Failed to set signingInputType".to_string())?;
                 }
                 ValueTypeNative::Private(_) => {
-                    Reflect::set(&request_sign_input, &JsValue::from_str("outputType"), &JsValue::from_str("private"))
-                        .map_err(|_| "Failed to set outputType".to_string())?;
+                    Reflect::set(&request_sign_input, &JsValue::from_str("signingInputType"), &JsValue::from_str("private"))
+                        .map_err(|_| "Failed to set signingInputType".to_string())?;
                 }
                 ValueTypeNative::Record(record_name) => {
-                    // Set the output type and name.
-                    Reflect::set(&request_sign_input, &JsValue::from_str("outputType"), &JsValue::from_str("record"))
-                        .map_err(|_| "Failed to set outputType".to_string())?;
+                    // Set the signing input type and name.
+                    Reflect::set(&request_sign_input, &JsValue::from_str("signingInputType"), &JsValue::from_str("record"))
+                        .map_err(|_| "Failed to set signingInputType".to_string())?;
                     Reflect::set(
                         &request_sign_input,
                         &JsValue::from_str("name"),
                         &JsValue::from_str(&record_name.to_string()),
                     )
-                    .map_err(|_| "Failed to set outputType".to_string())?;
+                    .map_err(|_| "Failed to set name".to_string())?;
                 }
                 ValueTypeNative::ExternalRecord(locator) => {
-                    // Set the output type and name.
+                    // Set the signing input type and name.
                     Reflect::set(
                         &request_sign_input,
-                        &JsValue::from_str("outputType"),
+                        &JsValue::from_str("signingInputType"),
                         &JsValue::from_str("external_record"),
                     )
-                    .map_err(|_| "Failed to set outputType".to_string())?;
+                    .map_err(|_| "Failed to set signingInputType".to_string())?;
                     Reflect::set(
                         &request_sign_input,
                         &JsValue::from_str("name"),
                         &JsValue::from_str(&locator.to_string()),
                     )
-                    .map_err(|_| "Failed to set outputType".to_string())?;
+                    .map_err(|_| "Failed to set name".to_string())?;
                 }
                 ValueTypeNative::Future(_) => {
                     return Err("Future inputs are not supported".to_string());
@@ -704,7 +704,7 @@ impl ExecutionRequest {
                     .to_x_coordinate()
                     .to_string();
                 Reflect::set(&request_sign_input, &JsValue::from_str("h"), &JsValue::from_str(&h))
-                    .map_err(|_| "Failed to set outputType".to_string())?;
+                    .map_err(|_| "Failed to set h".to_string())?;
             }
             input_data.push(&request_sign_input);
         }
@@ -1155,14 +1155,14 @@ mod tests {
         let request_inputs_array = js_sys::Array::from(&request_inputs);
         assert_eq!(request_inputs_array.length(), 2, "requestInputs should have length 2 for two inputs");
 
-        // Check the output type of the first input.
+        // Check the signing input type of the first input.
         let first_input = Reflect::get(&request_inputs_array, &JsValue::from(0u32)).unwrap();
         let second_input = Reflect::get(&request_inputs_array, &JsValue::from(1u32)).unwrap();
-        let output_type = Reflect::get(&first_input, &JsValue::from_str("outputType"))
+        let signing_input_type = Reflect::get(&first_input, &JsValue::from_str("signingInputType"))
             .ok()
             .and_then(|v| v.as_string())
-            .expect("outputType should be present");
-        assert_eq!(output_type, "public");
+            .expect("signingInputType should be present");
+        assert_eq!(signing_input_type, "public");
         let index = Reflect::get(&first_input, &JsValue::from_str("index"))
             .ok()
             .and_then(|v| v.as_string())
@@ -1172,12 +1172,12 @@ mod tests {
         let data_array = js_sys::Array::from(&data);
         assert!(data_array.length() >= 1, "data should be a non-empty array of fields");
 
-        // Check the output type of the second input.
-        let output_type = Reflect::get(&second_input, &JsValue::from_str("outputType"))
+        // Check the signing input type of the second input.
+        let signing_input_type = Reflect::get(&second_input, &JsValue::from_str("signingInputType"))
             .ok()
             .and_then(|v| v.as_string())
-            .expect("outputType should be present");
-        assert_eq!(output_type, "public");
+            .expect("signingInputType should be present");
+        assert_eq!(signing_input_type, "public");
         let index = Reflect::get(&second_input, &JsValue::from_str("index"))
             .ok()
             .and_then(|v| v.as_string())

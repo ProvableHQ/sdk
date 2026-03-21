@@ -14,7 +14,7 @@ import {
     isViewKeyStrategy,
     isInputIdStrategy,
     isRecordViewKeyStrategy,
-} from "./models/mpc.js";
+} from "./models/external-signing.js";
 import type {
     ExternalSigningInput,
     ExternalSigningOptions,
@@ -22,10 +22,10 @@ import type {
     InputStrategy,
     OutputFormat,
     RequestSignInput,
-} from "./models/mpc.js";
+} from "./models/external-signing.js";
 
-// Re-export everything from models/mpc for consumers
-export * from "./models/mpc.js";
+// Re-export everything from models/external-signing for consumers
+export * from "./models/external-signing.js";
 
 // ---------------------------------------------------------------------------
 // buildExecutionRequestFromExternallySignedData
@@ -210,7 +210,7 @@ function fieldStringToBytes(s: string): Uint8Array {
 /** Convert a {@link RequestSignInput<"string">} to its bytes-serialised equivalent. */
 function serializeRequestSignInputToBytes(input: RequestSignInput<"string">): RequestSignInput<"bytes"> {
     return {
-        outputType: input.outputType,
+        signingInputType: input.signingInputType,
         index: fieldStringToBytes(input.index),
         data: input.data.map(fieldStringToBytes),
         name: input.name,

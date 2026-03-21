@@ -91,7 +91,7 @@ export type FieldOutput<F extends OutputFormat> = F extends "bytes" ? Uint8Array
  * human-readable strings (`"string"`, the default) or raw little-endian bytes
  * (`"bytes"`).
  *
- * @property {string} outputType - The type of output being requested.
+ * @property {string} signingInputType - The type of signing input being requested.
  * @property {FieldOutput<F>} index - The index of the output represented as an Ed/BLS-377 base field element.
  * @property {FieldOutput<F>[]} data - The data represented as Ed/BLS-377 base field elements.
  * @property {string} [name] - The name of the record being requested.
@@ -100,7 +100,7 @@ export type FieldOutput<F extends OutputFormat> = F extends "bytes" ? Uint8Array
  * @property {FieldOutput<F>} [recordViewKey] - The record view key (present for record inputs when viewKey was provided).
  */
 export interface RequestSignInput<F extends OutputFormat = "string"> {
-    outputType: "constant" | "public" | "private" | "record" | "external_record";
+    signingInputType: "constant" | "public" | "private" | "record" | "external_record";
     index: FieldOutput<F>;
     data: FieldOutput<F>[];
     name?: string;

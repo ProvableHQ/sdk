@@ -321,7 +321,7 @@ export {
     // Builder
     buildExecutionRequestFromExternallySignedData,
     computeExternalSigningInputs,
-} from "./mpc.js";
+} from "./external-signing.js";
 export type {
     FieldLike,
     GroupLike,
@@ -339,4 +339,4 @@ export type {
     RequestSignInput,
     OutputFormat,
     FieldOutput,
-} from "./mpc.js";
+} from "./external-signing.js";

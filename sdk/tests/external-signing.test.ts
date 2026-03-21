@@ -37,7 +37,7 @@ import {
 
 const message = Uint8Array.from([104, 101, 108, 108, 111, 32, 119, 111, 114, 108, 100]);
 
-describe('MPC Utilities', () => {
+describe('External Signing Utilities', () => {
     const privateKey = PrivateKey.from_string(privateKeyString);
     const viewKey = privateKey.to_view_key();
     const address = privateKey.to_address();
@@ -437,7 +437,7 @@ describe('MPC Utilities', () => {
     });
 });
 
-describe('MPC ExecutionRequest integration', () => {
+describe('External Signing ExecutionRequest integration', () => {
     const privateKeyStr = "APrivateKey1zkp7Vc4xJt8HqW9U7VhY6h32d8Z9Xi5C6ZZX3gtXxbBSJmj";
     const beaconAddress = "aleo1rhgdu77hgyqd3xjj8ucu3jj9r2krwz6mnzyd80gncr5fxcwlh5rsvzp9px";
     const transferPublicInputs = [
@@ -475,11 +475,11 @@ describe('MPC ExecutionRequest integration', () => {
         expect(externalSigningInputs.requestInputs).to.be.an("array").with.lengthOf(2);
 
         const [firstInput, secondInput] = externalSigningInputs.requestInputs;
-        expect(firstInput).to.have.property("outputType", "public");
+        expect(firstInput).to.have.property("signingInputType", "public");
         expect(firstInput).to.have.property("index", "0field");
         expect(firstInput).to.have.property("data").that.is.an("array");
         expect(firstInput.data.length).to.be.greaterThan(0);
-        expect(secondInput).to.have.property("outputType", "public");
+        expect(secondInput).to.have.property("signingInputType", "public");
         expect(secondInput).to.have.property("index", "1field");
         expect(secondInput).to.have.property("data").that.is.an("array");
 
@@ -733,14 +733,14 @@ describe('MPC ExecutionRequest integration', () => {
         expect(externalSigningInputs.requestInputs).to.be.an("array").with.lengthOf(3);
 
         const [firstInput, secondInput, thirdInput] = externalSigningInputs.requestInputs;
-        expect(firstInput).to.have.property("outputType", "record");
+        expect(firstInput).to.have.property("signingInputType", "record");
         expect(firstInput).to.have.property("index", "0field");
         expect(firstInput).to.have.property("data").that.is.an("array");
         expect(firstInput.data.length).to.be.greaterThan(0);
-        expect(secondInput).to.have.property("outputType", "private");
+        expect(secondInput).to.have.property("signingInputType", "private");
         expect(secondInput).to.have.property("index", "1field");
         expect(secondInput).to.have.property("data").that.is.an("array");
-        expect(thirdInput).to.have.property("outputType", "private");
+        expect(thirdInput).to.have.property("signingInputType", "private");
         expect(thirdInput).to.have.property("index", "2field");
         expect(thirdInput).to.have.property("data").that.is.an("array");
 
