@@ -557,6 +557,42 @@ describe("RecordScanner", () => {
         });
 
     });
+
+    describe("JWT refresh URL", () => {
+        const jwtEdgeCases = [
+            { label: "standard scanner URL", url: "https://record-scanner.aleo.org", expectedOrigin: "https://record-scanner.aleo.org" },
+            { label: "Provable API with /scanner path", url: "https://api.provable.com/scanner", expectedOrigin: "https://api.provable.com" },
+            { label: "URL with deep path", url: "https://api.example.com/v2/extra", expectedOrigin: "https://api.example.com" },
+            { label: "URL with port", url: "https://custom-api.example.com:8080/scanner", expectedOrigin: "https://custom-api.example.com:8080" },
+            { label: "URL with trailing slash", url: "https://api.provable.com/scanner/", expectedOrigin: "https://api.provable.com" },
+            { label: "localhost with port", url: "http://localhost:3030", expectedOrigin: "http://localhost:3030" },
+        ];
+
+        jwtEdgeCases.forEach(({ label, url, expectedOrigin }) => {
+            it(`should derive JWT refresh origin from ${label}`, async () => {
+                recordScanner = new RecordScanner({
+                    url,
+                    apiKey: "test-api-key",
+                    consumerId: "test-consumer-id",
+                });
+
+                fetchStub.resolves({
+                    ok: true,
+                    status: 200,
+                    headers: new Headers({ authorization: "Bearer test-jwt-token" }),
+                    json: () => Promise.resolve({ exp: Math.floor(Date.now() / 1000) + 3600 }),
+                    text: () => Promise.resolve(JSON.stringify({ exp: Math.floor(Date.now() / 1000) + 3600 })),
+                });
+
+                try {
+                    await recordScanner.status("7884164224800444110633570141944665301008802280502652120359195870264061098703field");
+                } catch { }
+
+                const firstCallUrl = fetchStub.firstCall.args[0]?.toString() ?? fetchStub.firstCall.args[0]?.url;
+                expect(firstCallUrl).to.equal(`${expectedOrigin}/jwts/test-consumer-id`);
+            });
+        });
+    });
 });
 
 describe("Record scanner encrypted registration", function () {
@@ -647,6 +683,32 @@ describe("RecordScanner (real API)", function () {
     const accountFromEnv = process.env.PUZZLE_PK
         ? new Account({ privateKey: process.env.PUZZLE_PK as string })
         : null;
+
+    // Ensure the view key is registered before running tests that depend on it.
+    // This is needed because the test account may not be pre-registered on every network.
+    let registeredUuid: string | null = null;
+    before(async function () {
+        if (!hasRealApiEnv || !viewKey) return;
+        const scanner = new RecordScanner({
+            url: sandboxUrl,
+            ...(apiKey && { apiKey }),
+            ...(consumerId && { consumerId }),
+        });
+        const result = await scanner.register(viewKey, 0);
+        if (result.ok) {
+            registeredUuid = result.data.uuid;
+        }
+    });
+
+    after(async function () {
+        if (!registeredUuid) return;
+        const scanner = new RecordScanner({
+            url: sandboxUrl,
+            ...(apiKey && { apiKey }),
+            ...(consumerId && { consumerId }),
+        });
+        await scanner.revoke(registeredUuid);
+    });
 
     describe("utility methods", function () {
         it("computeUUID returns the same value for the same view key", function () {
