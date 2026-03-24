@@ -12,6 +12,8 @@ env:
   PUZZLE_PK: ${{ secrets.PUZZLE_PK }}
   PUZZLE_VK: ${{ secrets.PUZZLE_VK }}
   RECORD_SCANNER_URL: ${{ secrets.RECORD_SCANNER_URL }}
+  KONG_API_KEY: ${{ secrets.ALEO_DPS_API_KEY }}
+  CONSUMER_ID: ${{ secrets.ALEO_CONSUMER_ID }}
 
 
 jobs:

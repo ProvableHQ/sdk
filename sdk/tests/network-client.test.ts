@@ -771,3 +771,47 @@ describe("NodeConnection", () => {
         });
     });
 });
+
+describe("AleoNetworkClient JWT refresh URL", () => {
+    let fetchStub: sinon.SinonStub;
+
+    beforeEach(() => {
+        fetchStub = sinon.stub(globalThis, 'fetch');
+    });
+
+    afterEach(() => {
+        sinon.restore();
+    });
+
+    const jwtEdgeCases = [
+        { label: "standard Provable API", host: "https://api.provable.com/v2", expectedOrigin: "https://api.provable.com" },
+        { label: "custom host with path", host: "https://custom-api.example.com/v2", expectedOrigin: "https://custom-api.example.com" },
+        { label: "host with deep path", host: "https://api.example.com/v2/extra", expectedOrigin: "https://api.example.com" },
+        { label: "host with port", host: "https://custom-api.example.com:8080/v2", expectedOrigin: "https://custom-api.example.com:8080" },
+        { label: "host with trailing slash", host: "https://api.provable.com/v2/", expectedOrigin: "https://api.provable.com" },
+        { label: "localhost with port", host: "http://localhost:3030", expectedOrigin: "http://localhost:3030" },
+    ];
+
+    jwtEdgeCases.forEach(({ label, host, expectedOrigin }) => {
+        it(`should derive JWT refresh origin from ${label}`, async () => {
+            const client = new AleoNetworkClient(host);
+            client.apiKey = "test-api-key";
+            client.consumerId = "test-consumer-id";
+
+            fetchStub.resolves({
+                ok: true,
+                status: 200,
+                headers: new Headers({ authorization: "Bearer test-jwt-token" }),
+                json: () => Promise.resolve({ exp: Math.floor(Date.now() / 1000) + 3600 }),
+                text: () => Promise.resolve(JSON.stringify({ status: "ok" })),
+            });
+
+            try {
+                await client.submitProvingRequestSafe({ provingRequest: "test-request" });
+            } catch { }
+
+            const firstCallUrl = fetchStub.firstCall.args[0]?.toString() ?? fetchStub.firstCall.args[0]?.url;
+            expect(firstCallUrl).to.equal(`${expectedOrigin}/jwts/test-consumer-id`);
+        });
+    });
+});
