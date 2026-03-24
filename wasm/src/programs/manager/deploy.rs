@@ -377,20 +377,6 @@ impl ProgramManager {
             log("Program must have at least one function");
             Err("Program must have at least one function".to_string())?;
         }
-        let mut verifying_keys = Vec::with_capacity(program.functions().len());
-        for function_name in program.functions().keys() {
-            let (verifying_key, certificate) = {
-                // Sample a dummy verifying key for each function.
-                let verifying_key =
-                    VerifyingKeyNative::from_str(DEVNODE_VERIFIER_KEY).map_err(|err| err.to_string())?;
-
-                // Sample a dummy certificate.
-                let certificate = CertificateNative::from_str(DEVNODE_CERTIFICATE).map_err(|err| err.to_string())?;
-                (verifying_key, certificate)
-            };
-            verifying_keys.push((*function_name, (verifying_key, certificate)));
-        }
-
         // Attempt to set the edition.
         let edition_response = latest_program_edition(node_url, &program_id.to_string()).await;
         let edition = match edition_response {
@@ -398,13 +384,29 @@ impl ProgramManager {
             Err(_) => 0,
         };
 
+        // Get the consensus version to determine which VKs are needed.
+        let latest_height = latest_block_height(node_url).await.map_err(|err| err.to_string())?;
+        let consensus_version = CurrentNetwork::CONSENSUS_VERSION(latest_height).map_err(|err| err.to_string())?;
+
+        // Build dummy VKs for all functions.
+        let devnode_vk = VerifyingKeyNative::from_str(DEVNODE_VERIFIER_KEY).map_err(|err| err.to_string())?;
+        let devnode_cert = CertificateNative::from_str(DEVNODE_CERTIFICATE).map_err(|err| err.to_string())?;
+        let mut verifying_keys = Vec::with_capacity(program.functions().len() + program.records().len());
+        for function_name in program.functions().keys() {
+            verifying_keys.push((*function_name, (devnode_vk.clone(), devnode_cert.clone())));
+        }
+        // V14+: also include dummy VKs for records.
+        if consensus_version >= ConsensusVersion::V14 {
+            for record_name in program.records().keys() {
+                verifying_keys.push((*record_name, (devnode_vk.clone(), devnode_cert.clone())));
+            }
+        }
+
         // Construct the deployment without running all proofs.
         let mut deployment = DeploymentNative::new(edition, program.clone(), verifying_keys, None, None)
             .map_err(|err| err.to_string())?;
 
         // Set the program owner for programs above consensus version V8.
-        let latest_height = latest_block_height(node_url).await.map_err(|err| err.to_string())?;
-        let consensus_version = CurrentNetwork::CONSENSUS_VERSION(latest_height).map_err(|err| err.to_string())?;
         let private_key_native = PrivateKeyNative::from(private_key);
         if consensus_version < ConsensusVersion::V9 {
             deployment.set_program_checksum_raw(None);
@@ -413,12 +415,6 @@ impl ProgramManager {
             deployment.set_program_checksum_raw(Some(deployment.program().to_checksum()));
             deployment
                 .set_program_owner_raw(Some(AddressNative::try_from(private_key_native).map_err(|e| e.to_string())?));
-        }
-
-        // Before V14: remove record verifying keys from the deployment.
-        if consensus_version < ConsensusVersion::V14 {
-            let record_names: Vec<_> = deployment.program().records().keys().cloned().collect();
-            deployment.remove_verifying_keys(&record_names);
         }
 
         // Construct the fee authorization for the deployment
@@ -457,14 +453,16 @@ impl ProgramManager {
 
         // Get the state root.
         let state_root = latest_stateroot(node_url).await.map_err(|e| e.to_string())?;
-        let fee = FeeNative::from(fee_authorization.transitions().into_iter().next().unwrap().1, state_root, None)
-            .map_err(|err| err.to_string())?;
+        let fee = FeeNative::from(
+            fee_authorization.transitions().into_iter().next().ok_or("No fee transition found".to_string())?.1,
+            state_root,
+            None,
+        )
+        .map_err(|err| err.to_string())?;
 
         log("Creating deployment transaction");
         Ok(Transaction::from(
-            TransactionNative::from_deployment(owner, deployment, fee)
-                .map_err(|err| err.to_string())
-                .map_err(|e| e.to_string())?,
+            TransactionNative::from_deployment(owner, deployment, fee).map_err(|err| err.to_string())?,
         ))
     }
 
@@ -519,23 +517,26 @@ impl ProgramManager {
         log("Adding deployed program to the process");
         process.add_program_with_edition(&deployed_program, deployed_program_edition).map_err(|err| err.to_string())?;
 
+        // Get the consensus version to determine which VKs are needed.
+        let latest_height = latest_block_height(node_url).await.map_err(|err| err.to_string())?;
+        let consensus_version = CurrentNetwork::CONSENSUS_VERSION(latest_height).map_err(|err| err.to_string())?;
+
         // Create deployment without synthesizing keys and generating certificates.
         if program.functions().is_empty() {
             log("Program must have at least one function");
             Err("Program must have at least one function".to_string())?;
         }
-        let mut verifying_keys = Vec::with_capacity(program.functions().len());
+        let devnode_vk = VerifyingKeyNative::from_str(DEVNODE_VERIFIER_KEY).map_err(|err| err.to_string())?;
+        let devnode_cert = CertificateNative::from_str(DEVNODE_CERTIFICATE).map_err(|err| err.to_string())?;
+        let mut verifying_keys = Vec::with_capacity(program.functions().len() + program.records().len());
         for function_name in program.functions().keys() {
-            let (verifying_key, certificate) = {
-                // Sample a dummy verifying key for each function.
-                let verifying_key =
-                    VerifyingKeyNative::from_str(DEVNODE_VERIFIER_KEY).map_err(|err| err.to_string())?;
-
-                // Sample a dummy certificate.
-                let certificate = CertificateNative::from_str(DEVNODE_CERTIFICATE).map_err(|err| err.to_string())?;
-                (verifying_key, certificate)
-            };
-            verifying_keys.push((*function_name, (verifying_key, certificate)));
+            verifying_keys.push((*function_name, (devnode_vk.clone(), devnode_cert.clone())));
+        }
+        // V14+: also include dummy VKs for records.
+        if consensus_version >= ConsensusVersion::V14 {
+            for record_name in program.records().keys() {
+                verifying_keys.push((*record_name, (devnode_vk.clone(), devnode_cert.clone())));
+            }
         }
 
         // Attempt to get the latest program edition.
@@ -550,8 +551,6 @@ impl ProgramManager {
             .map_err(|err| err.to_string())?;
 
         // Set the program owner for programs above consensus version V8.
-        let latest_height = latest_block_height(node_url).await.map_err(|err| err.to_string())?;
-        let consensus_version = CurrentNetwork::CONSENSUS_VERSION(latest_height).map_err(|err| err.to_string())?;
         let private_key_native = PrivateKeyNative::from(private_key);
         if consensus_version < ConsensusVersion::V9 {
             deployment.set_program_checksum_raw(None);
@@ -560,12 +559,6 @@ impl ProgramManager {
             deployment.set_program_checksum_raw(Some(deployment.program().to_checksum()));
             deployment
                 .set_program_owner_raw(Some(AddressNative::try_from(private_key_native).map_err(|e| e.to_string())?));
-        }
-
-        // Before V14: remove record verifying keys from the deployment.
-        if consensus_version < ConsensusVersion::V14 {
-            let record_names: Vec<_> = deployment.program().records().keys().cloned().collect();
-            deployment.remove_verifying_keys(&record_names);
         }
 
         // Construct the fee authorization for the deployment
@@ -604,14 +597,16 @@ impl ProgramManager {
 
         // Get the state root.
         let state_root = latest_stateroot(node_url).await.map_err(|e| e.to_string())?;
-        let fee = FeeNative::from(fee_authorization.transitions().into_iter().next().unwrap().1, state_root, None)
-            .map_err(|err| err.to_string())?;
+        let fee = FeeNative::from(
+            fee_authorization.transitions().into_iter().next().ok_or("No fee transition found".to_string())?.1,
+            state_root,
+            None,
+        )
+        .map_err(|err| err.to_string())?;
 
         log("Creating deployment transaction");
         Ok(Transaction::from(
-            TransactionNative::from_deployment(owner, deployment, fee)
-                .map_err(|err| err.to_string())
-                .map_err(|e| e.to_string())?,
+            TransactionNative::from_deployment(owner, deployment, fee).map_err(|err| err.to_string())?,
         ))
     }
 }
