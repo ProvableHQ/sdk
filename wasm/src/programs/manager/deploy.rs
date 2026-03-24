@@ -454,12 +454,7 @@ impl ProgramManager {
         // Get the state root.
         let state_root = latest_stateroot(node_url).await.map_err(|e| e.to_string())?;
         let fee = FeeNative::from(
-            fee_authorization
-                .transitions()
-                .into_iter()
-                .next()
-                .ok_or("No fee transition found".to_string())?
-                .1,
+            fee_authorization.transitions().into_iter().next().ok_or("No fee transition found".to_string())?.1,
             state_root,
             None,
         )
@@ -603,12 +598,7 @@ impl ProgramManager {
         // Get the state root.
         let state_root = latest_stateroot(node_url).await.map_err(|e| e.to_string())?;
         let fee = FeeNative::from(
-            fee_authorization
-                .transitions()
-                .into_iter()
-                .next()
-                .ok_or("No fee transition found".to_string())?
-                .1,
+            fee_authorization.transitions().into_iter().next().ok_or("No fee transition found".to_string())?.1,
             state_root,
             None,
         )
