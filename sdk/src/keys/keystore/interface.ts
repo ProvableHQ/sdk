@@ -5,91 +5,132 @@ import { KeyFingerprint } from "../verifier/interface.js";
 import { ProvingKey, VerifyingKey } from "../../wasm.js";
 
 /**
- * Discriminates whether a {@link KeyId} refers to a proving key or a verifying key.
+ * Discriminates the type of key a locator refers to.
  */
-export type KeyType = "prover" | "verifier";
+export type KeyType = "prover" | "verifier" | "translation";
 
 /**
- * A structured identifier that definitively identifies a function's proving or verifying key.
+ * Shared fields for all function key locators.
  *
- * @example
- * const proverId: KeyId = { program: "credits.aleo", functionName: "transfer_private", edition: 1, network: "mainnet", keyType: "prover" };
- * const verifierId: KeyId = { program: "credits.aleo", functionName: "transfer_private", edition: 1, network: "mainnet", keyType: "verifier" };
+ * @property {string} program - The program name (e.g. "credits.aleo").
+ * @property {string} functionName - The function name (e.g. "transfer_private").
+ * @property {number} edition - The program edition (u16). Incremented when a program is re-deployed.
+ * @property {number} amendment - The program amendment. Reserved for future protocol-level amendments; defaults to 0.
+ * @property {string} network - The network name (e.g. "mainnet", "testnet").
+ * @property {string} [checksum] - Optional SHA-256 checksum for key verification. Used for verification only; not part of the key identity or serialized form.
  */
-export interface KeyId {
+export interface BaseFunctionKeyLocator {
     program: string;
     functionName: string;
     edition: number;
+    amendment: number;
     network: string;
-    keyType: KeyType;
+    checksum?: string;
 }
 
 /**
- * Creates a {@link KeyId} with defaults for edition (1) and network (build-time).
+ * Locator for a proving key.
+ */
+export interface ProvingKeyLocator extends BaseFunctionKeyLocator {
+    keyType: "prover";
+}
+
+/**
+ * Locator for a verifying key.
+ */
+export interface VerifyingKeyLocator extends BaseFunctionKeyLocator {
+    keyType: "verifier";
+}
+
+/**
+ * Locator for a translation key, which requires additional record information.
  *
- * Validates that program and functionName components do not contain characters
- * that would produce an unsafe serialized key (path separators, traversal
- * sequences, or null bytes). Fails early with a clear message rather than
- * deferring to store-level validation.
+ * @property {string} recordName - The name of the record associated with the translation key.
+ * @property {number} recordInputPosition - The position of the record input in the function signature.
+ */
+export interface TranslationKeyLocator extends BaseFunctionKeyLocator {
+    keyType: "translation";
+    recordName: string;
+    recordInputPosition: number;
+}
+
+/**
+ * A locator that uniquely identifies a function's proving, verifying, or translation key.
+ * Discriminated on the {@link KeyType} field.
+ *
+ * @example
+ * const prover: KeyLocator = { program: "credits.aleo", functionName: "transfer_private", edition: 1, amendment: 0, network: "mainnet", keyType: "prover" };
+ * const verifier: KeyLocator = { program: "credits.aleo", functionName: "transfer_private", edition: 1, amendment: 0, network: "mainnet", keyType: "verifier" };
+ */
+export type KeyLocator = ProvingKeyLocator | VerifyingKeyLocator | TranslationKeyLocator;
+
+/**
+ * Creates a {@link ProvingKeyLocator}.
  *
  * @param {string} program - The program name (e.g. "credits.aleo").
  * @param {string} functionName - The function name (e.g. "transfer_private").
- * @param {KeyType} keyType - Whether this identifies a "prover" or "verifier" key.
  * @param {number} [edition=1] - The program edition.
+ * @param {number} [amendment=0] - The program amendment.
  * @param {string} [network] - The network name. Defaults to the build-time network.
- * @returns {KeyId}
- * @throws {Error} If program or functionName contain unsafe characters.
+ * @returns {ProvingKeyLocator}
  */
-export function keyId(program: string, functionName: string, keyType: KeyType, edition = 1, network = "%%NETWORK%%"): KeyId {
-    validateKeyIdComponent(program, "program");
-    validateKeyIdComponent(functionName, "functionName");
-    return { program, functionName, edition, network, keyType };
+export function provingKeyLocator(
+    program: string,
+    functionName: string,
+    edition = 1,
+    amendment = 0,
+    network = "%%NETWORK%%",
+): ProvingKeyLocator {
+    return { program, functionName, edition, amendment, network, keyType: "prover" };
 }
 
 /**
- * Validates a single KeyId component (program or functionName) for unsafe characters.
- * @internal
+ * Creates a {@link VerifyingKeyLocator}.
+ *
+ * @param {string} program - The program name (e.g. "credits.aleo").
+ * @param {string} functionName - The function name (e.g. "transfer_private").
+ * @param {number} [edition=1] - The program edition.
+ * @param {number} [amendment=0] - The program amendment.
+ * @param {string} [network] - The network name. Defaults to the build-time network.
+ * @returns {VerifyingKeyLocator}
  */
-function validateKeyIdComponent(value: string, label: string): void {
-    if (value === "") {
-        throw new Error(`KeyId ${label} must not be empty`);
-    }
-    if (value.includes("..")) {
-        throw new Error(`KeyId ${label} must not contain ".." (got "${value}")`);
-    }
-    if (value.includes("/") || value.includes("\\") || value.includes("\0")) {
-        throw new Error(`KeyId ${label} must not contain path separators or null bytes (got "${value}")`);
-    }
+export function verifyingKeyLocator(
+    program: string,
+    functionName: string,
+    edition = 1,
+    amendment = 0,
+    network = "%%NETWORK%%",
+): VerifyingKeyLocator {
+    return { program, functionName, edition, amendment, network, keyType: "verifier" };
 }
 
 /**
- * Serializes a {@link KeyId} to a filesystem-safe flat string.
+ * Creates a {@link TranslationKeyLocator}.
  *
- * @param {KeyId} id - The key identifier.
- * @returns {string} A dot-delimited string safe for use as a filename.
- *
- * @example
- * serializeKeyId({ program: "credits.aleo", functionName: "transfer_private", edition: 1, network: "mainnet", keyType: "prover" })
- * // => "credits.aleo.transfer_private.e1.mainnet.prover"
+ * @param {string} program - The program name (e.g. "credits.aleo").
+ * @param {string} functionName - The function name (e.g. "transfer_private").
+ * @param {string} recordName - The record name associated with the translation key.
+ * @param {number} recordInputPosition - The record input position in the function signature.
+ * @param {number} [edition=1] - The program edition.
+ * @param {number} [amendment=0] - The program amendment.
+ * @param {string} [network] - The network name. Defaults to the build-time network.
+ * @returns {TranslationKeyLocator}
  */
-export function serializeKeyId(id: KeyId): string {
-    return `${id.program}.${id.functionName}.e${id.edition}.${id.network}.${id.keyType}`;
-}
-
-/**
- * A structured key locator with an optional fingerprint to verify key integrity.
- *
- * @property {KeyId} keyId - The structured identifier for the key.
- * @property {KeyFingerprint} [fingerprint] - Optional fingerprint for verification.
- */
-export interface KeyLocator {
-    keyId: KeyId;
-    fingerprint?: KeyFingerprint;
+export function translationKeyLocator(
+    program: string,
+    functionName: string,
+    recordName: string,
+    recordInputPosition: number,
+    edition = 1,
+    amendment = 0,
+    network = "%%NETWORK%%",
+): TranslationKeyLocator {
+    return { program, functionName, edition, amendment, network, keyType: "translation", recordName, recordInputPosition };
 }
 
 export interface KeyStore {
     /**
-     * Returns the raw bytes of a proving or verifying key for a given locator.
+     * Returns the raw bytes of a key for a given locator.
      *
      * @param {KeyLocator} locator The unique locator for the desired key.
      * @returns {Promise<Uint8Array | null>} The raw key bytes if they exist, or null if not found.
@@ -115,50 +156,44 @@ export interface KeyStore {
     /**
      * Stores proving and verifying keys in key storage.
      *
-     * @param {KeyLocator} proverLocator The unique locator for the desired proving key.
-     * @param {KeyLocator} verifierLocator The unique locator for the desired verifying key.
+     * @param {ProvingKeyLocator} proverLocator The locator for the proving key.
+     * @param {VerifyingKeyLocator} verifierLocator The locator for the verifying key.
      * @param {FunctionKeyPair} keys The proving and verifying keys.
      */
-    setKeys(proverLocator: KeyLocator, verifierLocator: KeyLocator, keys: FunctionKeyPair): Promise<void>;
+    setKeys(proverLocator: ProvingKeyLocator, verifierLocator: VerifyingKeyLocator, keys: FunctionKeyPair): Promise<void>;
 
     /**
-     * Store a raw proving or verifying key in storage along with its fingerprint metadata for future verification.
+     * Store a raw key in storage along with its fingerprint metadata for future verification.
      *
-     * @param {Uint8Array} keyBytes The raw proving and verifying key bytes.
-     * @param {KeyLocator} locator The unique locator for the desired key pair.
+     * @param {Uint8Array} keyBytes The raw key bytes.
+     * @param {KeyLocator} locator The unique locator for the desired key.
      * @returns {Promise<void>}
-     *
-     * @example
-     * const keys = await generateKeys();
-     * await setKeyBytes(keys.provingKey.toBytes(), {
-     *     keyId: { program: "credits.aleo", functionName: "transfer_private", edition: 1, network: "mainnet", keyType: "prover" }
-     * });
      */
     setKeyBytes(keyBytes: Uint8Array, locator: KeyLocator): Promise<void>;
 
     /**
      * Returns stored metadata for a key, if any.
      *
-     * @param {KeyId} keyId The unique key identifier.
+     * @param {KeyLocator} locator The unique locator for the key.
      * @returns {Promise<KeyFingerprint | null>} The stored fingerprint for that key, or null if none exists.
      */
-    getKeyMetadata(keyId: KeyId): Promise<KeyFingerprint | null>;
+    getKeyMetadata(locator: KeyLocator): Promise<KeyFingerprint | null>;
 
     /**
      * Determines if a given key exists or not.
      *
-     * @param {KeyId} keyId The unique key identifier.
+     * @param {KeyLocator} locator The unique locator for the key.
      * @returns {Promise<boolean>} True if the key exists, false otherwise.
      */
-    has(keyId: KeyId): Promise<boolean>;
+    has(locator: KeyLocator): Promise<boolean>;
 
     /**
-     * Deletes a key and its metadata corresponding to a given key identifier.
+     * Deletes a key and its metadata corresponding to a given locator.
      *
-     * @param {KeyId} keyId The unique key identifier.
+     * @param {KeyLocator} locator The unique locator for the key.
      * @returns {Promise<void>}
      */
-    delete(keyId: KeyId): Promise<void>;
+    delete(locator: KeyLocator): Promise<void>;
 
     /**
      * Clears all keys in the keystore.

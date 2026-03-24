@@ -5,7 +5,7 @@ import * as path from "path";
 import { FunctionKeyPair } from "../../models/keyPair.js";
 import { KeyFingerprint } from "../verifier/interface.js";
 import { InvalidLocatorError } from "./error.js";
-import { KeyId, KeyLocator, KeyStore, serializeKeyId } from "./interface.js";
+import { KeyLocator, KeyStore, ProvingKeyLocator, VerifyingKeyLocator } from "./interface.js";
 import { MemKeyVerifier } from "../verifier/memory.js";
 import { ProvingKey, VerifyingKey } from "../../wasm.js";
 
@@ -30,39 +30,69 @@ export class LocalFileKeyStore implements KeyStore {
     }
 
     /**
-     * Validates that a locator is a safe filesystem identifier.
+     * Validates a single locator component for unsafe filesystem characters.
      *
      * @private
-     * @param {string} locator - Unique identifier used to derive a metadata file path.
-     * @throws {InvalidLocatorError} If the locator could cause path traversal.
+     * @param {string} value - The component value to validate.
+     * @param {string} label - Label for error messages (e.g. "program", "functionName").
+     * @throws {InvalidLocatorError} If the value is empty, contains traversal sequences, path separators, or null bytes.
      */
-    private validateLocator(locator: string): void {
-        // Reject empty and reserved names that could resolve to the directory or parent
-        if (locator === "" || locator === "." || locator === "..") {
+    private validateComponent(value: string, label: string): void {
+        if (value === "") {
             throw new InvalidLocatorError(
-                `Invalid locator: reserved or empty name "${locator}"`,
-                locator,
+                `KeyLocator ${label} must not be empty`,
+                value,
                 "reserved_name"
             );
         }
-
-        // Explicitly block traversal attempts
-        if (locator.includes("..")) {
+        if (value.includes("..")) {
             throw new InvalidLocatorError(
-                "Invalid locator: path traversal detected",
-                locator,
+                `KeyLocator ${label} must not contain ".." (got "${value}")`,
+                value,
                 "path_traversal"
             );
         }
-
-        // Block path separators and null byte
-        if (locator.includes("/") || locator.includes("\\") || locator.includes("\0")) {
+        if (value.includes("/") || value.includes("\\") || value.includes("\0")) {
             throw new InvalidLocatorError(
-                "Invalid locator: path separator or null byte not allowed",
-                locator,
+                `KeyLocator ${label} must not contain path separators or null bytes (got "${value}")`,
+                value,
                 "path_separator"
             );
         }
+    }
+
+    /**
+     * Serializes a {@link KeyLocator} to a filesystem-safe flat string, validating components first.
+     *
+     * For prover/verifier keys: `{program}.{functionName}.e{edition}.a{amendment}.{network}.{keyType}`
+     * For translation keys: `{program}.{functionName}.e{edition}.a{amendment}.{network}.translation.{recordName}.{recordInputPosition}`
+     *
+     * @private
+     * @param {KeyLocator} locator - The key locator.
+     * @returns {string} A dot-delimited string safe for use as a filename.
+     * @throws {InvalidLocatorError} If any component contains unsafe characters.
+     */
+    private serializeLocator(locator: KeyLocator): string {
+        this.validateComponent(locator.program, "program");
+        this.validateComponent(locator.functionName, "functionName");
+        this.validateComponent(locator.network, "network");
+        const base = `${locator.program}.${locator.functionName}.e${locator.edition}.a${locator.amendment}.${locator.network}.${locator.keyType}`;
+        if (locator.keyType === "translation") {
+            this.validateComponent(locator.recordName, "recordName");
+            return `${base}.${locator.recordName}.${locator.recordInputPosition}`;
+        }
+        return base;
+    }
+
+    /**
+     * Converts an optional checksum string from a locator into a KeyFingerprint
+     * suitable for the key verifier, using the actual key byte length for size.
+     *
+     * @private
+     */
+    private checksumToFingerprint(checksum: string | undefined, keyBytes: Uint8Array): KeyFingerprint | undefined {
+        if (!checksum) return undefined;
+        return { checksum, size: keyBytes.length };
     }
 
     /**
@@ -136,7 +166,7 @@ export class LocalFileKeyStore implements KeyStore {
             throw err;
         }
     }
-    
+
     /**
      * Atomically writes data to a file, ensuring the parent directories exist.
      *
@@ -204,24 +234,14 @@ export class LocalFileKeyStore implements KeyStore {
     // -------------------------------------------------------
 
     /**
-     * Retrieves the key bytes from storage and optionally verifies them against a fingerprint.
+     * Retrieves the key bytes from storage and optionally verifies them.
      *
-     * @param {KeyLocator} locator - Object containing a key identifier and optional fingerprint for verification.
-     * @returns {Promise<Uint8Array | null>} The key bytes if found and verified (if fingerprint provided), null if not found.
-     * @throws {KeyVerificationError} If fingerprint verification fails.
-     *
-     * @example
-     * const keyBytes = await getKeyBytes({
-     *   keyId: { program: "credits.aleo", functionName: "transfer_private", edition: 1, network: "mainnet", keyType: "prover" },
-     *   fingerprint: { checksum: '421e5a5...', size: 116746954 }
-     * });
-     * if (keyBytes) {
-     *   // Use the verified key bytes
-     * }
+     * @param {KeyLocator} locator - The key locator with optional checksum for verification.
+     * @returns {Promise<Uint8Array | null>} The key bytes if found and verified, null if not found.
+     * @throws {KeyVerificationError} If verification fails.
      */
     async getKeyBytes(locator: KeyLocator): Promise<Uint8Array | null> {
-        const fileKey = serializeKeyId(locator.keyId);
-        this.validateLocator(fileKey);
+        const fileKey = this.serializeLocator(locator);
 
         // Attempt to read key bytes from storage (under this.directory).
         const keyBytes = await this.readFileOptional(path.join(this.directory, fileKey));
@@ -229,9 +249,9 @@ export class LocalFileKeyStore implements KeyStore {
         // If no key bytes were found, return null.
         if (!keyBytes) return null;
 
-        // Use caller-provided fingerprint or metadata stored on disk for verification.
+        // Use caller-provided checksum or metadata stored on disk for verification.
         const fingerprint =
-            locator.fingerprint ?? (await this.getKeyMetadata(locator.keyId));
+            this.checksumToFingerprint(locator.checksum, keyBytes) ?? (await this.getKeyMetadata(locator));
         if (fingerprint) {
             await this.keyVerifier.verifyKeyBytes({
                 keyBytes,
@@ -247,93 +267,45 @@ export class LocalFileKeyStore implements KeyStore {
     /**
      * Retrieves and verifies a proving key from storage.
      *
-     * @param {KeyLocator} locator - Object containing the proving key identifier and optional fingerprint.
+     * @param {KeyLocator} locator - The key locator.
      * @returns {Promise<ProvingKey | null>} The proving key if found and verified, null if not found.
-     * @throws {KeyVerificationError} If fingerprint verification fails.
+     * @throws {KeyVerificationError} If verification fails.
      * @throws {Error} If key bytes cannot be parsed into a valid ProvingKey.
-     *
-     * @example
-     * try {
-     *   const key = await getProvingKey({
-     *     keyId: { program: "credits.aleo", functionName: "transfer_private", edition: 1, network: "mainnet", keyType: "prover" }
-     *   });
-     *   if (key) {
-     *     // Use the verified proving key
-     *   }
-     * } catch (err) {
-     *   if (err instanceof KeyVerificationError) {
-     *     // Handle verification failure.
-     *   } else {
-     *     // Handle key parsing error.
-     *   }
-     * }
      */
     async getProvingKey(locator: KeyLocator): Promise<ProvingKey | null> {
-        // Get the key bytes from storage.
         const proverBytes = await this.getKeyBytes(locator);
         if (!proverBytes) return null;
-
-        // Attempt to parse the key bytes as a WASM ProvingKey (throws if invalid).
         return ProvingKey.fromBytes(proverBytes);
     }
 
     /**
      * Retrieves and verifies a verifying key from storage.
      *
-     * @param {KeyLocator} locator - Object containing the verifying key identifier and optional fingerprint.
+     * @param {KeyLocator} locator - The key locator.
      * @returns {Promise<VerifyingKey | null>} The verifying key if found and verified, null if not found.
-     * @throws {KeyVerificationError} If fingerprint verification fails.
+     * @throws {KeyVerificationError} If verification fails.
      * @throws {Error} If key bytes cannot be parsed into a valid VerifyingKey.
-     *
-     * @example
-     * try {
-     *   const key = await getVerifyingKey({
-     *     keyId: { program: "credits.aleo", functionName: "transfer_private", edition: 1, network: "mainnet", keyType: "verifier" }
-     *   });
-     *   if (key) {
-     *     // Use the verified verifying key
-     *   }
-     * } catch (err) {
-     *   if (err instanceof KeyVerificationError) {
-     *     // Handle verification failure.
-     *   } else {
-     *     // Handle key parsing error.
-     *   }
-     * }
      */
     async getVerifyingKey(locator: KeyLocator): Promise<VerifyingKey | null> {
-        // Get the key bytes from storage.
         const verifierBytes = await this.getKeyBytes(locator);
         if (!verifierBytes) return null;
-
-        // Attempt to parse the key bytes as a WASM VerifyingKey (throws if invalid).
         return VerifyingKey.fromBytes(verifierBytes);
     }
 
     /**
      * Stores proving and verifying keys in key storage.
      *
-     * @param {KeyLocator} proverLocator The unique locator for the desired proving key.
-     * @param {KeyLocator} verifierLocator The unique locator for the desired verifying key.
+     * @param {ProvingKeyLocator} proverLocator The locator for the proving key.
+     * @param {VerifyingKeyLocator} verifierLocator The locator for the verifying key.
      * @param {FunctionKeyPair} keys The proving and verifying keys.
-     *
-     * @example
-     * const keys = await generateKeys();
-     * await setKeys(
-     *   { keyId: { program: "credits.aleo", functionName: "transfer_private", edition: 1, network: "mainnet", keyType: "prover" } },
-     *   { keyId: { program: "credits.aleo", functionName: "transfer_private", edition: 1, network: "mainnet", keyType: "verifier" } },
-     *   keys
-     * );
      */
     async setKeys(
-        proverLocator: KeyLocator,
-        verifierLocator: KeyLocator,
+        proverLocator: ProvingKeyLocator,
+        verifierLocator: VerifyingKeyLocator,
         keys: FunctionKeyPair,
     ): Promise<void> {
-        const proverKey = serializeKeyId(proverLocator.keyId);
-        const verifierKey = serializeKeyId(verifierLocator.keyId);
-        this.validateLocator(proverKey);
-        this.validateLocator(verifierKey);
+        const proverKey = this.serializeLocator(proverLocator);
+        const verifierKey = this.serializeLocator(verifierLocator);
 
         // Convert the WASM keys to raw bytes.
         const [provingKey, verifyingKey] = keys;
@@ -342,17 +314,17 @@ export class LocalFileKeyStore implements KeyStore {
             verifyingKey.toBytes(),
         ];
 
-        // Compute the fingerprints for the proving and verifying keys, verify against expected fingerprints if provided.
+        // Compute the fingerprints for the proving and verifying keys, verify against expected checksums if provided.
         const [proverFingerPrint, verifierFingerPrint] = await Promise.all([
             this.keyVerifier.computeKeyMetadata({
                 keyBytes: provingKeyBytes,
                 locator: proverKey,
-                fingerprint: proverLocator.fingerprint,
+                fingerprint: this.checksumToFingerprint(proverLocator.checksum, provingKeyBytes),
             }),
             this.keyVerifier.computeKeyMetadata({
                 keyBytes: verifyingKeyBytes,
                 locator: verifierKey,
-                fingerprint: verifierLocator.fingerprint,
+                fingerprint: this.checksumToFingerprint(verifierLocator.checksum, verifyingKeyBytes),
             }),
         ]);
 
@@ -364,28 +336,21 @@ export class LocalFileKeyStore implements KeyStore {
     }
 
     /**
-     * Store a raw proving or verifying key in storage along with its fingerprint metadata for future verification.
+     * Store a raw key in storage along with its fingerprint metadata for future verification.
      *
-     * @param {Uint8Array} keyBytes The raw proving and verifying key bytes.
-     * @param {KeyLocator} locator The unique locator for the desired key pair.
+     * @param {Uint8Array} keyBytes The raw key bytes.
+     * @param {KeyLocator} locator The unique locator for the key.
      * @returns {Promise<void>}
      * @throws {Error} If computing key metadata or writing to storage fails
-     *
-     * @example
-     * const keys = await generateKeys();
-     * await setKeyBytes(keys.provingKey.toBytes(), {
-     *     keyId: { program: "credits.aleo", functionName: "transfer_private", edition: 1, network: "mainnet", keyType: "prover" }
-     * });
      */
     async setKeyBytes(keyBytes: Uint8Array, locator: KeyLocator): Promise<void> {
-        const fileKey = serializeKeyId(locator.keyId);
-        this.validateLocator(fileKey);
+        const fileKey = this.serializeLocator(locator);
 
         // Compute the key metadata including fingerprint
         const computedMetadata = await this.keyVerifier.computeKeyMetadata({
             keyBytes: keyBytes,
             locator: fileKey,
-            fingerprint: locator.fingerprint,
+            fingerprint: this.checksumToFingerprint(locator.checksum, keyBytes),
         });
 
         // Write the key bytes and metadata atomically (key file under this.directory).
@@ -396,38 +361,22 @@ export class LocalFileKeyStore implements KeyStore {
     /**
      * Returns stored metadata for a key, if any.
      *
-     * @param {KeyId} keyId The unique key identifier.
-     * @returns {Promise<KeyFingerprint | null>} The stored fingerprint metadata for that key, or null if none exists.
-     *
-     * @example
-     * const metadata = await getKeyMetadata({ program: "credits.aleo", functionName: "transfer_private", edition: 1, network: "mainnet", keyType: "prover" });
-     * if (metadata) {
-     *   // Use the stored metadata.
-     * }
+     * @param {KeyLocator} locator The unique locator for the key.
+     * @returns {Promise<KeyFingerprint | null>} The stored fingerprint metadata, or null if none exists.
      */
-    async getKeyMetadata(keyId: KeyId): Promise<KeyFingerprint | null> {
-        const fileKey = serializeKeyId(keyId);
-        this.validateLocator(fileKey);
+    async getKeyMetadata(locator: KeyLocator): Promise<KeyFingerprint | null> {
+        const fileKey = this.serializeLocator(locator);
         return this.readKeyMetadata(fileKey);
     }
 
     /**
-     * Checks if a key exists for the given key identifier.
+     * Checks if a key exists for the given locator.
      *
-     * @param {KeyId} keyId - The unique key identifier.
+     * @param {KeyLocator} locator - The unique key locator.
      * @returns {Promise<boolean>} True if key exists, false otherwise.
-     *
-     * @example
-     * const exists = await has({ program: "credits.aleo", functionName: "transfer_private", edition: 1, network: "mainnet", keyType: "prover" });
-     * if (exists) {
-     *   // Key exists.
-     * } else {
-     *   // Key does not exist.
-     * }
      */
-    async has(keyId: KeyId): Promise<boolean> {
-        const fileKey = serializeKeyId(keyId);
-        this.validateLocator(fileKey);
+    async has(locator: KeyLocator): Promise<boolean> {
+        const fileKey = this.serializeLocator(locator);
         const keyPath = path.join(this.directory, fileKey);
         return await fs
             .access(keyPath)
@@ -438,15 +387,11 @@ export class LocalFileKeyStore implements KeyStore {
     /**
      * Deletes a key and its associated metadata from storage. Silently ignores errors if files don't exist.
      *
-     * @param {KeyId} keyId - The unique key identifier.
+     * @param {KeyLocator} locator - The unique key locator.
      * @returns {Promise<void>}
-     *
-     * @example
-     * await store.delete({ program: "credits.aleo", functionName: "transfer_private", edition: 1, network: "mainnet", keyType: "prover" });
      */
-    async delete(keyId: KeyId): Promise<void> {
-        const fileKey = serializeKeyId(keyId);
-        this.validateLocator(fileKey);
+    async delete(locator: KeyLocator): Promise<void> {
+        const fileKey = this.serializeLocator(locator);
         const p = path.join(this.directory, fileKey);
         const m = this.metadataPath(fileKey);
 
@@ -459,9 +404,6 @@ export class LocalFileKeyStore implements KeyStore {
      *
      * @returns {Promise<void>}
      * @throws {Error} If directory listing fails for reasons other than non-existence.
-     *
-     * @example
-     * await clear(); // Removes all files under the keystore directory.
      */
     async clear(): Promise<void> {
         await this.clearDirectory(this.directory);
