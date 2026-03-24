@@ -38,6 +38,6 @@
     "wasm-pack": "^0.13.1"
   },
   "dependencies": {
-    "@provablehq/wasm": "^0.9.17"
+    "@provablehq/wasm": "^0.9.18"
   }
 }
