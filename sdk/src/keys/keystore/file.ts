@@ -67,6 +67,9 @@ export class LocalFileKeyStore implements KeyStore {
      * For prover/verifier keys: `{program}.{functionName}.e{edition}.a{amendment}.{network}.{keyType}`
      * For translation keys: `{program}.{functionName}.e{edition}.a{amendment}.{network}.translation.{recordName}.{recordInputPosition}`
      *
+     * Note: The optional `checksum` field is excluded — it is used for integrity verification only
+     * (via {@link checksumToFingerprint}) and is not part of the key identity.
+     *
      * @private
      * @param {KeyLocator} locator - The key locator.
      * @returns {string} A dot-delimited string safe for use as a filename.

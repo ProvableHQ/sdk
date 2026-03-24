@@ -17,7 +17,7 @@ export type KeyType = "prover" | "verifier" | "translation";
  * @property {number} edition - The program edition (u16). Incremented when a program is re-deployed.
  * @property {number} amendment - The program amendment. Reserved for future protocol-level amendments; defaults to 0.
  * @property {string} network - The network name (e.g. "mainnet", "testnet").
- * @property {string} [checksum] - Optional SHA-256 checksum for key verification. Used for verification only; not part of the key identity or serialized form.
+ * @property {string} [checksum] - Optional SHA-256 checksum for key verification. Used for integrity verification only; not part of the key identity or serialized form.
  */
 export interface BaseFunctionKeyLocator {
     program: string;
@@ -72,6 +72,7 @@ export type KeyLocator = ProvingKeyLocator | VerifyingKeyLocator | TranslationKe
  * @param {number} [edition=1] - The program edition.
  * @param {number} [amendment=0] - The program amendment.
  * @param {string} [network] - The network name. Defaults to the build-time network.
+ * @param {string} [checksum] - Optional SHA-256 checksum for key verification.
  * @returns {ProvingKeyLocator}
  */
 export function provingKeyLocator(
@@ -80,8 +81,9 @@ export function provingKeyLocator(
     edition = 1,
     amendment = 0,
     network = "%%NETWORK%%",
+    checksum?: string,
 ): ProvingKeyLocator {
-    return { program, functionName, edition, amendment, network, keyType: "prover" };
+    return { program, functionName, edition, amendment, network, keyType: "prover", ...(checksum !== undefined && { checksum }) };
 }
 
 /**
@@ -92,6 +94,7 @@ export function provingKeyLocator(
  * @param {number} [edition=1] - The program edition.
  * @param {number} [amendment=0] - The program amendment.
  * @param {string} [network] - The network name. Defaults to the build-time network.
+ * @param {string} [checksum] - Optional SHA-256 checksum for key verification.
  * @returns {VerifyingKeyLocator}
  */
 export function verifyingKeyLocator(
@@ -100,8 +103,9 @@ export function verifyingKeyLocator(
     edition = 1,
     amendment = 0,
     network = "%%NETWORK%%",
+    checksum?: string,
 ): VerifyingKeyLocator {
-    return { program, functionName, edition, amendment, network, keyType: "verifier" };
+    return { program, functionName, edition, amendment, network, keyType: "verifier", ...(checksum !== undefined && { checksum }) };
 }
 
 /**
@@ -114,6 +118,7 @@ export function verifyingKeyLocator(
  * @param {number} [edition=1] - The program edition.
  * @param {number} [amendment=0] - The program amendment.
  * @param {string} [network] - The network name. Defaults to the build-time network.
+ * @param {string} [checksum] - Optional SHA-256 checksum for key verification.
  * @returns {TranslationKeyLocator}
  */
 export function translationKeyLocator(
@@ -124,8 +129,9 @@ export function translationKeyLocator(
     edition = 1,
     amendment = 0,
     network = "%%NETWORK%%",
+    checksum?: string,
 ): TranslationKeyLocator {
-    return { program, functionName, edition, amendment, network, keyType: "translation", recordName, recordInputPosition };
+    return { program, functionName, edition, amendment, network, keyType: "translation", recordName, recordInputPosition, ...(checksum !== undefined && { checksum }) };
 }
 
 export interface KeyStore {

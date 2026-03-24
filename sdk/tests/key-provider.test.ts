@@ -19,7 +19,7 @@ import * as path from "path";
 import { provingKeyLocator, verifyingKeyLocator, translationKeyLocator } from "../src/keys/keystore/interface.js";
 import type { KeyLocator, ProvingKeyLocator, VerifyingKeyLocator } from "../src/keys/keystore/interface.js";
 
-/** Test helper: mirrors the serialization format used by LocalFileKeyStore. */
+/** Test helper: mirrors the serialization format used by LocalFileKeyStore (checksum excluded). */
 function serializeLocator(loc: KeyLocator): string {
     const base = `${loc.program}.${loc.functionName}.e${loc.edition}.a${loc.amendment}.${loc.network}.${loc.keyType}`;
     if (loc.keyType === "translation") {
@@ -228,6 +228,27 @@ describe("KeyStore (file) – LocalFileKeyStore", () => {
             expect(loc.amendment).equal(2);
             expect(loc.network).equal("testnet");
         });
+
+        it("provingKeyLocator passes through optional checksum", () => {
+            const loc = provingKeyLocator("credits.aleo", "transfer_private", 1, 0, "mainnet", "abc123");
+            expect(loc.checksum).equal("abc123");
+        });
+
+        it("verifyingKeyLocator passes through optional checksum", () => {
+            const loc = verifyingKeyLocator("credits.aleo", "transfer_private", 1, 0, "mainnet", "def456");
+            expect(loc.checksum).equal("def456");
+        });
+
+        it("translationKeyLocator passes through optional checksum", () => {
+            const loc = translationKeyLocator("credits.aleo", "transfer_private", "credits", 0, 1, 0, "mainnet", "ghi789");
+            expect(loc.checksum).equal("ghi789");
+        });
+
+        it("factory functions omit checksum when not provided", () => {
+            expect(provingKeyLocator("p.aleo", "f").checksum).equal(undefined);
+            expect(verifyingKeyLocator("p.aleo", "f").checksum).equal(undefined);
+            expect(translationKeyLocator("p.aleo", "f", "rec", 0).checksum).equal(undefined);
+        });
     });
 
     describe("store-level locator validation (defense-in-depth)", () => {
@@ -299,6 +320,13 @@ describe("KeyStore (file) – LocalFileKeyStore", () => {
         it("translation locators serialize with record info", () => {
             const loc = translationKeyLocator("credits.aleo", "transfer_private", "credits", 0, 1, 0, "mainnet");
             expect(serializeLocator(loc)).equal("credits.aleo.transfer_private.e1.a0.mainnet.translation.credits.0");
+        });
+
+        it("checksum is excluded from serialized locator", () => {
+            const loc = provingKeyLocator("credits.aleo", "transfer_private", 1, 0, "mainnet", "abc123");
+            expect(serializeLocator(loc)).equal("credits.aleo.transfer_private.e1.a0.mainnet.prover");
+            const tloc = translationKeyLocator("credits.aleo", "transfer_private", "credits", 0, 1, 0, "mainnet", "xyz789");
+            expect(serializeLocator(tloc)).equal("credits.aleo.transfer_private.e1.a0.mainnet.translation.credits.0");
         });
     });
 
@@ -794,6 +822,7 @@ describe("Key verifier with LocalFileKeyStore (checksum verification on read)", 
             await keystore.clear();
             await keystore.setKeyBytes(keyBytes, loc);
 
+            // Read back with a matching checksum — verification should pass.
             const readWithChecksum = await keystore.getKeyBytes({
                 ...loc,
                 checksum: fingerprint.checksum,
@@ -817,6 +846,7 @@ describe("Key verifier with LocalFileKeyStore (checksum verification on read)", 
             await keystore.clear();
             await keystore.setKeyBytes(keyBytes, loc);
 
+            // Read back with a wrong checksum — verification should fail.
             let thrown: KeyVerificationError | undefined;
             try {
                 await keystore.getKeyBytes({
