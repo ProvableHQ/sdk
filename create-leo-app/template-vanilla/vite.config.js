@@ -1,9 +1,9 @@
 import { defineConfig } from "vite";
 
 export default defineConfig({
-    assetsInclude: ['**/*.wasm'],
+    assetsInclude: ["**/*.wasm"],
     optimizeDeps: {
-        exclude: ["@provablehq/wasm",],
+        exclude: ["@provablehq/wasm"],
     },
     server: {
         headers: {

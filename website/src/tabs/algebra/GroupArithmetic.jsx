@@ -1,4 +1,4 @@
-import {useMemo, useState} from "react";
+import { useMemo, useState } from "react";
 import { Card, Divider, Form, Input, Select, Radio, Button } from "antd";
 import { CopyButton } from "../../components/CopyButton";
 import { useAleoWASM } from "../../aleo-wasm-hook";
@@ -67,13 +67,28 @@ export const GroupArithmetic = () => {
 
     const onScalarChange = (event) => {
         setScalarValue(event.target.value);
-        calculateResult(groupValueOne, groupValueTwo, operation, event.target.value);
+        calculateResult(
+            groupValueOne,
+            groupValueTwo,
+            operation,
+            event.target.value,
+        );
     };
 
-    const calculateResult = (group1Str, group2Str, op, scalar = scalarValue) => {
-        if ((op === "scalar mul" && (group1Str === "" || scalar === "")) || 
-            (op !== "scalar mul" && op !== "neg" && op !== "double" && (group1Str === "" || group2Str === "")) ||
-            ((op === "neg" || op === "double") && group1Str === "")) {
+    const calculateResult = (
+        group1Str,
+        group2Str,
+        op,
+        scalar = scalarValue,
+    ) => {
+        if (
+            (op === "scalar mul" && (group1Str === "" || scalar === "")) ||
+            (op !== "scalar mul" &&
+                op !== "neg" &&
+                op !== "double" &&
+                (group1Str === "" || group2Str === "")) ||
+            ((op === "neg" || op === "double") && group1Str === "")
+        ) {
             setResult("");
             return;
         }
@@ -82,10 +97,10 @@ export const GroupArithmetic = () => {
             let group1String = group1Str;
             let group2String = group2Str;
             if (!group1String.includes("group")) {
-                group1String = group1Str + "group"
+                group1String = group1Str + "group";
             }
             if (!group2String.includes("group")) {
-                group2String = group1Str + "group"
+                group2String = group1Str + "group";
             }
             const group1 = wasm.Group.fromString(group1String);
             let resultGroup;
@@ -156,24 +171,25 @@ export const GroupArithmetic = () => {
         const newValue = generateRandomScalar();
         setScalarValue(newValue);
         calculateResult(groupValueOne, groupValueTwo, operation, newValue);
-    }
+    };
 
-    const layout = { 
-        labelCol: { span: 6 }, 
+    const layout = {
+        labelCol: { span: 6 },
         wrapperCol: { span: 18 },
-        style: { marginBottom: '24px' }
+        style: { marginBottom: "24px" },
     };
 
     return (
-        <Card
-            title="Eliptic Curve Group Arithmetic"
-            style={{ width: "100%" }}
-        >
+        <Card title="Eliptic Curve Group Arithmetic" style={{ width: "100%" }}>
             <Form {...layout}>
-                <Form.Item 
-                    label={<span style={{ whiteSpace: 'nowrap' }}>Group Element 1</span>}
+                <Form.Item
+                    label={
+                        <span style={{ whiteSpace: "nowrap" }}>
+                            Group Element 1
+                        </span>
+                    }
                     colon={false}
-                    style={{ marginBottom: '24px' }}
+                    style={{ marginBottom: "24px" }}
                 >
                     <Input.Group compact>
                         <Input
@@ -183,36 +199,38 @@ export const GroupArithmetic = () => {
                             allowClear
                             value={groupValueOne}
                             onChange={onFirstGroupChange}
-                            style={{ width: 'calc(100% - 220px)' }}
+                            style={{ width: "calc(100% - 220px)" }}
                         />
-                        <Button 
+                        <Button
                             size="large"
                             onClick={onRandomGroupOne}
-                            style={{ width: '110px' }}
+                            style={{ width: "110px" }}
                         >
                             Random
                         </Button>
-                        <Button 
+                        <Button
                             size="large"
                             onClick={onGeneratorOne}
-                            style={{ width: '110px' }}
+                            style={{ width: "110px" }}
                         >
                             Generator
                         </Button>
                     </Input.Group>
                 </Form.Item>
 
-                <Form.Item 
-                    label={<span style={{ whiteSpace: 'nowrap' }}>Operation</span>}
+                <Form.Item
+                    label={
+                        <span style={{ whiteSpace: "nowrap" }}>Operation</span>
+                    }
                     colon={false}
-                    style={{ marginBottom: '24px' }}
+                    style={{ marginBottom: "24px" }}
                 >
                     <Radio.Group
                         value={operation}
                         onChange={(e) => onOperationChange(e.target.value)}
                         size="large"
                     >
-                        {operations.map(op => (
+                        {operations.map((op) => (
                             <Radio.Button key={op.value} value={op.value}>
                                 {op.label}
                             </Radio.Button>
@@ -220,11 +238,17 @@ export const GroupArithmetic = () => {
                     </Radio.Group>
                 </Form.Item>
 
-                {operation !== "scalar mul" && operation !== "neg" && operation !== "double" ? (
-                    <Form.Item 
-                        label={<span style={{ whiteSpace: 'nowrap' }}>Group Element 2</span>}
+                {operation !== "scalar mul" &&
+                operation !== "neg" &&
+                operation !== "double" ? (
+                    <Form.Item
+                        label={
+                            <span style={{ whiteSpace: "nowrap" }}>
+                                Group Element 2
+                            </span>
+                        }
                         colon={false}
-                        style={{ marginBottom: '24px' }}
+                        style={{ marginBottom: "24px" }}
                     >
                         <Input.Group compact>
                             <Input
@@ -234,29 +258,31 @@ export const GroupArithmetic = () => {
                                 value={groupValueTwo}
                                 allowClear={true}
                                 onChange={onSecondGroupChange}
-                                style={{ width: 'calc(100% - 220px)' }}
+                                style={{ width: "calc(100% - 220px)" }}
                             />
-                            <Button 
+                            <Button
                                 size="large"
                                 onClick={onRandomGroupTwo}
-                                style={{ width: '110px' }}
+                                style={{ width: "110px" }}
                             >
                                 Random
                             </Button>
-                            <Button 
+                            <Button
                                 size="large"
                                 onClick={onGeneratorTwo}
-                                style={{ width: '110px' }}
+                                style={{ width: "110px" }}
                             >
                                 Generator
                             </Button>
                         </Input.Group>
                     </Form.Item>
                 ) : operation === "scalar mul" ? (
-                    <Form.Item 
-                        label={<span style={{ whiteSpace: 'nowrap' }}>Scalar</span>}
+                    <Form.Item
+                        label={
+                            <span style={{ whiteSpace: "nowrap" }}>Scalar</span>
+                        }
                         colon={false}
-                        style={{ marginBottom: '24px' }}
+                        style={{ marginBottom: "24px" }}
                     >
                         <Input.Group compact>
                             <Input
@@ -266,12 +292,12 @@ export const GroupArithmetic = () => {
                                 allowClear
                                 value={scalarValue}
                                 onChange={onScalarChange}
-                                style={{ width: 'calc(100% - 110px)' }}
+                                style={{ width: "calc(100% - 110px)" }}
                             />
-                            <Button 
+                            <Button
                                 size="large"
                                 onClick={onScalarRandom}
-                                style={{ width: '110px' }}
+                                style={{ width: "110px" }}
                             >
                                 Random
                             </Button>
@@ -280,18 +306,16 @@ export const GroupArithmetic = () => {
                 ) : null}
 
                 <Divider />
-                <Form.Item 
-                    label={<span style={{ whiteSpace: 'nowrap' }}>Result</span>}
+                <Form.Item
+                    label={<span style={{ whiteSpace: "nowrap" }}>Result</span>}
                     colon={false}
-                    style={{ marginBottom: '24px' }}
+                    style={{ marginBottom: "24px" }}
                 >
                     <Input
                         size="large"
                         placeholder="Result will appear here"
                         value={result}
-                        addonAfter={
-                            <CopyButton data={result} />
-                        }
+                        addonAfter={<CopyButton data={result} />}
                         disabled
                     />
                 </Form.Item>

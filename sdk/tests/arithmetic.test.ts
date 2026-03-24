@@ -1,15 +1,34 @@
 import sinon from "sinon";
 import { expect } from "chai";
-import { Field, Scalar, Group, Boolean, I8, I16, I32, I64, I128, U8, U16, U32, U64, U128} from "../src/node.js";
-import { FieldGenerator, GroupGenerator, ScalarGenerator } from "./data/algebra.js";
+import {
+    Field,
+    Scalar,
+    Group,
+    Boolean,
+    I8,
+    I16,
+    I32,
+    I64,
+    I128,
+    U8,
+    U16,
+    U32,
+    U64,
+    U128,
+} from "../src/node.js";
+import {
+    FieldGenerator,
+    GroupGenerator,
+    ScalarGenerator,
+} from "./data/algebra.js";
 
-describe('Field and Group Arithmetic Tests', () => {
+describe("Field and Group Arithmetic Tests", () => {
     afterEach(() => {
         sinon.restore();
     });
 
-    describe('Field and Group arithmetic', () => {
-        it('Check field arithmetic functions work as expected', () => {
+    describe("Field and Group arithmetic", () => {
+        it("Check field arithmetic functions work as expected", () => {
             // Create the 2 field element.
             const a = Field.fromString("2field");
             // Create the inverse of the 2 field element.
@@ -44,7 +63,7 @@ describe('Field and Group Arithmetic Tests', () => {
             expect(two_power_four.equals(two_times_eight)).equal(true);
         });
 
-        it('Check boolean creation and serialization', () => {
+        it("Check boolean creation and serialization", () => {
             const t = Boolean.fromString("true");
             const f = Boolean.fromString("false");
 
@@ -70,7 +89,7 @@ describe('Field and Group Arithmetic Tests', () => {
             expect(f.equals(fFromBits)).equals(true);
         });
 
-        it('Check boolean logical operations', () => {
+        it("Check boolean logical operations", () => {
             const t = new Boolean(true);
             const f = new Boolean(false);
 
@@ -96,7 +115,7 @@ describe('Field and Group Arithmetic Tests', () => {
             expect(t.nor(f).toString()).equals("false");
         });
 
-        it('Check I8 serialization and arithmetic', () => {
+        it("Check I8 serialization and arithmetic", () => {
             const i8 = I8.fromString("42i8");
             const i8Clone = i8.clone();
 
@@ -146,7 +165,7 @@ describe('Field and Group Arithmetic Tests', () => {
             expect(base.powU32(U32.fromString("3u32")).toString()).equal("8i8");
         });
 
-        it('Check I16 serialization and arithmetic', () => {
+        it("Check I16 serialization and arithmetic", () => {
             const i16 = I16.fromString("42i16");
             const i16Clone = i16.clone();
 
@@ -192,11 +211,15 @@ describe('Field and Group Arithmetic Tests', () => {
 
             const base = I16.fromString("2i16");
             expect(base.powU8(U8.fromString("3u8")).toString()).equal("8i16");
-            expect(base.powU16(U16.fromString("3u16")).toString()).equal("8i16");
-            expect(base.powU32(U32.fromString("3u32")).toString()).equal("8i16");
+            expect(base.powU16(U16.fromString("3u16")).toString()).equal(
+                "8i16",
+            );
+            expect(base.powU32(U32.fromString("3u32")).toString()).equal(
+                "8i16",
+            );
         });
 
-        it('Check I32 serialization and arithmetic', () => {
+        it("Check I32 serialization and arithmetic", () => {
             const i32 = I32.fromString("42i32");
             const i32Clone = i32.clone();
 
@@ -242,11 +265,15 @@ describe('Field and Group Arithmetic Tests', () => {
 
             const base = I32.fromString("2i32");
             expect(base.powU8(U8.fromString("3u8")).toString()).equal("8i32");
-            expect(base.powU16(U16.fromString("3u16")).toString()).equal("8i32");
-            expect(base.powU32(U32.fromString("3u32")).toString()).equal("8i32");
+            expect(base.powU16(U16.fromString("3u16")).toString()).equal(
+                "8i32",
+            );
+            expect(base.powU32(U32.fromString("3u32")).toString()).equal(
+                "8i32",
+            );
         });
 
-        it('Check I64 serialization and arithmetic', () => {
+        it("Check I64 serialization and arithmetic", () => {
             const i64 = I64.fromString("42i64");
             const i64Clone = i64.clone();
 
@@ -292,11 +319,15 @@ describe('Field and Group Arithmetic Tests', () => {
 
             const base = I64.fromString("2i64");
             expect(base.powU8(U8.fromString("3u8")).toString()).equal("8i64");
-            expect(base.powU16(U16.fromString("3u16")).toString()).equal("8i64");
-            expect(base.powU32(U32.fromString("3u32")).toString()).equal("8i64");
+            expect(base.powU16(U16.fromString("3u16")).toString()).equal(
+                "8i64",
+            );
+            expect(base.powU32(U32.fromString("3u32")).toString()).equal(
+                "8i64",
+            );
         });
 
-        it('Check I128 serialization and arithmetic', () => {
+        it("Check I128 serialization and arithmetic", () => {
             const i128 = I128.fromString("42i128");
             const i128Clone = i128.clone();
 
@@ -342,11 +373,15 @@ describe('Field and Group Arithmetic Tests', () => {
 
             const base = I128.fromString("2i128");
             expect(base.powU8(U8.fromString("3u8")).toString()).equal("8i128");
-            expect(base.powU16(U16.fromString("3u16")).toString()).equal("8i128");
-            expect(base.powU32(U32.fromString("3u32")).toString()).equal("8i128");
+            expect(base.powU16(U16.fromString("3u16")).toString()).equal(
+                "8i128",
+            );
+            expect(base.powU32(U32.fromString("3u32")).toString()).equal(
+                "8i128",
+            );
         });
 
-        it('Check U8 serialization and arithmetic', () => {
+        it("Check U8 serialization and arithmetic", () => {
             const u8 = U8.fromString("42u8");
             const u8Clone = u8.clone();
 
@@ -393,7 +428,7 @@ describe('Field and Group Arithmetic Tests', () => {
             expect(base.powU32(U32.fromString("3u32")).toString()).equal("8u8");
         });
 
-        it('Check U16 serialization and arithmetic', () => {
+        it("Check U16 serialization and arithmetic", () => {
             const u16 = U16.fromString("42u16");
             const u16Clone = u16.clone();
 
@@ -436,11 +471,15 @@ describe('Field and Group Arithmetic Tests', () => {
 
             const base = U16.fromString("2u16");
             expect(base.powU8(U8.fromString("3u8")).toString()).equal("8u16");
-            expect(base.powU16(U16.fromString("3u16")).toString()).equal("8u16");
-            expect(base.powU32(U32.fromString("3u32")).toString()).equal("8u16");
+            expect(base.powU16(U16.fromString("3u16")).toString()).equal(
+                "8u16",
+            );
+            expect(base.powU32(U32.fromString("3u32")).toString()).equal(
+                "8u16",
+            );
         });
 
-        it('Check U32 serialization and arithmetic', () => {
+        it("Check U32 serialization and arithmetic", () => {
             const u32 = U32.fromString("42u32");
             const u32Clone = u32.clone();
 
@@ -483,12 +522,15 @@ describe('Field and Group Arithmetic Tests', () => {
 
             const base = U32.fromString("2u32");
             expect(base.powU8(U8.fromString("3u8")).toString()).equal("8u32");
-            expect(base.powU16(U16.fromString("3u16")).toString()).equal("8u32");
-            expect(base.powU32(U32.fromString("3u32")).toString()).equal("8u32");
+            expect(base.powU16(U16.fromString("3u16")).toString()).equal(
+                "8u32",
+            );
+            expect(base.powU32(U32.fromString("3u32")).toString()).equal(
+                "8u32",
+            );
         });
 
-
-        it('Check U64 serialization and arithmetic', () => {
+        it("Check U64 serialization and arithmetic", () => {
             const u64 = U64.fromString("42u64");
             const u64Clone = u64.clone();
 
@@ -531,11 +573,15 @@ describe('Field and Group Arithmetic Tests', () => {
 
             const base = U64.fromString("2u64");
             expect(base.powU8(U8.fromString("3u8")).toString()).equal("8u64");
-            expect(base.powU16(U16.fromString("3u16")).toString()).equal("8u64");
-            expect(base.powU32(U32.fromString("3u32")).toString()).equal("8u64");
+            expect(base.powU16(U16.fromString("3u16")).toString()).equal(
+                "8u64",
+            );
+            expect(base.powU32(U32.fromString("3u32")).toString()).equal(
+                "8u64",
+            );
         });
 
-        it('Check U128 serialization and arithmetic', () => {
+        it("Check U128 serialization and arithmetic", () => {
             const u128 = U128.fromString("42u128");
             const u128Clone = u128.clone();
 
@@ -578,11 +624,15 @@ describe('Field and Group Arithmetic Tests', () => {
 
             const base = U128.fromString("2u128");
             expect(base.powU8(U8.fromString("3u8")).toString()).equal("8u128");
-            expect(base.powU16(U16.fromString("3u16")).toString()).equal("8u128");
-            expect(base.powU32(U32.fromString("3u32")).toString()).equal("8u128");
+            expect(base.powU16(U16.fromString("3u16")).toString()).equal(
+                "8u128",
+            );
+            expect(base.powU32(U32.fromString("3u32")).toString()).equal(
+                "8u128",
+            );
         });
 
-        it('Check scalar field arithmetic', () => {
+        it("Check scalar field arithmetic", () => {
             // Create the 2 scalar element.
             const a = Scalar.fromString("2scalar");
             // Create the inverse of the 2 scalar element.
@@ -617,7 +667,7 @@ describe('Field and Group Arithmetic Tests', () => {
             expect(two_power_four.equals(two_times_eight)).equal(true);
         });
 
-        it('Test group operations', () => {
+        it("Test group operations", () => {
             // Get the 2 element of the group.
             const G = Group.fromString("2group");
             // Get the point at infinity (i.e. "0"/additive identity in elliptic curves).
@@ -631,16 +681,16 @@ describe('Field and Group Arithmetic Tests', () => {
             // Do a point doubling through scalar multiplication.
             const d = G.scalarMultiply(a);
             // Find point (x, -y)
-            const G_inv= G.inverse();
+            const G_inv = G.inverse();
             // Ensure addition and doubling landed on the same point.
             expect(b.equals(c)).equals(true);
             // Ensure point doubling and scalar multiplication by 2scalar ends up as the same element as doubling.
             expect(c.equals(d)).equals(true);
             // Ensure adding the inverse element leads to the point at infinity.
-            expect((G.add(G_inv)).equals(Ginf)).equals(true);
+            expect(G.add(G_inv).equals(Ginf)).equals(true);
         });
 
-        it('Ensure bit and byte serialization is correctly implemented', () => {
+        it("Ensure bit and byte serialization is correctly implemented", () => {
             // Create the chosen generators.
             const G = Group.generator();
             const a = Scalar.fromString(ScalarGenerator);

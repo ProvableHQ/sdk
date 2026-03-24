@@ -1,7 +1,7 @@
 # Node.js Credits.aleo Functions Example
 
-This example builds execution transactions for all 6 credits.aleo functions using
-the ProgramManager: `transfer_public`, `transfer_public_to_private`,
+This example builds execution transactions for all 6 credits.aleo functions
+using the ProgramManager: `transfer_public`, `transfer_public_to_private`,
 `transfer_private`, `transfer_private_to_public`, `join`, and `split`.
 
 Run all 6 functions:

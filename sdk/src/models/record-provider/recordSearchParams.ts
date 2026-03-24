@@ -1,7 +1,7 @@
 /**
  * Interface for record search parameters. This allows for arbitrary search parameters to be passed to record provider
  * implementations.
- * 
+ *
  * @example
  * const recordSearchParams: RecordSearchParams = {
  *     // Declared fields

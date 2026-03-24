@@ -9,7 +9,7 @@ export default {
         format: "es",
         sourcemap: true,
     },
-    external: ['@provablehq/sdk'],
+    external: ["@provablehq/sdk"],
     plugins: [
         typescript({
             tsconfig: "tsconfig.json",

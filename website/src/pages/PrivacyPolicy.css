@@ -1,5 +1,5 @@
 body {
-    font-family:'AleoSans';
+    font-family: "AleoSans";
     line-height: 1.6;
     margin: 20px;
 }
@@ -12,10 +12,13 @@ table {
     border-collapse: collapse;
     margin: 20px 0;
 }
-table, th, td {
+table,
+th,
+td {
     border: 1px solid #ddd;
 }
-th, td {
+th,
+td {
     padding: 10px;
     text-align: left;
 }

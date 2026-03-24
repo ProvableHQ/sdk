@@ -84,4 +84,3 @@ export interface RecordScannerFailure {
     status: number;
     error: RecordScannerErrorBody;
 }
-

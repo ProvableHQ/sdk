@@ -57,4 +57,4 @@ export type OwnedRecord = {
     transition_id?: string;
     transaction_index?: number;
     transition_index?: number;
-}
+};

@@ -1,8 +1,8 @@
 {
-  "compilerOptions": {
-    "outDir": "./dist",
-    "module": "nodenext",
-    "moduleResolution": "nodenext",
-    "esModuleInterop": true,
-  }
+    "compilerOptions": {
+        "outDir": "./dist",
+        "module": "nodenext",
+        "moduleResolution": "nodenext",
+        "esModuleInterop": true
+    }
 }

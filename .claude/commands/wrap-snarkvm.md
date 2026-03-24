@@ -6,11 +6,13 @@ Automates wrapping a SnarkVM type in wasm-bindgen bindings for the Provable SDK.
 
 Ask the user for the following before proceeding. Do not guess.
 
-1. **SnarkVM type path** — fully-qualified Rust path, e.g. `snarkvm_ledger_block::Transaction`
+1. **SnarkVM type path** — fully-qualified Rust path, e.g.
+   `snarkvm_ledger_block::Transaction`
 2. **SnarkVM source** — one of:
     - A GitHub branch name, e.g. `staging` (will fetch via `gh api`)
     - A local path to a SnarkVM checkout, e.g. `~/dev/snarkvm`
-3. **Wrapper destination** — where the new `.rs` wrapper file should live, e.g. `wasm/src/ledger/transaction.rs`
+3. **Wrapper destination** — where the new `.rs` wrapper file should live, e.g.
+   `wasm/src/ledger/transaction.rs`
 4. **Methods to expose** — either "all public methods" or a specific list
 
 ---
@@ -18,16 +20,24 @@ Ask the user for the following before proceeding. Do not guess.
 ## Step 1: Fetch the SnarkVM type definition
 
 **If GitHub branch:**
+
 - Derive the file path from the crate name. For example:
-    - `snarkvm_ledger_block::Transaction` → crate `snarkvm-ledger-block` → look in `ledger/block/src/`
-    - `snarkvm_console::program::Plaintext` → crate `snarkvm-console` → look in `console/src/program/`
-- Use `gh api "repos/ProvableHQ/snarkVM/contents/PATH?ref=BRANCH"` and decode the base64 content
-- If the exact file path is unclear, use `gh api "repos/ProvableHQ/snarkVM/git/trees/BRANCH?recursive=1"` to list the tree and locate the right file
+    - `snarkvm_ledger_block::Transaction` → crate `snarkvm-ledger-block` → look
+      in `ledger/block/src/`
+    - `snarkvm_console::program::Plaintext` → crate `snarkvm-console` → look in
+      `console/src/program/`
+- Use `gh api "repos/ProvableHQ/snarkVM/contents/PATH?ref=BRANCH"` and decode
+  the base64 content
+- If the exact file path is unclear, use
+  `gh api "repos/ProvableHQ/snarkVM/git/trees/BRANCH?recursive=1"` to list the
+  tree and locate the right file
 
 **If local path:**
+
 - Read the file directly using the path derived from the crate/module structure
 
-Read the type definition thoroughly — note all public methods, their signatures, and any trait bounds.
+Read the type definition thoroughly — note all public methods, their signatures,
+and any trait bounds.
 
 ---
 
@@ -35,10 +45,14 @@ Read the type definition thoroughly — note all public methods, their signature
 
 This step is always the same regardless of wrapper destination.
 
-1. Add the `use` import from the appropriate SnarkVM crate to the existing import block. Match the grouping style — account types together, ledger types together, etc.
-2. Add a `pub type TypeNameNative = TypeName<CurrentNetwork>;` alias in the appropriate section.
+1. Add the `use` import from the appropriate SnarkVM crate to the existing
+   import block. Match the grouping style — account types together, ledger types
+   together, etc.
+2. Add a `pub type TypeNameNative = TypeName<CurrentNetwork>;` alias in the
+   appropriate section.
 
 Example — adding `Transaction` from `snarkvm_ledger_block`:
+
 ```rust
 // In the use block (already present or add to existing ledger group):
 use snarkvm_ledger_block::{..., Transaction};
@@ -47,7 +61,8 @@ use snarkvm_ledger_block::{..., Transaction};
 pub type TransactionNative = Transaction<CurrentNetwork>;
 ```
 
-Do not add a new `use` statement if the crate is already imported — extend the existing one.
+Do not add a new `use` statement if the crate is already imported — extend the
+existing one.
 
 Ensure all imports are in alphabetical order.
 
@@ -79,7 +94,7 @@ impl TypeName {
     // - to_string gets #[wasm_bindgen(js_name = "toString")] and #[allow(clippy::inherent_to_string)]
     // - from_str / constructors get #[wasm_bindgen(js_name = "fromString")] etc.
     // - Fallible methods return Result<T, String> — map errors with .map_err(|e| e.to_string())
-    // - Methods should have to_string(), from_string(), to_bytes_le(), from_bytes_le(), to_field(), and to_fields(), from_fields(), to_bits_le(), and from_bits_le() if the SnarkVM object implements any of those. 
+    // - Methods should have to_string(), from_string(), to_bytes_le(), from_bytes_le(), to_field(), and to_fields(), from_fields(), to_bits_le(), and from_bits_le() if the SnarkVM object implements any of those.
 }
 
 // Always generate all four two-way conversions between TypeName and TypeNameNative.
@@ -122,7 +137,8 @@ impl From<&TypeName> for TypeNameNative {
 
 ## Step 4: Write wasm bindgen tests to test out any methods that were written.
 
-Write tests similar to this for records (feel free to read wasm/src/record/record_ciphertext.rs for the object implementation)
+Write tests similar to this for records (feel free to read
+wasm/src/record/record_ciphertext.rs for the object implementation)
 
 ```rust
 #[cfg(test)]
@@ -301,7 +317,8 @@ mod tests {
 
 ## Step 5: Wire up the module
 
-Find the `mod.rs` (or equivalent) in the parent directory of the wrapper destination and add:
+Find the `mod.rs` (or equivalent) in the parent directory of the wrapper
+destination and add:
 
 ```rust
 pub mod type_name;
@@ -315,19 +332,22 @@ Match the style of existing entries in that file.
 ## Step 6: Verify the wasm tests
 
 Run this from the sdk base directory.
+
 ```bash
 yarn test:wasm
 ```
 
 Fix any errors before declaring done. Common issues:
+
 - Missing imports in the wrapper file
 - Trait bounds not satisfied (check what traits the native type requires)
-- Method signatures that need adjustment for wasm-bindgen compatibility (e.g. no generic parameters, no lifetimes on return types)
+- Method signatures that need adjustment for wasm-bindgen compatibility (e.g. no
+  generic parameters, no lifetimes on return types)
 
 ## Step 7: Write JS tests of the wasm object and export it in `browser.ts`.
 
-
-Write JS tests of the wasm object and its methods in the JS sdk in the appropriate test file in `sdk/tests/wasm.test.ts`.
+Write JS tests of the wasm object and its methods in the JS sdk in the
+appropriate test file in `sdk/tests/wasm.test.ts`.
 
 An example of how to write such tests are below.
 
@@ -373,11 +393,14 @@ An example of how to write such tests are below.
     };
 ```
 
-Verify these tests work by running `yarn build:wasm && yarn build:sdk && yarn test:sdk` from the root of the sdk directory.
+Verify these tests work by running
+`yarn build:wasm && yarn build:sdk && yarn test:sdk` from the root of the sdk
+directory.
 
 ## Step 8: Cleanup Run cargo fmt --all
 
 run the following in the `wasm` directory
+
 ```bash
 cargo fmt --all
 ```

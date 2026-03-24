@@ -3,7 +3,7 @@ import { RecordsResponseFilter } from "./recordsResponseFilter";
 
 /**
  * RecordsFilter is an extension of RecordSearchParams that represents a filter for scanning encrypted or owned records.
- * 
+ *
  * @example
  * const recordsFilter: RecordsFilter = {
  *     start: 0,

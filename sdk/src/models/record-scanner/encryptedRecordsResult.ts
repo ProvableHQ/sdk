@@ -6,5 +6,6 @@ export interface EncryptedRecordsSuccess {
     data: EncryptedRecord[];
 }
 
-export type EncryptedRecordsResult = EncryptedRecordsSuccess | RecordScannerFailure;
-
+export type EncryptedRecordsResult =
+    | EncryptedRecordsSuccess
+    | RecordScannerFailure;

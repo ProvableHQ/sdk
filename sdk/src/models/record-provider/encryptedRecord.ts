@@ -1,6 +1,6 @@
 /**
  * Encrypted Record found on chain. This type provides the record ciphertext and metadata from the ledger such as the record's name, the program/function that produced it, etc.
- * 
+ *
  * @property {string} commitment - The commitment of the record.
  * @property {string | undefined} checksum - The checksum of the record.
  * @property {number | undefined} block_height - The block height of the record.
@@ -17,7 +17,7 @@
  * @property {string | undefined} transition_id - The ID of the transition that produced the record.
  * @property {number | undefined} transaction_index - The index of the transaction that produced the record.
  * @property {number | undefined} transition_index - The index of the transition that produced the record.
- * 
+ *
  * @example
  * const encryptedRecord: EncryptedRecord = {
  *     commitment: "1754131901135854615627743152473414463769543922079966020586765988138574911385field",
@@ -55,4 +55,4 @@ export type EncryptedRecord = {
     transition_id?: string;
     transaction_index?: number;
     transition_index?: number;
-}
+};

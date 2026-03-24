@@ -1,11 +1,17 @@
 function detectBrowser() {
     const userAgent = navigator.userAgent;
 
-    if (/chrome|crios|crmo/i.test(userAgent) && !/edge|edg|opr/i.test(userAgent)) {
+    if (
+        /chrome|crios|crmo/i.test(userAgent) &&
+        !/edge|edg|opr/i.test(userAgent)
+    ) {
         return "chrome";
     } else if (/firefox|fxios/i.test(userAgent)) {
         return "firefox";
-    } else if (/safari/i.test(userAgent) && !/chrome|crios|crmo|android/i.test(userAgent)) {
+    } else if (
+        /safari/i.test(userAgent) &&
+        !/chrome|crios|crmo|android/i.test(userAgent)
+    ) {
         return "safari";
     } else if (/edg/i.test(userAgent)) {
         return "edge";
@@ -17,19 +23,20 @@ function detectBrowser() {
 }
 
 export function isNode(): boolean {
-    return typeof process !== "undefined" &&
-    process.versions != null &&
-    process.versions.node != null;
+    return (
+        typeof process !== "undefined" &&
+        process.versions != null &&
+        process.versions.node != null
+    );
 }
 
 export function environment() {
-    if ((typeof process !== 'undefined') &&
-        (process.release?.name === 'node')) {
-        return 'node';
-    } else if (typeof window !== 'undefined') {
+    if (typeof process !== "undefined" && process.release?.name === "node") {
+        return "node";
+    } else if (typeof window !== "undefined") {
         return detectBrowser();
     } else {
-        return 'unknown';
+        return "unknown";
     }
 }
 
@@ -69,7 +76,7 @@ export async function post(url: URL | string, options: RequestInit) {
         const error = await response.text();
         let message = `${response.status} error received from ${url}`;
         if (error) {
-            message = `${error}`
+            message = `${error}`;
         }
         throw new Error(message);
     }

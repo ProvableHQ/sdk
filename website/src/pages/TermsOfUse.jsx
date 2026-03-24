@@ -5,7 +5,7 @@ const TermsOfUse = () => {
     return (
         <div>
             <h1>PROVABLE </h1>
-                <h2> Terms of Use </h2>
+            <h2> Terms of Use </h2>
             <p>
                 <strong>Last Modified:</strong> 8/19/2024
             </p>
@@ -859,10 +859,10 @@ const TermsOfUse = () => {
                 the understanding between you and us. In the event of any
                 conflict between the English version of these Terms and any
                 translation, the English version will prevail.
-                </p>
+            </p>
 
-               <h2>13.2 Arbitration</h2>
-               <p>
+            <h2>13.2 Arbitration</h2>
+            <p>
                 Agreement (a) General. READ THIS SECTION CAREFULLY BECAUSE IT
                 REQUIRES THE PARTIES TO ARBITRATE THEIR DISPUTES AND LIMITS THE
                 MANNER IN WHICH YOU CAN SEEK RELIEF FROM US. This Arbitration
@@ -879,18 +879,21 @@ const TermsOfUse = () => {
                 collectively, “Claims”). This Arbitration Agreement will apply,
                 without limitation, to all Claims that arose or were asserted
                 before or after your consent to these Terms.
-                </p>
-                <p> (b) Opting Out of
-                Arbitration Agreement. If you are a new User, you can reject and
-                opt out of this Arbitration Agreement within thirty (30) days of
-                accepting these Terms by emailing us at legal@provable.com with
-                your full, legal name and stating your intent to opt out of this
-                Arbitration Agreement. Opting out of this Arbitration Agreement
-                does not affect the binding nature of any other part of these
-                Terms, including the provisions regarding controlling law or the
-                courts in which any disputes must be brought. </p>
-                <p>(c)
-                Dispute-Resolution Process. For any Claim, you will first
+            </p>
+            <p>
+                {" "}
+                (b) Opting Out of Arbitration Agreement. If you are a new User,
+                you can reject and opt out of this Arbitration Agreement within
+                thirty (30) days of accepting these Terms by emailing us at
+                legal@provable.com with your full, legal name and stating your
+                intent to opt out of this Arbitration Agreement. Opting out of
+                this Arbitration Agreement does not affect the binding nature of
+                any other part of these Terms, including the provisions
+                regarding controlling law or the courts in which any disputes
+                must be brought.{" "}
+            </p>
+            <p>
+                (c) Dispute-Resolution Process. For any Claim, you will first
                 contact us at legal@provable.com attempt to resolve the Claim
                 with us informally. In the unlikely event that we have not been
                 able to resolve a Claim after sixty (60) days, we each agree to
@@ -932,21 +935,24 @@ const TermsOfUse = () => {
                 whether these Terms are, or whether any provision of these Terms
                 is, unconscionable or illusory, and any defense to arbitration,
                 including waiver, delay, laches, unconscionability, and/or
-                estoppel.</p>
-                <p> (d) Equitable Relief. NOTHING IN THIS ARBITRATION
-                AGREEMENT WILL BE DEEMED AS: PREVENTING US FROM SEEKING
-                INJUNCTIVE OR OTHER EQUITABLE RELIEF FROM THE COURTS AS
-                NECESSARY TO PREVENT THE ACTUAL OR THREATENED INFRINGEMENT,
-                MISAPPROPRIATION, OR VIOLATION OF OUR DATA SECURITY,
-                CONFIDENTIAL INFORMATION, OR INTELLECTUAL PROPERTY RIGHTS; OR
-                PREVENTING YOU FROM ASSERTING CLAIMS IN A SMALL CLAIMS COURT,
-                PROVIDED THAT YOUR CLAIMS QUALIFY AND SO LONG AS THE MATTER
-                REMAINS IN SUCH COURT AND ADVANCES ON ONLY AN INDIVIDUAL
-                (NON-CLASS, NON-COLLECTIVE, AND NON-REPRESENTATIVE) BASIS.
-                </p>
-                <p>(E)
-                Severability. If this Arbitration Agreement is found to be void,
-                unenforceable, or unlawful, in whole or in part, the void,
+                estoppel.
+            </p>
+            <p>
+                {" "}
+                (d) Equitable Relief. NOTHING IN THIS ARBITRATION AGREEMENT WILL
+                BE DEEMED AS: PREVENTING US FROM SEEKING INJUNCTIVE OR OTHER
+                EQUITABLE RELIEF FROM THE COURTS AS NECESSARY TO PREVENT THE
+                ACTUAL OR THREATENED INFRINGEMENT, MISAPPROPRIATION, OR
+                VIOLATION OF OUR DATA SECURITY, CONFIDENTIAL INFORMATION, OR
+                INTELLECTUAL PROPERTY RIGHTS; OR PREVENTING YOU FROM ASSERTING
+                CLAIMS IN A SMALL CLAIMS COURT, PROVIDED THAT YOUR CLAIMS
+                QUALIFY AND SO LONG AS THE MATTER REMAINS IN SUCH COURT AND
+                ADVANCES ON ONLY AN INDIVIDUAL (NON-CLASS, NON-COLLECTIVE, AND
+                NON-REPRESENTATIVE) BASIS.
+            </p>
+            <p>
+                (E) Severability. If this Arbitration Agreement is found to be
+                void, unenforceable, or unlawful, in whole or in part, the void,
                 unenforceable, or unlawful provision, in whole or in part, will
                 be severed. Severance of the void, unenforceable, or unlawful
                 provision, in whole or in part, will have no impact on the
@@ -964,189 +970,197 @@ const TermsOfUse = () => {
                 Arbitration Agreement will be arbitrated under its terms, and
                 the parties agree that litigation of any dispute regarding the
                 entitlement to public injunctive relief will be stayed pending
-                the outcome of any individual claims in arbitration. </p>
+                the outcome of any individual claims in arbitration.{" "}
+            </p>
 
-                <p> 13.3
+            <p>
+                {" "}
+                13.3
                 <strong>Class Action/Jury Trial Waiver. </strong>
-                BY ENTERING INTO THESE TERMS,
-                YOU AND PROVABLE ARE EACH WAIVING THE RIGHT TO A TRIAL BY JURY
-                OR TO BRING, JOIN, OR PARTICIPATE IN ANY PURPORTED CLASS ACTION,
-                COLLECTIVE ACTION, PRIVATE ATTORNEY GENERAL ACTION, OR OTHER
-                REPRESENTATIVE PROCEEDING OF ANY KIND AS A PLAINTIFF OR CLASS
-                MEMBER. THE FOREGOING APPLIES TO ALL USERS (BOTH NATUAL PERSONS
-                AND ENTITIES), REGARDLESS OF WHETHER YOU HAVE OBTAINED OR USED
-                THE PLATFORM FOR PERSONAL, COMMERCIAL, OR OTHER PURPOSES. THIS
-                CLASS ACTION/JURY TRIAL WAIVER APPLIES TO CLASS ARBITRATION,
-                AND, UNLESS WE AGREE OTHERWISE, THE ARBITRATOR MAY NOT
-                CONSOLIDATE MORE THAN ONE PERSON’S OR ENTITY’S CLAIMS. YOU AND
-                PROVABLE AGREE THAT THE ARBITRATOR MAY AWARD RELIEF ONLY TO AN
-                INDIVIDUAL CLAIMANT AND ONLY TO THE EXTENT NECESSARY TO PROVIDE
-                RELIEF ON YOUR INDIVIDUAL CLAIM(S). ANY RELIEF AWARDED MAY NOT
-                AFFECT OTHER USERS.
-
-                </p>
-                <h2>
-                    14. U.S. Government Restricted Rights
-                    </h2>
-                <p>To the
-                extent the Platform is being used by or on behalf of the U.S.
-                Government, the Platform will be deemed commercial computer
+                BY ENTERING INTO THESE TERMS, YOU AND PROVABLE ARE EACH WAIVING
+                THE RIGHT TO A TRIAL BY JURY OR TO BRING, JOIN, OR PARTICIPATE
+                IN ANY PURPORTED CLASS ACTION, COLLECTIVE ACTION, PRIVATE
+                ATTORNEY GENERAL ACTION, OR OTHER REPRESENTATIVE PROCEEDING OF
+                ANY KIND AS A PLAINTIFF OR CLASS MEMBER. THE FOREGOING APPLIES
+                TO ALL USERS (BOTH NATUAL PERSONS AND ENTITIES), REGARDLESS OF
+                WHETHER YOU HAVE OBTAINED OR USED THE PLATFORM FOR PERSONAL,
+                COMMERCIAL, OR OTHER PURPOSES. THIS CLASS ACTION/JURY TRIAL
+                WAIVER APPLIES TO CLASS ARBITRATION, AND, UNLESS WE AGREE
+                OTHERWISE, THE ARBITRATOR MAY NOT CONSOLIDATE MORE THAN ONE
+                PERSON’S OR ENTITY’S CLAIMS. YOU AND PROVABLE AGREE THAT THE
+                ARBITRATOR MAY AWARD RELIEF ONLY TO AN INDIVIDUAL CLAIMANT AND
+                ONLY TO THE EXTENT NECESSARY TO PROVIDE RELIEF ON YOUR
+                INDIVIDUAL CLAIM(S). ANY RELIEF AWARDED MAY NOT AFFECT OTHER
+                USERS.
+            </p>
+            <h2>14. U.S. Government Restricted Rights</h2>
+            <p>
+                To the extent the Platform is being used by or on behalf of the
+                U.S. Government, the Platform will be deemed commercial computer
                 software or commercial computer software documentation (as
                 applicable). Accordingly, if you are an agency of the U.S.
                 Government or any contractor therefor, you receive only those
                 rights with respect to the Platform as are granted to all other
                 Users hereunder, in accordance with 48 C.F.R. §227.7202 and 48
                 C.F.R. §12.212, as applicable.
-
+            </p>
+            <h2> 15. Export Controls, Sanctions and Anti-Money Laundering</h2>
+            <p>
+                {" "}
+                You understand and acknowledge that the Platform may be subject
+                to export control laws and regulations. You will comply with all
+                applicable import and export and re-export control and trade and
+                economic sanctions laws and regulations, including the Export
+                Administration Regulations maintained by the U.S. Department of
+                Commerce, trade and economic sanctions maintained by the U.S.
+                Treasury Department’s Office of Foreign Assets Control (“OFAC”),
+                and the International Traffic in Arms Regulations maintained by
+                the U.S. State Department. You represent and warrant that:
+                <p>
+                    {" "}
+                    (a) You will not access the Platform from any country,
+                    region, territory or jurisdiction that is the target of
+                    comprehensive territorial or embargo-like sanctions
+                    administered by OFAC (each such country, region, territory
+                    or jurisdiction a “Sanctioned Country”), which, as of the
+                    time of this Agreement, are Crimea, Cuba, Iran, North Korea,
+                    Syria, the so-called Donetsk People’s Republic, and the
+                    so-called Luhansk People’s Republic;
                 </p>
-                <h2> 15. Export Controls, Sanctions
-                and Anti-Money Laundering
-                </h2>
-                <p> You understand and acknowledge that
-                the Platform may be subject to export control laws and
-                regulations. You will comply with all applicable import and
-                export and re-export control and trade and economic sanctions
-                laws and regulations, including the Export Administration
-                Regulations maintained by the U.S. Department of Commerce, trade
-                and economic sanctions maintained by the U.S. Treasury
-                Department’s Office of Foreign Assets Control (“OFAC”), and the
-                International Traffic in Arms Regulations maintained by the U.S.
-                State Department. You represent and warrant that:
-
-                <p> (a) You will
-                not access the Platform from any country, region, territory or
-                jurisdiction that is the target of comprehensive territorial or
-                embargo-like sanctions administered by OFAC (each such country,
-                region, territory or jurisdiction a “Sanctioned Country”),
-                which, as of the time of this Agreement, are Crimea, Cuba, Iran,
-                North Korea, Syria, the so-called Donetsk People’s Republic, and
-                the so-called Luhansk People’s Republic;
+                <p>
+                    (b) You will not provide access to the Platform to any
+                    person that is, or that is owned or controlled by a person
+                    that is, the target of any sanctions administered or
+                    enforced by OFAC or the U.S. Department of
+                    State,(collectively, “Sanctions”) or that is located,
+                    organized or resident in any Sanctioned Country;
                 </p>
-
-                <p>(b) You will not
-                provide access to the Platform to any person that is, or that is
-                owned or controlled by a person that is, the target of any
-                sanctions administered or enforced by OFAC or the U.S.
-                Department of State,(collectively, “Sanctions”) or that is
-                located, organized or resident in any Sanctioned Country;
+                <p>
+                    (c) None of you, your subsidiaries, directors, officers,
+                    employees, agents or affiliates is a person that is, or is
+                    owned or controlled by persons that are, the target of any
+                    Sanctions;
                 </p>
-                <p>(c)
-                None of you, your subsidiaries, directors, officers, employees,
-                agents or affiliates is a person that is, or is owned or
-                controlled by persons that are, the target of any Sanctions;
+                <p>
+                    (d) None of you, your subsidiaries, directors, officers,
+                    employees, agents or affiliates are located, organized, or
+                    resident in, or owned or controlled by persons that are
+                    located, organized or resident in a Sanctioned Country; 14
                 </p>
-                <p>(d)
-                None of you, your subsidiaries, directors, officers, employees,
-                agents or affiliates are located, organized, or resident in, or
-                owned or controlled by persons that are located, organized or
-                resident in a Sanctioned Country; 14
+                <p>
+                    (e) You will not utilize the Platform in any manner that,
+                    directly or directly, conducts, facilitates, funds or
+                    otherwise engages in activities with any person that is the
+                    target of Sanctions or is located, organized or resident in
+                    a Sanctioned Country or in any other manner that would
+                    result in a violation of Sanctions by any person, including
+                    Provable;
                 </p>
-                <p>(e) You will not utilize
-                the Platform in any manner that, directly or directly, conducts,
-                facilitates, funds or otherwise engages in activities with any
-                person that is the target of Sanctions or is located, organized
-                or resident in a Sanctioned Country or in any other manner that
-                would result in a violation of Sanctions by any person,
-                including Provable;
+                <p>
+                    (f) You will not utilize the Platform in any manner that,
+                    directly or indirectly, conducts, facilitates, funds or
+                    otherwise engages in any money laundering or terrorist
+                    financing activities or business or in any other manner that
+                    would result in a violation by any person, including
+                    Provable, of any applicable law, rule or regulation of any
+                    jurisdiction concerning or relating to anti-money
+                    laundering, including the USA PATRIOT Act of 2001, as
+                    amended (“Anti-Money Laundering Laws”); and
                 </p>
-                <p>(f) You will not utilize the Platform in any
-                manner that, directly or indirectly, conducts, facilitates,
-                funds or otherwise engages in any money laundering or terrorist
-                financing activities or business or in any other manner that
-                would result in a violation by any person, including Provable,
-                of any applicable law, rule or regulation of any jurisdiction
-                concerning or relating to anti-money laundering, including the
-                USA PATRIOT Act of 2001, as amended (“Anti-Money Laundering
-                Laws”); and
-                </p><p>(g) You have conducted and will conduct all
-                activities generating funds, assets or other items of value
-                introduced to the Platform in compliance with applicable
-                Anti-Money Laundering Laws and Sanctions.
+                <p>
+                    (g) You have conducted and will conduct all activities
+                    generating funds, assets or other items of value introduced
+                    to the Platform in compliance with applicable Anti-Money
+                    Laundering Laws and Sanctions.
                 </p>
-
                 <h2>16. General Provisions</h2>
-                <p>16.1 Assignment. These Terms, and any rights and licenses
-                granted hereunder, may not be transferred or assigned by you
-                without our prior express written consent, but may be assigned
-                by us without restriction. Any attempted transfer or assignment
-                in violation hereof will be null and void.
+                <p>
+                    16.1 Assignment. These Terms, and any rights and licenses
+                    granted hereunder, may not be transferred or assigned by you
+                    without our prior express written consent, but may be
+                    assigned by us without restriction. Any attempted transfer
+                    or assignment in violation hereof will be null and void.
                 </p>
-
-                <p>16.2 Notification
-                Procedures and Changes to these Terms. We may provide
-                notifications, whether such notifications are required by
-                Applicable Law or are for marketing or other business-related
-                purposes, to you via email notice or written or hard copy
-                notice, or through posting of such notice on the Platform, as we
-                determine, in our sole discretion. We reserve the right to
-                determine the form and means of providing notifications to
-                Users, provided that you may opt out of certain means of
-                notification, as required under Applicable Law or as described
-                in these Terms. We are not responsible for any automatic
-                filtering you or your network provider may apply to email
-                notifications we send to the email address you provide us. We
-                may, in our sole discretion, modify or update these Terms from
-                time to time, and so you should review this page periodically.
-                When we change these Terms in a material manner, we will update
-                the ‘last modified’ date at the top of this page and notify you
-                that material changes have been made to these Terms. These Terms
-                apply to and govern your access to and use of the Platform
-                effective as of the start of your access to the Platform, even
-                if such access began before publication of these Terms. Your
-                continued use of the Platform after any change to these Terms
-                constitutes your acceptance of the new Terms of Use. If you do
-                not agree to any part of these Terms or to any future Terms of
-                Use, do not access or use (or continue to access or use) the
-                Platform.
+                <p>
+                    16.2 Notification Procedures and Changes to these Terms. We
+                    may provide notifications, whether such notifications are
+                    required by Applicable Law or are for marketing or other
+                    business-related purposes, to you via email notice or
+                    written or hard copy notice, or through posting of such
+                    notice on the Platform, as we determine, in our sole
+                    discretion. We reserve the right to determine the form and
+                    means of providing notifications to Users, provided that you
+                    may opt out of certain means of notification, as required
+                    under Applicable Law or as described in these Terms. We are
+                    not responsible for any automatic filtering you or your
+                    network provider may apply to email notifications we send to
+                    the email address you provide us. We may, in our sole
+                    discretion, modify or update these Terms from time to time,
+                    and so you should review this page periodically. When we
+                    change these Terms in a material manner, we will update the
+                    ‘last modified’ date at the top of this page and notify you
+                    that material changes have been made to these Terms. These
+                    Terms apply to and govern your access to and use of the
+                    Platform effective as of the start of your access to the
+                    Platform, even if such access began before publication of
+                    these Terms. Your continued use of the Platform after any
+                    change to these Terms constitutes your acceptance of the new
+                    Terms of Use. If you do not agree to any part of these Terms
+                    or to any future Terms of Use, do not access or use (or
+                    continue to access or use) the Platform.
                 </p>
-                <p>16.3 Entire Agreement; Severability. These Terms,
-                together with any amendments and any additional agreements you
-                may enter into with us in connection with the Platform, will
-                constitute the entire agreement between you and us concerning
-                the Platform. Any statements or comments made between you and
-                any of our employees or representatives are expressly excluded
-                from these Terms and will not apply to you or us, or to your
-                access to or use of the Platform. Except as otherwise stated in
-                the Arbitration Agreement, if any provision of these Terms is
-                deemed invalid by a court of competent jurisdiction, the
-                invalidity of such provision will not affect the validity of the
-                remaining provisions of these Terms, which will remain in full
-                force and effect.
+                <p>
+                    16.3 Entire Agreement; Severability. These Terms, together
+                    with any amendments and any additional agreements you may
+                    enter into with us in connection with the Platform, will
+                    constitute the entire agreement between you and us
+                    concerning the Platform. Any statements or comments made
+                    between you and any of our employees or representatives are
+                    expressly excluded from these Terms and will not apply to
+                    you or us, or to your access to or use of the Platform.
+                    Except as otherwise stated in the Arbitration Agreement, if
+                    any provision of these Terms is deemed invalid by a court of
+                    competent jurisdiction, the invalidity of such provision
+                    will not affect the validity of the remaining provisions of
+                    these Terms, which will remain in full force and effect.
                 </p>
-                <p>16.4 Interpretation. For purposes of these
-                Terms, (a) the words “include,” “includes” and “including” are
-                deemed to be followed by the words “without limitation”; (b) the
-                word “or” is not exclusive; 15 and (c) the words “herein,”
-                “hereof,” “hereto” and “hereunder” refer to these Terms as a
-                whole. These Terms shall be construed without regard to any
-                presumption or rule requiring construction or interpretation
-                against the party drafting an instrument or causing any
-                instrument to be drafted. Whenever the masculine is used in this
-                Agreement, the same shall include the feminine and whenever the
-                feminine is used herein, the same shall include the masculine,
-                where appropriate. Whenever the singular is used in this
-                Agreement, the same shall include the plural, and whenever the
-                plural is used herein, the same shall include the singular,
-                where appropriate.
+                <p>
+                    16.4 Interpretation. For purposes of these Terms, (a) the
+                    words “include,” “includes” and “including” are deemed to be
+                    followed by the words “without limitation”; (b) the word
+                    “or” is not exclusive; 15 and (c) the words “herein,”
+                    “hereof,” “hereto” and “hereunder” refer to these Terms as a
+                    whole. These Terms shall be construed without regard to any
+                    presumption or rule requiring construction or interpretation
+                    against the party drafting an instrument or causing any
+                    instrument to be drafted. Whenever the masculine is used in
+                    this Agreement, the same shall include the feminine and
+                    whenever the feminine is used herein, the same shall include
+                    the masculine, where appropriate. Whenever the singular is
+                    used in this Agreement, the same shall include the plural,
+                    and whenever the plural is used herein, the same shall
+                    include the singular, where appropriate.
                 </p>
-                <p>16.5 No Waiver. No waiver of any term of
-                these Terms will be deemed a further or continuing waiver of
-                such term or of any other term, and our failure to assert any
-                right or provision under these Terms will not constitute a
-                waiver of such right or provision.
-                </p>16.6 California Residents.
-                The provider of the Platform is: Provable Inc., 5470 Kietzke
-                Lane, STE 300, Reno, NV 89511. If you are a California resident,
-                in accordance with Cal. Civ. Code §1789.3, you may report
-                complaints to the Complaint Assistance Unit of the Division of
-                Consumer Services of the California Department of Consumer
-                Affairs by contacting it in writing at 1625 North Market Blvd.,
-                Suite N 112 Sacramento, CA 95834, or by telephone at (800)
-                952-5210 or (916) 445-1254.
-                <p>16.7 Contact. If you have any
-                questions about these Terms and/or the Platform, please contact
-                us at termsofuse@provable.com.
-               </p>
+                <p>
+                    16.5 No Waiver. No waiver of any term of these Terms will be
+                    deemed a further or continuing waiver of such term or of any
+                    other term, and our failure to assert any right or provision
+                    under these Terms will not constitute a waiver of such right
+                    or provision.
+                </p>
+                16.6 California Residents. The provider of the Platform is:
+                Provable Inc., 5470 Kietzke Lane, STE 300, Reno, NV 89511. If
+                you are a California resident, in accordance with Cal. Civ. Code
+                §1789.3, you may report complaints to the Complaint Assistance
+                Unit of the Division of Consumer Services of the California
+                Department of Consumer Affairs by contacting it in writing at
+                1625 North Market Blvd., Suite N 112 Sacramento, CA 95834, or by
+                telephone at (800) 952-5210 or (916) 445-1254.
+                <p>
+                    16.7 Contact. If you have any questions about these Terms
+                    and/or the Platform, please contact us at
+                    termsofuse@provable.com.
+                </p>
             </p>
         </div>
     );

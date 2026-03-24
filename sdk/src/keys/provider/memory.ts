@@ -9,17 +9,11 @@ import {
     PUBLIC_TRANSFER_AS_SIGNER,
 } from "../../constants.js";
 
-import {
-    CachedKeyPair,
-    FunctionKeyPair
-} from "../../models/keyPair.js";
+import { CachedKeyPair, FunctionKeyPair } from "../../models/keyPair.js";
 
 import { FunctionKeyProvider, KeySearchParams } from "./interface";
 
-import {
-    ProvingKey,
-    VerifyingKey,
-} from "../../wasm.js";
+import { ProvingKey, VerifyingKey } from "../../wasm.js";
 
 import { get } from "../../utils.js";
 import { KeyStore } from "../keystore/interface.js";
@@ -48,14 +42,18 @@ class AleoKeyProviderParams implements KeySearchParams {
      *
      * @param { AleoKeyProviderInitParams } params - Optional search parameters
      */
-    constructor(params: {proverUri?: string, verifierUri?: string, cacheKey?: string, name?: string}) {
+    constructor(params: {
+        proverUri?: string;
+        verifierUri?: string;
+        cacheKey?: string;
+        name?: string;
+    }) {
         this.proverUri = params.proverUri;
         this.verifierUri = params.verifierUri;
         this.cacheKey = params.cacheKey;
         this.name = params.name;
     }
 }
-
 
 /**
  * AleoKeyProvider class. Implements the FunctionKeyProvider interface. Enables the retrieval of Aleo program proving and
@@ -546,4 +544,4 @@ class AleoKeyProvider implements FunctionKeyProvider {
     }
 }
 
-export { AleoKeyProvider, AleoKeyProviderInitParams, AleoKeyProviderParams }
+export { AleoKeyProvider, AleoKeyProviderInitParams, AleoKeyProviderParams };

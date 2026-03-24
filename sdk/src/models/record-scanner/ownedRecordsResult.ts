@@ -13,4 +13,3 @@ export interface OwnedRecordsSuccess {
 }
 
 export type OwnedRecordsResult = OwnedRecordsSuccess | RecordScannerFailure;
-

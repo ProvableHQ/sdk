@@ -1,15 +1,15 @@
 {
-  "program": "loyalty_rewards.aleo",
-  "version": "0.0.0",
-  "description": "Loyalty rewards program for voucher redemption - imports loyalty_token.aleo",
-  "license": "MIT",
-  "leo": "3.4.0",
-  "dependencies": [
-    {
-      "name": "loyalty_token.aleo",
-      "location": "local",
-      "path": "../loyalty_token"
-    }
-  ],
-  "dev_dependencies": null
+    "program": "loyalty_rewards.aleo",
+    "version": "0.0.0",
+    "description": "Loyalty rewards program for voucher redemption - imports loyalty_token.aleo",
+    "license": "MIT",
+    "leo": "3.4.0",
+    "dependencies": [
+        {
+            "name": "loyalty_token.aleo",
+            "location": "local",
+            "path": "../loyalty_token"
+        }
+    ],
+    "dev_dependencies": null
 }

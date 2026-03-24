@@ -1,18 +1,18 @@
 import { ConfirmedTransactionJSON } from "./confirmed_transaction.js";
-import { RatificationJSON} from "./ratification.js";
+import { RatificationJSON } from "./ratification.js";
 import { SolutionsJSON } from "./solution.js";
 
 export type BlockJSON = {
     block_hash: string;
     previous_hash: string;
     header: Header;
-    transactions?: (ConfirmedTransactionJSON)[];
+    transactions?: ConfirmedTransactionJSON[];
     signature: string;
-    ratifications: (RatificationJSON)[];
+    ratifications: RatificationJSON[];
     solutions: SolutionsJSON;
     aborted_solution_ids: string[];
     aborted_transaction_ids: string[];
-}
+};
 
 export type Header = {
     previous_state_root: string;
@@ -22,7 +22,7 @@ export type Header = {
     solutions_root: string;
     subdag_root: string;
     metadata: Metadata;
-}
+};
 
 export type Metadata = {
     network: bigint;
@@ -33,4 +33,4 @@ export type Metadata = {
     timestamp: bigint;
     cumulative_weight: bigint;
     cumulative_proof_target: bigint;
-}
+};

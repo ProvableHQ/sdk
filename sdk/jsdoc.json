@@ -1,32 +1,43 @@
 {
-  "source": {
-    "include": ["sdk/src/account.ts", "sdk/src/function-key-provider.ts", "sdk/src/network-client.ts", "sdk/src/offline-key-provider.ts", "sdk/src/program-manager.ts", "sdk/src/record-provider.ts", "sdk/src/wasm.ts"],
-    "includePattern": ".+\\.ts?$"
-  },
-  "tags": {
-    "allowUnknownTags": ["optional"]
-  },
-  "plugins": ["node_modules/better-docs/typescript", "node_modules/kis-jsdoc-plugin"],
-  "templates": {
+    "source": {
+        "include": [
+            "sdk/src/account.ts",
+            "sdk/src/function-key-provider.ts",
+            "sdk/src/network-client.ts",
+            "sdk/src/offline-key-provider.ts",
+            "sdk/src/program-manager.ts",
+            "sdk/src/record-provider.ts",
+            "sdk/src/wasm.ts"
+        ],
+        "includePattern": ".+\\.ts?$"
+    },
+    "tags": {
+        "allowUnknownTags": ["optional"]
+    },
+    "plugins": [
+        "node_modules/better-docs/typescript",
+        "node_modules/kis-jsdoc-plugin"
+    ],
+    "templates": {
+        "markdown": {
+            "tocfilename": "toc.md"
+        }
+    },
+    "opts": {
+        "encoding": "utf8",
+        "readme": "./README.md",
+        "destination": "docs/api_reference",
+        "recurse": true,
+        "verbose": true,
+        "template": "node_modules/kis-jsdoc-plugin/templates/markdown",
+        "theme_opts": {
+            "default_theme": "dark",
+            "static_dir": ["sdk/docs/public"],
+            "homepageTitle": "Provable SDK"
+        }
+    },
     "markdown": {
-      "tocfilename": "toc.md"
+        "hardwrap": false,
+        "idInHeadings": true
     }
-  },
-  "opts": {
-    "encoding": "utf8",
-    "readme": "./README.md",
-    "destination": "docs/api_reference",
-    "recurse": true,
-    "verbose": true,
-    "template": "node_modules/kis-jsdoc-plugin/templates/markdown",
-    "theme_opts": {
-      "default_theme": "dark",
-      "static_dir": ["sdk/docs/public"],
-      "homepageTitle": "Provable SDK"
-    }
-  },
-  "markdown": {
-    "hardwrap": false,
-    "idInHeadings": true
-  }
 }

@@ -6,12 +6,21 @@ import { BlockJSON, Header, Metadata } from "./models/blockJSON.js";
 import { CachedKeyPair, FunctionKeyPair } from "./models/keyPair.js";
 import { ConfirmedTransactionJSON } from "./models/confirmed_transaction.js";
 import { CryptoBoxPubKey } from "./models/cryptoBoxPubkey.js";
-import { DeploymentJSON, VerifyingKeys } from "./models/deployment/deploymentJSON.js";
+import {
+    DeploymentJSON,
+    VerifyingKeys,
+} from "./models/deployment/deploymentJSON.js";
 import { DeploymentObject } from "./models/deployment/deploymentObject.js";
 import { EncryptedProvingRequest } from "./models/encryptedProvingRequest.js";
 import { EncryptedRecord } from "./models/record-provider/encryptedRecord.js";
-import { ExecutionJSON, FeeExecutionJSON } from "./models/execution/executionJSON.js";
-import { ExecutionObject, FeeExecutionObject } from "./models/execution/executionObject.js";
+import {
+    ExecutionJSON,
+    FeeExecutionJSON,
+} from "./models/execution/executionJSON.js";
+import {
+    ExecutionObject,
+    FeeExecutionObject,
+} from "./models/execution/executionObject.js";
 import { FinalizeJSON } from "./models/finalizeJSON.js";
 import { FunctionInput } from "./models/functionInput";
 import { FunctionObject } from "./models/functionObject.js";
@@ -23,15 +32,29 @@ import { OutputObject } from "./models/output/outputObject.js";
 import { OwnedFilter } from "./models/record-scanner/ownedFilter.js";
 import { OwnedRecord } from "./models/record-provider/ownedRecord.js";
 import { OwnerJSON } from "./models/owner/ownerJSON.js";
-import { PlaintextArray} from "./models/plaintext/array.js";
-import { PlaintextLiteral} from "./models/plaintext/literal.js";
+import { PlaintextArray } from "./models/plaintext/array.js";
+import { PlaintextLiteral } from "./models/plaintext/literal.js";
 import { PlaintextObject } from "./models/plaintext/plaintext.js";
-import { PlaintextStruct} from "./models/plaintext/struct.js";
+import { PlaintextStruct } from "./models/plaintext/struct.js";
 import { ProvingRequestJSON } from "./models/provingRequest.js";
-import { ProvingResponse, BroadcastResponse, BroadcastResult, ProvingResult, ProvingFailure, ProvingSuccess, ProveApiErrorBody, ProvingRequestError, isProvingResponse, isProveApiErrorBody } from "./models/provingResponse.js";
+import {
+    ProvingResponse,
+    BroadcastResponse,
+    BroadcastResult,
+    ProvingResult,
+    ProvingFailure,
+    ProvingSuccess,
+    ProveApiErrorBody,
+    ProvingRequestError,
+    isProvingResponse,
+    isProveApiErrorBody,
+} from "./models/provingResponse.js";
 import { RatificationJSON } from "./models/ratification.js";
 import { EncryptedRegistrationRequest } from "./models/record-scanner/encryptedRegistrationRequest.js";
-import { EncryptedRecordsResult, EncryptedRecordsSuccess } from "./models/record-scanner/encryptedRecordsResult.js";
+import {
+    EncryptedRecordsResult,
+    EncryptedRecordsSuccess,
+} from "./models/record-scanner/encryptedRecordsResult.js";
 import {
     DecryptionNotEnabledError,
     RecordNotFoundError,
@@ -41,20 +64,40 @@ import {
     UUIDError,
     ViewKeyNotStoredError,
 } from "./models/record-scanner/error.js";
-import { OwnedRecordsResult, OwnedRecordsSuccess } from "./models/record-scanner/ownedRecordsResult.js";
+import {
+    OwnedRecordsResult,
+    OwnedRecordsSuccess,
+} from "./models/record-scanner/ownedRecordsResult.js";
 import { OwnedRecordsResponseFilter } from "./models/record-scanner/ownedRecordsResponseFilter.js";
-import { RegisterResult, RegisterSuccess } from "./models/record-scanner/registrationResult.js";
+import {
+    RegisterResult,
+    RegisterSuccess,
+} from "./models/record-scanner/registrationResult.js";
 import { RegistrationRequest } from "./models/record-scanner/registrationRequest.js";
 import { RegistrationResponse } from "./models/record-scanner/registrationResponse.js";
-import { RevokeResult, RevokeSuccess, RevokeResponse } from "./models/record-scanner/revokeResult.js";
+import {
+    RevokeResult,
+    RevokeSuccess,
+    RevokeResponse,
+} from "./models/record-scanner/revokeResult.js";
 import { RecordsFilter } from "./models/record-scanner/recordsFilter.js";
 import { RecordsResponseFilter } from "./models/record-scanner/recordsResponseFilter.js";
-import { SerialNumbersResult, SerialNumbersSuccess } from "./models/record-scanner/serialNumbersResult.js";
+import {
+    SerialNumbersResult,
+    SerialNumbersSuccess,
+} from "./models/record-scanner/serialNumbersResult.js";
 import { StatusResponse } from "./models/record-scanner/statusResponse.js";
-import { StatusResult, StatusSuccess } from "./models/record-scanner/statusResult.js";
+import {
+    StatusResult,
+    StatusSuccess,
+} from "./models/record-scanner/statusResult.js";
 import { TagsResult, TagsSuccess } from "./models/record-scanner/tagsResult.js";
 import { RecordSearchParams } from "./models/record-provider/recordSearchParams.js";
-import { SolutionsJSON, SolutionJSON, PartialSolutionJSON } from "./models/solution.js";
+import {
+    SolutionsJSON,
+    SolutionJSON,
+    PartialSolutionJSON,
+} from "./models/solution.js";
 import { TransactionJSON } from "./models/transaction/transactionJSON.js";
 import { TransactionObject } from "./models/transaction/transactionObject.js";
 import { TransitionJSON } from "./models/transition/transitionJSON.js";
@@ -84,14 +127,18 @@ import {
 } from "./keys/keystore/interface.js";
 import {
     OfflineKeyProvider,
-    OfflineSearchParams
+    OfflineSearchParams,
 } from "./keys/provider/offline.js";
 import {
     BlockHeightSearch,
     NetworkRecordProvider,
     RecordProvider,
 } from "./record-provider.js";
-import { RecordScanner, RecordScannerJWTData, RecordScannerOptions } from "./record-scanner.js";
+import {
+    RecordScanner,
+    RecordScannerJWTData,
+    RecordScannerOptions,
+} from "./record-scanner.js";
 import { SealanceMerkleTree } from "./integrations/sealance/merkle-tree.js";
 
 // @TODO: This function is no longer needed, remove it.
@@ -99,7 +146,13 @@ async function initializeWasm() {
     console.warn("initializeWasm is deprecated, you no longer need to use it");
 }
 
-export { ProgramManager, ProvingRequestOptions, ExecuteOptions, FeeAuthorizationOptions, AuthorizationOptions } from "./program-manager.js";
+export {
+    ProgramManager,
+    ProvingRequestOptions,
+    ExecuteOptions,
+    FeeAuthorizationOptions,
+    AuthorizationOptions,
+} from "./program-manager.js";
 
 export { logAndThrow } from "./utils.js";
 
@@ -288,4 +341,10 @@ export {
     KeyVerifier as FunctionKeyVerifier,
 } from "./keys/verifier/interface.js";
 
-export { encryptAuthorization, encryptProvingRequest, encryptViewKey, encryptRegistrationRequest, zeroizeBytes } from "./security.js";
+export {
+    encryptAuthorization,
+    encryptProvingRequest,
+    encryptViewKey,
+    encryptRegistrationRequest,
+    zeroizeBytes,
+} from "./security.js";

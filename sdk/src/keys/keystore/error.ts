@@ -24,7 +24,7 @@ export class InvalidLocatorError extends Error {
     constructor(
         message: string,
         public readonly locator: string,
-        public readonly reason: InvalidLocatorReason
+        public readonly reason: InvalidLocatorReason,
     ) {
         super(message);
         this.name = "InvalidLocatorError";

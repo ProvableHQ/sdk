@@ -1,4 +1,4 @@
-import {useMemo, useState} from "react";
+import { useMemo, useState } from "react";
 import { Card, Divider, Form, Input, Row, Col } from "antd";
 import axios from "axios";
 import { CopyButton } from "../../components/CopyButton";
@@ -44,14 +44,11 @@ export const GetBlockByHeight = () => {
     const layout = { labelCol: { span: 4 }, wrapperCol: { span: 21 } };
 
     const blockString = useMemo(() => {
-        return blockByHeight !== null ? blockByHeight.toString() : ""
+        return blockByHeight !== null ? blockByHeight.toString() : "";
     }, [blockByHeight]);
 
     return (
-        <Card
-            title="Get Block By Height"
-            style={{ width: "100%" }}
-        >
+        <Card title="Get Block By Height" style={{ width: "100%" }}>
             <Form {...layout}>
                 <Form.Item
                     label="Block Height"

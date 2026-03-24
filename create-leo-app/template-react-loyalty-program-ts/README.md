@@ -34,7 +34,8 @@ Voucher redemption system (imports loyalty_token):
 
 Records: `RewardVoucher { owner, voucher_id, reward_type, value }`
 
-Mappings: `voucher_exists`, `voucher_used`, `redemptions_by_type`, `rewards_catalog`
+Mappings: `voucher_exists`, `voucher_used`, `redemptions_by_type`,
+`rewards_catalog`
 
 ## Getting Started
 
@@ -72,28 +73,32 @@ npm run build:vite
 ## SDK Features Demonstrated
 
 1. **Record Operations**
-   - Creating records with `cast`
-   - Consuming records as inputs
-   - Multiple record outputs
+
+    - Creating records with `cast`
+    - Consuming records as inputs
+    - Multiple record outputs
 
 2. **Hash Functions**
-   - `BHP256::hash_to_field` for unique ID generation
-   - Adds proving complexity for parameter download testing
+
+    - `BHP256::hash_to_field` for unique ID generation
+    - Adds proving complexity for parameter download testing
 
 3. **Mapping Operations**
-   - `Mapping::set` - Write to mappings
-   - `Mapping::get` - Read from mappings
-   - `Mapping::get_or_use` - Read with default value
-   - `Mapping::contains` - Check key existence
+
+    - `Mapping::set` - Write to mappings
+    - `Mapping::get` - Read from mappings
+    - `Mapping::get_or_use` - Read with default value
+    - `Mapping::contains` - Check key existence
 
 4. **Multi-Program**
-   - Import statements
-   - Cross-program record types
-   - Calling functions from imported programs
+    - Import statements
+    - Cross-program record types
+    - Calling functions from imported programs
 
 ## Tier System
 
 Points determine card tier:
+
 - **Bronze**: 0-999 points
 - **Silver**: 1,000-9,999 points
 - **Gold**: 10,000+ points

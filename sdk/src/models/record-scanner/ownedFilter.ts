@@ -4,7 +4,7 @@ import { OwnedRecordsResponseFilter } from "./ownedRecordsResponseFilter";
 
 /**
  * OwnedFilter is an extension of RecordSearchParams that represents a filter for scanning owned records.
- * 
+ *
  * @example
  * const ownedFilter: OwnedFilter = {
  *     unspent: true,
@@ -14,7 +14,7 @@ import { OwnedRecordsResponseFilter } from "./ownedRecordsResponseFilter";
  *         record: "credits",
  *     },
  * }
- */ 
+ */
 export interface OwnedFilter extends RecordSearchParams {
     filter?: RecordsFilter;
     responseFilter?: OwnedRecordsResponseFilter;

@@ -19,24 +19,22 @@ const Homepage = () => {
                     fingertips
                 </p>{" "}
                 <div className="buttonRow">
-                <Link
-                    to="/account"
-                >
-                    <button className="button">
-                        {" "}
-                        Try now <span className="arrow">&rarr;</span>{" "}
-                    </button>
-                </Link>{" "}
-                <Link
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    to="https://developer.aleo.org/sdk/overview/"
-                >
-                    <button className="button">
-                        {" "}
-                        See Docs <span className="arrow">&rarr;</span>{" "}
-                    </button>
-                </Link>{" "}
+                    <Link to="/account">
+                        <button className="button">
+                            {" "}
+                            Try now <span className="arrow">&rarr;</span>{" "}
+                        </button>
+                    </Link>{" "}
+                    <Link
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        to="https://developer.aleo.org/sdk/overview/"
+                    >
+                        <button className="button">
+                            {" "}
+                            See Docs <span className="arrow">&rarr;</span>{" "}
+                        </button>
+                    </Link>{" "}
                 </div>
                 <ul className="actionRow">
                     <Link to="/account" className="actionItem">
@@ -72,12 +70,24 @@ const Homepage = () => {
                             style={{ height: "24px", marginBottom: "1rem" }}
                         ></img>
                     </a>
-                    <Link to="https://sdk.betteruptime.com/" style={{color: "white"}}> <span>Status</span> </Link>
-                    <Link to="/terms_of_use" style={{ color: "white", textDecoration: "none" }}>
+                    <Link
+                        to="https://sdk.betteruptime.com/"
+                        style={{ color: "white" }}
+                    >
+                        {" "}
+                        <span>Status</span>{" "}
+                    </Link>
+                    <Link
+                        to="/terms_of_use"
+                        style={{ color: "white", textDecoration: "none" }}
+                    >
                         {" "}
                         <span>Terms of Use</span>{" "}
                     </Link>
-                    <Link to="/privacy_policy" style={{ color: "white", textDecoration: "none"}}>
+                    <Link
+                        to="/privacy_policy"
+                        style={{ color: "white", textDecoration: "none" }}
+                    >
                         <span>Privacy Policy</span>
                     </Link>
                     © 2025 Provable Inc.

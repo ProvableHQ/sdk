@@ -1,7 +1,8 @@
 # React Credits.aleo Functions Template
 
 This template demonstrates building execution transactions for 6 credits.aleo
-functions that demonstrate value transfers and record manipulation functions in a React application.
+functions that demonstrate value transfers and record manipulation functions in
+a React application.
 
 ## Functions Demonstrated
 
@@ -44,7 +45,8 @@ unspent and can be reused.
 
 ### Credits Records
 
-Private credits in the credits.aleo program (the official representation of value on the Aleo Network) are stored as Aleo records with this structure:
+Private credits in the credits.aleo program (the official representation of
+value on the Aleo Network) are stored as Aleo records with this structure:
 
 ```
 {
@@ -64,7 +66,8 @@ microcredits as plain numbers (e.g., `50000`).
 
 - Network connectivity is required for this app.
 - Public function execution takes ~10-15 seconds.
-- Private function execution takes ~30-120 seconds (depending on whether keys are locally cached or not).
+- Private function execution takes ~30-120 seconds (depending on whether keys
+  are locally cached or not).
 - Sample records are pre-filled for testing.
 - First execution downloads proving keys (~40-100MB).
 

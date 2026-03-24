@@ -128,10 +128,7 @@ export const Split = () => {
     const peerUrl = () => (splitUrl !== null ? splitUrl : "");
 
     return (
-        <Card
-            title="Split Record"
-            style={{ width: "100%"}}
-        >
+        <Card title="Split Record" style={{ width: "100%" }}>
             <Form {...layout}>
                 <Form.Item
                     label="Split Amount"
@@ -187,12 +184,7 @@ export const Split = () => {
                 </Form.Item>
                 <Row justify="center">
                     <Col justify="center">
-                        <Button
-                            type="primary"
-
-                            size="middle"
-                            onClick={split}
-                        >
+                        <Button type="primary" size="middle" onClick={split}>
                             Split
                         </Button>
                     </Col>

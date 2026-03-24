@@ -1,11 +1,17 @@
-import { KeyVerificationError, KeyVerifier, KeyFingerprint, KeyMetadata, sha256Hex } from "./interface";
+import {
+    KeyVerificationError,
+    KeyVerifier,
+    KeyFingerprint,
+    KeyMetadata,
+    sha256Hex,
+} from "./interface";
 
 /**
  * In-memory implementation of KeyVerifier that stores and verifies key fingerprints.
  * Provides functionality to compute and verify cryptographic checksums of keys, storing them
  * in memory for subsequent verification. This implementation is primarily used for testing
  * and development purposes where persistence is not required.
- * 
+ *
  * Key features:
  * - Computes SHA-256 checksums and sizes for key bytes.
  * - Stores key fingerprints in memory using string locators.
@@ -23,11 +29,13 @@ export class MemKeyVerifier implements KeyVerifier {
      * @throws {KeyVerificationError} When provided keyFingerprint doesn't match computed values.
      * @returns {Promise<KeyFingerprint>} Computed key metadata.
      */
-    async computeKeyMetadata(keyMetadata: KeyMetadata): Promise<KeyFingerprint> {
+    async computeKeyMetadata(
+        keyMetadata: KeyMetadata,
+    ): Promise<KeyFingerprint> {
         // Compute the metadata from the key bytes
         const computedFingerprint: KeyFingerprint = {
             checksum: await sha256Hex(keyMetadata.keyBytes),
-            size: keyMetadata.keyBytes.length
+            size: keyMetadata.keyBytes.length,
         };
 
         // If a KeyFingerprint is provided, verify it matches computed values.
@@ -37,15 +45,18 @@ export class MemKeyVerifier implements KeyVerifier {
                     keyMetadata.locator ? keyMetadata.locator : "",
                     "size",
                     String(keyMetadata.fingerprint.size),
-                    String(computedFingerprint.size)
+                    String(computedFingerprint.size),
                 );
             }
-            if (keyMetadata.fingerprint.checksum !== computedFingerprint.checksum) {
+            if (
+                keyMetadata.fingerprint.checksum !==
+                computedFingerprint.checksum
+            ) {
                 throw new KeyVerificationError(
                     keyMetadata.locator ? keyMetadata.locator : "",
                     "checksum",
                     keyMetadata.fingerprint.checksum,
-                    computedFingerprint.checksum
+                    computedFingerprint.checksum,
                 );
             }
         }
@@ -76,7 +87,7 @@ export class MemKeyVerifier implements KeyVerifier {
 
         // Compute the fingerprint for the provided bytes.
         const computedFingerprint = await this.computeKeyMetadata({
-            keyBytes: keyMetadata.keyBytes
+            keyBytes: keyMetadata.keyBytes,
         });
 
         // Determine which fingerprint to verify against.
@@ -91,7 +102,9 @@ export class MemKeyVerifier implements KeyVerifier {
         }
 
         if (!fingerprintToVerify) {
-            throw new Error("Either fingerprint or a valid locator must be provided for verification.");
+            throw new Error(
+                "Either fingerprint or a valid locator must be provided for verification.",
+            );
         }
 
         // Verify the key size.
@@ -100,7 +113,7 @@ export class MemKeyVerifier implements KeyVerifier {
                 keyMetadata.locator || "",
                 "size",
                 String(fingerprintToVerify.size),
-                String(computedFingerprint.size)
+                String(computedFingerprint.size),
             );
         }
 
@@ -110,7 +123,7 @@ export class MemKeyVerifier implements KeyVerifier {
                 keyMetadata.locator || "",
                 "checksum",
                 fingerprintToVerify.checksum,
-                computedFingerprint.checksum
+                computedFingerprint.checksum,
             );
         }
     }

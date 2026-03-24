@@ -1,6 +1,8 @@
-In this example we will be executing the program that was deployed in [the previous example](03_deploy_program.md)
+In this example we will be executing the program that was deployed in
+[the previous example](03_deploy_program.md)
+
 ```typescript
-import { Account, ProgramManager, initThreadPool } from '@provablehq/sdk';
+import { Account, ProgramManager, initThreadPool } from "@provablehq/sdk";
 
 // Initialize multi-threading to allow WASM execution.
 await initThreadPoool();
@@ -15,7 +17,11 @@ keyProvider.useCache(true);
 const recordProvider = new NetworkRecordProvider(account, networkClient);
 
 // Create program manager using the KeyProvider and NetworkProvider.
-const programManager = new ProgramManager("https://api.provable.com/v2", keyProvider, recordProvider);
+const programManager = new ProgramManager(
+    "https://api.provable.com/v2",
+    keyProvider,
+    recordProvider,
+);
 // Set the account as the program caller.
 programManager.setAccount(account);
 
@@ -30,7 +36,7 @@ const transaction = await programManager.buildExecutionTransaction({
     priorityFee: 0.0,
     privateFee: false,
     inputs: [`${input1}u32`, `${input2}u32`],
-    keySearchParams: { "cacheKey": "addition_demo:addition" },
+    keySearchParams: { cacheKey: "addition_demo:addition" },
 });
 
 // Broadcast the transaction to the Aleo network.
@@ -41,7 +47,8 @@ let transactionFound = false;
 // Loop until the transaction has been Accepted
 while (!transactionFound) {
     try {
-        transactionObj = await programManager.networkClient.getTransactionObject(result);
+        transactionObj =
+            await programManager.networkClient.getTransactionObject(result);
         transactionFound = true;
     } catch (e) {
         console.error(e);

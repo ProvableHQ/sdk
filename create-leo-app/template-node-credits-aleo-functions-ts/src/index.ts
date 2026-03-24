@@ -41,7 +41,10 @@ class Credits {
      * @param account - The Aleo account to use for transactions
      * @param apiUrl - The API endpoint (defaults to https://api.provable.com/v2)
      */
-    constructor(account: Account, apiUrl: string = "https://api.provable.com/v2") {
+    constructor(
+        account: Account,
+        apiUrl: string = "https://api.provable.com/v2",
+    ) {
         this._account = account;
         this.programManager = new ProgramManager(apiUrl);
         this.programManager.setAccount(account);
@@ -63,7 +66,10 @@ class Credits {
     /**
      * Execute a credits.aleo function.
      */
-    private async execute(functionName: string, inputs: string[]): Promise<string[]> {
+    private async execute(
+        functionName: string,
+        inputs: string[],
+    ): Promise<string[]> {
         const start = Date.now();
         console.log(`Starting ${functionName} execution`);
 
@@ -140,8 +146,14 @@ class Credits {
      * @example
      * await credits.transferPublicToPrivate("aleo1abc...xyz", 500000);
      */
-    async transferPublicToPrivate(recipient: string, amount: number): Promise<string[]> {
-        return this.execute("transfer_public_to_private", [recipient, `${amount}u64`]);
+    async transferPublicToPrivate(
+        recipient: string,
+        amount: number,
+    ): Promise<string[]> {
+        return this.execute("transfer_public_to_private", [
+            recipient,
+            `${amount}u64`,
+        ]);
     }
 
     /**
@@ -155,8 +167,16 @@ class Credits {
      * @example
      * await credits.transferPrivate(myRecord, "aleo1abc...xyz", 100000);
      */
-    async transferPrivate(record: string, recipient: string, amount: number): Promise<string[]> {
-        return this.execute("transfer_private", [record, recipient, `${amount}u64`]);
+    async transferPrivate(
+        record: string,
+        recipient: string,
+        amount: number,
+    ): Promise<string[]> {
+        return this.execute("transfer_private", [
+            record,
+            recipient,
+            `${amount}u64`,
+        ]);
     }
 
     /**
@@ -170,8 +190,16 @@ class Credits {
      * @example
      * await credits.transferPrivateToPublic(myRecord, "aleo1abc...xyz", 50000);
      */
-    async transferPrivateToPublic(record: string, recipient: string, amount: number): Promise<string[]> {
-        return this.execute("transfer_private_to_public", [record, recipient, `${amount}u64`]);
+    async transferPrivateToPublic(
+        record: string,
+        recipient: string,
+        amount: number,
+    ): Promise<string[]> {
+        return this.execute("transfer_private_to_public", [
+            record,
+            recipient,
+            `${amount}u64`,
+        ]);
     }
 
     /**
@@ -216,7 +244,8 @@ const account = Account.fromCiphertext(accountCiphertext, "provablealeo1");
 const credits = new Credits(account);
 
 // Specify the recipient
-const recipient = "aleo1vskzxa2qqgnhznxsqh6tgq93c30sfkj6xqwe7sr85lgjkexjlcxs3lxhy3";
+const recipient =
+    "aleo1vskzxa2qqgnhznxsqh6tgq93c30sfkj6xqwe7sr85lgjkexjlcxs3lxhy3";
 
 // NOTE: These records exist on testnet and are used to build transactions.
 // Since we only build (not broadcast) the transactions, they remain unspent.
@@ -237,9 +266,12 @@ const joinRecord = `{
 
 const functions: Record<string, () => Promise<string[]>> = {
     transfer_public: () => credits.transferPublic(recipient, 50000),
-    transfer_public_to_private: () => credits.transferPublicToPrivate(recipient, 50000),
-    transfer_private: () => credits.transferPrivate(sendRecord, recipient, 100000),
-    transfer_private_to_public: () => credits.transferPrivateToPublic(sendRecord, recipient, 50000),
+    transfer_public_to_private: () =>
+        credits.transferPublicToPrivate(recipient, 50000),
+    transfer_private: () =>
+        credits.transferPrivate(sendRecord, recipient, 100000),
+    transfer_private_to_public: () =>
+        credits.transferPrivateToPublic(sendRecord, recipient, 50000),
     join: () => credits.join(sendRecord, joinRecord),
     split: () => credits.split(sendRecord, 250000),
 };

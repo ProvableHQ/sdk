@@ -1,38 +1,38 @@
 name: Staging Website Deploy
 on:
-  push:
-    branches:
-      - staging
+    push:
+        branches:
+            - staging
 
 jobs:
-  deploy:
-    name: SDK Website
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - uses: ./.github/actions/setup-yarn
-      - uses: ./.github/actions/setup-rust
+    deploy:
+        name: SDK Website
+        runs-on: ubuntu-latest
+        steps:
+            - uses: actions/checkout@v4
+            - uses: ./.github/actions/setup-yarn
+            - uses: ./.github/actions/setup-rust
 
-      - name: Install and Build
-        run: |
-          yarn build:all
-          cd website
-          yarn build
-        env:
-          CI: ""
+            - name: Install and Build
+              run: |
+                  yarn build:all
+                  cd website
+                  yarn build
+              env:
+                  CI: ""
 
-      - name: Deploy
-        id: modified
-        uses: JamesIves/github-pages-deploy-action@v4
-        with:
-          token: ${{ secrets.GITHUB_TOKEN }}
-          branch: staging.provable.tools
-          folder: website/dist
-          clean-exclude: '["dev"]'
+            - name: Deploy
+              id: modified
+              uses: JamesIves/github-pages-deploy-action@v4
+              with:
+                  token: ${{ secrets.GITHUB_TOKEN }}
+                  branch: staging.provable.tools
+                  folder: website/dist
+                  clean-exclude: '["dev"]'
 
-      - name: Check step output
-        run: |
-          [[ \
-          ${{steps.modified.outputs.deployment-status}} = skipped || \
-          ${{steps.modified.outputs.deployment-status}} = success \
-          ]]
+            - name: Check step output
+              run: |
+                  [[ \
+                  ${{steps.modified.outputs.deployment-status}} = skipped || \
+                  ${{steps.modified.outputs.deployment-status}} = success \
+                  ]]

@@ -23,7 +23,10 @@ export class LocalFileKeyStore implements KeyStore {
      */
     constructor(directory?: string) {
         this.directory = directory ?? path.join(process.cwd(), ".aleo");
-        if (directory !== undefined && path.basename(this.directory) !== ".aleo") {
+        if (
+            directory !== undefined &&
+            path.basename(this.directory) !== ".aleo"
+        ) {
             this.directory = path.join(this.directory, ".aleo");
         }
         fsSync.mkdirSync(this.directory, { recursive: true });
@@ -42,7 +45,7 @@ export class LocalFileKeyStore implements KeyStore {
             throw new InvalidLocatorError(
                 `Invalid locator: reserved or empty name "${locator}"`,
                 locator,
-                "reserved_name"
+                "reserved_name",
             );
         }
 
@@ -51,16 +54,20 @@ export class LocalFileKeyStore implements KeyStore {
             throw new InvalidLocatorError(
                 "Invalid locator: path traversal detected",
                 locator,
-                "path_traversal"
+                "path_traversal",
             );
         }
 
         // Block path separators and null byte
-        if (locator.includes("/") || locator.includes("\\") || locator.includes("\0")) {
+        if (
+            locator.includes("/") ||
+            locator.includes("\\") ||
+            locator.includes("\0")
+        ) {
             throw new InvalidLocatorError(
                 "Invalid locator: path separator or null byte not allowed",
                 locator,
-                "path_separator"
+                "path_separator",
             );
         }
     }
@@ -136,7 +143,7 @@ export class LocalFileKeyStore implements KeyStore {
             throw err;
         }
     }
-    
+
     /**
      * Atomically writes data to a file, ensuring the parent directories exist.
      *
@@ -154,13 +161,16 @@ export class LocalFileKeyStore implements KeyStore {
         await fs.mkdir(dir, { recursive: true });
         const tempPath = path.join(
             dir,
-            `.${path.basename(filepath)}.${process.pid}.${Date.now()}.${Math.random().toString(16).slice(2)}.tmp`
+            `.${path.basename(filepath)}.${process.pid}.${Date.now()}.${Math.random().toString(16).slice(2)}.tmp`,
         );
         await fs.writeFile(tempPath, data);
         try {
             await fs.rename(tempPath, filepath);
         } catch (err: unknown) {
-            const code = err && typeof err === "object" && "code" in err ? (err as NodeJS.ErrnoException).code : undefined;
+            const code =
+                err && typeof err === "object" && "code" in err
+                    ? (err as NodeJS.ErrnoException).code
+                    : undefined;
             // Windows often throws EEXIST when target exists; EPERM/EACCES happen with locks/AV.
             if (code === "EEXIST" || code === "EPERM" || code === "EACCES") {
                 await fs.unlink(filepath).catch(() => {});
@@ -191,7 +201,10 @@ export class LocalFileKeyStore implements KeyStore {
         try {
             await fs.rm(dir, { recursive: true, force: true });
         } catch (err: unknown) {
-            const code = err && typeof err === "object" && "code" in err ? (err as NodeJS.ErrnoException).code : undefined;
+            const code =
+                err && typeof err === "object" && "code" in err
+                    ? (err as NodeJS.ErrnoException).code
+                    : undefined;
             if (code === "ENOENT") {
                 return;
             }
@@ -221,7 +234,9 @@ export class LocalFileKeyStore implements KeyStore {
     async getKeyBytes(locator: KeyLocator): Promise<Uint8Array | null> {
         this.validateLocator(locator.locator);
         // Attempt to read key bytes from storage (under this.directory).
-        const keyBytes = await this.readFileOptional(path.join(this.directory, locator.locator));
+        const keyBytes = await this.readFileOptional(
+            path.join(this.directory, locator.locator),
+        );
 
         // If no key bytes were found, return null.
         if (!keyBytes) return null;
@@ -351,8 +366,14 @@ export class LocalFileKeyStore implements KeyStore {
         ]);
 
         // Write the proving and verifying key bytes and their metadata to storage (under this.directory).
-        await this.writeFileAtomic(path.join(this.directory, proverLocator.locator), provingKeyBytes);
-        await this.writeFileAtomic(path.join(this.directory, verifierLocator.locator), verifyingKeyBytes);
+        await this.writeFileAtomic(
+            path.join(this.directory, proverLocator.locator),
+            provingKeyBytes,
+        );
+        await this.writeFileAtomic(
+            path.join(this.directory, verifierLocator.locator),
+            verifyingKeyBytes,
+        );
         await this.writeKeyMetadata(proverLocator.locator, proverFingerPrint);
         await this.writeKeyMetadata(
             verifierLocator.locator,
@@ -372,7 +393,10 @@ export class LocalFileKeyStore implements KeyStore {
      * const keys = await generateKeys();
      * await setKeyBytes(keys.provingKey.toBytes(), { locator: 'transfer_private.prover' });
      */
-    async setKeyBytes(keyBytes: Uint8Array, locator: KeyLocator): Promise<void> {
+    async setKeyBytes(
+        keyBytes: Uint8Array,
+        locator: KeyLocator,
+    ): Promise<void> {
         this.validateLocator(locator.locator);
         // Compute the key metadata including fingerprint
         const computedMetadata = await this.keyVerifier.computeKeyMetadata({
@@ -382,7 +406,10 @@ export class LocalFileKeyStore implements KeyStore {
         });
 
         // Write the key bytes and metadata atomically (key file under this.directory).
-        await this.writeFileAtomic(path.join(this.directory, locator.locator), keyBytes);
+        await this.writeFileAtomic(
+            path.join(this.directory, locator.locator),
+            keyBytes,
+        );
         await this.writeKeyMetadata(locator.locator, computedMetadata);
     }
 

@@ -1,5 +1,5 @@
 ```typescript
-import { Account, ProgramManager, initThreadPool } from '@provable.sdk';
+import { Account, ProgramManager, initThreadPool } from "@provable.sdk";
 
 // Initialize multi-threading to allow WASM execution.
 await initThreadPoool();
@@ -10,26 +10,29 @@ const account = new Account();
 // Create a new NetworkClient, KeyProvider, and RecordProvider using official Aleo record, key, and network providers
 const networkClient = new AleoNetworkClient("https://api.provable.com/v2");
 const keyProvider = new AleoKeyProvider();
-keyProvider.useCache(true);;
+keyProvider.useCache(true);
 const recordProvider = new NetworkRecordProvider(account, networkClient);
 
 // Create program manager using the KeyProvider and NetworkProvider.
-const programManager = new ProgramManager("https://api.provable.com/v2", keyProvider, recordProvider);
+const programManager = new ProgramManager(
+    "https://api.provable.com/v2",
+    keyProvider,
+    recordProvider,
+);
 // Set the account as the program caller.
 programManager.setAccount(account);
 
 // Build a transfer_public_to_private transaction.
 // Create a credits record for the sender.
-const transaction = await programManager
-    .buildTransferTransaction(
-        5,                 // The amount to be transferred in credits (not microcredits)
-        account            // The address of the recipient (In this case, your own address).
-            .address()
-            .to_string(),
-        "publicToPrivate", // The transfer type.
-        0.0,               // The optional priority fee amount.
-        false,             // Indicates whether or not the fee will be private. 
-    );
+const transaction = await programManager.buildTransferTransaction(
+    5, // The amount to be transferred in credits (not microcredits)
+    account // The address of the recipient (In this case, your own address).
+        .address()
+        .to_string(),
+    "publicToPrivate", // The transfer type.
+    0.0, // The optional priority fee amount.
+    false, // Indicates whether or not the fee will be private.
+);
 // Broadcast the transaction to the Aleo network.
 let result = await programManager.networkClient.submitTransaction(transaction);
 
@@ -38,7 +41,8 @@ let transactionFound = false;
 // Loop until the transaction has been Accepted
 while (!transactionFound) {
     try {
-        transactionObj = await programManager.networkClient.getTransactionObject(result);
+        transactionObj =
+            await programManager.networkClient.getTransactionObject(result);
         transactionFound = true;
     } catch (e) {
         console.error(e);
@@ -55,17 +59,17 @@ const recipient = new Account();
 
 // Build a transfer_private transaction.
 // Privately send 5 microcredits to the recipient from the sender's record
-const transaction2 = await programManager
-    .buildTransferTransaction(
-        5,                 // The amount to be transferred in credits (not microcredits)
-        recipient          // The address of the recipient.
-            .address()
-            .to_string(),
-        "private",         // The transfer type.
-        0.0,               // The optional priority fee amount.
-        false,             // Indicates whether or not the fee will be private.
-    );
+const transaction2 = await programManager.buildTransferTransaction(
+    5, // The amount to be transferred in credits (not microcredits)
+    recipient // The address of the recipient.
+        .address()
+        .to_string(),
+    "private", // The transfer type.
+    0.0, // The optional priority fee amount.
+    false, // Indicates whether or not the fee will be private.
+);
 // Broadcast the transaction to the Aleo network.
-const result2 = await programManager.networkClient.submitTransaction(transaction2);
+const result2 =
+    await programManager.networkClient.submitTransaction(transaction2);
 //
 ```

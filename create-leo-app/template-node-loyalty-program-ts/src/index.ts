@@ -121,61 +121,110 @@ const COLORS = {
 
 function logHeader(title: string): void {
     console.log(`\n${COLORS.cyan}╔${"═".repeat(58)}╗${COLORS.reset}`);
-    console.log(`${COLORS.cyan}║${COLORS.bright}  ${title.padEnd(56)}${COLORS.reset}${COLORS.cyan}║${COLORS.reset}`);
+    console.log(
+        `${COLORS.cyan}║${COLORS.bright}  ${title.padEnd(56)}${COLORS.reset}${COLORS.cyan}║${COLORS.reset}`,
+    );
     console.log(`${COLORS.cyan}╚${"═".repeat(58)}╝${COLORS.reset}`);
 }
 
-function logConfig(provingMode: ProvingMode, hasRecordScanner: boolean, dpsPrivacy: boolean, rssPrivacy: boolean): void {
-    console.log(`${COLORS.dim}┌──────────────────────────────────────────────────────────┐${COLORS.reset}`);
-    const provingModeStr = provingMode === ProvingMode.Local
-        ? `${COLORS.green}LOCAL${COLORS.reset}`
-        : `${COLORS.magenta}DELEGATED${COLORS.reset}${dpsPrivacy ? ` ${COLORS.cyan}(encrypted)${COLORS.reset}` : ''}`;
-    console.log(`${COLORS.dim}│${COLORS.reset} Proving Mode:    ${provingModeStr}`.padEnd(78) + `${COLORS.dim}│${COLORS.reset}`);
+function logConfig(
+    provingMode: ProvingMode,
+    hasRecordScanner: boolean,
+    dpsPrivacy: boolean,
+    rssPrivacy: boolean,
+): void {
+    console.log(
+        `${COLORS.dim}┌──────────────────────────────────────────────────────────┐${COLORS.reset}`,
+    );
+    const provingModeStr =
+        provingMode === ProvingMode.Local
+            ? `${COLORS.green}LOCAL${COLORS.reset}`
+            : `${COLORS.magenta}DELEGATED${COLORS.reset}${dpsPrivacy ? ` ${COLORS.cyan}(encrypted)${COLORS.reset}` : ""}`;
+    console.log(
+        `${COLORS.dim}│${COLORS.reset} Proving Mode:    ${provingModeStr}`.padEnd(
+            78,
+        ) + `${COLORS.dim}│${COLORS.reset}`,
+    );
     const scannerStr = hasRecordScanner
-        ? `${COLORS.magenta}RSS${COLORS.reset}${rssPrivacy ? ` ${COLORS.cyan}(encrypted)${COLORS.reset}` : ''}`
+        ? `${COLORS.magenta}RSS${COLORS.reset}${rssPrivacy ? ` ${COLORS.cyan}(encrypted)${COLORS.reset}` : ""}`
         : `${COLORS.yellow}DISABLED${COLORS.reset}`;
-    console.log(`${COLORS.dim}│${COLORS.reset} Record Scanner:  ${scannerStr}`.padEnd(78) + `${COLORS.dim}│${COLORS.reset}`);
-    console.log(`${COLORS.dim}└──────────────────────────────────────────────────────────┘${COLORS.reset}`);
+    console.log(
+        `${COLORS.dim}│${COLORS.reset} Record Scanner:  ${scannerStr}`.padEnd(
+            78,
+        ) + `${COLORS.dim}│${COLORS.reset}`,
+    );
+    console.log(
+        `${COLORS.dim}└──────────────────────────────────────────────────────────┘${COLORS.reset}`,
+    );
     if (provingMode === ProvingMode.Delegated) {
-        console.log(`${COLORS.yellow}⚠  Note: Delegated proving requires programs to be deployed on-chain.${COLORS.reset}`);
-        console.log(`${COLORS.yellow}   Use ALEO_PROVING_MODE=local for undeployed programs.${COLORS.reset}`);
+        console.log(
+            `${COLORS.yellow}⚠  Note: Delegated proving requires programs to be deployed on-chain.${COLORS.reset}`,
+        );
+        console.log(
+            `${COLORS.yellow}   Use ALEO_PROVING_MODE=local for undeployed programs.${COLORS.reset}`,
+        );
     }
 }
 
 function logModeChange(mode: ProvingMode): void {
     const modeStr = mode === ProvingMode.Local ? "LOCAL" : "DELEGATED";
     const color = mode === ProvingMode.Local ? COLORS.green : COLORS.magenta;
-    console.log(`\n${COLORS.yellow}🔄 Switching to ${color}${modeStr}${COLORS.reset}${COLORS.yellow} proving mode${COLORS.reset}`);
+    console.log(
+        `\n${COLORS.yellow}🔄 Switching to ${color}${modeStr}${COLORS.reset}${COLORS.yellow} proving mode${COLORS.reset}`,
+    );
     if (mode === ProvingMode.Delegated) {
-        console.log(`   ${COLORS.dim}└─ Proving requests will be sent to a remote prover${COLORS.reset}`);
+        console.log(
+            `   ${COLORS.dim}└─ Proving requests will be sent to a remote prover${COLORS.reset}`,
+        );
     } else {
-        console.log(`   ${COLORS.dim}└─ Proving will be performed locally on this machine${COLORS.reset}`);
+        console.log(
+            `   ${COLORS.dim}└─ Proving will be performed locally on this machine${COLORS.reset}`,
+        );
     }
 }
 
 function logOperation(operation: string, mode: ProvingMode): void {
     const modeStr = mode === ProvingMode.Local ? "LOCAL" : "DELEGATED";
     const color = mode === ProvingMode.Local ? COLORS.green : COLORS.magenta;
-    console.log(`\n${COLORS.blue}⏱  ${operation}${COLORS.reset} ${COLORS.dim}(${color}${modeStr}${COLORS.reset}${COLORS.dim} proving)${COLORS.reset}`);
+    console.log(
+        `\n${COLORS.blue}⏱  ${operation}${COLORS.reset} ${COLORS.dim}(${color}${modeStr}${COLORS.reset}${COLORS.dim} proving)${COLORS.reset}`,
+    );
 }
 
-function logOperationComplete(operation: string, durationMs: number, mode: ProvingMode): void {
+function logOperationComplete(
+    operation: string,
+    durationMs: number,
+    mode: ProvingMode,
+): void {
     const modeStr = mode === ProvingMode.Local ? "local" : "delegated";
-    console.log(`   ${COLORS.dim}└─${COLORS.reset} ${COLORS.green}✓${COLORS.reset} ${operation} completed in ${COLORS.bright}${(durationMs / 1000).toFixed(1)}s${COLORS.reset} ${COLORS.dim}(${modeStr})${COLORS.reset}`);
+    console.log(
+        `   ${COLORS.dim}└─${COLORS.reset} ${COLORS.green}✓${COLORS.reset} ${operation} completed in ${COLORS.bright}${(durationMs / 1000).toFixed(1)}s${COLORS.reset} ${COLORS.dim}(${modeStr})${COLORS.reset}`,
+    );
 }
 
-function logScanStart(program: string, recordType: string, startHeight: number, endHeight?: number): void {
+function logScanStart(
+    program: string,
+    recordType: string,
+    startHeight: number,
+    endHeight?: number,
+): void {
     const range = endHeight ? `${startHeight}-${endHeight}` : `${startHeight}+`;
-    console.log(`\n${COLORS.blue}🔍 Scanning for ${COLORS.bright}${recordType}${COLORS.reset}${COLORS.blue} records${COLORS.reset}`);
+    console.log(
+        `\n${COLORS.blue}🔍 Scanning for ${COLORS.bright}${recordType}${COLORS.reset}${COLORS.blue} records${COLORS.reset}`,
+    );
     console.log(`   ${COLORS.dim}├─ Program: ${program}${COLORS.reset}`);
     console.log(`   ${COLORS.dim}└─ Block range: ${range}${COLORS.reset}`);
 }
 
 function logScanResults(recordType: string, count: number): void {
     if (count > 0) {
-        console.log(`   ${COLORS.green}✓${COLORS.reset} Found ${COLORS.bright}${count}${COLORS.reset} ${recordType} record${count !== 1 ? "s" : ""}`);
+        console.log(
+            `   ${COLORS.green}✓${COLORS.reset} Found ${COLORS.bright}${count}${COLORS.reset} ${recordType} record${count !== 1 ? "s" : ""}`,
+        );
     } else {
-        console.log(`   ${COLORS.yellow}○${COLORS.reset} No ${recordType} records found`);
+        console.log(
+            `   ${COLORS.yellow}○${COLORS.reset} No ${recordType} records found`,
+        );
     }
 }
 
@@ -264,7 +313,10 @@ class LoyaltyProgram {
         // Configure RecordScanner if URL is provided.
         if (config?.recordScannerUrl) {
             const apiKeyConfig = config.recordScannerApiKey?.startsWith("eyJ")
-                ? { header: "Authorization", value: `Bearer ${config.recordScannerApiKey}` }
+                ? {
+                      header: "Authorization",
+                      value: `Bearer ${config.recordScannerApiKey}`,
+                  }
                 : config.recordScannerApiKey;
             this._recordScanner = new RecordScanner({
                 url: config.recordScannerUrl,
@@ -336,7 +388,9 @@ class LoyaltyProgram {
      */
     setRecordScanner(scanner: RecordScanner): void {
         this._recordScanner = scanner;
-        console.log(`${COLORS.green}✓${COLORS.reset} Record Scanner configured`);
+        console.log(
+            `${COLORS.green}✓${COLORS.reset} Record Scanner configured`,
+        );
     }
 
     /**
@@ -365,18 +419,34 @@ class LoyaltyProgram {
      * const cards = await loyalty.findMyCards(0);
      * console.log(`Found ${cards.length} cards`);
      */
-    async findMyCards(startHeight: number = 0, endHeight?: number): Promise<LoyaltyCard[]> {
+    async findMyCards(
+        startHeight: number = 0,
+        endHeight?: number,
+    ): Promise<LoyaltyCard[]> {
         if (!this._recordScanner) {
-            throw new Error("No record scanner configured. Use setRecordScanner() to configure.");
+            throw new Error(
+                "No record scanner configured. Use setRecordScanner() to configure.",
+            );
         }
 
-        logScanStart(this.TOKEN_PROGRAM_ID, "LoyaltyCard", startHeight, endHeight);
+        logScanStart(
+            this.TOKEN_PROGRAM_ID,
+            "LoyaltyCard",
+            startHeight,
+            endHeight,
+        );
 
         // Register with the scanner.
         if (this._rssPrivacy) {
-            await this._recordScanner.registerEncrypted(this._account.viewKey(), startHeight);
+            await this._recordScanner.registerEncrypted(
+                this._account.viewKey(),
+                startHeight,
+            );
         } else {
-            await this._recordScanner.register(this._account.viewKey(), startHeight);
+            await this._recordScanner.register(
+                this._account.viewKey(),
+                startHeight,
+            );
         }
 
         const records = await this._recordScanner.findRecords({
@@ -391,12 +461,18 @@ class LoyaltyProgram {
         });
 
         const cards = records
-            .filter((r) => r.record_name === "LoyaltyCard" && (r.record_plaintext || r.record_ciphertext))
+            .filter(
+                (r) =>
+                    r.record_name === "LoyaltyCard" &&
+                    (r.record_plaintext || r.record_ciphertext),
+            )
             .map((r) => {
                 if (r.record_plaintext) {
                     return this.parseCard(r.record_plaintext);
                 }
-                const ciphertext = RecordCiphertext.fromString(r.record_ciphertext!);
+                const ciphertext = RecordCiphertext.fromString(
+                    r.record_ciphertext!,
+                );
                 const plaintext = ciphertext.decrypt(this._account.viewKey());
                 return this.parseCard(plaintext.toString());
             });
@@ -416,18 +492,34 @@ class LoyaltyProgram {
      * const vouchers = await loyalty.findMyVouchers(0);
      * console.log(`Found ${vouchers.length} vouchers`);
      */
-    async findMyVouchers(startHeight: number = 0, endHeight?: number): Promise<RewardVoucher[]> {
+    async findMyVouchers(
+        startHeight: number = 0,
+        endHeight?: number,
+    ): Promise<RewardVoucher[]> {
         if (!this._recordScanner) {
-            throw new Error("No record scanner configured. Use setRecordScanner() to configure.");
+            throw new Error(
+                "No record scanner configured. Use setRecordScanner() to configure.",
+            );
         }
 
-        logScanStart(this.REWARDS_PROGRAM_ID, "RewardVoucher", startHeight, endHeight);
+        logScanStart(
+            this.REWARDS_PROGRAM_ID,
+            "RewardVoucher",
+            startHeight,
+            endHeight,
+        );
 
         // Register with the scanner.
         if (this._rssPrivacy) {
-            await this._recordScanner.registerEncrypted(this._account.viewKey(), startHeight);
+            await this._recordScanner.registerEncrypted(
+                this._account.viewKey(),
+                startHeight,
+            );
         } else {
-            await this._recordScanner.register(this._account.viewKey(), startHeight);
+            await this._recordScanner.register(
+                this._account.viewKey(),
+                startHeight,
+            );
         }
 
         const records = await this._recordScanner.findRecords({
@@ -442,12 +534,18 @@ class LoyaltyProgram {
         });
 
         const vouchers = records
-            .filter((r) => r.record_name === "RewardVoucher" && (r.record_plaintext || r.record_ciphertext))
+            .filter(
+                (r) =>
+                    r.record_name === "RewardVoucher" &&
+                    (r.record_plaintext || r.record_ciphertext),
+            )
             .map((r) => {
                 if (r.record_plaintext) {
                     return this.parseVoucher(r.record_plaintext);
                 }
-                const ciphertext = RecordCiphertext.fromString(r.record_ciphertext!);
+                const ciphertext = RecordCiphertext.fromString(
+                    r.record_ciphertext!,
+                );
                 const plaintext = ciphertext.decrypt(this._account.viewKey());
                 return this.parseVoucher(plaintext.toString());
             });
@@ -475,15 +573,20 @@ class LoyaltyProgram {
     async mintCard(
         recipient: string,
         initialPoints: number,
-        nonce?: string
+        nonce?: string,
     ): Promise<LoyaltyCard> {
-        const actualNonce = nonce ?? Math.floor(Math.random() * 1000000000).toString();
-        const inputs = [recipient, `${initialPoints}u64`, `${actualNonce}field`];
+        const actualNonce =
+            nonce ?? Math.floor(Math.random() * 1000000000).toString();
+        const inputs = [
+            recipient,
+            `${initialPoints}u64`,
+            `${actualNonce}field`,
+        ];
 
         const outputs = await this.execute(
             this.tokenProgram,
             "mint_card",
-            inputs
+            inputs,
         );
 
         return this.parseCard(outputs[0]);
@@ -501,13 +604,16 @@ class LoyaltyProgram {
      * const updatedCard = await loyalty.addPoints(card, 500);
      * console.log(`New balance: ${updatedCard.points}, Tier: ${CardTier[updatedCard.tier]}`);
      */
-    async addPoints(card: LoyaltyCard, pointsToAdd: number): Promise<LoyaltyCard> {
+    async addPoints(
+        card: LoyaltyCard,
+        pointsToAdd: number,
+    ): Promise<LoyaltyCard> {
         const inputs = [card.raw, `${pointsToAdd}u64`];
 
         const outputs = await this.execute(
             this.tokenProgram,
             "add_points",
-            inputs
+            inputs,
         );
 
         return this.parseCard(outputs[0]);
@@ -519,13 +625,15 @@ class LoyaltyProgram {
      * @param card - The card to check.
      * @returns The same card (for chaining) and points value.
      */
-    async checkPoints(card: LoyaltyCard): Promise<{ card: LoyaltyCard; points: number }> {
+    async checkPoints(
+        card: LoyaltyCard,
+    ): Promise<{ card: LoyaltyCard; points: number }> {
         const inputs = [card.raw];
 
         const outputs = await this.execute(
             this.tokenProgram,
             "check_points",
-            inputs
+            inputs,
         );
 
         return {
@@ -541,13 +649,16 @@ class LoyaltyProgram {
      * @param newOwner - The address of the new owner.
      * @returns The transferred card with new owner.
      */
-    async transferCard(card: LoyaltyCard, newOwner: string): Promise<LoyaltyCard> {
+    async transferCard(
+        card: LoyaltyCard,
+        newOwner: string,
+    ): Promise<LoyaltyCard> {
         const inputs = [card.raw, newOwner];
 
         const outputs = await this.execute(
             this.tokenProgram,
             "transfer_card",
-            inputs
+            inputs,
         );
 
         return this.parseCard(outputs[0]);
@@ -566,10 +677,13 @@ class LoyaltyProgram {
      * const { keptCard, splitCard } = await loyalty.splitCardV2(card, 3000);
      * console.log(`Kept: ${keptCard.points}, Split: ${splitCard.points}`);
      */
-    async splitCardV2(card: LoyaltyCard, pointsToKeep: number): Promise<SplitResult> {
+    async splitCardV2(
+        card: LoyaltyCard,
+        pointsToKeep: number,
+    ): Promise<SplitResult> {
         if (pointsToKeep >= card.points) {
             throw new Error(
-                `pointsToKeep (${pointsToKeep}) must be less than card points (${card.points})`
+                `pointsToKeep (${pointsToKeep}) must be less than card points (${card.points})`,
             );
         }
 
@@ -578,7 +692,7 @@ class LoyaltyProgram {
         const outputs = await this.execute(
             this.tokenProgram,
             "split_card_v2",
-            inputs
+            inputs,
         );
 
         return {
@@ -611,11 +725,11 @@ class LoyaltyProgram {
     async redeemForVoucher(
         card: LoyaltyCard,
         rewardType: RewardType,
-        pointsCost: number
+        pointsCost: number,
     ): Promise<RedeemResult> {
         if (card.points < pointsCost) {
             throw new Error(
-                `Insufficient points: have ${card.points}, need ${pointsCost}`
+                `Insufficient points: have ${card.points}, need ${pointsCost}`,
             );
         }
 
@@ -625,7 +739,7 @@ class LoyaltyProgram {
             this.rewardsProgram,
             "redeem_points_for_voucher",
             inputs,
-            { [this.TOKEN_PROGRAM_ID]: this.tokenProgram }
+            { [this.TOKEN_PROGRAM_ID]: this.tokenProgram },
         );
 
         return {
@@ -643,12 +757,9 @@ class LoyaltyProgram {
     async useVoucher(voucher: RewardVoucher): Promise<void> {
         const inputs = [voucher.raw];
 
-        await this.execute(
-            this.rewardsProgram,
-            "use_voucher",
-            inputs,
-            { [this.TOKEN_PROGRAM_ID]: this.tokenProgram }
-        );
+        await this.execute(this.rewardsProgram, "use_voucher", inputs, {
+            [this.TOKEN_PROGRAM_ID]: this.tokenProgram,
+        });
     }
 
     /**
@@ -657,16 +768,18 @@ class LoyaltyProgram {
      * @param voucher - The voucher to check.
      * @returns The voucher with its type and value.
      */
-    async checkVoucher(
-        voucher: RewardVoucher
-    ): Promise<{ voucher: RewardVoucher; rewardType: RewardType; value: number }> {
+    async checkVoucher(voucher: RewardVoucher): Promise<{
+        voucher: RewardVoucher;
+        rewardType: RewardType;
+        value: number;
+    }> {
         const inputs = [voucher.raw];
 
         const outputs = await this.execute(
             this.rewardsProgram,
             "check_voucher",
             inputs,
-            { [this.TOKEN_PROGRAM_ID]: this.tokenProgram }
+            { [this.TOKEN_PROGRAM_ID]: this.tokenProgram },
         );
 
         return {
@@ -685,7 +798,7 @@ class LoyaltyProgram {
      */
     async transferVoucher(
         voucher: RewardVoucher,
-        newOwner: string
+        newOwner: string,
     ): Promise<RewardVoucher> {
         const inputs = [voucher.raw, newOwner];
 
@@ -693,7 +806,7 @@ class LoyaltyProgram {
             this.rewardsProgram,
             "transfer_voucher",
             inputs,
-            { [this.TOKEN_PROGRAM_ID]: this.tokenProgram }
+            { [this.TOKEN_PROGRAM_ID]: this.tokenProgram },
         );
 
         return this.parseVoucher(outputs[0]);
@@ -707,7 +820,7 @@ class LoyaltyProgram {
         program: string,
         functionName: string,
         inputs: string[],
-        imports?: Record<string, string>
+        imports?: Record<string, string>,
     ): Promise<string[]> {
         logOperation(functionName, this._provingMode);
         const start = Date.now();
@@ -715,12 +828,26 @@ class LoyaltyProgram {
         let outputs: string[];
 
         if (this._provingMode === ProvingMode.Delegated) {
-            outputs = await this.executeDelegated(program, functionName, inputs, imports);
+            outputs = await this.executeDelegated(
+                program,
+                functionName,
+                inputs,
+                imports,
+            );
         } else {
-            outputs = await this.executeLocal(program, functionName, inputs, imports);
+            outputs = await this.executeLocal(
+                program,
+                functionName,
+                inputs,
+                imports,
+            );
         }
 
-        logOperationComplete(functionName, Date.now() - start, this._provingMode);
+        logOperationComplete(
+            functionName,
+            Date.now() - start,
+            this._provingMode,
+        );
         return outputs;
     }
 
@@ -728,25 +855,25 @@ class LoyaltyProgram {
         program: string,
         functionName: string,
         inputs: string[],
-        imports?: Record<string, string>
+        imports?: Record<string, string>,
     ): Promise<string[]> {
         // Use OfflineQuery with mock state to prevent network lookups for locally-created records.
         const offlineQuery = new OfflineQuery(
             0,
-            "sr1qqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqq6gk0xu"
+            "sr1qqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqq6gk0xu",
         );
 
         const executionResponse = await this.programManager.run(
             program,
             functionName,
             inputs,
-            false,      // proveExecution
+            false, // proveExecution
             imports,
-            undefined,  // keySearchParams
-            undefined,  // provingKey
-            undefined,  // verifyingKey
-            undefined,  // privateKey
-            offlineQuery
+            undefined, // keySearchParams
+            undefined, // provingKey
+            undefined, // verifyingKey
+            undefined, // privateKey
+            offlineQuery,
         );
 
         return executionResponse.getOutputs();
@@ -762,19 +889,27 @@ class LoyaltyProgram {
         const startTime = Date.now();
         const shortId = txId.slice(0, 16);
 
-        console.log(`   ${COLORS.dim}├─ Broadcasting: ${shortId}...${COLORS.reset}`);
+        console.log(
+            `   ${COLORS.dim}├─ Broadcasting: ${shortId}...${COLORS.reset}`,
+        );
 
         // Use explorer API for transaction lookups (not DPS).
-        const explorerClient = new AleoNetworkClient("https://api.explorer.provable.com/v1");
+        const explorerClient = new AleoNetworkClient(
+            "https://api.explorer.provable.com/v1",
+        );
 
         while (Date.now() - startTime < this.TX_TIMEOUT_MS) {
             try {
                 const tx = await explorerClient.getTransaction(txId);
                 if (tx) {
-                    const elapsed = ((Date.now() - startTime) / 1000).toFixed(1);
+                    const elapsed = ((Date.now() - startTime) / 1000).toFixed(
+                        1,
+                    );
                     // Clear the "Waiting for confirmation..." line before printing
                     process.stdout.write("\r\x1b[K");
-                    console.log(`   ${COLORS.dim}├─ Confirmed in ${elapsed}s${COLORS.reset}`);
+                    console.log(
+                        `   ${COLORS.dim}├─ Confirmed in ${elapsed}s${COLORS.reset}`,
+                    );
                     return tx;
                 }
             } catch {
@@ -783,24 +918,30 @@ class LoyaltyProgram {
 
             // Log progress every poll.
             const elapsed = Math.round((Date.now() - startTime) / 1000);
-            process.stdout.write(`   ${COLORS.dim}├─ Waiting for confirmation... (${elapsed}s)\r${COLORS.reset}`);
+            process.stdout.write(
+                `   ${COLORS.dim}├─ Waiting for confirmation... (${elapsed}s)\r${COLORS.reset}`,
+            );
 
-            await new Promise(resolve => setTimeout(resolve, this.TX_POLL_INTERVAL_MS));
+            await new Promise((resolve) =>
+                setTimeout(resolve, this.TX_POLL_INTERVAL_MS),
+            );
         }
 
-        throw new Error(`Transaction ${txId} not confirmed within ${this.TX_TIMEOUT_MS / 1000}s`);
+        throw new Error(
+            `Transaction ${txId} not confirmed within ${this.TX_TIMEOUT_MS / 1000}s`,
+        );
     }
 
     private async executeDelegated(
         program: string,
         functionName: string,
         inputs: string[],
-        imports?: Record<string, string>
+        imports?: Record<string, string>,
     ): Promise<string[]> {
         if (!this._dpsUrl) {
             throw new Error(
                 "Delegated proving requires dpsUrl to be configured. " +
-                "Pass dpsUrl in the config or use setProvingMode(ProvingMode.Local)."
+                    "Pass dpsUrl in the config or use setProvingMode(ProvingMode.Local).",
             );
         }
 
@@ -825,7 +966,9 @@ class LoyaltyProgram {
         }
 
         if (this._dpsPrivacy) {
-            console.log(`   ${COLORS.dim}├─ Using encrypted DPS flow (TEE-protected)${COLORS.reset}`);
+            console.log(
+                `   ${COLORS.dim}├─ Using encrypted DPS flow (TEE-protected)${COLORS.reset}`,
+            );
         }
 
         const response = await this.networkClient.submitProvingRequest({
@@ -846,7 +989,13 @@ class LoyaltyProgram {
         return this.extractOutputsFromTransaction(confirmedTx);
     }
 
-    private extractOutputsFromTransaction(transaction: { execution?: { transitions: Array<{ outputs?: Array<{ type?: string; value?: string }> }> } }): string[] {
+    private extractOutputsFromTransaction(transaction: {
+        execution?: {
+            transitions: Array<{
+                outputs?: Array<{ type?: string; value?: string }>;
+            }>;
+        };
+    }): string[] {
         // Extract and decrypt record outputs from transaction execution.
         const outputs: string[] = [];
 
@@ -856,11 +1005,20 @@ class LoyaltyProgram {
                     for (const output of transition.outputs) {
                         if (output.value) {
                             // Check if this is an encrypted record (starts with "record1").
-                            if (output.type === "record" && output.value.startsWith("record1")) {
-                                const ciphertext = RecordCiphertext.fromString(output.value);
+                            if (
+                                output.type === "record" &&
+                                output.value.startsWith("record1")
+                            ) {
+                                const ciphertext = RecordCiphertext.fromString(
+                                    output.value,
+                                );
                                 // Only decrypt records owned by this account (e.g. transfers produce records for other owners).
-                                if (ciphertext.isOwner(this._account.viewKey())) {
-                                    const plaintext = ciphertext.decrypt(this._account.viewKey());
+                                if (
+                                    ciphertext.isOwner(this._account.viewKey())
+                                ) {
+                                    const plaintext = ciphertext.decrypt(
+                                        this._account.viewKey(),
+                                    );
                                     outputs.push(plaintext.toString());
                                 }
                             } else {
@@ -898,7 +1056,7 @@ class LoyaltyProgram {
             owner: this.cleanAddress(fields.owner),
             voucherId: this.cleanField(fields.voucher_id),
             rewardType: this.parseU8(fields.reward_type) as RewardType,
-            value: this.parseU64(fields.amount),  // Leo record uses 'amount' field.
+            value: this.parseU64(fields.amount), // Leo record uses 'amount' field.
             raw: recordString,
         };
     }
@@ -944,7 +1102,10 @@ const __dirname = dirname(__filename);
 
 // Load the Leo programs.
 const tokenProgramPath = join(__dirname, "../loyalty_token/build/main.aleo");
-const rewardsProgramPath = join(__dirname, "../loyalty_rewards/build/main.aleo");
+const rewardsProgramPath = join(
+    __dirname,
+    "../loyalty_rewards/build/main.aleo",
+);
 
 const tokenProgram = readFileSync(tokenProgramPath, "utf-8").trim();
 const rewardsProgram = readFileSync(rewardsProgramPath, "utf-8").trim();
@@ -953,15 +1114,25 @@ const rewardsProgram = readFileSync(rewardsProgramPath, "utf-8").trim();
 console.log("\nValidating programs...");
 try {
     const parsedToken = Program.fromString(tokenProgram);
-    console.log(`  ${COLORS.green}✓${COLORS.reset} Token program: ${parsedToken.id()}`);
+    console.log(
+        `  ${COLORS.green}✓${COLORS.reset} Token program: ${parsedToken.id()}`,
+    );
 } catch (e) {
-    console.error(`  ${COLORS.yellow}✗${COLORS.reset} Failed to parse token program:`, e);
+    console.error(
+        `  ${COLORS.yellow}✗${COLORS.reset} Failed to parse token program:`,
+        e,
+    );
 }
 try {
     const parsedRewards = Program.fromString(rewardsProgram);
-    console.log(`  ${COLORS.green}✓${COLORS.reset} Rewards program: ${parsedRewards.id()}`);
+    console.log(
+        `  ${COLORS.green}✓${COLORS.reset} Rewards program: ${parsedRewards.id()}`,
+    );
 } catch (e) {
-    console.error(`  ${COLORS.yellow}✗${COLORS.reset} Failed to parse rewards program:`, e);
+    console.error(
+        `  ${COLORS.yellow}✗${COLORS.reset} Failed to parse rewards program:`,
+        e,
+    );
 }
 
 // Read configuration from environment.
@@ -976,9 +1147,10 @@ try {
 //   ALEO_RSS_API_KEY     - JWT token for RSS authentication (optional if using ALEO_CONSUMER_ID)
 //   ALEO_RSS_PRIVACY     - "true" to enable encrypted RSS flow (TEE-protected)
 const consumerId = process.env.ALEO_CONSUMER_ID;
-const provingMode = process.env.ALEO_PROVING_MODE === "delegated"
-    ? ProvingMode.Delegated
-    : ProvingMode.Local;
+const provingMode =
+    process.env.ALEO_PROVING_MODE === "delegated"
+        ? ProvingMode.Delegated
+        : ProvingMode.Local;
 const dpsUrl = process.env.ALEO_DPS_URL;
 const dpsApiKey = process.env.ALEO_DPS_API_KEY;
 const dpsPrivacy = process.env.ALEO_DPS_PRIVACY === "true";
@@ -1019,28 +1191,44 @@ async function fetchRssJwt(): Promise<string | undefined> {
         if (!response.ok) {
             const status = response.status;
             if (status === 401 || status === 403) {
-                console.error(`${COLORS.yellow}⚠${COLORS.reset}  Failed to fetch RSS JWT: Invalid API key`);
-                console.error(`   ${COLORS.dim}Check that ALEO_DPS_API_KEY is correct${COLORS.reset}`);
+                console.error(
+                    `${COLORS.yellow}⚠${COLORS.reset}  Failed to fetch RSS JWT: Invalid API key`,
+                );
+                console.error(
+                    `   ${COLORS.dim}Check that ALEO_DPS_API_KEY is correct${COLORS.reset}`,
+                );
             } else if (status === 404) {
-                console.error(`${COLORS.yellow}⚠${COLORS.reset}  Failed to fetch RSS JWT: Consumer ID not found`);
-                console.error(`   ${COLORS.dim}Check that ALEO_CONSUMER_ID is correct${COLORS.reset}`);
+                console.error(
+                    `${COLORS.yellow}⚠${COLORS.reset}  Failed to fetch RSS JWT: Consumer ID not found`,
+                );
+                console.error(
+                    `   ${COLORS.dim}Check that ALEO_CONSUMER_ID is correct${COLORS.reset}`,
+                );
             } else {
-                console.error(`${COLORS.yellow}⚠${COLORS.reset}  Failed to fetch RSS JWT: HTTP ${status}`);
+                console.error(
+                    `${COLORS.yellow}⚠${COLORS.reset}  Failed to fetch RSS JWT: HTTP ${status}`,
+                );
             }
             return recordScannerApiKey;
         }
         // JWT is returned in the Authorization header as "Bearer <token>".
         const authHeader = response.headers.get("authorization");
         if (!authHeader) {
-            console.error(`${COLORS.yellow}⚠${COLORS.reset}  Failed to fetch RSS JWT: No token in response`);
+            console.error(
+                `${COLORS.yellow}⚠${COLORS.reset}  Failed to fetch RSS JWT: No token in response`,
+            );
             return recordScannerApiKey;
         }
         const jwt = authHeader.replace(/^Bearer\s+/i, "");
         console.log(`${COLORS.green}✓${COLORS.reset} Fetched RSS JWT token`);
         return jwt;
     } catch (error) {
-        console.error(`${COLORS.yellow}⚠${COLORS.reset}  Failed to fetch RSS JWT: ${error}`);
-        console.error(`   ${COLORS.dim}Check your network connection${COLORS.reset}`);
+        console.error(
+            `${COLORS.yellow}⚠${COLORS.reset}  Failed to fetch RSS JWT: ${error}`,
+        );
+        console.error(
+            `   ${COLORS.dim}Check your network connection${COLORS.reset}`,
+        );
         return recordScannerApiKey;
     }
 }
@@ -1073,7 +1261,12 @@ const address = account.address().to_string();
 
 // Display configuration.
 logHeader("Aleo Loyalty Program Demo");
-logConfig(loyalty.provingMode, loyalty.hasRecordScanner, dpsPrivacy, rssPrivacy);
+logConfig(
+    loyalty.provingMode,
+    loyalty.hasRecordScanner,
+    dpsPrivacy,
+    rssPrivacy,
+);
 
 // Demo functions.
 const functions: Record<string, () => Promise<void>> = {
@@ -1081,11 +1274,21 @@ const functions: Record<string, () => Promise<void>> = {
     mint_card: async () => {
         logHeader("Minting Loyalty Card");
         const card = await loyalty.mintCard(address, 1000);
-        console.log(`\n${COLORS.green}✓${COLORS.reset} Card minted successfully!`);
-        console.log(`  ${COLORS.dim}├─${COLORS.reset} Owner: ${card.owner.slice(0, 20)}...`);
-        console.log(`  ${COLORS.dim}├─${COLORS.reset} Card ID: ${card.cardId.slice(0, 20)}...`);
-        console.log(`  ${COLORS.dim}├─${COLORS.reset} Points: ${COLORS.bright}${card.points}${COLORS.reset}`);
-        console.log(`  ${COLORS.dim}└─${COLORS.reset} Tier: ${COLORS.bright}${CardTier[card.tier]}${COLORS.reset}`);
+        console.log(
+            `\n${COLORS.green}✓${COLORS.reset} Card minted successfully!`,
+        );
+        console.log(
+            `  ${COLORS.dim}├─${COLORS.reset} Owner: ${card.owner.slice(0, 20)}...`,
+        );
+        console.log(
+            `  ${COLORS.dim}├─${COLORS.reset} Card ID: ${card.cardId.slice(0, 20)}...`,
+        );
+        console.log(
+            `  ${COLORS.dim}├─${COLORS.reset} Points: ${COLORS.bright}${card.points}${COLORS.reset}`,
+        );
+        console.log(
+            `  ${COLORS.dim}└─${COLORS.reset} Tier: ${COLORS.bright}${CardTier[card.tier]}${COLORS.reset}`,
+        );
     },
 
     // Add points to a card (mints a new card first for demo).
@@ -1093,12 +1296,18 @@ const functions: Record<string, () => Promise<void>> = {
         logHeader("Adding Points to Card");
         console.log("\nStep 1: Minting initial card with 500 points...");
         const card = await loyalty.mintCard(address, 500);
-        console.log(`  ${COLORS.dim}└─${COLORS.reset} Initial points: ${card.points}`);
+        console.log(
+            `  ${COLORS.dim}└─${COLORS.reset} Initial points: ${card.points}`,
+        );
 
         console.log("\nStep 2: Adding 600 points...");
         const updatedCard = await loyalty.addPoints(card, 600);
-        console.log(`  ${COLORS.dim}├─${COLORS.reset} New points: ${COLORS.bright}${updatedCard.points}${COLORS.reset}`);
-        console.log(`  ${COLORS.dim}└─${COLORS.reset} Tier changed: ${CardTier[card.tier]} → ${COLORS.bright}${CardTier[updatedCard.tier]}${COLORS.reset}`);
+        console.log(
+            `  ${COLORS.dim}├─${COLORS.reset} New points: ${COLORS.bright}${updatedCard.points}${COLORS.reset}`,
+        );
+        console.log(
+            `  ${COLORS.dim}└─${COLORS.reset} Tier changed: ${CardTier[card.tier]} → ${COLORS.bright}${CardTier[updatedCard.tier]}${COLORS.reset}`,
+        );
     },
 
     // Redeem points for a voucher.
@@ -1111,14 +1320,22 @@ const functions: Record<string, () => Promise<void>> = {
         const result = await loyalty.redeemForVoucher(
             card,
             RewardType.Discount,
-            500
+            500,
         );
 
         console.log(`\n${COLORS.green}✓${COLORS.reset} Redemption successful!`);
-        console.log(`  ${COLORS.dim}├─${COLORS.reset} Card points remaining: ${COLORS.bright}${result.card.points}${COLORS.reset}`);
-        console.log(`  ${COLORS.dim}├─${COLORS.reset} Voucher type: ${COLORS.bright}${RewardType[result.voucher.rewardType]}${COLORS.reset}`);
-        console.log(`  ${COLORS.dim}├─${COLORS.reset} Voucher value: ${COLORS.bright}${result.voucher.value}${COLORS.reset}`);
-        console.log(`  ${COLORS.dim}└─${COLORS.reset} Voucher ID: ${result.voucher.voucherId.slice(0, 20)}...`);
+        console.log(
+            `  ${COLORS.dim}├─${COLORS.reset} Card points remaining: ${COLORS.bright}${result.card.points}${COLORS.reset}`,
+        );
+        console.log(
+            `  ${COLORS.dim}├─${COLORS.reset} Voucher type: ${COLORS.bright}${RewardType[result.voucher.rewardType]}${COLORS.reset}`,
+        );
+        console.log(
+            `  ${COLORS.dim}├─${COLORS.reset} Voucher value: ${COLORS.bright}${result.voucher.value}${COLORS.reset}`,
+        );
+        console.log(
+            `  ${COLORS.dim}└─${COLORS.reset} Voucher ID: ${result.voucher.voucherId.slice(0, 20)}...`,
+        );
     },
 
     // Full flow: mint -> add points -> redeem -> use voucher.
@@ -1127,55 +1344,83 @@ const functions: Record<string, () => Promise<void>> = {
 
         console.log("\n1. Minting initial card with 100 points...");
         let card = await loyalty.mintCard(address, 100);
-        console.log(`   ${COLORS.dim}└─${COLORS.reset} Points: ${card.points}, Tier: ${CardTier[card.tier]}`);
+        console.log(
+            `   ${COLORS.dim}└─${COLORS.reset} Points: ${card.points}, Tier: ${CardTier[card.tier]}`,
+        );
 
         console.log("\n2. Adding 900 points (should upgrade to Silver)...");
         card = await loyalty.addPoints(card, 900);
-        console.log(`   ${COLORS.dim}└─${COLORS.reset} Points: ${COLORS.bright}${card.points}${COLORS.reset}, Tier: ${COLORS.bright}${CardTier[card.tier]}${COLORS.reset}`);
+        console.log(
+            `   ${COLORS.dim}└─${COLORS.reset} Points: ${COLORS.bright}${card.points}${COLORS.reset}, Tier: ${COLORS.bright}${CardTier[card.tier]}${COLORS.reset}`,
+        );
 
         console.log("\n3. Adding 9900 points (should upgrade to Gold)...");
         card = await loyalty.addPoints(card, 9900);
-        console.log(`   ${COLORS.dim}└─${COLORS.reset} Points: ${COLORS.bright}${card.points}${COLORS.reset}, Tier: ${COLORS.bright}${CardTier[card.tier]}${COLORS.reset}`);
+        console.log(
+            `   ${COLORS.dim}└─${COLORS.reset} Points: ${COLORS.bright}${card.points}${COLORS.reset}, Tier: ${COLORS.bright}${CardTier[card.tier]}${COLORS.reset}`,
+        );
 
         console.log("\n4. Splitting card (keep 3000, split off 7900)...");
         const { keptCard, splitCard } = await loyalty.splitCardV2(card, 3000);
-        console.log(`   ${COLORS.dim}├─${COLORS.reset} Kept card:  ${COLORS.bright}${keptCard.points}${COLORS.reset} points, Tier: ${COLORS.bright}${CardTier[keptCard.tier]}${COLORS.reset}`);
-        console.log(`   ${COLORS.dim}└─${COLORS.reset} Split card: ${COLORS.bright}${splitCard.points}${COLORS.reset} points, Tier: ${COLORS.bright}${CardTier[splitCard.tier]}${COLORS.reset}`);
+        console.log(
+            `   ${COLORS.dim}├─${COLORS.reset} Kept card:  ${COLORS.bright}${keptCard.points}${COLORS.reset} points, Tier: ${COLORS.bright}${CardTier[keptCard.tier]}${COLORS.reset}`,
+        );
+        console.log(
+            `   ${COLORS.dim}└─${COLORS.reset} Split card: ${COLORS.bright}${splitCard.points}${COLORS.reset} points, Tier: ${COLORS.bright}${CardTier[splitCard.tier]}${COLORS.reset}`,
+        );
 
-        console.log("\n5. Redeeming 2000 points from kept card for Upgrade voucher...");
+        console.log(
+            "\n5. Redeeming 2000 points from kept card for Upgrade voucher...",
+        );
         const { card: updatedCard, voucher } = await loyalty.redeemForVoucher(
             keptCard,
             RewardType.Upgrade,
-            2000
+            2000,
         );
-        console.log(`   ${COLORS.dim}├─${COLORS.reset} Card points remaining: ${COLORS.bright}${updatedCard.points}${COLORS.reset}`);
-        console.log(`   ${COLORS.dim}└─${COLORS.reset} Voucher: ${RewardType[voucher.rewardType]}, value: ${voucher.value}`);
+        console.log(
+            `   ${COLORS.dim}├─${COLORS.reset} Card points remaining: ${COLORS.bright}${updatedCard.points}${COLORS.reset}`,
+        );
+        console.log(
+            `   ${COLORS.dim}└─${COLORS.reset} Voucher: ${RewardType[voucher.rewardType]}, value: ${voucher.value}`,
+        );
 
         console.log("\n6. Using the voucher...");
         await loyalty.useVoucher(voucher);
-        console.log(`   ${COLORS.green}✓${COLORS.reset} Voucher consumed successfully!`);
+        console.log(
+            `   ${COLORS.green}✓${COLORS.reset} Voucher consumed successfully!`,
+        );
     },
 
     // Demonstrate proving mode switching.
     demo_modes: async () => {
         logHeader("Proving Mode Demonstration");
 
-        console.log("\nCurrently using:", loyalty.provingMode.toUpperCase(), "proving");
+        console.log(
+            "\nCurrently using:",
+            loyalty.provingMode.toUpperCase(),
+            "proving",
+        );
 
         // Local mode demo.
         loyalty.setProvingMode(ProvingMode.Local);
         console.log("\nMinting card with LOCAL proving...");
         const localCard = await loyalty.mintCard(address, 500);
-        console.log(`  ${COLORS.dim}└─${COLORS.reset} Card minted: ${localCard.points} points`);
+        console.log(
+            `  ${COLORS.dim}└─${COLORS.reset} Card minted: ${localCard.points} points`,
+        );
 
         // Note: Delegated mode requires DPS configuration.
         if (dpsUrl) {
             loyalty.setProvingMode(ProvingMode.Delegated);
             console.log("\nMinting card with DELEGATED proving...");
             const delegatedCard = await loyalty.mintCard(address, 500);
-            console.log(`  ${COLORS.dim}└─${COLORS.reset} Card minted: ${delegatedCard.points} points`);
+            console.log(
+                `  ${COLORS.dim}└─${COLORS.reset} Card minted: ${delegatedCard.points} points`,
+            );
         } else {
-            console.log(`\n${COLORS.yellow}⚠${COLORS.reset}  Delegated proving skipped (ALEO_DPS_URL not set)`);
+            console.log(
+                `\n${COLORS.yellow}⚠${COLORS.reset}  Delegated proving skipped (ALEO_DPS_URL not set)`,
+            );
         }
 
         // Reset to original mode.
@@ -1187,24 +1432,36 @@ const functions: Record<string, () => Promise<void>> = {
         logHeader("Record Scanner Demonstration");
 
         if (!loyalty.hasRecordScanner) {
-            console.log(`\n${COLORS.yellow}⚠${COLORS.reset}  Record Scanner not configured`);
-            console.log(`   ${COLORS.dim}Set ALEO_RSS_URL to enable this feature${COLORS.reset}`);
+            console.log(
+                `\n${COLORS.yellow}⚠${COLORS.reset}  Record Scanner not configured`,
+            );
+            console.log(
+                `   ${COLORS.dim}Set ALEO_RSS_URL to enable this feature${COLORS.reset}`,
+            );
             return;
         }
 
-        console.log(`\nScanning from block ${COLORS.bright}${scanStartHeight}${COLORS.reset}...`);
-        console.log(`   ${COLORS.dim}(Set ALEO_SCAN_START_HEIGHT to change)${COLORS.reset}`);
+        console.log(
+            `\nScanning from block ${COLORS.bright}${scanStartHeight}${COLORS.reset}...`,
+        );
+        console.log(
+            `   ${COLORS.dim}(Set ALEO_SCAN_START_HEIGHT to change)${COLORS.reset}`,
+        );
 
         console.log("\nSearching for your LoyaltyCard records...");
         const cards = await loyalty.findMyCards(scanStartHeight);
         for (const card of cards) {
-            console.log(`  ${COLORS.dim}├─${COLORS.reset} Card: ${card.points} points (${CardTier[card.tier]})`);
+            console.log(
+                `  ${COLORS.dim}├─${COLORS.reset} Card: ${card.points} points (${CardTier[card.tier]})`,
+            );
         }
 
         console.log("\nSearching for your RewardVoucher records...");
         const vouchers = await loyalty.findMyVouchers(scanStartHeight);
         for (const voucher of vouchers) {
-            console.log(`  ${COLORS.dim}├─${COLORS.reset} Voucher: ${RewardType[voucher.rewardType]}, value: ${voucher.value}`);
+            console.log(
+                `  ${COLORS.dim}├─${COLORS.reset} Voucher: ${RewardType[voucher.rewardType]}, value: ${voucher.value}`,
+            );
         }
     },
 
@@ -1223,12 +1480,18 @@ const functions: Record<string, () => Promise<void>> = {
     // Requires: ALEO_DPS_URL, ALEO_DPS_API_KEY
     delegated: async () => {
         if (!dpsUrl) {
-            console.error(`\n${COLORS.yellow}⚠${COLORS.reset}  Delegated proving requires ALEO_DPS_URL`);
-            console.error(`   Example: ALEO_DPS_URL=https://api.provable.com/prove/testnet npm run delegated\n`);
+            console.error(
+                `\n${COLORS.yellow}⚠${COLORS.reset}  Delegated proving requires ALEO_DPS_URL`,
+            );
+            console.error(
+                `   Example: ALEO_DPS_URL=https://api.provable.com/prove/testnet npm run delegated\n`,
+            );
             process.exit(1);
         }
         if (!dpsApiKey) {
-            console.error(`\n${COLORS.yellow}⚠${COLORS.reset}  Delegated proving requires ALEO_DPS_API_KEY`);
+            console.error(
+                `\n${COLORS.yellow}⚠${COLORS.reset}  Delegated proving requires ALEO_DPS_API_KEY`,
+            );
             console.error(`   Get an API key from https://provable.com\n`);
             process.exit(1);
         }
@@ -1240,13 +1503,21 @@ const functions: Record<string, () => Promise<void>> = {
     // Requires: ALEO_RSS_URL + (ALEO_CONSUMER_ID or ALEO_RSS_API_KEY)
     scanner: async () => {
         if (!recordScannerUrl) {
-            console.error(`\n${COLORS.yellow}⚠${COLORS.reset}  RSS scanner requires ALEO_RSS_URL`);
-            console.error(`   Example: ALEO_RSS_URL=https://api.provable.com/scanner npm run scanner\n`);
+            console.error(
+                `\n${COLORS.yellow}⚠${COLORS.reset}  RSS scanner requires ALEO_RSS_URL`,
+            );
+            console.error(
+                `   Example: ALEO_RSS_URL=https://api.provable.com/scanner npm run scanner\n`,
+            );
             process.exit(1);
         }
         if (!recordScannerApiKey && !consumerId) {
-            console.error(`\n${COLORS.yellow}⚠${COLORS.reset}  RSS scanner requires ALEO_CONSUMER_ID or ALEO_RSS_API_KEY`);
-            console.error(`   Set ALEO_CONSUMER_ID to fetch JWT automatically\n`);
+            console.error(
+                `\n${COLORS.yellow}⚠${COLORS.reset}  RSS scanner requires ALEO_CONSUMER_ID or ALEO_RSS_API_KEY`,
+            );
+            console.error(
+                `   Set ALEO_CONSUMER_ID to fetch JWT automatically\n`,
+            );
             process.exit(1);
         }
         await functions.demo_scanner();
@@ -1262,7 +1533,9 @@ async function main() {
         process.exit(1);
     }
 
-    const toRun = selected ? { [selected]: functions[selected] } : { full_flow: functions.full_flow };
+    const toRun = selected
+        ? { [selected]: functions[selected] }
+        : { full_flow: functions.full_flow };
 
     for (const [, fn] of Object.entries(toRun)) {
         await fn();

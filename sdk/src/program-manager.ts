@@ -1,5 +1,9 @@
 import { Account } from "./account.js";
-import { AleoNetworkClient, AleoNetworkClientOptions, ProgramImports } from "./network-client.js";
+import {
+    AleoNetworkClient,
+    AleoNetworkClientOptions,
+    ProgramImports,
+} from "./network-client.js";
 import { ImportedPrograms, ImportedVerifyingKeys } from "./models/imports.js";
 import { RecordProvider } from "./record-provider.js";
 import { RecordSearchParams } from "./models/record-provider/recordSearchParams.js";
@@ -13,9 +17,7 @@ import {
     AleoKeyProviderParams,
 } from "./keys/provider/memory.js";
 
-import {
-    FunctionKeyPair
-} from "./models/keyPair.js";
+import { FunctionKeyPair } from "./models/keyPair.js";
 
 import {
     Address,
@@ -97,7 +99,7 @@ interface ExecuteOptions {
     offlineQuery?: OfflineQuery;
     program?: string | Program;
     imports?: ProgramImports;
-    edition?: number,
+    edition?: number;
 }
 
 /**
@@ -118,7 +120,7 @@ interface AuthorizationOptions {
     programSource?: string | Program;
     privateKey?: PrivateKey;
     programImports?: ProgramImports;
-    edition?: number,
+    edition?: number;
 }
 
 /**
@@ -131,11 +133,11 @@ interface AuthorizationOptions {
  * @property {RecordPlaintext} [feeRecord]  A record to specify to pay the private fee. If this is specified a `fee_private` authorization will be built.
  */
 interface FeeAuthorizationOptions {
-    deploymentOrExecutionId: string,
-    baseFeeCredits: number,
-    priorityFeeCredits?: number,
-    privateKey?: PrivateKey,
-    feeRecord?: RecordPlaintext,
+    deploymentOrExecutionId: string;
+    baseFeeCredits: number;
+    priorityFeeCredits?: number;
+    privateKey?: PrivateKey;
+    feeRecord?: RecordPlaintext;
 }
 
 /**
@@ -151,8 +153,8 @@ interface FeeAuthorizationOptions {
  */
 interface ExecuteAuthorizationOptions {
     programName: string;
-    authorization: Authorization,
-    feeAuthorization?: Authorization,
+    authorization: Authorization;
+    feeAuthorization?: Authorization;
     keySearchParams?: KeySearchParams;
     provingKey?: ProvingKey;
     verifyingKey?: VerifyingKey;
@@ -216,7 +218,7 @@ interface FeeEstimateOptions {
     functionName?: string;
     program?: string | Program;
     imports?: ProgramImports;
-    edition?: number,
+    edition?: number;
     authorization?: Authorization;
 }
 
@@ -244,7 +246,10 @@ class ProgramManager {
         networkClientOptions?: AleoNetworkClientOptions | undefined,
     ) {
         this.host = host ? host : "https://api.provable.com/v2";
-        this.networkClient = new AleoNetworkClient(this.host, networkClientOptions);
+        this.networkClient = new AleoNetworkClient(
+            this.host,
+            networkClientOptions,
+        );
 
         this.keyProvider = keyProvider ? keyProvider : new AleoKeyProvider();
         this.recordProvider = recordProvider;
@@ -254,8 +259,9 @@ class ProgramManager {
      * Check if the fee is sufficient to pay for the transaction
      */
     async checkFee(address: string, feeAmount: bigint) {
-        const balance =
-            BigInt(await this.networkClient.getPublicBalance(address));
+        const balance = BigInt(
+            await this.networkClient.getPublicBalance(address),
+        );
         if (feeAmount > balance) {
             throw Error(
                 `The desired execution requires a fee of ${feeAmount} microcredits, but the account paying the fee has ${balance} microcredits available.`,
@@ -339,20 +345,22 @@ class ProgramManager {
      */
     async setInclusionProver(provingKey?: ProvingKey) {
         if (this.inclusionKeysLoaded) {
-            return
+            return;
         }
         try {
             if (provingKey) {
-                WasmProgramManager.loadInclusionProver(provingKey)
+                WasmProgramManager.loadInclusionProver(provingKey);
                 this.inclusionKeysLoaded = true;
             } else {
                 const inclusionKeys = await this.keyProvider.inclusionKeys();
-                WasmProgramManager.loadInclusionProver(inclusionKeys[0])
+                WasmProgramManager.loadInclusionProver(inclusionKeys[0]);
                 this.inclusionKeysLoaded = true;
             }
             return;
         } catch {
-            console.log("Setting the inclusion prover requires either a key provider to be configured for the ProgramManager OR to pass the inclusion prover directly");
+            console.log(
+                "Setting the inclusion prover requires either a key provider to be configured for the ProgramManager OR to pass the inclusion prover directly",
+            );
         }
     }
 
@@ -371,7 +379,7 @@ class ProgramManager {
      * programManager.removeHeader('X-Aleo-SDK-Version');
      */
     removeHeader(headerName: string) {
-        delete this.networkClient.headers[headerName]
+        delete this.networkClient.headers[headerName];
     }
 
     /**
@@ -444,7 +452,9 @@ class ProgramManager {
                 );
             }
             if (typeof programSource === "string") {
-                throw Error(`Program ${programObject.id()} already exists on the network, please rename your program`);
+                throw Error(
+                    `Program ${programObject.id()} already exists on the network, please rename your program`,
+                );
             }
         } catch (e: any) {
             logAndThrow(`Error validating program: ${e.message}`);
@@ -469,10 +479,20 @@ class ProgramManager {
                 let fee = priorityFee;
                 // If a private fee is specified, but no fee record is provided, estimate the fee and find a matching record.
                 if (!feeRecord) {
-                    console.log("Private fee specified, but no private fee record provided, estimating fee and finding a matching fee record.")
+                    console.log(
+                        "Private fee specified, but no private fee record provided, estimating fee and finding a matching fee record.",
+                    );
                     const programString = programObject.toString();
-                    const imports = await this.networkClient.getProgramImports(programString);
-                    const baseFee = Number(WasmProgramManager.estimateDeploymentFee(programString, imports));
+                    const imports =
+                        await this.networkClient.getProgramImports(
+                            programString,
+                        );
+                    const baseFee = Number(
+                        WasmProgramManager.estimateDeploymentFee(
+                            programString,
+                            imports,
+                        ),
+                    );
                     fee = baseFee + priorityFee;
                 }
 
@@ -481,11 +501,11 @@ class ProgramManager {
                     fee,
                     [],
                     feeRecord,
-                    recordSearchParams
-                )
+                    recordSearchParams,
+                );
             } else {
                 // If it's specified NOT to use a privateFee, use a public fee.
-                feeRecord = undefined
+                feeRecord = undefined;
             }
         } catch (e: any) {
             logAndThrow(
@@ -562,9 +582,10 @@ class ProgramManager {
      * }, 20000);
      */
     async buildUpgradeTransaction(
-        options: DeployOptions
+        options: DeployOptions,
     ): Promise<Transaction> {
-        const { program, priorityFee, privateFee, recordSearchParams } = options;
+        const { program, priorityFee, privateFee, recordSearchParams } =
+            options;
         let feeRecord = options.feeRecord;
         let privateKey = options.privateKey;
 
@@ -614,10 +635,20 @@ class ProgramManager {
                 let fee = priorityFee;
                 // If a private fee is specified, but no fee record is provided, estimate the fee and find a matching record.
                 if (!feeRecord) {
-                    console.log("Private fee specified, but no private fee record provided, estimating fee and finding a matching fee record.")
+                    console.log(
+                        "Private fee specified, but no private fee record provided, estimating fee and finding a matching fee record.",
+                    );
                     const programString = programObject.toString();
-                    const imports = await this.networkClient.getProgramImports(programString);
-                    const baseFee = Number(WasmProgramManager.estimateDeploymentFee(programString, imports));
+                    const imports =
+                        await this.networkClient.getProgramImports(
+                            programString,
+                        );
+                    const baseFee = Number(
+                        WasmProgramManager.estimateDeploymentFee(
+                            programString,
+                            imports,
+                        ),
+                    );
                     fee = baseFee + priorityFee;
                 }
 
@@ -626,11 +657,11 @@ class ProgramManager {
                     fee,
                     [],
                     feeRecord,
-                    recordSearchParams
-                )
+                    recordSearchParams,
+                );
             } else {
                 // If it's specified NOT to use a privateFee, use a public fee.
-                feeRecord = undefined
+                feeRecord = undefined;
             }
         } catch (e: any) {
             logAndThrow(
@@ -726,7 +757,7 @@ class ProgramManager {
                 recordSearchParams,
                 feeRecord,
                 privateKey,
-    )
+            )
         );
 
         let feeAddress;
@@ -813,7 +844,8 @@ class ProgramManager {
         // Ensure the function exists on the network
         if (program === undefined) {
             try {
-                programObject = await this.networkClient.getProgramObject(programName);
+                programObject =
+                    await this.networkClient.getProgramObject(programName);
                 program = <string>programObject.toString();
             } catch (e: any) {
                 logAndThrow(
@@ -824,7 +856,9 @@ class ProgramManager {
             try {
                 programObject = Program.fromString(program);
             } catch (e: any) {
-                logAndThrow(`Program sources passed for ${programName} were invalid: ${e}`);
+                logAndThrow(
+                    `Program sources passed for ${programName} were invalid: ${e}`,
+                );
             }
         } else if (program instanceof Program) {
             programObject = program;
@@ -842,9 +876,14 @@ class ProgramManager {
 
         if (edition == undefined) {
             try {
-                edition = await this.networkClient.getLatestProgramEdition(programName);
+                edition =
+                    await this.networkClient.getLatestProgramEdition(
+                        programName,
+                    );
             } catch (e: any) {
-                console.warn(`Error finding edition for ${programName}. Network response: '${e.message}'. Assuming edition 0.`);
+                console.warn(
+                    `Error finding edition for ${programName}. Network response: '${e.message}'. Assuming edition 0.`,
+                );
                 edition = 0;
             }
         }
@@ -908,7 +947,14 @@ class ProgramManager {
                 let fee = priorityFee;
                 // If a fee record wasn't provided, estimate the fee that needs to be paid.
                 if (!feeRecord) {
-                    const baseFee = Number(await this.estimateExecutionFee({programName, functionName, program, imports}));
+                    const baseFee = Number(
+                        await this.estimateExecutionFee({
+                            programName,
+                            functionName,
+                            program,
+                            imports,
+                        }),
+                    );
                     fee = baseFee + priorityFee;
                 }
 
@@ -917,11 +963,11 @@ class ProgramManager {
                     fee,
                     [],
                     feeRecord,
-                    recordSearchParams
-                )
+                    recordSearchParams,
+                );
             } else {
                 // If it's specified NOT to use a privateFee, use a public fee.
-                feeRecord = undefined
+                feeRecord = undefined;
             }
         } catch (e: any) {
             logAndThrow(
@@ -932,11 +978,13 @@ class ProgramManager {
         if (offlineQuery && !this.inclusionKeysLoaded) {
             try {
                 const inclusionKeys = await this.keyProvider.inclusionKeys();
-                WasmProgramManager.loadInclusionProver(inclusionKeys[0])
+                WasmProgramManager.loadInclusionProver(inclusionKeys[0]);
                 this.inclusionKeysLoaded = true;
                 console.log("Successfully loaded inclusion key");
             } catch {
-                logAndThrow(`Inclusion key bytes not loaded, please ensure the program manager is initialized with a KeyProvider that includes the inclusion key.`)
+                logAndThrow(
+                    `Inclusion key bytes not loaded, please ensure the program manager is initialized with a KeyProvider that includes the inclusion key.`,
+                );
             }
         }
 
@@ -955,7 +1003,7 @@ class ProgramManager {
             feeProvingKey,
             feeVerifyingKey,
             offlineQuery,
-            edition
+            edition,
         );
     }
 
@@ -1033,10 +1081,7 @@ class ProgramManager {
         options: ExecuteAuthorizationOptions,
     ): Promise<Transaction> {
         // Destructure the options object to access the parameters.
-        const {
-            programName,
-            authorization,
-        } = options;
+        const { programName, authorization } = options;
 
         const feeAuthorization = options.feeAuthorization;
         const keySearchParams = options.keySearchParams;
@@ -1063,7 +1108,9 @@ class ProgramManager {
 
         // Get the fee proving and verifying keys from the key provider.
         let feeKeys;
-        const privateFee = feeAuthorization ? feeAuthorization.isFeePrivate() : false;
+        const privateFee = feeAuthorization
+            ? feeAuthorization.isFeePrivate()
+            : false;
         try {
             feeKeys = privateFee
                 ? <FunctionKeyPair>await this.keyProvider.feePrivateKeys()
@@ -1108,16 +1155,18 @@ class ProgramManager {
             console.log("Loading inclusion keys for offline proving.");
             try {
                 const inclusionKeys = await this.keyProvider.inclusionKeys();
-                WasmProgramManager.loadInclusionProver(inclusionKeys[0])
+                WasmProgramManager.loadInclusionProver(inclusionKeys[0]);
                 this.inclusionKeysLoaded = true;
                 console.log("Successfully loaded inclusion key");
             } catch {
-                logAndThrow(`Inclusion key bytes not loaded, please ensure the program manager is initialized with a KeyProvider that includes the inclusion key.`)
+                logAndThrow(
+                    `Inclusion key bytes not loaded, please ensure the program manager is initialized with a KeyProvider that includes the inclusion key.`,
+                );
             }
         }
 
         // Build an execution transaction from the authorization.
-        console.log("Executing authorizations")
+        console.log("Executing authorizations");
         return await WasmProgramManager.executeAuthorization(
             authorization,
             feeAuthorization,
@@ -1128,8 +1177,8 @@ class ProgramManager {
             feeVerifyingKey,
             imports,
             this.host,
-            offlineQuery
-        )
+            offlineQuery,
+        );
     }
 
     /**
@@ -1164,10 +1213,7 @@ class ProgramManager {
         options: AuthorizationOptions,
     ): Promise<Authorization> {
         // Destructure the options object to access the parameters.
-        const {
-            functionName,
-            inputs,
-        } = options;
+        const { functionName, inputs } = options;
 
         const privateKey = options.privateKey;
         let program = options.programSource;
@@ -1210,9 +1256,14 @@ class ProgramManager {
 
         if (edition == undefined) {
             try {
-                edition = await this.networkClient.getLatestProgramEdition(programName);
+                edition =
+                    await this.networkClient.getLatestProgramEdition(
+                        programName,
+                    );
             } catch (e: any) {
-                console.warn(`Error finding edition for ${programName}. Network response: '${e.message}'. Assuming edition 0.`);
+                console.warn(
+                    `Error finding edition for ${programName}. Network response: '${e.message}'. Assuming edition 0.`,
+                );
                 edition = 0;
             }
         }
@@ -1238,7 +1289,7 @@ class ProgramManager {
             functionName,
             inputs,
             imports,
-            edition
+            edition,
         );
     }
 
@@ -1274,10 +1325,7 @@ class ProgramManager {
         options: AuthorizationOptions,
     ): Promise<Authorization> {
         // Destructure the options object to access the parameters.
-        const {
-            functionName,
-            inputs,
-        } = options;
+        const { functionName, inputs } = options;
 
         const privateKey = options.privateKey;
         let program = options.programSource;
@@ -1334,9 +1382,14 @@ class ProgramManager {
 
         if (edition == undefined) {
             try {
-                edition = await this.networkClient.getLatestProgramEdition(programName);
+                edition =
+                    await this.networkClient.getLatestProgramEdition(
+                        programName,
+                    );
             } catch (e: any) {
-                console.warn(`Error finding edition for ${programName}. Network response: '${e.message}'. Assuming edition 0.`);
+                console.warn(
+                    `Error finding edition for ${programName}. Network response: '${e.message}'. Assuming edition 0.`,
+                );
                 edition = 0;
             }
         }
@@ -1348,7 +1401,7 @@ class ProgramManager {
             functionName,
             inputs,
             imports,
-            edition
+            edition,
         );
     }
 
@@ -1399,7 +1452,9 @@ class ProgramManager {
 
         const baseFee = options.baseFee ? options.baseFee : 0;
         const privateKey = options.privateKey;
-        const useFeeMaster = options.useFeeMaster ? options.useFeeMaster : false;
+        const useFeeMaster = options.useFeeMaster
+            ? options.useFeeMaster
+            : false;
         let program = options.programSource;
         let programName = options.programName;
         let feeRecord = options.feeRecord;
@@ -1428,9 +1483,14 @@ class ProgramManager {
 
         if (edition == undefined) {
             try {
-                edition = await this.networkClient.getLatestProgramEdition(programName);
+                edition =
+                    await this.networkClient.getLatestProgramEdition(
+                        programName,
+                    );
             } catch (e: any) {
-                console.warn(`Error finding edition for ${programName}. Network response: '${e.message}'. Assuming edition 0.`);
+                console.warn(
+                    `Error finding edition for ${programName}. Network response: '${e.message}'. Assuming edition 0.`,
+                );
                 edition = 0;
             }
         }
@@ -1468,7 +1528,14 @@ class ProgramManager {
                 let fee = priorityFee;
                 // If a fee record wasn't provided, estimate the fee that needs to be paid.
                 if (!feeRecord) {
-                    const baseFee = Number(await this.estimateExecutionFee({programName, functionName, program: program.toString(), imports}));
+                    const baseFee = Number(
+                        await this.estimateExecutionFee({
+                            programName,
+                            functionName,
+                            program: program.toString(),
+                            imports,
+                        }),
+                    );
                     fee = baseFee + priorityFee;
                 }
 
@@ -1477,11 +1544,11 @@ class ProgramManager {
                     fee,
                     [],
                     feeRecord,
-                    recordSearchParams
-                )
+                    recordSearchParams,
+                );
             } else {
                 // If it's specified NOT to use a privateFee, use a public fee.
-                feeRecord = undefined
+                feeRecord = undefined;
             }
         } catch (e: any) {
             logAndThrow(
@@ -1502,7 +1569,7 @@ class ProgramManager {
             broadcast,
             unchecked,
             edition,
-            useFeeMaster
+            useFeeMaster,
         );
     }
 
@@ -1673,7 +1740,7 @@ class ProgramManager {
         verifyingKey?: VerifyingKey,
         privateKey?: PrivateKey,
         offlineQuery?: OfflineQuery,
-        edition?: number
+        edition?: number,
     ): Promise<ExecutionResponse> {
         // Get the private key from the account if it is not provided in the parameters
         let executionPrivateKey = privateKey;
@@ -1717,7 +1784,7 @@ class ProgramManager {
             verifyingKey,
             this.host,
             offlineQuery,
-            edition
+            edition,
         );
     }
 
@@ -1774,11 +1841,9 @@ class ProgramManager {
         ) {
             executionPrivateKey = this.account.privateKey();
             feeAddress = this.account?.address();
-        }
-        else if (typeof executionPrivateKey === "undefined") {
+        } else if (typeof executionPrivateKey === "undefined") {
             throw "No private key provided and no private key set in the ProgramManager";
-        }
-        else {
+        } else {
             feeAddress = Address.from_private_key(executionPrivateKey);
         }
 
@@ -1804,7 +1869,12 @@ class ProgramManager {
                 let fee = priorityFee;
                 // If a fee record wasn't provided, estimate the fee that needs to be paid.
                 if (!feeRecord) {
-                    const baseFee = Number(await this.estimateExecutionFee({programName: "credits.aleo", functionName: "join"}));
+                    const baseFee = Number(
+                        await this.estimateExecutionFee({
+                            programName: "credits.aleo",
+                            functionName: "join",
+                        }),
+                    );
                     fee = baseFee + priorityFee;
                 }
 
@@ -1813,11 +1883,11 @@ class ProgramManager {
                     fee,
                     [],
                     feeRecord,
-                    recordSearchParams
-                )
+                    recordSearchParams,
+                );
             } else {
                 // If it's specified NOT to use a privateFee, use a public fee.
-                feeRecord = undefined
+                feeRecord = undefined;
             }
         } catch (e: any) {
             logAndThrow(
@@ -1845,11 +1915,13 @@ class ProgramManager {
         if (offlineQuery && !this.inclusionKeysLoaded) {
             try {
                 const inclusionKeys = await this.keyProvider.inclusionKeys();
-                WasmProgramManager.loadInclusionProver(inclusionKeys[0])
+                WasmProgramManager.loadInclusionProver(inclusionKeys[0]);
                 this.inclusionKeysLoaded = true;
                 console.log("Successfully loaded inclusion key");
             } catch {
-                logAndThrow(`Inclusion key bytes not loaded, please ensure the program manager is initialized with a KeyProvider that includes the inclusion key.`)
+                logAndThrow(
+                    `Inclusion key bytes not loaded, please ensure the program manager is initialized with a KeyProvider that includes the inclusion key.`,
+                );
             }
         }
 
@@ -1951,11 +2023,13 @@ class ProgramManager {
         if (offlineQuery && !this.inclusionKeysLoaded) {
             try {
                 const inclusionKeys = await this.keyProvider.inclusionKeys();
-                WasmProgramManager.loadInclusionProver(inclusionKeys[0])
+                WasmProgramManager.loadInclusionProver(inclusionKeys[0]);
                 this.inclusionKeysLoaded = true;
                 console.log("Successfully loaded inclusion key");
             } catch {
-                logAndThrow(`Inclusion key bytes not loaded, please ensure the program manager is initialized with a KeyProvider that includes the inclusion key.`)
+                logAndThrow(
+                    `Inclusion key bytes not loaded, please ensure the program manager is initialized with a KeyProvider that includes the inclusion key.`,
+                );
             }
         }
 
@@ -2110,11 +2184,11 @@ class ProgramManager {
             if (requiresAmountRecord(transferType)) {
                 // If the transfer type is private and requires an amount record, get it from the record provider
                 amountRecord = await this.getCreditsRecord(
-                        priorityFee,
-                        [],
-                        amountRecord,
-                        recordSearchParams,
-                    );
+                    priorityFee,
+                    [],
+                    amountRecord,
+                    recordSearchParams,
+                );
                 nonces.push(amountRecord.nonce());
             } else {
                 amountRecord = undefined;
@@ -2125,11 +2199,11 @@ class ProgramManager {
                     priorityFee,
                     [],
                     feeRecord,
-                    recordSearchParams
-                )
+                    recordSearchParams,
+                );
             } else {
                 // If it's specified NOT to use a privateFee, use a public fee.
-                feeRecord = undefined
+                feeRecord = undefined;
             }
         } catch (e: any) {
             logAndThrow(
@@ -2140,14 +2214,16 @@ class ProgramManager {
         // Load the inclusion prover offline.
         if (offlineQuery && !this.inclusionKeysLoaded) {
             const inclusionKeys = await this.keyProvider.inclusionKeys();
-            WasmProgramManager.loadInclusionProver(inclusionKeys[0])
+            WasmProgramManager.loadInclusionProver(inclusionKeys[0]);
             try {
                 const inclusionKeys = await this.keyProvider.inclusionKeys();
-                WasmProgramManager.loadInclusionProver(inclusionKeys[0])
+                WasmProgramManager.loadInclusionProver(inclusionKeys[0]);
                 this.inclusionKeysLoaded = true;
                 console.log("Successfully loaded inclusion key");
             } catch {
-                logAndThrow(`Inclusion key bytes not loaded, please ensure the program manager is initialized with a KeyProvider that includes the inclusion key.`)
+                logAndThrow(
+                    `Inclusion key bytes not loaded, please ensure the program manager is initialized with a KeyProvider that includes the inclusion key.`,
+                );
             }
         }
 
@@ -3064,7 +3140,12 @@ class ProgramManager {
      * const isValid = programManager.verifyExecution(executionResponse, blockHeight, imports, importedVerifyingKeys);
      * assert(isValid);
      */
-    verifyExecution(executionResponse: ExecutionResponse, blockHeight: number, imports?: ImportedPrograms, importedVerifyingKeys?: ImportedVerifyingKeys): boolean {
+    verifyExecution(
+        executionResponse: ExecutionResponse,
+        blockHeight: number,
+        imports?: ImportedPrograms,
+        importedVerifyingKeys?: ImportedVerifyingKeys,
+    ): boolean {
         try {
             const execution = <FunctionExecution>(
                 executionResponse.getExecution()
@@ -3079,7 +3160,7 @@ class ProgramManager {
                 function_id,
                 imports,
                 importedVerifyingKeys,
-                blockHeight
+                blockHeight,
             );
         } catch (e) {
             console.warn(
@@ -3175,25 +3256,36 @@ class ProgramManager {
      * });
      */
     async estimateFeeForAuthorization(
-        options: FeeEstimateOptions
+        options: FeeEstimateOptions,
     ): Promise<bigint> {
-        const {
-            authorization,
-            programName,
-            program,
-            imports,
-            edition
-        } = options;
+        const { authorization, programName, program, imports, edition } =
+            options;
         if (!authorization) {
-            throw new Error("Authorization must be provided if estimating fee for Authorization.")
+            throw new Error(
+                "Authorization must be provided if estimating fee for Authorization.",
+            );
         }
-        const programSource = program ? program.toString() : await this.networkClient.getProgram(programName, edition);
-        const programImports = imports ? imports : await this.networkClient.getProgramImports(programSource);
+        const programSource = program
+            ? program.toString()
+            : await this.networkClient.getProgram(programName, edition);
+        const programImports = imports
+            ? imports
+            : await this.networkClient.getProgramImports(programSource);
         console.log(JSON.stringify(programImports));
         if (Object.keys(programImports)) {
-            return WasmProgramManager.estimateFeeForAuthorization(authorization, programSource, programImports, edition);
+            return WasmProgramManager.estimateFeeForAuthorization(
+                authorization,
+                programSource,
+                programImports,
+                edition,
+            );
         }
-        return WasmProgramManager.estimateFeeForAuthorization(authorization, programSource, imports, edition);
+        return WasmProgramManager.estimateFeeForAuthorization(
+            authorization,
+            programSource,
+            imports,
+            edition,
+        );
     }
 
     /**
@@ -3222,25 +3314,34 @@ class ProgramManager {
      * });
      * const baseFeeCredits = Number(baseFeeMicrocredits)/1000000;
      */
-    async estimateExecutionFee(
-        options: FeeEstimateOptions,
-    ): Promise<bigint> {
-        const {
-            functionName,
-            programName,
-            program,
-            imports,
-            edition
-        } = options;
+    async estimateExecutionFee(options: FeeEstimateOptions): Promise<bigint> {
+        const { functionName, programName, program, imports, edition } =
+            options;
         if (!functionName) {
-            throw new Error("Function name must be specified when estimating fee.");
+            throw new Error(
+                "Function name must be specified when estimating fee.",
+            );
         }
-        const programSource = program ? program.toString() : await this.networkClient.getProgram(programName, edition);
-        const programImports = imports ? imports : await this.networkClient.getProgramImports(programSource);
+        const programSource = program
+            ? program.toString()
+            : await this.networkClient.getProgram(programName, edition);
+        const programImports = imports
+            ? imports
+            : await this.networkClient.getProgramImports(programSource);
         if (Object.keys(programImports)) {
-            return WasmProgramManager.estimateExecutionFee(programSource, functionName, programImports, edition);
+            return WasmProgramManager.estimateExecutionFee(
+                programSource,
+                functionName,
+                programImports,
+                edition,
+            );
         }
-        return WasmProgramManager.estimateExecutionFee(programSource, functionName, imports, edition);
+        return WasmProgramManager.estimateExecutionFee(
+            programSource,
+            functionName,
+            imports,
+            edition,
+        );
     }
 
     // Internal utility function for getting a credits.aleo record
@@ -3253,22 +3354,26 @@ class ProgramManager {
         if (record) {
             try {
                 return record instanceof RecordPlaintext
-                    ? record : RecordPlaintext.fromString(<string>record);
+                    ? record
+                    : RecordPlaintext.fromString(<string>record);
             } catch {
                 logAndThrow(`Record '${record}' could not be parsed, please ensure a valid credits.aleo record 
-                is passed prior to trying again`)
+                is passed prior to trying again`);
             }
         } else {
             try {
                 const recordProvider = <RecordProvider>this.recordProvider;
-                const record = await recordProvider.findCreditsRecord(
-                    amount,
-                    { ...params, unspent: true, nonces }
-                );
+                const record = await recordProvider.findCreditsRecord(amount, {
+                    ...params,
+                    unspent: true,
+                    nonces,
+                });
                 if (record.record_plaintext) {
                     return RecordPlaintext.fromString(record.record_plaintext);
                 } else {
-                    logAndThrow("Failed to deserialize record returned from record provider");
+                    logAndThrow(
+                        "Failed to deserialize record returned from record provider",
+                    );
                 }
             } catch (e: any) {
                 logAndThrow(
@@ -3289,7 +3394,7 @@ class ProgramManager {
      * @example
      * /// Import the mainnet version of the sdk.
      * import { AleoKeyProvider, getOrInitConsensusVersionTestHeights, ProgramManager, NetworkRecordProvider } from "@provablehq/sdk/mainnet.js";
-     * 
+     *
      * // Initialize the development consensus heights in order to work with devnode.
      * getOrInitConsensusVersionTestHeights("0,1,2,3,4,5,6,7,8,9,10,11,12");
      *
@@ -3341,7 +3446,8 @@ class ProgramManager {
         // Ensure the function exists on the network
         if (program === undefined) {
             try {
-                programObject = await this.networkClient.getProgramObject(programName);
+                programObject =
+                    await this.networkClient.getProgramObject(programName);
                 program = <string>programObject.toString();
             } catch (e: any) {
                 logAndThrow(
@@ -3352,7 +3458,9 @@ class ProgramManager {
             try {
                 programObject = Program.fromString(program);
             } catch (e: any) {
-                logAndThrow(`Program sources passed for ${programName} were invalid: ${e}`);
+                logAndThrow(
+                    `Program sources passed for ${programName} were invalid: ${e}`,
+                );
             }
         } else if (program instanceof Program) {
             programObject = program;
@@ -3370,9 +3478,14 @@ class ProgramManager {
 
         if (edition == undefined) {
             try {
-                edition = await this.networkClient.getLatestProgramEdition(programName);
+                edition =
+                    await this.networkClient.getLatestProgramEdition(
+                        programName,
+                    );
             } catch (e: any) {
-                console.warn(`Error finding edition for ${programName}. Network response: '${e.message}'. Assuming edition 0.`);
+                console.warn(
+                    `Error finding edition for ${programName}. Network response: '${e.message}'. Assuming edition 0.`,
+                );
                 edition = 0;
             }
         }
@@ -3396,10 +3509,20 @@ class ProgramManager {
                 let fee = priorityFee;
                 // If a private fee is specified, but no fee record is provided, estimate the fee and find a matching record.
                 if (!feeRecord) {
-                    console.log("Private fee specified, but no private fee record provided, estimating fee and finding a matching fee record.")
+                    console.log(
+                        "Private fee specified, but no private fee record provided, estimating fee and finding a matching fee record.",
+                    );
                     const programString = programObject.toString();
-                    const imports = await this.networkClient.getProgramImports(programString);
-                    const baseFee = Number(WasmProgramManager.estimateDeploymentFee(programString, imports));
+                    const imports =
+                        await this.networkClient.getProgramImports(
+                            programString,
+                        );
+                    const baseFee = Number(
+                        WasmProgramManager.estimateDeploymentFee(
+                            programString,
+                            imports,
+                        ),
+                    );
                     fee = baseFee + priorityFee;
                 }
 
@@ -3408,11 +3531,11 @@ class ProgramManager {
                     fee,
                     [],
                     feeRecord,
-                    recordSearchParams
-                )
+                    recordSearchParams,
+                );
             } else {
                 // If it's specified NOT to use a privateFee, use a public fee.
-                feeRecord = undefined
+                feeRecord = undefined;
             }
         } catch (e: any) {
             logAndThrow(
@@ -3433,7 +3556,7 @@ class ProgramManager {
                 );
             }
         }
-        
+
         // Build a transaction without a proof
         return await WasmProgramManager.buildDevnodeExecutionTransaction(
             executionPrivateKey,
@@ -3444,10 +3567,10 @@ class ProgramManager {
             feeRecord,
             this.host,
             imports,
-            edition
+            edition,
         );
     }
-    
+
     /**
      * Builds a deployment transaction with placeholder certificates and verifying keys for each function in the program.
      * Intended for use with a local devnode.
@@ -3459,7 +3582,7 @@ class ProgramManager {
      * @example
      * /// Import the mainnet version of the sdk.
      * import { ProgramManager, NetworkRecordProvider, getOrInitConsensusVersionTestHeights } from "@provablehq/sdk/mainnet.js";
-     * 
+     *
      * // Initialize the development consensus heights in order to work with a local devnode.
      * getOrInitConsensusVersionTestHeights("0,1,2,3,4,5,6,7,8,9,10,11,12");
      *
@@ -3486,9 +3609,10 @@ class ProgramManager {
      * }, 20000);
      */
     async buildDevnodeDeploymentTransaction(
-        options: DeployOptions
+        options: DeployOptions,
     ): Promise<Transaction> {
-        const { program, priorityFee, privateFee, recordSearchParams } = options;
+        const { program, priorityFee, privateFee, recordSearchParams } =
+            options;
         let feeRecord = options.feeRecord;
         let privateKey = options.privateKey;
 
@@ -3516,7 +3640,9 @@ class ProgramManager {
                 );
             }
             if (typeof programSource === "string") {
-                throw Error(`Program ${programObject.id()} already exists on the network, please rename your program`);
+                throw Error(
+                    `Program ${programObject.id()} already exists on the network, please rename your program`,
+                );
             }
         } catch (e: any) {
             logAndThrow(`Error validating program: ${e.message}`);
@@ -3541,10 +3667,20 @@ class ProgramManager {
                 let fee = priorityFee;
                 // If a private fee is specified, but no fee record is provided, estimate the fee and find a matching record.
                 if (!feeRecord) {
-                    console.log("Private fee specified, but no private fee record provided, estimating fee and finding a matching fee record.")
+                    console.log(
+                        "Private fee specified, but no private fee record provided, estimating fee and finding a matching fee record.",
+                    );
                     const programString = programObject.toString();
-                    const imports = await this.networkClient.getProgramImports(programString);
-                    const baseFee = Number(WasmProgramManager.estimateDeploymentFee(programString, imports));
+                    const imports =
+                        await this.networkClient.getProgramImports(
+                            programString,
+                        );
+                    const baseFee = Number(
+                        WasmProgramManager.estimateDeploymentFee(
+                            programString,
+                            imports,
+                        ),
+                    );
                     fee = baseFee + priorityFee;
                 }
 
@@ -3553,11 +3689,11 @@ class ProgramManager {
                     fee,
                     [],
                     feeRecord,
-                    recordSearchParams
-                )
+                    recordSearchParams,
+                );
             } else {
                 // If it's specified NOT to use a privateFee, use a public fee.
-                feeRecord = undefined
+                feeRecord = undefined;
             }
         } catch (e: any) {
             logAndThrow(
@@ -3574,7 +3710,7 @@ class ProgramManager {
                 `Error finding program imports. Network response: '${e.message}'. Please ensure you're connected to a valid Aleo network and the program is deployed to the network.`,
             );
         }
-        
+
         return await WasmProgramManager.buildDevnodeDeploymentTransaction(
             deploymentPrivateKey,
             program,
@@ -3619,9 +3755,10 @@ class ProgramManager {
      * }, 20000);
      */
     async buildDevnodeUpgradeTransaction(
-        options: DeployOptions
+        options: DeployOptions,
     ): Promise<Transaction> {
-        const { program, priorityFee, privateFee, recordSearchParams } = options;
+        const { program, priorityFee, privateFee, recordSearchParams } =
+            options;
         let feeRecord = options.feeRecord;
         let privateKey = options.privateKey;
 
@@ -3671,10 +3808,20 @@ class ProgramManager {
                 let fee = priorityFee;
                 // If a private fee is specified, but no fee record is provided, estimate the fee and find a matching record.
                 if (!feeRecord) {
-                    console.log("Private fee specified, but no private fee record provided, estimating fee and finding a matching fee record.")
+                    console.log(
+                        "Private fee specified, but no private fee record provided, estimating fee and finding a matching fee record.",
+                    );
                     const programString = programObject.toString();
-                    const imports = await this.networkClient.getProgramImports(programString);
-                    const baseFee = Number(WasmProgramManager.estimateDeploymentFee(programString, imports));
+                    const imports =
+                        await this.networkClient.getProgramImports(
+                            programString,
+                        );
+                    const baseFee = Number(
+                        WasmProgramManager.estimateDeploymentFee(
+                            programString,
+                            imports,
+                        ),
+                    );
                     fee = baseFee + priorityFee;
                 }
 
@@ -3683,11 +3830,11 @@ class ProgramManager {
                     fee,
                     [],
                     feeRecord,
-                    recordSearchParams
-                )
+                    recordSearchParams,
+                );
             } else {
                 // If it's specified NOT to use a privateFee, use a public fee.
-                feeRecord = undefined
+                feeRecord = undefined;
             }
         } catch (e: any) {
             logAndThrow(
@@ -3725,8 +3872,14 @@ function validateTransferType(transferType: string): string {
     return VALID_TRANSFER_TYPES.has(transferType)
         ? transferType
         : logAndThrow(
-            `Invalid transfer type '${transferType}'. Valid transfer types are 'private', 'privateToPublic', 'public', and 'publicToPrivate'.`,
-        );
+              `Invalid transfer type '${transferType}'. Valid transfer types are 'private', 'privateToPublic', 'public', and 'publicToPrivate'.`,
+          );
 }
 
-export { ProgramManager, AuthorizationOptions, FeeAuthorizationOptions, ExecuteOptions, ProvingRequestOptions };
+export {
+    ProgramManager,
+    AuthorizationOptions,
+    FeeAuthorizationOptions,
+    ExecuteOptions,
+    ProvingRequestOptions,
+};

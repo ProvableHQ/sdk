@@ -4,9 +4,11 @@ title: Aleo Programs and Transactions
 sidebar_label: Programs and Transactions
 ---
 
-Programs lie at the core of the Aleo protocol. All transactions either execute program functions or deploy new programs. 
-Program function executions are the primary method of updating the state of the Aleo Blockchain. This section 
-introduces the core ideass behind programs, the structure of a program, and the lifecycle of an Execution transaction.
+Programs lie at the core of the Aleo protocol. All transactions either execute
+program functions or deploy new programs. Program function executions are the
+primary method of updating the state of the Aleo Blockchain. This section
+introduces the core ideass behind programs, the structure of a program, and the
+lifecycle of an Execution transaction.
 
 ```mermaid
 graph TD
@@ -27,7 +29,7 @@ graph TD
         credential_store.aleo"]
     end
     BlockN --> batchProposal --> BlockN+1
-    
+
     classDef default fill:#fff3e0,stroke:#ff9800,stroke-width:2px,color:#000;
     style BlockN fill:#ffdbf0,stroke:#f229e0,stroke-width:2px,color:#000;
     style BlockN+1 fill:#ffdbf0,stroke:#f229e0,stroke-width:2px,color:#000;
@@ -37,20 +39,22 @@ graph TD
 
 ## Function Privacy
 
-Every program on Aleo is open source and has one or more functions that can be executed. When a function is executed 
-and included within a transaction that is accepted into a block, it causes a state change on the Aleo network. The 
-designers of a function can choose to make some or all of this state change private
-
+Every program on Aleo is open source and has one or more functions that can be
+executed. When a function is executed and included within a transaction that is
+accepted into a block, it causes a state change on the Aleo network. The
+designers of a function can choose to make some or all of this state change
+private
 
 ### Private Inputs and Outputs
 
-Program functions can have private inputs or outputs that are only visible to the caller of the function (and in some 
-cases, intended receivers) and encrypted for everyone else. This paradigm allows for privacy preserving actions such as 
-private transfers of assets, lending approvals which do not require the lender to know the borrower's assets, 
-private machine learning inferences, and more.
+Program functions can have private inputs or outputs that are only visible to
+the caller of the function (and in some cases, intended receivers) and encrypted
+for everyone else. This paradigm allows for privacy preserving actions such as
+private transfers of assets, lending approvals which do not require the lender
+to know the borrower's assets, private machine learning inferences, and more.
 
 ```mermaid
-graph 
+graph
     subgraph PrivateValue["Private Value Transfers"]
         Sender(["Sender(Private)"])
         Amount(["Amount(Private)"])
@@ -80,6 +84,7 @@ graph LR
    style PrivateLending fill:#ffdbf0,stroke:#f229e0,stroke-width:2px,color:#000;
    linkStyle default stroke:#f229e0,stroke-width:2px;
 ```
+
 ```mermaid
 graph LR
    subgraph ZkML["ZkML"]
@@ -102,22 +107,28 @@ graph LR
 
 ### Structure of a Program
 
-Programs are collections of functions, private records, data structure definitions and on-chain public data-stores.
+Programs are collections of functions, private records, data structure
+definitions and on-chain public data-stores.
 
-When a function within a program is executed with any mix of private or public inputs, the output is an `Execution` 
-object that contains:
+When a function within a program is executed with any mix of private or public
+inputs, the output is an `Execution` object that contains:
+
 1. A proof that the function was executed correctly.
 2. A list of `Transitions` which enumerate the following
-   - **Public Inputs/Outputs:** A list of public inputs/outputs
-   - **Encryped Private Input/Outputs:** A list of encrypted private inputs/outputs that is
-     only decryptable by the holder of private key (or view key) of the user who executed the program.
-   - **Records:** Special, encrypted UTXO-like structs that store longterm private state.
-   - **Futures:** Any optional code marked as a future to be executed on chain later
+    - **Public Inputs/Outputs:** A list of public inputs/outputs
+    - **Encryped Private Input/Outputs:** A list of encrypted private
+      inputs/outputs that is only decryptable by the holder of private key (or
+      view key) of the user who executed the program.
+    - **Records:** Special, encrypted UTXO-like structs that store longterm
+      private state.
+    - **Futures:** Any optional code marked as a future to be executed on chain
+      later
 
-The `Transitions` provides a transcript of the function's inputs and outputs and the proof provides certainty that the 
-function was executed correctly. This allows outside verifiers to trust that the private inputs and outputs are correct 
-without the need to see them. This is the core of the Aleo protocol's privacy guarantees as it allows for fully private
-execution of programs.
+The `Transitions` provides a transcript of the function's inputs and outputs and
+the proof provides certainty that the function was executed correctly. This
+allows outside verifiers to trust that the private inputs and outputs are
+correct without the need to see them. This is the core of the Aleo protocol's
+privacy guarantees as it allows for fully private execution of programs.
 
 ```mermaid
 graph LR
@@ -139,7 +150,7 @@ graph LR
                 (UTXO-like structs)"}
             end
             subgraph Data
-                Structs["Structs 
+                Structs["Structs
                 (user-defined)"]
                 Arrays
                 Literals["Literals"]
@@ -169,17 +180,23 @@ graph LR
 ### Aleo Programming Languages
 
 Programs on Aleo are written in one of two languages:
-1. [Leo](https://docs.leo-lang.org/leo): A high-level, developer-friendly language for developing zero-knowledge programs.
 
-2. [Aleo Instructions](https://developer.aleo.org/guides/aleo/aleo/): A low-level language that provides developers with fine-grained control over the execution
-   flow of zero-knowledge programs. Leo code is compiled into Aleo Instructions under the hood.
+1. [Leo](https://docs.leo-lang.org/leo): A high-level, developer-friendly
+   language for developing zero-knowledge programs.
 
-Documentation for both languages can be found at [docs.leo-lang.org](https://docs.leo-lang.org/leo). 
+2. [Aleo Instructions](https://developer.aleo.org/guides/aleo/aleo/): A
+   low-level language that provides developers with fine-grained control over
+   the execution flow of zero-knowledge programs. Leo code is compiled into Aleo
+   Instructions under the hood.
 
-Those interested in attempting to build programs immediately should visit the Leo Playground at 
-[play.leo-lang.org](https://play.leo-lang.org/).
+Documentation for both languages can be found at
+[docs.leo-lang.org](https://docs.leo-lang.org/leo).
+
+Those interested in attempting to build programs immediately should visit the
+Leo Playground at [play.leo-lang.org](https://play.leo-lang.org/).
 
 #### "Hello World" in Leo
+
 ```
 // A simple program adding two numbers together
 program helloworld.aleo {
@@ -191,6 +208,7 @@ program helloworld.aleo {
 ```
 
 #### "Hello World" in Aleo Instructions
+
 ```
 program helloworld.aleo;
 
@@ -204,32 +222,43 @@ function hello:
 
 ## Transactions
 
-Transactions are the primary method of updating the state of the Aleo Network. There are two types of transactions in Aleo:
+Transactions are the primary method of updating the state of the Aleo Network.
+There are two types of transactions in Aleo:
 
 ### Execution Transactions
-As discussed in the Programs section above, an Execution Transaction contains the following
-* A proof of execution that one or more Aleo Programs were executed correct
-* A set of `Transitions` which list the inputs and outputs of the function executions
-* A fee that is paid to the network for the transaction.
 
-Execution transactions update the state of the ledger, and update the internal state of the programs that were executed.
+As discussed in the Programs section above, an Execution Transaction contains
+the following
+
+- A proof of execution that one or more Aleo Programs were executed correct
+- A set of `Transitions` which list the inputs and outputs of the function
+  executions
+- A fee that is paid to the network for the transaction.
+
+Execution transactions update the state of the ledger, and update the internal
+state of the programs that were executed.
 
 State is updated in one of two ways:
-1. **Public State:** If a function contains a **future**, the future is executed on-chain by the validators and the 
-public mappings (an on-chain key-value store associated with a program).
-2. **Private State:** If a function takes a record as input, that record is "spent". If a function returns a record as
-output, a new record is created and stored in the Block and can be used as input in future transactions.
+
+1. **Public State:** If a function contains a **future**, the future is executed
+   on-chain by the validators and the public mappings (an on-chain key-value
+   store associated with a program).
+2. **Private State:** If a function takes a record as input, that record is
+   "spent". If a function returns a record as output, a new record is created
+   and stored in the Block and can be used as input in future transactions.
 
 ### Deployment Transactions
-Transactions which add a new program to the Aleo chain (with blank state). Once programs are deployed, execution 
-transactions can be sent that change the state of the program and the Aleo ledger.
+
+Transactions which add a new program to the Aleo chain (with blank state). Once
+programs are deployed, execution transactions can be sent that change the state
+of the program and the Aleo ledger.
 
 ### Lifecycle of a Transaction
 
 The following diagram shows the lifecycle of a transaction in the Aleo network.
 
 ```mermaid
-graph 
+graph
     subgraph Transaction["Execute Transaction"]
         subgraph Execution
             Proof@{ shape: document, label: "Proof" }
@@ -272,7 +301,9 @@ graph
 
 ## Building Transactions with the SDK
 
-The SDK provides the ability to both build transactions and submit them to the Aleo network. It also allows for the 
-inspection of the data in existing transactions or programs so that data on-chain can be used within a front or backend 
-application. The following sections will provide an overview of how to build both transfers of both Aleo credits, 
-arbitrary programs, and how to build and deploy new programs.
+The SDK provides the ability to both build transactions and submit them to the
+Aleo network. It also allows for the inspection of the data in existing
+transactions or programs so that data on-chain can be used within a front or
+backend application. The following sections will provide an overview of how to
+build both transfers of both Aleo credits, arbitrary programs, and how to build
+and deploy new programs.

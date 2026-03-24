@@ -182,4 +182,4 @@ interface FunctionKeyProvider {
     unBondPublicKeys(): Promise<FunctionKeyPair>;
 }
 
-export { FunctionKeyProvider, KeySearchParams }
+export { FunctionKeyProvider, KeySearchParams };

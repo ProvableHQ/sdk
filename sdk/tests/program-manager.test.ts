@@ -15,7 +15,7 @@ import {
     Transaction,
     verifyFunctionExecution,
     VerifyingKey,
-    ViewKey
+    ViewKey,
 } from "@provablehq/sdk/%%NETWORK%%.js";
 import {
     beaconAddressString,
@@ -26,145 +26,239 @@ import {
     statePathv0RecordOwnerPrivateKey,
     stateRootv0,
 } from "./data/account-data.js";
-import { IMPORT_1, IMPORT_2, MINT_VERIFYING_KEY, PROGRAM, SPEND_VERIFYING_KEY, SPIN_VERIFYING_KEY } from "./data/program.js";
+import {
+    IMPORT_1,
+    IMPORT_2,
+    MINT_VERIFYING_KEY,
+    PROGRAM,
+    SPEND_VERIFYING_KEY,
+    SPIN_VERIFYING_KEY,
+} from "./data/program.js";
 import { RECORD_PLAINTEXT_V1_STRING } from "./data/records";
 import { expect } from "chai";
 import {
     PUZZLE_SPINNER_PROGRAM_ID,
     PUZZLE_SPINNER_V002_INPUT_0,
     PUZZLE_SPINNER_V002_INPUT_1,
-    PUZZLE_SPINNER_V002_INPUT_2
+    PUZZLE_SPINNER_V002_INPUT_2,
 } from "./data/proving.js";
 import * as process from "node:process";
 import { ProvingResponse } from "../src/models/provingResponse.js";
 import { encryptProvingRequest } from "../src/browser";
 import sodium from "libsodium-wrappers";
 
-describe('Program Manager', async () => {
+describe("Program Manager", async () => {
     const keyProvider = new AleoKeyProvider();
     keyProvider.useCache(true);
-    const programManager = new ProgramManager("https://api.provable.com/v2", keyProvider);
-    programManager.setAccount(new Account({ privateKey: statePathv0RecordOwnerPrivateKey }));
+    const programManager = new ProgramManager(
+        "https://api.provable.com/v2",
+        keyProvider,
+    );
+    programManager.setAccount(
+        new Account({ privateKey: statePathv0RecordOwnerPrivateKey }),
+    );
     const network = programManager.networkClient.network;
-    programManager.networkClient.setProverUri("https://accelerate.provable.com");
-    describe('Instantiate with AleoNetworkClientOptions', () => {
-        it('should have the specified headers when instantiated', async () => {
-            const newProgramManager = new ProgramManager("https://api.provable.com/v2", undefined, undefined, { headers: { 'X-Test-Header': 'programManager' } });
-            expect(Object.keys(newProgramManager.networkClient.headers).length).equal(1);
-            expect(newProgramManager.networkClient.headers['X-Test-Header']).equal('programManager');
-            expect(newProgramManager.networkClient.headers['X-Aleo-SDK-Version']).undefined;
-        })
+    programManager.networkClient.setProverUri(
+        "https://accelerate.provable.com",
+    );
+    describe("Instantiate with AleoNetworkClientOptions", () => {
+        it("should have the specified headers when instantiated", async () => {
+            const newProgramManager = new ProgramManager(
+                "https://api.provable.com/v2",
+                undefined,
+                undefined,
+                { headers: { "X-Test-Header": "programManager" } },
+            );
+            expect(
+                Object.keys(newProgramManager.networkClient.headers).length,
+            ).equal(1);
+            expect(
+                newProgramManager.networkClient.headers["X-Test-Header"],
+            ).equal("programManager");
+            expect(
+                newProgramManager.networkClient.headers["X-Aleo-SDK-Version"],
+            ).undefined;
+        });
     });
 
-    describe('networkClient header methods', () => {
-        it('should correctly udpdate the networkClient headers map', async () => {
-            programManager.setHeader('X-Added-Header', 'programManager');
-            expect(programManager.networkClient.headers['X-Added-Header']).equal('programManager');
-        })
+    describe("networkClient header methods", () => {
+        it("should correctly udpdate the networkClient headers map", async () => {
+            programManager.setHeader("X-Added-Header", "programManager");
+            expect(
+                programManager.networkClient.headers["X-Added-Header"],
+            ).equal("programManager");
+        });
 
-        it('should remove header from the networkClient headers map', async () => {
-            programManager.removeHeader('X-Added-Header');
-            expect(programManager.networkClient.headers['X-Added-Header']).undefined;
-        })
-    })
+        it("should remove header from the networkClient headers map", async () => {
+            programManager.removeHeader("X-Added-Header");
+            expect(programManager.networkClient.headers["X-Added-Header"])
+                .undefined;
+        });
+    });
 
-    describe('Execute offline', () => {
-        it.skip('Program manager should execute offline and verify the resulting proof correctly', async () => {
-            const execution_result = <ExecutionResponse>await programManager.run(helloProgram, "hello", ["5u32", "5u32"], true, undefined, undefined, undefined, undefined, undefined, undefined)
+    describe("Execute offline", () => {
+        it.skip("Program manager should execute offline and verify the resulting proof correctly", async () => {
+            const execution_result = <ExecutionResponse>(
+                await programManager.run(
+                    helloProgram,
+                    "hello",
+                    ["5u32", "5u32"],
+                    true,
+                    undefined,
+                    undefined,
+                    undefined,
+                    undefined,
+                    undefined,
+                    undefined,
+                )
+            );
             expect(execution_result.getOutputs()[0]).equal("10u32");
             programManager.verifyExecution(execution_result, 10_300_000);
         });
     });
 
-    describe('Verify execution with multiple imports', () => {
-        it('Program manager should verify an execution with multiple imports', async () => {
+    describe("Verify execution with multiple imports", () => {
+        it("Program manager should verify an execution with multiple imports", async () => {
             if (network === "mainnet") {
                 // Get the execution, program, and verifying key from the transaction.
-                const transaction = <Transaction>await programManager.networkClient.getTransactionObject("at1ve39dz2nlm636ewq6g3wl978kmsfqafcvhaj9px4mk28hk855srq06veqh");
+                const transaction = <Transaction>(
+                    await programManager.networkClient.getTransactionObject(
+                        "at1ve39dz2nlm636ewq6g3wl978kmsfqafcvhaj9px4mk28hk855srq06veqh",
+                    )
+                );
                 const execution = transaction.execution();
                 const program = Program.fromString(PROGRAM);
-                const verifyingKey = VerifyingKey.fromString(SPIN_VERIFYING_KEY);
+                const verifyingKey =
+                    VerifyingKey.fromString(SPIN_VERIFYING_KEY);
 
                 // Create the imports and verifying keys for the imported programs.
                 const imports = <ImportedPrograms>{
                     "puzzle_arcade_coin_v002.aleo": IMPORT_1,
-                    "puzzle_arcade_ticket_v002.aleo": IMPORT_2
+                    "puzzle_arcade_ticket_v002.aleo": IMPORT_2,
                 };
                 const importedVerifyingKeys = <ImportedVerifyingKeys>{
-                    "puzzle_arcade_coin_v002.aleo": [["spend", SPEND_VERIFYING_KEY]],
-                    "puzzle_arcade_ticket_v002.aleo": [["mint", MINT_VERIFYING_KEY]]
+                    "puzzle_arcade_coin_v002.aleo": [
+                        ["spend", SPEND_VERIFYING_KEY],
+                    ],
+                    "puzzle_arcade_ticket_v002.aleo": [
+                        ["mint", MINT_VERIFYING_KEY],
+                    ],
                 };
                 if (!execution) {
                     throw new Error("Execution is undefined");
                 } else {
-                    const verified = verifyFunctionExecution(execution, verifyingKey, program, "spin", imports, importedVerifyingKeys, 6291400);
+                    const verified = verifyFunctionExecution(
+                        execution,
+                        verifyingKey,
+                        program,
+                        "spin",
+                        imports,
+                        importedVerifyingKeys,
+                        6291400,
+                    );
                     expect(verified).equal(true);
                 }
             }
         });
     });
 
-    describe('Offline query', () => {
-        it.skip('The offline query should work as expected', async () => {
+    describe("Offline query", () => {
+        it.skip("The offline query should work as expected", async () => {
             const offlineQuery = new OfflineQuery(10_300_000, stateRootv0);
-            const record_plaintext = RecordPlaintext.fromString(statePathRecordv0);
-            const pk = PrivateKey.from_string("APrivateKey1zkpAZAjaJJvPS7EJ7zvk5fb3QcZDCDxMSHSN5ap7ep4FAD7");
+            const record_plaintext =
+                RecordPlaintext.fromString(statePathRecordv0);
+            const pk = PrivateKey.from_string(
+                "APrivateKey1zkpAZAjaJJvPS7EJ7zvk5fb3QcZDCDxMSHSN5ap7ep4FAD7",
+            );
             const vk = ViewKey.from_private_key(pk);
             const record_vk = record_plaintext.recordViewKey(vk);
-            const commitment = record_plaintext.commitment("credits.aleo", "credits", record_vk.toString()).toString();
+            const commitment = record_plaintext
+                .commitment("credits.aleo", "credits", record_vk.toString())
+                .toString();
             offlineQuery.addStatePath(commitment, recordStatePathv0);
-            const credits = <string>await programManager.networkClient.getProgram("credits.aleo");
+            const credits = <string>(
+                await programManager.networkClient.getProgram("credits.aleo")
+            );
 
-            const execution_result = <ExecutionResponse>await programManager.run(credits, "transfer_private", [statePathRecordv0, beaconAddressString, "5u64"], true, undefined, undefined, undefined, undefined, undefined, offlineQuery);
-            const verified = programManager.verifyExecution(execution_result, 10_300_000);
+            const execution_result = <ExecutionResponse>(
+                await programManager.run(
+                    credits,
+                    "transfer_private",
+                    [statePathRecordv0, beaconAddressString, "5u64"],
+                    true,
+                    undefined,
+                    undefined,
+                    undefined,
+                    undefined,
+                    undefined,
+                    offlineQuery,
+                )
+            );
+            const verified = programManager.verifyExecution(
+                execution_result,
+                10_300_000,
+            );
             expect(verified).equal(true);
         });
     });
 
-    describe('ProgramManager Executions', () => {
-        it.skip('Should create a split transaction without fees', async function() {
+    describe("ProgramManager Executions", () => {
+        it.skip("Should create a split transaction without fees", async function () {
             this.retries(3);
 
             if (network === "testnet") {
                 const keyPair = await programManager.keyProvider.splitKeys();
-                programManager.keyProvider.cacheKeys("credits.aleo/split", keyPair);
-                const pk = PrivateKey.from_string(<string>process.env["PUZZLE_PK"]);
+                programManager.keyProvider.cacheKeys(
+                    "credits.aleo/split",
+                    keyPair,
+                );
+                const pk = PrivateKey.from_string(
+                    <string>process.env["PUZZLE_PK"],
+                );
 
-                const tx = <Transaction>await programManager.buildExecutionTransaction({
-                    programName: "credits.aleo",
-                    functionName: "split",
-                    priorityFee: 0.0,
-                    privateFee: false,
-                    inputs: [statePathRecordv1, "10u64"],
-                    keySearchParams: { "cacheKey": CREDITS_PROGRAM_KEYS.split.locator },
-                    privateKey: pk
-                });
+                const tx = <Transaction>(
+                    await programManager.buildExecutionTransaction({
+                        programName: "credits.aleo",
+                        functionName: "split",
+                        priorityFee: 0.0,
+                        privateFee: false,
+                        inputs: [statePathRecordv1, "10u64"],
+                        keySearchParams: {
+                            cacheKey: CREDITS_PROGRAM_KEYS.split.locator,
+                        },
+                        privateKey: pk,
+                    })
+                );
 
                 expect(tx.feeAmount()).equal(BigInt(0));
             }
         });
 
-        it('Should create a split ProvingRequest without fees', async function() {
+        it("Should create a split ProvingRequest without fees", async function () {
             this.retries(3);
 
             if (network === "testnet") {
-                const pk = PrivateKey.from_string(<string>process.env["PUZZLE_PK"]);
+                const pk = PrivateKey.from_string(
+                    <string>process.env["PUZZLE_PK"],
+                );
 
-                const request = <ProvingRequest>await programManager.provingRequest({
-                    programName: "credits.aleo",
-                    functionName: "split",
-                    priorityFee: 0.0,
-                    privateFee: false,
-                    inputs: [statePathRecordv1, "10u64"],
-                    broadcast: false,
-                    privateKey: pk
-                });
+                const request = <ProvingRequest>(
+                    await programManager.provingRequest({
+                        programName: "credits.aleo",
+                        functionName: "split",
+                        priorityFee: 0.0,
+                        privateFee: false,
+                        inputs: [statePathRecordv1, "10u64"],
+                        broadcast: false,
+                        privateKey: pk,
+                    })
+                );
 
                 expect(request.feeAuthorization()).equal(undefined);
             }
         });
 
-        it('Should execute an encrypted proving request', async function() {
+        it("Should execute an encrypted proving request", async function () {
             this.retries(3);
 
             if (network === "testnet") {
@@ -224,7 +318,9 @@ describe('Program Manager', async () => {
                 if (safeResult.ok) {
                     expect(safeResult.data).to.have.property("transaction");
                     expect(safeResult.data.transaction).to.have.property("id");
-                    expect(safeResult.data).to.have.property("broadcast_result");
+                    expect(safeResult.data).to.have.property(
+                        "broadcast_result",
+                    );
                     expect(safeResult.data.broadcast_result.status).to.equal(
                         "Skipped",
                     );
@@ -232,12 +328,10 @@ describe('Program Manager', async () => {
 
                 // Submit the proving request using the regular method.
                 const result =
-                    await programManager.networkClient.submitProvingRequest(
-                        {
-                            provingRequest,
-                            dpsPrivacy: true,
-                        },
-                    );
+                    await programManager.networkClient.submitProvingRequest({
+                        provingRequest,
+                        dpsPrivacy: true,
+                    });
 
                 expect(result).to.have.property("transaction");
                 expect(result).to.have.property("broadcast_result");
@@ -246,8 +340,8 @@ describe('Program Manager', async () => {
         });
     });
 
-    describe('Proving Requests and Authorizations', () => {
-        it('Should build correct authorizations from Proving Request', async () => {
+    describe("Proving Requests and Authorizations", () => {
+        it("Should build correct authorizations from Proving Request", async () => {
             // Build a proving request for the "spin" function of "puzzle_spinner_v002.aleo".
             const provingRequest = await programManager.provingRequest({
                 programName: PUZZLE_SPINNER_PROGRAM_ID,
@@ -260,12 +354,18 @@ describe('Program Manager', async () => {
                     PUZZLE_SPINNER_V002_INPUT_2,
                 ],
                 broadcast: false,
-                privateKey: PrivateKey.from_string(<string>process.env["PUZZLE_PK"])
+                privateKey: PrivateKey.from_string(
+                    <string>process.env["PUZZLE_PK"],
+                ),
             });
 
             // Ensure serialization methods lead to the expected.
-            const provingRequestFromString = ProvingRequest.fromString(provingRequest.toString());
-            const provingRequestFromBytes = ProvingRequest.fromBytesLe(provingRequest.toBytesLe());
+            const provingRequestFromString = ProvingRequest.fromString(
+                provingRequest.toString(),
+            );
+            const provingRequestFromBytes = ProvingRequest.fromBytesLe(
+                provingRequest.toBytesLe(),
+            );
 
             // Ensure all authorizations are equal.
             expect(provingRequestFromString.equals(provingRequestFromBytes));
@@ -276,14 +376,16 @@ describe('Program Manager', async () => {
 
             // Get the authorizations.
             const authorization = provingRequest.authorization();
-            const feeAuthorization = <Authorization>provingRequest.feeAuthorization();
+            const feeAuthorization = <Authorization>(
+                provingRequest.feeAuthorization()
+            );
 
             // Ensure the authorizations have the correct number of transitions.
             expect(authorization.transitions().length).equal(3);
             expect(feeAuthorization.transitions().length).equal(1);
         });
 
-        it('Should build proving request without fee authorization when useFeeMaster is set', async () => {
+        it("Should build proving request without fee authorization when useFeeMaster is set", async () => {
             const provingRequest = await programManager.provingRequest({
                 programName: PUZZLE_SPINNER_PROGRAM_ID,
                 functionName: "spin",
@@ -296,7 +398,9 @@ describe('Program Manager', async () => {
                 ],
                 broadcast: false,
                 useFeeMaster: true,
-                privateKey: PrivateKey.from_string(<string>process.env["PUZZLE_PK"])
+                privateKey: PrivateKey.from_string(
+                    <string>process.env["PUZZLE_PK"],
+                ),
             });
 
             expect(provingRequest.feeAuthorization()).equal(undefined);
@@ -305,7 +409,7 @@ describe('Program Manager', async () => {
             expect(authorization.transitions().length).equal(3);
         });
 
-        it('Should build correct authorizations', async () => {
+        it("Should build correct authorizations", async () => {
             // Build an authorization for the spin function of "puzzle_spinner_v002.aleo".
             const authorization = await programManager.buildAuthorization({
                 programName: PUZZLE_SPINNER_PROGRAM_ID,
@@ -315,116 +419,135 @@ describe('Program Manager', async () => {
                     PUZZLE_SPINNER_V002_INPUT_1,
                     PUZZLE_SPINNER_V002_INPUT_2,
                 ],
-                privateKey: PrivateKey.from_string(<string>process.env["PUZZLE_PK"])
+                privateKey: PrivateKey.from_string(
+                    <string>process.env["PUZZLE_PK"],
+                ),
             });
 
             // Ensure serialization methods lead to the expected.
-            const authorizationFromString = Authorization.fromString(authorization.toString());
-            const authorizationFromBytes = Authorization.fromBytesLe(authorization.toBytesLe());
+            const authorizationFromString = Authorization.fromString(
+                authorization.toString(),
+            );
+            const authorizationFromBytes = Authorization.fromBytesLe(
+                authorization.toBytesLe(),
+            );
 
             // Ensure all authorizations are equal.
             expect(authorizationFromString.equals(authorizationFromBytes));
             expect(authorizationFromString.equals(authorization));
 
-            const baseFeeMicrocredits = await programManager.estimateFeeForAuthorization({
-                authorization,
-                programName: PUZZLE_SPINNER_PROGRAM_ID,
-            });
+            const baseFeeMicrocredits =
+                await programManager.estimateFeeForAuthorization({
+                    authorization,
+                    programName: PUZZLE_SPINNER_PROGRAM_ID,
+                });
             const baseFeeCredits = Number(baseFeeMicrocredits) / 1000000;
 
             // Get execution ID from previous authorization.
             const executionId = authorization.toExecutionId().toString();
-            const feeAuthorization = await programManager.buildFeeAuthorization({
-                deploymentOrExecutionId: executionId,
-                baseFeeCredits,
-            });
+            const feeAuthorization = await programManager.buildFeeAuthorization(
+                {
+                    deploymentOrExecutionId: executionId,
+                    baseFeeCredits,
+                },
+            );
 
             // Ensure the authorizations have the correct number of transitions.
             expect(authorization.transitions().length).equal(3);
             expect(feeAuthorization.transitions().length).equal(1);
         });
 
-        it('Should build correct authorizations when using the unchecked version', async () => {
+        it("Should build correct authorizations when using the unchecked version", async () => {
             // Build an authorization for the spin function of "puzzle_spinner_v002.aleo".
             if (network === "mainnet") {
-                const authorization = await programManager.buildAuthorizationUnchecked({
-                    programName: PUZZLE_SPINNER_PROGRAM_ID,
-                    functionName: "spin",
-                    inputs: [
-                        PUZZLE_SPINNER_V002_INPUT_0,
-                        PUZZLE_SPINNER_V002_INPUT_1,
-                        PUZZLE_SPINNER_V002_INPUT_2,
-                    ],
-                    privateKey: PrivateKey.from_string(<string>process.env["PUZZLE_PK"])
-                });
+                const authorization =
+                    await programManager.buildAuthorizationUnchecked({
+                        programName: PUZZLE_SPINNER_PROGRAM_ID,
+                        functionName: "spin",
+                        inputs: [
+                            PUZZLE_SPINNER_V002_INPUT_0,
+                            PUZZLE_SPINNER_V002_INPUT_1,
+                            PUZZLE_SPINNER_V002_INPUT_2,
+                        ],
+                        privateKey: PrivateKey.from_string(
+                            <string>process.env["PUZZLE_PK"],
+                        ),
+                    });
 
                 // Ensure serialization methods lead to the expected.
-                const authorizationFromString = Authorization.fromString(authorization.toString());
-                const authorizationFromBytes = Authorization.fromBytesLe(authorization.toBytesLe());
+                const authorizationFromString = Authorization.fromString(
+                    authorization.toString(),
+                );
+                const authorizationFromBytes = Authorization.fromBytesLe(
+                    authorization.toBytesLe(),
+                );
 
                 // Ensure all authorizations are equal.
                 expect(authorizationFromString.equals(authorizationFromBytes));
                 expect(authorizationFromString.equals(authorization));
 
-                const baseFeeMicrocredits = await programManager.estimateFeeForAuthorization({
-                    authorization,
-                    programName: PUZZLE_SPINNER_PROGRAM_ID,
-                });
+                const baseFeeMicrocredits =
+                    await programManager.estimateFeeForAuthorization({
+                        authorization,
+                        programName: PUZZLE_SPINNER_PROGRAM_ID,
+                    });
                 const baseFeeCredits = Number(baseFeeMicrocredits) / 1000000;
 
                 // Get execution ID from previous authorization.
                 const executionId = authorization.toExecutionId().toString();
-                const feeAuthorization = await programManager.buildFeeAuthorization({
-                    deploymentOrExecutionId: executionId,
-                    baseFeeCredits,
-                });
+                const feeAuthorization =
+                    await programManager.buildFeeAuthorization({
+                        deploymentOrExecutionId: executionId,
+                        baseFeeCredits,
+                    });
 
                 // Ensure the authorizations have the correct number of transitions.
                 expect(authorization.transitions().length).equal(3);
                 expect(feeAuthorization.transitions().length).equal(1);
             }
-
         });
 
-        it('Should estimate the fee correctly for credits.aleo functions', async () => {
-            const transferFeeMicrocredits = await programManager.estimateExecutionFee({
-                programName: "credits.aleo",
-                functionName: "transfer_public"
-            });
+        it("Should estimate the fee correctly for credits.aleo functions", async () => {
+            const transferFeeMicrocredits =
+                await programManager.estimateExecutionFee({
+                    programName: "credits.aleo",
+                    functionName: "transfer_public",
+                });
 
-            const bondFeeMicrocredits = await programManager.estimateExecutionFee({
-                programName: "credits.aleo",
-                functionName: "transfer_public_to_private"
-            });
+            const bondFeeMicrocredits =
+                await programManager.estimateExecutionFee({
+                    programName: "credits.aleo",
+                    functionName: "transfer_public_to_private",
+                });
             expect(transferFeeMicrocredits).equal(BigInt(2725));
             expect(bondFeeMicrocredits).equal(BigInt(2304));
-
         });
     });
 
-    describe('Program Manager record retrieval', () => {
-        it('Should return records without searching for them if records are passed', async () => {
+    describe("Program Manager record retrieval", () => {
+        it("Should return records without searching for them if records are passed", async () => {
             const retrievedRecord1 = await programManager.getCreditsRecord(
                 50000,
                 [],
                 RECORD_PLAINTEXT_V1_STRING,
             );
-            expect(RECORD_PLAINTEXT_V1_STRING).equal(retrievedRecord1.toString())
+            expect(RECORD_PLAINTEXT_V1_STRING).equal(
+                retrievedRecord1.toString(),
+            );
 
             const retrievedRecord2 = await programManager.getCreditsRecord(
                 50000,
                 [],
-                RecordPlaintext.fromString(RECORD_PLAINTEXT_V1_STRING)
+                RecordPlaintext.fromString(RECORD_PLAINTEXT_V1_STRING),
             );
-            expect(RECORD_PLAINTEXT_V1_STRING).equal(retrievedRecord2.toString());
+            expect(RECORD_PLAINTEXT_V1_STRING).equal(
+                retrievedRecord2.toString(),
+            );
         });
 
-        it('Should search for a record if none is specified', async () => {
+        it("Should search for a record if none is specified", async () => {
             try {
-                await programManager.getCreditsRecord(
-                    50000,
-                    [],
-                );
+                await programManager.getCreditsRecord(50000, []);
             } catch (e) {
                 expect(`${e}`).contain("findCreditsRecord");
             }

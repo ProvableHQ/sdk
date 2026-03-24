@@ -17,8 +17,8 @@ input[type="text"]:disabled {
 .headerDark {
     font-family: "AleoSans";
     color: white;
-    font-size:32px;
-    margin-left:2rem;
+    font-size: 32px;
+    margin-left: 2rem;
     a {
         color: white;
     }
@@ -27,9 +27,9 @@ input[type="text"]:disabled {
 .headerLight {
     font-family: "AleoSans";
     color: black;
-    font-size:32px;
-    margin-left:2rem;
-    a{
+    font-size: 32px;
+    margin-left: 2rem;
+    a {
         color: black;
     }
 }

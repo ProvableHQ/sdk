@@ -1,44 +1,44 @@
 {
-  "name": "create-leo-app",
-  "version": "0.9.18",
-  "type": "module",
-  "license": "GPL-3.0",
-  "collaborators": [
-    "The Provable Team"
-  ],
-  "bin": "index.js",
-  "files": [
-    "index.js",
-    "template-extension",
-    "template-nextjs-ts",
-    "template-node-ts",
-    "template-build-and-execute-authorization-ts",
-    "template-node",
-    "template-offline-public-transaction-ts",
-    "template-node-credits-aleo-functions-ts",
-    "template-react-credits-aleo-functions-ts",
-    "template-react-leo",
-    "template-react-managed-worker",
-    "template-react-ts",
-    "template-vanilla",
-    "dist"
-  ],
-  "scripts": {
-    "dev": "unbuild --stub",
-    "build": "unbuild",
-    "typecheck": "tsc --noEmit"
-  },
-  "engines": {
-    "node": "^14.18.0 || >=16.0.0"
-  },
-  "devDependencies": {
-    "@types/minimist": "^1.2.5",
-    "@types/prompts": "^2.4.9",
-    "kolorist": "^1.8.0",
-    "minimist": "^1.2.8",
-    "prompts": "^2.4.2",
-    "ts-node": "^10.9.2",
-    "typescript": "^5.8.2",
-    "unbuild": "^3.3.1"
-  }
+    "name": "create-leo-app",
+    "version": "0.9.18",
+    "type": "module",
+    "license": "GPL-3.0",
+    "collaborators": [
+        "The Provable Team"
+    ],
+    "bin": "index.js",
+    "files": [
+        "index.js",
+        "template-extension",
+        "template-nextjs-ts",
+        "template-node-ts",
+        "template-build-and-execute-authorization-ts",
+        "template-node",
+        "template-offline-public-transaction-ts",
+        "template-node-credits-aleo-functions-ts",
+        "template-react-credits-aleo-functions-ts",
+        "template-react-leo",
+        "template-react-managed-worker",
+        "template-react-ts",
+        "template-vanilla",
+        "dist"
+    ],
+    "scripts": {
+        "dev": "unbuild --stub",
+        "build": "unbuild",
+        "typecheck": "tsc --noEmit"
+    },
+    "engines": {
+        "node": "^14.18.0 || >=16.0.0"
+    },
+    "devDependencies": {
+        "@types/minimist": "^1.2.5",
+        "@types/prompts": "^2.4.9",
+        "kolorist": "^1.8.0",
+        "minimist": "^1.2.8",
+        "prompts": "^2.4.2",
+        "ts-node": "^10.9.2",
+        "typescript": "^5.8.2",
+        "unbuild": "^3.3.1"
+    }
 }

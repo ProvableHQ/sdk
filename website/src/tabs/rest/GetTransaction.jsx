@@ -1,4 +1,4 @@
-import {useMemo, useState} from "react";
+import { useMemo, useState } from "react";
 import { Card, Divider, Form, Input, Row, Col } from "antd";
 import axios from "axios";
 import { CopyButton } from "../../components/CopyButton";
@@ -21,7 +21,9 @@ export const GetTransaction = () => {
         try {
             if (id) {
                 axios
-                    .get(`https://api.provable.com/v2/testnet/transaction/${id}`)
+                    .get(
+                        `https://api.provable.com/v2/testnet/transaction/${id}`,
+                    )
                     .then((response) => {
                         setTransaction(JSON.stringify(response.data, null, 2));
                         setStatus("success");
@@ -42,14 +44,11 @@ export const GetTransaction = () => {
     const layout = { labelCol: { span: 4 }, wrapperCol: { span: 21 } };
 
     const transactionString = useMemo(() => {
-        return transaction !== null ? transaction.toString() : ""
+        return transaction !== null ? transaction.toString() : "";
     }, [transaction]);
 
     return (
-        <Card
-            title="Get Transaction"
-            style={{ width: "100%" }}
-        >
+        <Card title="Get Transaction" style={{ width: "100%" }}>
             <Form {...layout}>
                 <Form.Item
                     label="Transaction ID"

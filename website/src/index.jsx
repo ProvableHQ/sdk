@@ -4,8 +4,8 @@ import { createRoot } from "react-dom/client";
 import { RouterProvider } from "react-router-dom";
 import { router } from "./routing.jsx";
 import WorkerProvider from "./workers/WorkerProvider.jsx";
-import { init } from '@amplitude/analytics-browser';
-import { autocapturePlugin } from '@amplitude/plugin-autocapture-browser';
+import { init } from "@amplitude/analytics-browser";
+import { autocapturePlugin } from "@amplitude/plugin-autocapture-browser";
 
 // // Initialize Amplitude with your API key
 // const AMPLITUDE_API_KEY = process.env.VITE_AMPLITUDE_API_KEY;

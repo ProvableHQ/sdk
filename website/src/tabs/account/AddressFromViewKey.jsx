@@ -25,10 +25,7 @@ export const AddressFromViewKey = () => {
                 : "";
 
         return (
-            <Card
-                title="Load Address from View Key"
-                style={{ width: "100%" }}
-            >
+            <Card title="Load Address from View Key" style={{ width: "100%" }}>
                 <Form {...layout}>
                     <Form.Item label="View Key" colon={false}>
                         <Input
@@ -48,11 +45,7 @@ export const AddressFromViewKey = () => {
                                 size="large"
                                 placeholder="Address"
                                 value={address()}
-                                addonAfter={
-                                    <CopyButton
-                                        data={address()}
-                                    />
-                                }
+                                addonAfter={<CopyButton data={address()} />}
                                 disabled
                             />
                         </Form.Item>
