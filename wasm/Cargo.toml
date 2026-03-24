@@ -1,6 +1,6 @@
 [package]
 name = "aleo-wasm"
-version = "0.9.17"
+version = "0.9.18"
 authors = [ "The Provable Team" ]
 description = "WebAssembly based toolkit for developing zero-knowledge applications with Aleo"
 homepage = "https://provable.com"
@@ -23,16 +23,16 @@ doctest = false
 
 [dependencies.snarkvm-algorithms]
 git = "https://github.com/ProvableHQ/snarkVM.git"
-rev = "7296b3cc9cffb8b71eb15dad3a00603d21a5912f"
+rev = "b8e969bded035ca46b1e1e823731553e9d69231f"
 
 [dependencies.snarkvm-circuit-network]
 git = "https://github.com/ProvableHQ/snarkVM.git"
-rev = "7296b3cc9cffb8b71eb15dad3a00603d21a5912f"
+rev = "b8e969bded035ca46b1e1e823731553e9d69231f"
 features = ["wasm"]
 
 [dependencies.snarkvm-console]
 git = "https://github.com/ProvableHQ/snarkVM.git"
-rev = "7296b3cc9cffb8b71eb15dad3a00603d21a5912f"
+rev = "b8e969bded035ca46b1e1e823731553e9d69231f"
 default-features = false
 features = [
     "account",
@@ -46,37 +46,37 @@ features = [
 
 [dependencies.snarkvm-ledger-block]
 git = "https://github.com/ProvableHQ/snarkVM.git"
-rev = "7296b3cc9cffb8b71eb15dad3a00603d21a5912f"
+rev = "b8e969bded035ca46b1e1e823731553e9d69231f"
 features = ["wasm"]
 
 [dependencies.snarkvm-ledger-query]
 git = "https://github.com/ProvableHQ/snarkVM.git"
-rev = "7296b3cc9cffb8b71eb15dad3a00603d21a5912f"
+rev = "b8e969bded035ca46b1e1e823731553e9d69231f"
 features = ["async", "wasm"]
 
 [dependencies.snarkvm-ledger-store]
 git = "https://github.com/ProvableHQ/snarkVM.git"
-rev = "7296b3cc9cffb8b71eb15dad3a00603d21a5912f"
+rev = "b8e969bded035ca46b1e1e823731553e9d69231f"
 
 [dependencies.snarkvm-parameters]
 git = "https://github.com/ProvableHQ/snarkVM.git"
-rev = "7296b3cc9cffb8b71eb15dad3a00603d21a5912f"
+rev = "b8e969bded035ca46b1e1e823731553e9d69231f"
 default-features = false
 features = ["wasm"]
 
 [dependencies.snarkvm-synthesizer-program]
 git = "https://github.com/ProvableHQ/snarkVM.git"
-rev = "7296b3cc9cffb8b71eb15dad3a00603d21a5912f"
+rev = "b8e969bded035ca46b1e1e823731553e9d69231f"
 features = ["wasm"]
 
 [dependencies.snarkvm-synthesizer]
 git = "https://github.com/ProvableHQ/snarkVM.git"
-rev = "7296b3cc9cffb8b71eb15dad3a00603d21a5912f"
+rev = "b8e969bded035ca46b1e1e823731553e9d69231f"
 features = ["async", "wasm"]
 
 [dependencies.snarkvm-wasm]
 git = "https://github.com/ProvableHQ/snarkVM.git"
-rev = "7296b3cc9cffb8b71eb15dad3a00603d21a5912f"
+rev = "b8e969bded035ca46b1e1e823731553e9d69231f"
 features = ["fields", "utilities"]
 
 [dependencies.anyhow]
