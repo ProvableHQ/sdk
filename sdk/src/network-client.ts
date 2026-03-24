@@ -80,6 +80,7 @@ interface DelegatedProvingParams {
  */
 class AleoNetworkClient {
     host: string;
+    private readonly baseUrl: string;
     headers: { [key: string]: string };
     account: Account | undefined;
     ctx: { [key: string]: string };
@@ -92,6 +93,9 @@ class AleoNetworkClient {
     recordScannerUri?: string;
 
     constructor(host: string, options?: AleoNetworkClientOptions) {
+        // baseUrl is the API root (origin only) — used for JWT refresh which
+        // lives at /jwts/{consumerId} on the API root, not under the versioned path.
+        this.baseUrl = new URL(host).origin;
         this.host = host + "/%%NETWORK%%";
         this.network = "%%NETWORK%%";
         this.ctx = {};
@@ -1727,7 +1731,7 @@ class AleoNetworkClient {
             throw new Error('API key and consumer ID are required to refresh JWT');
         }
         const response = await post(
-            `https://api.provable.com/jwts/${consumerId}`,
+            `${this.baseUrl}/jwts/${consumerId}`,
             {
                 headers: {
                     'X-Provable-API-Key': apiKey
