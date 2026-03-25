@@ -129,9 +129,10 @@ pub fn verify_function_execution(
     let function = IdentifierNative::from_str(function_id).map_err(|e| e.to_string())?;
     let mut process = ProcessNative::load_web().map_err(|e| e.to_string())?;
     let program_native = ProgramNative::from(program);
+    let program_id = program_native.id().to_string();
 
     // First resolve the program's imports.
-    ProgramManager::resolve_imports(&mut process, program, imports)?;
+    ProgramManager::resolve_imports(&mut process, imports, Some(program_id.as_str()))?;
 
     // Secondly, get the verifying keys and insert them into the process object.
     if let Some(imported_verifying_keys) = imported_verifying_keys {
