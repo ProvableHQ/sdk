@@ -38,9 +38,9 @@ export class LocalFileKeyStore implements KeyStore {
      * @throws {InvalidLocatorError} If the value is empty, contains traversal sequences, path separators, or null bytes.
      */
     private validateComponent(value: string, label: string): void {
-        if (value === "") {
+        if (value === "" || value === ".") {
             throw new InvalidLocatorError(
-                `KeyLocator ${label} must not be empty`,
+                `KeyLocator ${label} must not be empty or "." (got "${value}")`,
                 value,
                 "reserved_name"
             );
@@ -70,9 +70,9 @@ export class LocalFileKeyStore implements KeyStore {
      * @throws {InvalidLocatorError} If the value is negative.
      */
     private validateNonNegative(value: number, label: string): void {
-        if (value < 0) {
+        if (!Number.isInteger(value) || value < 0) {
             throw new InvalidLocatorError(
-                `KeyLocator ${label} must not be negative (got ${value})`,
+                `KeyLocator ${label} must be a non-negative integer (got ${value})`,
                 String(value),
                 "negative_value"
             );
@@ -291,12 +291,12 @@ export class LocalFileKeyStore implements KeyStore {
     /**
      * Retrieves and verifies a proving key from storage.
      *
-     * @param {KeyLocator} locator - The key locator.
+     * @param {ProvingKeyLocator} locator - The proving key locator.
      * @returns {Promise<ProvingKey | null>} The proving key if found and verified, null if not found.
      * @throws {KeyVerificationError} If verification fails.
      * @throws {Error} If key bytes cannot be parsed into a valid ProvingKey.
      */
-    async getProvingKey(locator: KeyLocator): Promise<ProvingKey | null> {
+    async getProvingKey(locator: ProvingKeyLocator): Promise<ProvingKey | null> {
         const proverBytes = await this.getKeyBytes(locator);
         if (!proverBytes) return null;
         return ProvingKey.fromBytes(proverBytes);
@@ -305,12 +305,12 @@ export class LocalFileKeyStore implements KeyStore {
     /**
      * Retrieves and verifies a verifying key from storage.
      *
-     * @param {KeyLocator} locator - The key locator.
+     * @param {VerifyingKeyLocator} locator - The verifying key locator.
      * @returns {Promise<VerifyingKey | null>} The verifying key if found and verified, null if not found.
      * @throws {KeyVerificationError} If verification fails.
      * @throws {Error} If key bytes cannot be parsed into a valid VerifyingKey.
      */
-    async getVerifyingKey(locator: KeyLocator): Promise<VerifyingKey | null> {
+    async getVerifyingKey(locator: VerifyingKeyLocator): Promise<VerifyingKey | null> {
         const verifierBytes = await this.getKeyBytes(locator);
         if (!verifierBytes) return null;
         return VerifyingKey.fromBytes(verifierBytes);

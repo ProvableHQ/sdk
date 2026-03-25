@@ -146,18 +146,18 @@ export interface KeyStore {
     /**
      * Returns the `ProvingKey` for a given locator.
      *
-     * @param {KeyLocator} locator The unique locator for the desired `ProvingKey`.
+     * @param {ProvingKeyLocator} locator The unique locator for the desired `ProvingKey`.
      * @returns {Promise<ProvingKey | null>} Returns the `ProvingKey` for the given locator if it exists or null if it does not.
      */
-    getProvingKey(locator: KeyLocator): Promise<ProvingKey | null>;
+    getProvingKey(locator: ProvingKeyLocator): Promise<ProvingKey | null>;
 
     /**
      * Returns the `VerifyingKey` for a given locator.
      *
-     * @param {KeyLocator} locator The unique locator for the desired `VerifyingKey`.
+     * @param {VerifyingKeyLocator} locator The unique locator for the desired `VerifyingKey`.
      * @returns {Promise<VerifyingKey | null>} Returns the `VerifyingKey` for the given locator if it exists or null if it does not exist.
      */
-    getVerifyingKey(locator: KeyLocator): Promise<VerifyingKey | null>;
+    getVerifyingKey(locator: VerifyingKeyLocator): Promise<VerifyingKey | null>;
 
     /**
      * Stores proving and verifying keys in key storage.
