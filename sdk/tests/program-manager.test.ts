@@ -18,7 +18,7 @@ import {
     RecordPlaintext,
     Transaction,
     verifyFunctionExecution,
-    Plaintext,
+    Value,
     snarkVerify,
     snarkVerifyBatch,
     VerifyingKey,
@@ -331,7 +331,8 @@ describe('Program Manager', async () => {
                 inputTypes,
                 undefined,
                 undefined,
-                true
+                true,
+                false,
             );
             
             // Ensure the execution request is valid.
@@ -520,18 +521,18 @@ describe('Program Manager', async () => {
             expect(pm.verifyProof({ verifyingKey: SAMPLE_VERIFYING_KEY, inputs: ["1field", "1field"], proof: SAMPLE_PROOF })).to.equal(true);
         });
 
-        it('Plaintext.toFields should convert Aleo types to field elements', () => {
+        it('Value.toFields should convert Aleo types to field elements', () => {
             // Verify the conversion pipeline works for various Aleo types.
-            const u32Fields = Plaintext.fromString("1u32").toFields();
+            const u32Fields = Value.fromString("1u32").toFields();
             expect(u32Fields.length).to.be.greaterThan(0);
             for (const f of u32Fields) {
                 expect(f.toString()).to.match(/field$/);
             }
 
-            const boolFields = Plaintext.fromString("true").toFields();
+            const boolFields = Value.fromString("true").toFields();
             expect(boolFields.length).to.be.greaterThan(0);
 
-            const structFields = Plaintext.fromString("{ x: 1u8, y: 2u8 }").toFields();
+            const structFields = Value.fromString("{ x: 1u8, y: 2u8 }").toFields();
             expect(structFields.length).to.be.greaterThan(0);
         });
 

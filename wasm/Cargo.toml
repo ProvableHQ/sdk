@@ -153,7 +153,7 @@ features = [
 
 [dev-dependencies.snarkvm-synthesizer-snark]
 git = "https://github.com/ProvableHQ/snarkVM.git"
-rev = "ed7b59031741f13f148f63d7cda4e1e1634399f6"
+rev = "b8e969bded035ca46b1e1e823731553e9d69231f"
 features = ["test-helpers"]
 
 [dev-dependencies.wasm-bindgen-test]

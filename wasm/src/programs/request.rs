@@ -109,7 +109,7 @@ impl ExecutionRequest {
 
     /// Returns the input IDs for the transition.
     ///
-    /// Each element is either a WASM `Field` (for constant/public/private/external_record inputs)
+    /// Each element is either a WASM `Field` (for constant/public/private/external_record/dynamic_record inputs)
     /// or a JS Array `[Field, Group, Field, Field, Field]` (for record inputs: commitment, gamma,
     /// record_view_key, serial_number, tag).
     pub fn input_ids(&self) -> Array {
@@ -130,6 +130,7 @@ impl ExecutionRequest {
                     tuple.push(&JsValue::from(Field::from(*tag)));
                     JsValue::from(tuple)
                 }
+                InputIDNative::DynamicRecord(f) => JsValue::from(Field::from(*f)),
             })
             .collect::<Array>()
     }
@@ -513,6 +514,10 @@ impl ExecutionRequest {
                     ValueTypeNative::Future(_) => {
                         return Err("Future inputs are not supported".to_string());
                     }
+                    ValueTypeNative::DynamicRecord => InputIDNative::DynamicRecord(input_hash),
+                    ValueTypeNative::DynamicFuture => {
+                        return Err("DynamicFuture inputs are not supported".to_string());
+                    }
                     ValueTypeNative::Record(_) => {
                         return Err(format!(
                             "input_ids[{i}] is a scalar Field but input_type is record — expected [Field, Group, Field, Field, Field]"
@@ -684,6 +689,17 @@ impl ExecutionRequest {
                 }
                 ValueTypeNative::Future(_) => {
                     return Err("Future inputs are not supported".to_string());
+                }
+                ValueTypeNative::DynamicRecord => {
+                    Reflect::set(
+                        &request_sign_input,
+                        &JsValue::from_str("signingInputType"),
+                        &JsValue::from_str("dynamic_record"),
+                    )
+                    .map_err(|_| "Failed to set signingInputType".to_string())?;
+                }
+                ValueTypeNative::DynamicFuture => {
+                    return Err("DynamicFuture inputs are not supported".to_string());
                 }
             };
 
@@ -899,6 +915,12 @@ impl ExecutionRequest {
                 ValueTypeNative::Future(_) => {
                     return Err("Future inputs are not supported".to_string());
                 }
+                ValueTypeNative::DynamicRecord => {
+                    return Err("DynamicRecord inputs are not yet supported in fromExternallySignedData — use fromExternallySignedDataWithInputIds instead".to_string());
+                }
+                ValueTypeNative::DynamicFuture => {
+                    return Err("DynamicFuture inputs are not supported".to_string());
+                }
             }
         }
         Ok(computed_ids)
@@ -918,6 +940,7 @@ impl ExecutionRequest {
         tcm: FieldNative,
         scm: FieldNative,
     ) -> Result<ExecutionRequest, String> {
+        let is_dynamic = input_ids.iter().any(|id| matches!(id, InputIDNative::DynamicRecord(_)));
         let request = RequestNative::from((
             *signer,
             network_id,
@@ -930,6 +953,7 @@ impl ExecutionRequest {
             *tvk,
             tcm,
             scm,
+            is_dynamic,
         ));
         Ok(ExecutionRequest(request))
     }
@@ -999,6 +1023,7 @@ mod tests {
             None,
             None,
             true,
+            false,
         )
         .expect("sign should succeed");
 
@@ -1027,6 +1052,7 @@ mod tests {
             None,
             None,
             true,
+            false,
         )
         .expect("sign should succeed");
 
@@ -1077,6 +1103,7 @@ mod tests {
             None,
             None,
             true,
+            false,
         )
         .expect("sign should succeed");
 
@@ -1117,6 +1144,7 @@ mod tests {
             None,
             None,
             true,
+            false,
         )
         .expect("sign should succeed");
 
@@ -1300,6 +1328,7 @@ mod tests {
             None,
             None,
             true,
+            false,
         )
         .expect("sign should succeed")
     }
@@ -1328,6 +1357,7 @@ mod tests {
             None,
             None,
             true,
+            false,
         )
         .expect("sign should succeed");
         (request, gamma)

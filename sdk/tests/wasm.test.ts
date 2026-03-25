@@ -640,6 +640,8 @@ describe('WASM Objects', () => {
         const plaintextStruct = "{\n  microcredits: 100000000u64,\n  height: 1653124u32\n}";
         const recordValue = "{ owner: aleo1d5hg2z3ma00382pngntdp68e74zv54jdxy249qhaujhks9c72yrs33ddah.private, token_amount: 100u64.private, _nonce: 0group.public }";
         const futureValue = "{\n  program_id: credits.aleo,\n  function_name: transfer,\n  arguments: [\n    aleo1d5hg2z3ma00382pngntdp68e74zv54jdxy249qhaujhks9c72yrs33ddah,\n    100000000u64\n  ]\n}";
+        const dynamicFutureValue = "{ _program_id: credits.aleo, _function_name: transfer, _checksum: 0field }";
+        const creditsRecord = "{ owner: aleo12a4wll9ax6w5355jph0dr5wt2vla5sss2t4cnch0tc3vzh643v8qcfvc7a.private, microcredits: 1000000u64.private, _nonce: 3634848344765318974603121890869676775499130077229666060613233255327643175219group.public, _version: 1u8.public }";
 
         it('can parse a plaintext literal and round-trip via string', () => {
             const value = Value.fromString(plaintextLiteral);
@@ -648,6 +650,8 @@ describe('WASM Objects', () => {
             expect(value.isPlaintext()).to.be.true;
             expect(value.isRecord()).to.be.false;
             expect(value.isFuture()).to.be.false;
+            expect(value.isDynamicRecord()).to.be.false;
+            expect(value.isDynamicFuture()).to.be.false;
         });
 
         it('can parse a plaintext struct and round-trip via string', () => {
@@ -672,8 +676,30 @@ describe('WASM Objects', () => {
             expect(value.isRecord()).to.be.false;
         });
 
+        it('can parse a dynamic record value', () => {
+            const dynamicRecord = DynamicRecord.fromRecord(RecordPlaintext.fromString(creditsRecord));
+            const value = Value.fromString(dynamicRecord.toString());
+            expect(value.valueType()).to.equal("dynamic_record");
+            expect(value.isDynamicRecord()).to.be.true;
+            expect(value.isPlaintext()).to.be.false;
+            expect(value.isRecord()).to.be.false;
+            expect(value.isFuture()).to.be.false;
+            expect(value.isDynamicFuture()).to.be.false;
+        });
+
+        it('can parse a dynamic future value', () => {
+            const value = Value.fromString(dynamicFutureValue);
+            expect(value.valueType()).to.equal("dynamic_future");
+            expect(value.isDynamicFuture()).to.be.true;
+            expect(value.isPlaintext()).to.be.false;
+            expect(value.isRecord()).to.be.false;
+            expect(value.isFuture()).to.be.false;
+            expect(value.isDynamicRecord()).to.be.false;
+        });
+
         it('can round-trip all variants via bytes', () => {
-            for (const str of [plaintextLiteral, plaintextStruct, recordValue, futureValue]) {
+            const dynamicRecord = DynamicRecord.fromRecord(RecordPlaintext.fromString(creditsRecord));
+            for (const str of [plaintextLiteral, plaintextStruct, recordValue, futureValue, dynamicRecord.toString(), dynamicFutureValue]) {
                 const value = Value.fromString(str);
                 const bytes = value.toBytesLe();
                 const recovered = Value.fromBytesLe(bytes);
@@ -693,12 +719,26 @@ describe('WASM Objects', () => {
             expect(record.toString()).to.equal(value.toString());
         });
 
+        it('can extract inner DynamicRecord', () => {
+            const dynamicRecord = DynamicRecord.fromRecord(RecordPlaintext.fromString(creditsRecord));
+            const value = Value.fromString(dynamicRecord.toString());
+            const extracted = value.toDynamicRecord();
+            expect(extracted.toString()).to.equal(dynamicRecord.toString());
+        });
+
         it('throws on wrong variant extraction', () => {
             const plaintextValue = Value.fromString(plaintextLiteral);
             expect(() => plaintextValue.toRecordPlaintext()).to.throw();
+            expect(() => plaintextValue.toDynamicRecord()).to.throw();
 
             const recordVal = Value.fromString(recordValue);
             expect(() => recordVal.toPlaintext()).to.throw();
+            expect(() => recordVal.toDynamicRecord()).to.throw();
+
+            const dynamicFuture = Value.fromString(dynamicFutureValue);
+            expect(() => dynamicFuture.toPlaintext()).to.throw();
+            expect(() => dynamicFuture.toRecordPlaintext()).to.throw();
+            expect(() => dynamicFuture.toDynamicRecord()).to.throw();
         });
 
         it('throws on invalid string', () => {
@@ -730,6 +770,13 @@ describe('WASM Objects', () => {
             const record = RecordPlaintext.fromString(recordValue);
             const value = Value.fromRecordPlaintext(record);
             expect(value.isRecord()).to.be.true;
+        });
+
+        it('can construct from DynamicRecord object', () => {
+            const dynamicRecord = DynamicRecord.fromRecord(RecordPlaintext.fromString(creditsRecord));
+            const value = Value.fromDynamicRecord(dynamicRecord);
+            expect(value.isDynamicRecord()).to.be.true;
+            expect(value.toDynamicRecord().toString()).to.equal(dynamicRecord.toString());
         });
     });
 

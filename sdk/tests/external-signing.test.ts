@@ -516,6 +516,7 @@ describe('External Signing ExecutionRequest integration', () => {
             undefined,
             undefined,
             true,
+            false,
         );
         expect(signedRequest.program_id()).to.equal("credits.aleo");
         expect(signedRequest.function_name()).to.equal("transfer_public");
@@ -589,6 +590,7 @@ describe('External Signing ExecutionRequest integration', () => {
             undefined,
             undefined,
             true,
+            false,
         );
         expect(signedRequest.program_id()).to.equal("credits.aleo");
         expect(signedRequest.function_name()).to.equal("transfer_private");
@@ -686,6 +688,7 @@ describe('External Signing ExecutionRequest integration', () => {
             undefined,
             undefined,
             true,
+            false,
         );
 
         // Extract recordViewKeys from per-input data

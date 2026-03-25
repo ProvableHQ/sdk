@@ -26,11 +26,11 @@ import {
     Field,
     OfflineQuery,
     RecordPlaintext,
-    Plaintext,
     PrivateKey,
     Program,
     ProvingKey,
     ProvingRequest,
+    Value,
     VerifyingKey,
     Transaction,
     Proof,
@@ -3150,8 +3150,8 @@ class ProgramManager {
      * Convert an array of Aleo type strings to field element strings.
      *
      * Inputs that are already field elements (e.g. "1field") are passed through directly.
-     * Other Aleo types (e.g. "1u32", "true", "{ x: 1u8, y: 2u8 }") are parsed via
-     * Plaintext and converted to their field representation.
+     * Other Aleo values (e.g. "1u32", records, futures, dynamic records) are parsed via
+     * Value and converted to their field representation.
      *
      * @param {string[]} inputs Array of Aleo value strings
      * @returns {string[]} Array of field element strings
@@ -3162,9 +3162,9 @@ class ProgramManager {
             if (input.endsWith("field")) {
                 fields.push(input);
             } else {
-                const plaintext = Plaintext.fromString(input);
-                const plaintextFields = plaintext.toFields();
-                for (const f of plaintextFields) {
+                const value = Value.fromString(input);
+                const valueFields = value.toFields();
+                for (const f of valueFields) {
                     fields.push(f.toString());
                 }
             }
@@ -3180,7 +3180,7 @@ class ProgramManager {
      *
      * Inputs can be raw field element strings (e.g. "1field") or Aleo type strings
      * (e.g. "1u32", "true", "{ x: 1u8, y: 2u8 }"). Non-field inputs are automatically
-     * converted to their field representation via Plaintext.toFields().
+     * converted to their field representation via Value.toFields().
      *
      * @param {VerificationOptions} options The verification parameters
      * @returns {boolean} True if the proof is valid, false otherwise

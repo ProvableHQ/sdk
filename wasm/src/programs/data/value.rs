@@ -15,12 +15,13 @@
 // along with the Provable SDK library. If not, see <https://www.gnu.org/licenses/>.
 
 use crate::{
+    DynamicRecord,
     Field,
     Plaintext,
     RecordPlaintext,
     js_array_from_fields,
     to_bits_array_le,
-    types::native::{PlaintextNative, RecordPlaintextNative, ValueNative},
+    types::native::{DynamicRecordNative, PlaintextNative, RecordPlaintextNative, ValueNative},
 };
 use snarkvm_console::prelude::{FromBytes, ToBits, ToBitsRaw, ToBytes, ToFields, ToFieldsRaw};
 
@@ -29,7 +30,7 @@ use std::{ops::Deref, str::FromStr};
 use wasm_bindgen::prelude::wasm_bindgen;
 
 /// Aleo Value type. Value is the fundamental type representing program function inputs and outputs
-/// in Aleo. It wraps three variants: Plaintext, Record, and Future.
+/// in Aleo. It wraps five variants: Plaintext, Record, Future, DynamicRecord, and DynamicFuture.
 ///
 /// @example
 /// // Parse a plaintext value from a string.
@@ -128,7 +129,7 @@ impl Value {
 
     /// Returns the type of the value variant as a string.
     ///
-    /// Possible values: "plaintext", "record", "future".
+    /// Possible values: "plaintext", "record", "future", "dynamic_record", "dynamic_future".
     ///
     /// @returns {string} The variant type name.
     #[wasm_bindgen(js_name = "valueType")]
@@ -137,6 +138,8 @@ impl Value {
             ValueNative::Plaintext(..) => "plaintext".to_string(),
             ValueNative::Record(..) => "record".to_string(),
             ValueNative::Future(..) => "future".to_string(),
+            ValueNative::DynamicRecord(..) => "dynamic_record".to_string(),
+            ValueNative::DynamicFuture(..) => "dynamic_future".to_string(),
         }
     }
 
@@ -165,6 +168,25 @@ impl Value {
     #[wasm_bindgen(js_name = "isFuture")]
     pub fn is_future(&self) -> bool {
         matches!(&self.0, ValueNative::Future(..))
+    }
+
+    /// Returns true if the value is a DynamicRecord variant.
+    ///
+    /// @returns {boolean}
+    #[wasm_bindgen(js_name = "isDynamicRecord")]
+    pub fn is_dynamic_record(&self) -> bool {
+        matches!(&self.0, ValueNative::DynamicRecord(..))
+    }
+
+    /// Returns true if the value is a DynamicFuture variant.
+    ///
+    /// Note: There is no `toDynamicFuture()` method because the DynamicFuture type does not have a WASM wrapper.
+    /// Use `toString()` or `toBytesLe()` to serialize a DynamicFuture value.
+    ///
+    /// @returns {boolean}
+    #[wasm_bindgen(js_name = "isDynamicFuture")]
+    pub fn is_dynamic_future(&self) -> bool {
+        matches!(&self.0, ValueNative::DynamicFuture(..))
     }
 
     /// Extracts the inner Plaintext from a Plaintext variant.
@@ -210,6 +232,28 @@ impl Value {
         let native: RecordPlaintextNative = record.into();
         Value(ValueNative::Record(native))
     }
+
+    /// Extracts the inner DynamicRecord from a DynamicRecord variant.
+    ///
+    /// @returns {DynamicRecord} The inner DynamicRecord value.
+    /// @throws If the value is not a DynamicRecord variant.
+    #[wasm_bindgen(js_name = "toDynamicRecord")]
+    pub fn to_dynamic_record(&self) -> Result<DynamicRecord, String> {
+        match &self.0 {
+            ValueNative::DynamicRecord(dynamic_record) => Ok(DynamicRecord::from(dynamic_record.clone())),
+            _ => Err(format!("Value is not a DynamicRecord variant, it is a {} variant", self.value_type())),
+        }
+    }
+
+    /// Creates a Value from a DynamicRecord object.
+    ///
+    /// @param {DynamicRecord} dynamic_record The DynamicRecord to wrap.
+    /// @returns {Value} A Value wrapping the DynamicRecord.
+    #[wasm_bindgen(js_name = "fromDynamicRecord")]
+    pub fn from_dynamic_record(dynamic_record: &DynamicRecord) -> Value {
+        let native: DynamicRecordNative = dynamic_record.into();
+        Value(ValueNative::DynamicRecord(native))
+    }
 }
 
 impl Deref for Value {
@@ -254,6 +298,8 @@ mod tests {
     const PLAINTEXT_STRUCT: &str = "{\n  microcredits: 100000000u64,\n  height: 1653124u32\n}";
     const RECORD_VALUE: &str = "{ owner: aleo1d5hg2z3ma00382pngntdp68e74zv54jdxy249qhaujhks9c72yrs33ddah.private, token_amount: 100u64.private, _nonce: 0group.public }";
     const FUTURE_VALUE: &str = "{\n  program_id: credits.aleo,\n  function_name: transfer,\n  arguments: [\n    aleo1d5hg2z3ma00382pngntdp68e74zv54jdxy249qhaujhks9c72yrs33ddah,\n    100000000u64\n  ]\n}";
+    const CREDITS_RECORD: &str = "{ owner: aleo12a4wll9ax6w5355jph0dr5wt2vla5sss2t4cnch0tc3vzh643v8qcfvc7a.private, microcredits: 1000000u64.private, _nonce: 3634848344765318974603121890869676775499130077229666060613233255327643175219group.public, _version: 1u8.public }";
+    const DYNAMIC_FUTURE_VALUE: &str = "{ _program_id: credits.aleo, _function_name: transfer, _checksum: 0field }";
 
     #[wasm_bindgen_test]
     fn test_plaintext_literal_string_roundtrip() {
@@ -262,6 +308,8 @@ mod tests {
         assert!(value.is_plaintext());
         assert!(!value.is_record());
         assert!(!value.is_future());
+        assert!(!value.is_dynamic_record());
+        assert!(!value.is_dynamic_future());
         assert_eq!(value.value_type(), "plaintext");
     }
 
@@ -287,12 +335,45 @@ mod tests {
         assert!(value.is_future());
         assert!(!value.is_plaintext());
         assert!(!value.is_record());
+        assert!(!value.is_dynamic_record());
+        assert!(!value.is_dynamic_future());
         assert_eq!(value.value_type(), "future");
     }
 
     #[wasm_bindgen_test]
+    fn test_dynamic_record_value() {
+        // Construct a DynamicRecord from an existing record.
+        let record = RecordPlaintext::from_string(CREDITS_RECORD).unwrap();
+        let dynamic_record = DynamicRecord::from_record(&record).unwrap();
+        let value = Value::from_string(&dynamic_record.to_string()).unwrap();
+        assert!(value.is_dynamic_record());
+        assert!(!value.is_plaintext());
+        assert!(!value.is_record());
+        assert!(!value.is_future());
+        assert!(!value.is_dynamic_future());
+        assert_eq!(value.value_type(), "dynamic_record");
+    }
+
+    #[wasm_bindgen_test]
+    fn test_dynamic_future_value() {
+        let value = Value::from_string(DYNAMIC_FUTURE_VALUE).unwrap();
+        assert!(value.is_dynamic_future());
+        assert!(!value.is_plaintext());
+        assert!(!value.is_record());
+        assert!(!value.is_future());
+        assert!(!value.is_dynamic_record());
+        assert_eq!(value.value_type(), "dynamic_future");
+    }
+
+    #[wasm_bindgen_test]
     fn test_all_variants_bytes_roundtrip() {
-        for input in [PLAINTEXT_LITERAL, PLAINTEXT_STRUCT, RECORD_VALUE, FUTURE_VALUE] {
+        // Build a dynamic record string from a record.
+        let record = RecordPlaintext::from_string(CREDITS_RECORD).unwrap();
+        let dynamic_record_str = DynamicRecord::from_record(&record).unwrap().to_string();
+
+        for input in
+            [PLAINTEXT_LITERAL, PLAINTEXT_STRUCT, RECORD_VALUE, FUTURE_VALUE, &dynamic_record_str, DYNAMIC_FUTURE_VALUE]
+        {
             let value = Value::from_string(input).unwrap();
             let bytes = value.to_bytes_le().unwrap();
             let recovered = Value::from_bytes_le(bytes).unwrap();
@@ -330,16 +411,42 @@ mod tests {
     }
 
     #[wasm_bindgen_test]
+    fn test_to_dynamic_record_extraction() {
+        let record = RecordPlaintext::from_string(CREDITS_RECORD).unwrap();
+        let dynamic_record = DynamicRecord::from_record(&record).unwrap();
+        let value = Value::from_string(&dynamic_record.to_string()).unwrap();
+        let extracted = value.to_dynamic_record().unwrap();
+        assert_eq!(extracted.to_string(), dynamic_record.to_string());
+    }
+
+    #[wasm_bindgen_test]
+    fn test_from_dynamic_record_construction() {
+        let record = RecordPlaintext::from_string(CREDITS_RECORD).unwrap();
+        let dynamic_record = DynamicRecord::from_record(&record).unwrap();
+        let value = Value::from_dynamic_record(&dynamic_record);
+        assert!(value.is_dynamic_record());
+        assert_eq!(value.to_dynamic_record().unwrap().to_string(), dynamic_record.to_string());
+    }
+
+    #[wasm_bindgen_test]
     fn test_wrong_variant_extraction_errors() {
         let value = Value::from_string(RECORD_VALUE).unwrap();
         assert!(value.to_plaintext().is_err());
+        assert!(value.to_dynamic_record().is_err());
 
         let value = Value::from_string(PLAINTEXT_LITERAL).unwrap();
         assert!(value.to_record_plaintext().is_err());
+        assert!(value.to_dynamic_record().is_err());
 
         let value = Value::from_string(FUTURE_VALUE).unwrap();
         assert!(value.to_plaintext().is_err());
         assert!(value.to_record_plaintext().is_err());
+        assert!(value.to_dynamic_record().is_err());
+
+        let value = Value::from_string(DYNAMIC_FUTURE_VALUE).unwrap();
+        assert!(value.to_plaintext().is_err());
+        assert!(value.to_record_plaintext().is_err());
+        assert!(value.to_dynamic_record().is_err());
     }
 
     #[wasm_bindgen_test]
