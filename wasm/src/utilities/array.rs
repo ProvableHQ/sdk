@@ -17,7 +17,7 @@
 /// Converts a JS array of wasm-bindgen exported structs from JsValues to their native Rust type
 /// representation.
 #[macro_export]
-macro_rules! from_wasm_object_array {
+macro_rules! from_wasm_field_array {
     ($input:expr, $wasm_type:ident) => {{
         $input
             .iter()
@@ -25,6 +25,20 @@ macro_rules! from_wasm_object_array {
                 $wasm_type::try_from_js_value(x).map(|x| *x).map_err(|_| "Input must be an array of fields".to_string())
             })
             .collect::<Result<Vec<FieldNative>, String>>()
+    }};
+}
+
+/// Converts a JS array of wasm-bindgen exported structs from JsValues to their native Rust type
+/// representation.
+#[macro_export]
+macro_rules! native_type_from_wasm_object_array {
+    ($input:expr, $wasm_type:ident, $native_type:ident) => {{
+        $input
+            .iter()
+            .map(|x| {
+                $wasm_type::try_from_js_value(x).map(|x| *x).map_err(|_| "Input must be an array of fields".to_string())
+            })
+            .collect::<Result<Vec<$native_type>, String>>()
     }};
 }
 

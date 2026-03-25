@@ -194,6 +194,7 @@ export {
     CachedKeyPair,
     ConfirmedTransactionJSON,
     CryptoBoxPubKey,
+    DecryptionNotEnabledError,
     DeploymentJSON,
     DeploymentObject,
     EncryptedProvingRequest,
@@ -269,7 +270,6 @@ export {
     RecordScannerFailure,
     RecordScannerJWTData,
     RecordScannerOptions,
-    DecryptionNotEnabledError,
     RecordNotFoundError,
     RecordScannerRequestError,
     ViewKeyNotStoredError,
@@ -306,3 +306,37 @@ export {
 } from "./keys/verifier/interface.js";
 
 export { encryptAuthorization, encryptProvingRequest, encryptViewKey, encryptRegistrationRequest, zeroizeBytes } from "./security.js";
+
+export {
+    // Converters
+    toField,
+    toGroup,
+    toViewKey,
+    toSignature,
+    toAddress,
+    // Type guards
+    isViewKeyStrategy,
+    isInputIdStrategy,
+    isRecordViewKeyStrategy,
+    // Builder
+    buildExecutionRequestFromExternallySignedData,
+    computeExternalSigningInputs,
+} from "./external-signing.js";
+export type {
+    FieldLike,
+    GroupLike,
+    ViewKeyLike,
+    SignatureLike,
+    AddressLike,
+    InputID,
+    ExecutionRequestParams,
+    RecordViewKeyStrategy,
+    ViewKeyStrategy,
+    InputIdStrategy,
+    InputStrategy,
+    ExternalSigningInput,
+    ExternalSigningOptions,
+    RequestSignInput,
+    OutputFormat,
+    FieldOutput,
+} from "./external-signing.js";

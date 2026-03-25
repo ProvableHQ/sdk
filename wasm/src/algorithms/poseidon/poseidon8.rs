@@ -18,7 +18,7 @@ use crate::{
     Field,
     Group,
     Scalar,
-    from_wasm_object_array,
+    from_wasm_field_array,
     types::native::{FieldNative, Poseidon8Native},
 };
 use snarkvm_console::algorithms::{Hash, HashMany, HashToGroup, HashToScalar};
@@ -46,7 +46,7 @@ impl Poseidon8 {
 
     /// Returns the Poseidon hash with an input rate of 8.
     pub fn hash(&self, input: Array) -> Result<Field, String> {
-        let input = from_wasm_object_array!(input, Field)?;
+        let input = from_wasm_field_array!(input, Field)?;
         self.0.hash(&input).map(Field::from).map_err(|e| e.to_string())
     }
 
@@ -54,7 +54,7 @@ impl Poseidon8 {
     #[wasm_bindgen(js_name = "hashMany")]
     pub fn hash_many(&self, input: Array, num_outputs: u16) -> Result<Array, String> {
         let array = Array::new();
-        let input = from_wasm_object_array!(input, Field)?;
+        let input = from_wasm_field_array!(input, Field)?;
         self.0.hash_many(&input, num_outputs).into_iter().for_each(|field| {
             array.push(&JsValue::from(Field::from(field)));
         });
@@ -64,14 +64,14 @@ impl Poseidon8 {
     /// Returns the Poseidon hash with an input rate of 8 on the scalar field.
     #[wasm_bindgen(js_name = "hashToScalar")]
     pub fn hash_to_scalar(&self, input: Array) -> Result<Scalar, String> {
-        let input = from_wasm_object_array!(input, Field)?;
+        let input = from_wasm_field_array!(input, Field)?;
         self.0.hash_to_scalar(&input).map(Scalar::from).map_err(|e| e.to_string())
     }
 
     /// Returns the Poseidon hash with an input rate of 8 on the affine curve.
     #[wasm_bindgen(js_name = "hashToGroup")]
     pub fn hash_to_group(&self, input: Array) -> Result<Group, String> {
-        let input = from_wasm_object_array!(input, Field)?;
+        let input = from_wasm_field_array!(input, Field)?;
         self.0.hash_to_group(&input).map(Group::from).map_err(|e| e.to_string())
     }
 }

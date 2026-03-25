@@ -16,7 +16,6 @@ async function buildRollup(input, output) {
     }
 }
 
-
 async function buildWasm(network) {
     await buildRollup({
         input: {

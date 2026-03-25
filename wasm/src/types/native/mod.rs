@@ -24,6 +24,7 @@ use snarkvm_console::{
         Entry,
         Future,
         Identifier,
+        InputID,
         Literal,
         Locator,
         Plaintext,
@@ -43,6 +44,7 @@ use snarkvm_synthesizer::{
     Authorization,
     Process,
     Program,
+    process::CallStack,
     snark::{Certificate, ProvingKey, VerifyingKey},
 };
 
@@ -91,6 +93,7 @@ pub type CiphertextNative = Ciphertext<CurrentNetwork>;
 pub type CiphertextEntryNative = Entry<CurrentNetwork, CiphertextNative>;
 pub type FutureNative = Future<CurrentNetwork>;
 pub type IdentifierNative = Identifier<CurrentNetwork>;
+pub type InputIDNative = InputID<CurrentNetwork>;
 pub type LiteralNative = Literal<CurrentNetwork>;
 pub type LocatorNative = Locator<CurrentNetwork>;
 pub type PlaintextNative = Plaintext<CurrentNetwork>;
@@ -115,6 +118,7 @@ pub type ValueTypeNative = ValueType<CurrentNetwork>;
 
 // Synthesizer types
 pub type AuthorizationNative = Authorization<CurrentNetwork>;
+pub type CallStackNative = CallStack<CurrentNetwork>;
 pub type ProcessNative = Process<CurrentNetwork>;
 pub type ProvingKeyNative = ProvingKey<CurrentNetwork>;
 pub type RequestNative = Request<CurrentNetwork>;

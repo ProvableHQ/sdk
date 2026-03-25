@@ -25,7 +25,18 @@ use crate::{
     to_bits_array_le,
     types::native::{GroupNative, LiteralNative, PlaintextNative},
 };
-use snarkvm_console::prelude::{Double, FromBits, FromBytes, FromFields, ToBits, ToBytes, ToFields, Uniform, Zero};
+use snarkvm_console::prelude::{
+    Double,
+    FromBits,
+    FromBytes,
+    FromField,
+    FromFields,
+    ToBits,
+    ToBytes,
+    ToFields,
+    Uniform,
+    Zero,
+};
 
 use js_sys::{Array, Uint8Array};
 use std::{ops::Deref, str::FromStr, sync::OnceLock};
@@ -99,6 +110,19 @@ impl Group {
     #[wasm_bindgen(js_name = "toPlaintext")]
     pub fn to_plaintext(&self) -> Plaintext {
         Plaintext::from(PlaintextNative::Literal(LiteralNative::Group(self.0), OnceLock::new()))
+    }
+
+    /// Generate the group element from the x coordinate of the group.
+    #[wasm_bindgen(js_name = "fromField")]
+    pub fn from_field(field: &Field) -> Result<Group, String> {
+        Ok(Group(GroupNative::from_field(&**field).map_err(|e| e.to_string())?))
+    }
+
+    /// Generate the group element from a string representation of the x coordinate of the group.
+    #[wasm_bindgen(js_name = "fromFieldString")]
+    pub fn from_field_string(field: &str) -> Result<Group, String> {
+        let field = FieldNative::from_str(field).map_err(|e| e.to_string())?;
+        Ok(Group(GroupNative::from_field(&field).map_err(|e| e.to_string())?))
     }
 
     /// Clone the group element.
