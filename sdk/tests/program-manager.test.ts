@@ -12,11 +12,15 @@ import {
     OfflineQuery,
     PrivateKey,
     Program,
+    Proof,
     ProgramManager,
     ProvingRequest,
     RecordPlaintext,
     Transaction,
     verifyFunctionExecution,
+    Value,
+    snarkVerify,
+    snarkVerifyBatch,
     VerifyingKey,
     ViewKey,
 } from "@provablehq/sdk/%%NETWORK%%.js";
@@ -32,6 +36,7 @@ import {
 } from "./data/account-data.js";
 import { IMPORT_1, IMPORT_2, MINT_VERIFYING_KEY, PROGRAM, SPEND_VERIFYING_KEY, SPIN_VERIFYING_KEY } from "./data/program.js";
 import { RECORD_PLAINTEXT_V1_STRING } from "./data/records";
+import { SAMPLE_VERIFYING_KEY, SAMPLE_PROOF, SAMPLE_INPUTS } from "./data/snark-verify.js";
 import { expect } from "chai";
 import {
     PUZZLE_SPINNER_PROGRAM_ID,
@@ -471,4 +476,109 @@ describe('Program Manager', async () => {
         });
     });
 
+    describe('SNARK Verification', () => {
+        it('Proof should round-trip via string', () => {
+            const proof = Proof.fromString(SAMPLE_PROOF);
+            expect(proof.toString()).to.equal(SAMPLE_PROOF);
+        });
+
+        it('Proof should round-trip via bytes', () => {
+            const proof = Proof.fromString(SAMPLE_PROOF);
+            const bytes = proof.toBytes();
+            const recovered = Proof.fromBytes(bytes);
+            expect(recovered.toString()).to.equal(SAMPLE_PROOF);
+        });
+
+        it('snarkVerify should return true for a valid proof', () => {
+            const vk = VerifyingKey.fromString(SAMPLE_VERIFYING_KEY);
+            const proof = Proof.fromString(SAMPLE_PROOF);
+            const result = snarkVerify(vk, SAMPLE_INPUTS, proof);
+            expect(result).to.equal(true);
+        });
+
+        it('snarkVerify should return false for wrong inputs', () => {
+            const vk = VerifyingKey.fromString(SAMPLE_VERIFYING_KEY);
+            const proof = Proof.fromString(SAMPLE_PROOF);
+            const result = snarkVerify(vk, ["1field", "2field"], proof);
+            expect(result).to.equal(false);
+        });
+
+        it('snarkVerifyBatch should return true for a valid proof', () => {
+            const proof = Proof.fromString(SAMPLE_PROOF);
+            const result = snarkVerifyBatch(
+                [SAMPLE_VERIFYING_KEY],
+                [[SAMPLE_INPUTS]],
+                proof,
+            );
+            expect(result).to.equal(true);
+        });
+
+        it('snarkVerifyBatch should throw when verifying keys and inputs length mismatch', () => {
+            const proof = Proof.fromString(SAMPLE_PROOF);
+            expect(() => snarkVerifyBatch(["vk1", "vk2"], [[SAMPLE_INPUTS]], proof)).to.throw();
+        });
+
+        it('snarkVerifyBatch should return false for wrong inputs', () => {
+            const proof = Proof.fromString(SAMPLE_PROOF);
+            const result = snarkVerifyBatch(
+                [SAMPLE_VERIFYING_KEY],
+                [[["1field", "2field"]]],
+                proof,
+            );
+            expect(result).to.equal(false);
+        });
+    });
+
+    describe('ProgramManager SNARK Verification', () => {
+        it('verifyProof should accept raw field inputs', () => {
+            const pm = new ProgramManager();
+            expect(pm.verifyProof({ verifyingKey: SAMPLE_VERIFYING_KEY, inputs: SAMPLE_INPUTS, proof: SAMPLE_PROOF })).to.equal(true);
+        });
+
+        it('verifyProof should convert Aleo types to fields', () => {
+            const pm = new ProgramManager();
+            // The sample circuit expects [1field, 1field]. Passing "1field" as a field literal
+            // and verifying it still works through the conversion path.
+            expect(pm.verifyProof({ verifyingKey: SAMPLE_VERIFYING_KEY, inputs: ["1field", "1field"], proof: SAMPLE_PROOF })).to.equal(true);
+        });
+
+        it('Value.toFields should convert Aleo types to field elements', () => {
+            // Verify the conversion pipeline works for various Aleo types.
+            const u32Fields = Value.fromString("1u32").toFields();
+            expect(u32Fields.length).to.be.greaterThan(0);
+            for (const f of u32Fields) {
+                expect(f.toString()).to.match(/field$/);
+            }
+
+            const boolFields = Value.fromString("true").toFields();
+            expect(boolFields.length).to.be.greaterThan(0);
+
+            const structFields = Value.fromString("{ x: 1u8, y: 2u8 }").toFields();
+            expect(structFields.length).to.be.greaterThan(0);
+        });
+
+        it('verifyProof should return false when converted inputs do not match the proof', () => {
+            const pm = new ProgramManager();
+            // 5u32 is a valid Aleo type but produces different field elements than the proof expects.
+            expect(pm.verifyProof({ verifyingKey: SAMPLE_VERIFYING_KEY, inputs: ["5u32", "5u32"], proof: SAMPLE_PROOF })).to.equal(false);
+        });
+
+        it('verifyBatchProof should return true for valid inputs', () => {
+            const pm = new ProgramManager();
+            expect(pm.verifyBatchProof({
+                verifyingKeys: [SAMPLE_VERIFYING_KEY],
+                inputs: [[SAMPLE_INPUTS]],
+                proof: SAMPLE_PROOF,
+            })).to.equal(true);
+        });
+
+        it('verifyBatchProof should return false for wrong inputs', () => {
+            const pm = new ProgramManager();
+            expect(pm.verifyBatchProof({
+                verifyingKeys: [SAMPLE_VERIFYING_KEY],
+                inputs: [[["1field", "2field"]]],
+                proof: SAMPLE_PROOF,
+            })).to.equal(false);
+        });
+    });
 });

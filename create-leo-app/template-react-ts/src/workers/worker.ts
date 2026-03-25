@@ -69,5 +69,16 @@ async function deployProgram(program) {
   return tx_id;
 }
 
-const workerMethods = { localProgramExecution, getPrivateKey, deployProgram };
+// Verify a standalone SNARK proof. This verifies a proof from a circuit that is not necessarily
+// an Aleo program execution — useful for verifying proofs received from external sources.
+async function verifyProof(verifyingKeyStr, proofStr, inputs) {
+  const programManager = new ProgramManager();
+  return programManager.verifyProof({
+    verifyingKey: verifyingKeyStr,
+    inputs,
+    proof: proofStr,
+  });
+}
+
+const workerMethods = { localProgramExecution, getPrivateKey, deployProgram, verifyProof };
 expose(workerMethods);

@@ -23,6 +23,7 @@ use crate::{
     types::native::{
         CurrentNetwork,
         ExecutionNative,
+        FieldNative,
         IdentifierNative,
         ProcessNative,
         ProgramNative,
@@ -30,7 +31,7 @@ use crate::{
     },
 };
 use snarkvm_algorithms::snark::varuna::VarunaVersion;
-use snarkvm_console::network::Network;
+use snarkvm_console::{network::Network, prelude::Environment};
 use snarkvm_synthesizer::prelude::InclusionVersion;
 
 use js_sys::{Array, Object, Reflect};
@@ -195,4 +196,86 @@ pub fn verify_function_execution(
     process
         .verify_execution(consensus_version, VarunaVersion::V2, inclusion_version, execution)
         .map_or(Ok(false), |_| Ok(true))
+}
+
+/// Verify a SNARK proof against a verifying key and public inputs.
+///
+/// This function verifies a proof produced by an Aleo program that may not be deployed on chain.
+/// It directly invokes the Varuna proof verification from snarkVM.
+///
+/// @param {VerifyingKey} verifying_key The verifying key for the circuit
+/// @param {Array<string>} inputs Array of field element strings representing public inputs (e.g. ["1field", "2field"])
+/// @param {Proof} proof The proof to verify
+/// @returns {boolean} True if the proof is valid, false otherwise
+#[wasm_bindgen(js_name = "snarkVerify")]
+pub fn snark_verify(verifying_key: &VerifyingKey, inputs: Array, proof: &Proof) -> Result<bool, String> {
+    // Parse the input field elements from strings.
+    let raw_inputs = parse_field_inputs(&inputs)?;
+
+    // Verify the proof using VarunaVersion::V2 (current standard).
+    let is_valid = verifying_key.verify("snark_verify", VarunaVersion::V2, &raw_inputs, proof);
+
+    Ok(is_valid)
+}
+
+/// Verify a batch SNARK proof against multiple verifying keys and their corresponding public inputs.
+///
+/// This function verifies a batch proof produced by Aleo programs that may not be deployed on chain.
+/// Each verifying key is paired with one or more sets of public inputs (instances).
+///
+/// @param {Array<string>} verifying_keys Array of verifying key strings, one per circuit
+/// @param {Array<Array<Array<string>>>} inputs 3D array of field element strings [circuit_idx][instance_idx][field_idx]
+/// @param {Proof} proof The batch proof to verify
+/// @returns {boolean} True if the batch proof is valid, false otherwise
+#[wasm_bindgen(js_name = "snarkVerifyBatch")]
+pub fn snark_verify_batch(verifying_keys: Array, inputs: Array, proof: &Proof) -> Result<bool, String> {
+    if verifying_keys.length() != inputs.length() {
+        return Err(format!(
+            "Mismatch: {} verifying keys but {} input groups provided. # of input groups must match # of verifying keys.",
+            verifying_keys.length(),
+            inputs.length()
+        ));
+    }
+
+    // Build the (VerifyingKey, Vec<Vec<Field>>) pairs for batch verification.
+    let mut vks_with_inputs = Vec::with_capacity(verifying_keys.length() as usize);
+
+    for i in 0..verifying_keys.length() {
+        // Parse the verifying key from its string representation.
+        let vk_str =
+            verifying_keys.get(i).as_string().ok_or_else(|| format!("Expected verifying key string at index {i}"))?;
+        let vk_native = VerifyingKeyNative::from_str(&vk_str)
+            .map_err(|e| format!("Failed to parse verifying key at index {i}: {e}"))?;
+
+        // Get the instances array for this circuit (Array<Array<string>>).
+        let instances_js = Array::from(&inputs.get(i));
+        let mut instances = Vec::with_capacity(instances_js.length() as usize);
+
+        for j in 0..instances_js.length() {
+            let instance_js = Array::from(&instances_js.get(j));
+            let fields = parse_field_inputs(&instance_js)?;
+            instances.push(fields);
+        }
+
+        vks_with_inputs.push((vk_native, instances));
+    }
+
+    // Verify the batch proof.
+    VerifyingKeyNative::verify_batch("snark_verify_batch", VarunaVersion::V2, vks_with_inputs, proof)
+        .map_or(Ok(false), |_| Ok(true))
+}
+
+/// Parse an Array of field element strings into a Vec of raw N::Field elements.
+fn parse_field_inputs(inputs: &Array) -> Result<Vec<<CurrentNetwork as Environment>::Field>, String> {
+    inputs
+        .iter()
+        .map(|input| {
+            let input_str = input
+                .as_string()
+                .ok_or_else(|| "Invalid input - all inputs must be field element strings".to_string())?;
+            let field = FieldNative::from_str(&input_str)
+                .map_err(|e| format!("Failed to parse field element '{}': {}", input_str, e))?;
+            Ok(*field)
+        })
+        .collect()
 }

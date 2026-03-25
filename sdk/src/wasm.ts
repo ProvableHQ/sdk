@@ -32,6 +32,7 @@ export {
     PrivateKeyCiphertext,
     Program,
     ProgramManager,
+    Proof,
     ProvingKey,
     ProvingRequest,
     RecordCiphertext,
@@ -50,5 +51,7 @@ export {
     ViewKey,
     initThreadPool,
     getOrInitConsensusVersionTestHeights,
+    snarkVerify,
+    snarkVerifyBatch,
     verifyFunctionExecution,
 } from "@provablehq/wasm/%%NETWORK%%.js";
