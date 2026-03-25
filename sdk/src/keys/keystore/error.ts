@@ -1,13 +1,15 @@
 /**
  * Reason code for invalid locator validation failures.
- * - `"reserved_name"`: Locator is empty or the reserved name `"."` or `".."`.
- * - `"path_traversal"`: Locator contains `..`.
- * - `"path_separator"`: Locator contains a path separator (`/`, `\`) or null byte.
+ * - `"reserved_name"`: A locator component is empty or `"."`.
+ * - `"path_traversal"`: A locator component contains `..`.
+ * - `"path_separator"`: A locator component contains a path separator (`/`, `\`) or null byte.
+ * - `"negative_value"`: A numeric locator field (edition, amendment, recordInputPosition) is not a non-negative integer.
  */
 export type InvalidLocatorReason =
     | "reserved_name"
     | "path_traversal"
-    | "path_separator";
+    | "path_separator"
+    | "negative_value";
 
 /**
  * Error thrown when a key locator is invalid for filesystem use.
