@@ -1,5 +1,5 @@
 import { expect } from "chai";
-import { Address, AleoNetworkClient, CREDITS_PROGRAM_KEYS, Field, FunctionKeyPair, PrivateKey, ViewKey, Signature, RecordCiphertext, RecordPlaintext, PrivateKeyCiphertext, EncryptionToolkit, Transition, VerifyingKey, AleoKeyProvider, getOrInitConsensusVersionTestHeights} from "../src/node.js";
+import { Address, AleoNetworkClient, CREDITS_PROGRAM_KEYS, Field, FunctionKeyPair, Plaintext, PrivateKey, ViewKey, Signature, RecordCiphertext, RecordPlaintext, PrivateKeyCiphertext, EncryptionToolkit, Transition, Value, VerifyingKey, AleoKeyProvider, getOrInitConsensusVersionTestHeights} from "../src/node.js";
 import {
     seed,
     message,
@@ -570,6 +570,104 @@ describe('WASM Objects', () => {
             }
         });
     });
+    describe('Value', () => {
+        const plaintextLiteral = "100u64";
+        const plaintextStruct = "{\n  microcredits: 100000000u64,\n  height: 1653124u32\n}";
+        const recordValue = "{ owner: aleo1d5hg2z3ma00382pngntdp68e74zv54jdxy249qhaujhks9c72yrs33ddah.private, token_amount: 100u64.private, _nonce: 0group.public }";
+        const futureValue = "{\n  program_id: credits.aleo,\n  function_name: transfer,\n  arguments: [\n    aleo1d5hg2z3ma00382pngntdp68e74zv54jdxy249qhaujhks9c72yrs33ddah,\n    100000000u64\n  ]\n}";
+
+        it('can parse a plaintext literal and round-trip via string', () => {
+            const value = Value.fromString(plaintextLiteral);
+            expect(value.toString()).to.equal(plaintextLiteral);
+            expect(value.valueType()).to.equal("plaintext");
+            expect(value.isPlaintext()).to.be.true;
+            expect(value.isRecord()).to.be.false;
+            expect(value.isFuture()).to.be.false;
+        });
+
+        it('can parse a plaintext struct and round-trip via string', () => {
+            const value = Value.fromString(plaintextStruct);
+            expect(value.toString()).to.equal(plaintextStruct);
+            expect(value.valueType()).to.equal("plaintext");
+            expect(value.isPlaintext()).to.be.true;
+        });
+
+        it('can parse a record value', () => {
+            const value = Value.fromString(recordValue);
+            expect(value.valueType()).to.equal("record");
+            expect(value.isRecord()).to.be.true;
+            expect(value.isPlaintext()).to.be.false;
+        });
+
+        it('can parse a future value', () => {
+            const value = Value.fromString(futureValue);
+            expect(value.valueType()).to.equal("future");
+            expect(value.isFuture()).to.be.true;
+            expect(value.isPlaintext()).to.be.false;
+            expect(value.isRecord()).to.be.false;
+        });
+
+        it('can round-trip all variants via bytes', () => {
+            for (const str of [plaintextLiteral, plaintextStruct, recordValue, futureValue]) {
+                const value = Value.fromString(str);
+                const bytes = value.toBytesLe();
+                const recovered = Value.fromBytesLe(bytes);
+                expect(recovered.toString()).to.equal(value.toString());
+            }
+        });
+
+        it('can extract inner Plaintext', () => {
+            const value = Value.fromString(plaintextLiteral);
+            const plaintext = value.toPlaintext();
+            expect(plaintext.toString()).to.equal(plaintextLiteral);
+        });
+
+        it('can extract inner RecordPlaintext', () => {
+            const value = Value.fromString(recordValue);
+            const record = value.toRecordPlaintext();
+            expect(record.toString()).to.equal(value.toString());
+        });
+
+        it('throws on wrong variant extraction', () => {
+            const plaintextValue = Value.fromString(plaintextLiteral);
+            expect(() => plaintextValue.toRecordPlaintext()).to.throw();
+
+            const recordVal = Value.fromString(recordValue);
+            expect(() => recordVal.toPlaintext()).to.throw();
+        });
+
+        it('throws on invalid string', () => {
+            expect(() => Value.fromString("not_a_valid_value")).to.throw();
+        });
+
+        it('can produce bits', () => {
+            const value = Value.fromString(plaintextLiteral);
+            const bits = value.toBitsLe();
+            expect(bits.length).to.be.greaterThan(0);
+        });
+
+        it('can produce fields and raw fields', () => {
+            const value = Value.fromString(plaintextLiteral);
+            const fields = value.toFields();
+            expect(fields.length).to.be.greaterThan(0);
+            const fieldsRaw = value.toFieldsRaw();
+            expect(fieldsRaw.length).to.be.greaterThan(0);
+        });
+
+        it('can construct from Plaintext object', () => {
+            const plaintext = Plaintext.fromString(plaintextLiteral);
+            const value = Value.fromPlaintext(plaintext);
+            expect(value.isPlaintext()).to.be.true;
+            expect(value.toString()).to.equal(plaintextLiteral);
+        });
+
+        it('can construct from RecordPlaintext object', () => {
+            const record = RecordPlaintext.fromString(recordValue);
+            const value = Value.fromRecordPlaintext(record);
+            expect(value.isRecord()).to.be.true;
+        });
+    });
+
     describe("ProgramID", () => {
         let connection = new AleoNetworkClient("https://api.explorer.provable.com/v2");
         it("Can can successfully get the correct address from a ProgramID string.", () => {

@@ -22,3 +22,6 @@ pub use helpers::*;
 
 pub mod plaintext;
 pub use plaintext::Plaintext;
+
+pub mod value;
+pub use value::Value;
