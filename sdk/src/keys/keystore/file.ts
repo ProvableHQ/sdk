@@ -62,6 +62,24 @@ export class LocalFileKeyStore implements KeyStore {
     }
 
     /**
+     * Validates that a numeric locator field is not negative.
+     *
+     * @private
+     * @param {number} value - The numeric value to validate.
+     * @param {string} label - Label for error messages (e.g. "edition", "amendment").
+     * @throws {InvalidLocatorError} If the value is negative.
+     */
+    private validateNonNegative(value: number, label: string): void {
+        if (value < 0) {
+            throw new InvalidLocatorError(
+                `KeyLocator ${label} must not be negative (got ${value})`,
+                String(value),
+                "negative_value"
+            );
+        }
+    }
+
+    /**
      * Serializes a {@link KeyLocator} to a filesystem-safe flat string, validating components first.
      *
      * For prover/verifier keys: `{program}.{functionName}.e{edition}.a{amendment}.{network}.{keyType}`
@@ -79,9 +97,12 @@ export class LocalFileKeyStore implements KeyStore {
         this.validateComponent(locator.program, "program");
         this.validateComponent(locator.functionName, "functionName");
         this.validateComponent(locator.network, "network");
+        this.validateNonNegative(locator.edition, "edition");
+        this.validateNonNegative(locator.amendment, "amendment");
         const base = `${locator.program}.${locator.functionName}.e${locator.edition}.a${locator.amendment}.${locator.network}.${locator.keyType}`;
         if (locator.keyType === "translation") {
             this.validateComponent(locator.recordName, "recordName");
+            this.validateNonNegative(locator.recordInputPosition, "recordInputPosition");
             return `${base}.${locator.recordName}.${locator.recordInputPosition}`;
         }
         return base;

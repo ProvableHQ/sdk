@@ -305,6 +305,39 @@ describe("KeyStore (file) – LocalFileKeyStore", () => {
             }
         });
 
+        it("throws InvalidLocatorError for negative edition", async () => {
+            const bad: KeyLocator = { program: "prog.aleo", functionName: "func", edition: -1, amendment: 0, network: "mainnet", keyType: "prover" };
+            try {
+                await keystore.getKeyBytes(bad);
+                expect.fail("should throw");
+            } catch (e) {
+                expect(e).instanceof(InvalidLocatorError);
+                expect((e as InvalidLocatorError).reason).equal("negative_value");
+            }
+        });
+
+        it("throws InvalidLocatorError for negative amendment", async () => {
+            const bad: KeyLocator = { program: "prog.aleo", functionName: "func", edition: 1, amendment: -1, network: "mainnet", keyType: "prover" };
+            try {
+                await keystore.getKeyBytes(bad);
+                expect.fail("should throw");
+            } catch (e) {
+                expect(e).instanceof(InvalidLocatorError);
+                expect((e as InvalidLocatorError).reason).equal("negative_value");
+            }
+        });
+
+        it("throws InvalidLocatorError for negative recordInputPosition", async () => {
+            const bad: KeyLocator = { program: "prog.aleo", functionName: "func", edition: 1, amendment: 0, network: "mainnet", keyType: "translation", recordName: "credits", recordInputPosition: -1 };
+            try {
+                await keystore.getKeyBytes(bad);
+                expect.fail("should throw");
+            } catch (e) {
+                expect(e).instanceof(InvalidLocatorError);
+                expect((e as InvalidLocatorError).reason).equal("negative_value");
+            }
+        });
+
         it("accepts locators with alphanumeric, dots, underscores, hyphens", async () => {
             expect(await keystore.getKeyBytes(locator("credits.aleo", "fee_public", "prover"))).equal(null);
             expect(await keystore.has(locator("credits.aleo", "fee_public", "prover"))).equal(false);

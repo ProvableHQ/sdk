@@ -3,11 +3,13 @@
  * - `"reserved_name"`: Locator is empty or the reserved name `"."` or `".."`.
  * - `"path_traversal"`: Locator contains `..`.
  * - `"path_separator"`: Locator contains a path separator (`/`, `\`) or null byte.
+ * - `"negative_value"`: A numeric locator field (edition, amendment, recordInputPosition) is negative.
  */
 export type InvalidLocatorReason =
     | "reserved_name"
     | "path_traversal"
-    | "path_separator";
+    | "path_separator"
+    | "negative_value";
 
 /**
  * Error thrown when a key locator is invalid for filesystem use.
