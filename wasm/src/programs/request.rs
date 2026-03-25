@@ -624,21 +624,37 @@ impl ExecutionRequest {
 
             match &input_type {
                 ValueTypeNative::Constant(_) => {
-                    Reflect::set(&request_sign_input, &JsValue::from_str("signingInputType"), &JsValue::from_str("constant"))
-                        .map_err(|_| "Failed to set signingInputType".to_string())?;
+                    Reflect::set(
+                        &request_sign_input,
+                        &JsValue::from_str("signingInputType"),
+                        &JsValue::from_str("constant"),
+                    )
+                    .map_err(|_| "Failed to set signingInputType".to_string())?;
                 }
                 ValueTypeNative::Public(_) => {
-                    Reflect::set(&request_sign_input, &JsValue::from_str("signingInputType"), &JsValue::from_str("public"))
-                        .map_err(|_| "Failed to set signingInputType".to_string())?;
+                    Reflect::set(
+                        &request_sign_input,
+                        &JsValue::from_str("signingInputType"),
+                        &JsValue::from_str("public"),
+                    )
+                    .map_err(|_| "Failed to set signingInputType".to_string())?;
                 }
                 ValueTypeNative::Private(_) => {
-                    Reflect::set(&request_sign_input, &JsValue::from_str("signingInputType"), &JsValue::from_str("private"))
-                        .map_err(|_| "Failed to set signingInputType".to_string())?;
+                    Reflect::set(
+                        &request_sign_input,
+                        &JsValue::from_str("signingInputType"),
+                        &JsValue::from_str("private"),
+                    )
+                    .map_err(|_| "Failed to set signingInputType".to_string())?;
                 }
                 ValueTypeNative::Record(record_name) => {
                     // Set the signing input type and name.
-                    Reflect::set(&request_sign_input, &JsValue::from_str("signingInputType"), &JsValue::from_str("record"))
-                        .map_err(|_| "Failed to set signingInputType".to_string())?;
+                    Reflect::set(
+                        &request_sign_input,
+                        &JsValue::from_str("signingInputType"),
+                        &JsValue::from_str("record"),
+                    )
+                    .map_err(|_| "Failed to set signingInputType".to_string())?;
                     Reflect::set(
                         &request_sign_input,
                         &JsValue::from_str("name"),
