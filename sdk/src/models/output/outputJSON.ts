@@ -3,4 +3,5 @@ export interface OutputJSON {
     id: string;
     checksum?: string;
     value: string;
+    dynamic_id?: string;
 }
