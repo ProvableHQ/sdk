@@ -861,7 +861,8 @@ impl ExecutionRequest {
 
         let mut computed_ids = Vec::with_capacity(inputs_native.len());
         for (index, (input, input_type)) in inputs_native.iter().zip(input_types_native.iter()).enumerate() {
-            let index = u16::try_from(index).map_err(|_| format!("Input index {index} exceeds maximum allowed value"))?
+            let index =
+                u16::try_from(index).map_err(|_| format!("Input index {index} exceeds maximum allowed value"))?;
             let index_field = FieldNative::from_u16(index);
 
             match &input_type {
@@ -906,13 +907,13 @@ impl ExecutionRequest {
                     computed_ids.push(InputIDNative::Record(commitment, gamma, record_view_key, serial_number, tag));
                 }
                 ValueTypeNative::ExternalRecord(_) => {
-                    let input_id = InputIDNative::external_record(function_id, &input, **tvk, index)
-                        .map_err(|e| e.to_string())?;
+                    let input_id =
+                        InputIDNative::external_record(function_id, &input, **tvk, index).map_err(|e| e.to_string())?;
                     computed_ids.push(input_id);
                 }
                 ValueTypeNative::DynamicRecord => {
-                    let input_id = InputIDNative::dynamic_record(function_id, &input, **tvk, index)
-                        .map_err(|e| e.to_string())?;
+                    let input_id =
+                        InputIDNative::dynamic_record(function_id, &input, **tvk, index).map_err(|e| e.to_string())?;
                     computed_ids.push(input_id);
                 }
                 ValueTypeNative::DynamicFuture => {
