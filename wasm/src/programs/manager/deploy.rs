@@ -88,9 +88,10 @@ impl ProgramManager {
 
         log("Checking program has a valid name");
         let program = ProgramNative::from_str(program).map_err(|err| err.to_string())?;
+        let program_id = program.id().to_string();
 
         log("Checking program imports are valid and add them to the process");
-        ProgramManager::resolve_imports(process, &program, imports)?;
+        ProgramManager::resolve_imports(process, imports, Some(program_id.as_str()))?;
         let rng = &mut StdRng::from_entropy();
 
         log("Creating deployment");
@@ -166,9 +167,10 @@ impl ProgramManager {
 
         log("Check program has a valid name");
         let program = ProgramNative::from_str(program).map_err(|err| err.to_string())?;
+        let program_id = program.id().to_string();
 
         log("Check program imports are valid and add them to the process");
-        ProgramManager::resolve_imports(process, &program, imports)?;
+        ProgramManager::resolve_imports(process, imports, Some(program_id.as_str()))?;
 
         log("Create sample deployment");
         let deployment =
@@ -256,7 +258,7 @@ impl ProgramManager {
         process.add_program_with_edition(&deployed_program, deployed_program_edition).map_err(|err| err.to_string())?;
 
         log("Checking program imports are valid and add them to the process");
-        ProgramManager::resolve_imports(process, &program, imports)?;
+        ProgramManager::resolve_imports(process, imports, Some(program_id.as_str()))?;
         let rng = &mut StdRng::from_entropy();
 
         log("Creating deployment");
@@ -347,9 +349,10 @@ impl ProgramManager {
         log("Checking program has a valid name");
         let program = ProgramNative::from_str(program).map_err(|err| err.to_string())?;
         let program_id = program.id();
+        let program_id_str = program_id.to_string();
 
         log("Checking program imports are valid and add them to the process");
-        ProgramManager::resolve_imports(process, &program, imports)?;
+        ProgramManager::resolve_imports(process, imports, Some(program_id_str.as_str()))?;
         let rng = &mut StdRng::from_entropy();
 
         log("Creating deployment");
@@ -479,7 +482,8 @@ impl ProgramManager {
 
         log("Checking program imports are valid and add them to the process");
         let program = ProgramNative::from_str(&program).map_err(|err| err.to_string())?;
-        ProgramManager::resolve_imports(process, &program, imports)?;
+        let program_id_str = program.id().to_string();
+        ProgramManager::resolve_imports(process, imports, Some(program_id_str.as_str()))?;
         let rng = &mut StdRng::from_entropy();
 
         log("Creating deployment");
