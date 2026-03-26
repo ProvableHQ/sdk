@@ -128,7 +128,7 @@ impl Value {
 
     /// Returns the type of the value variant as a string.
     ///
-    /// Possible values: "plaintext", "record", "future".
+    /// Possible values: "plaintext", "record", "future", "dynamic_record", or "dynamic_future".
     ///
     /// @returns {string} The variant type name.
     #[wasm_bindgen(js_name = "valueType")]
