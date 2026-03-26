@@ -17,10 +17,15 @@
 mod credits;
 mod metadata;
 
-use crate::types::native::{CurrentNetwork, VerifyingKeyNative};
+use crate::{
+    Proof,
+    programs::execution::{snark_verify, snark_verify_batch},
+    types::native::{CurrentNetwork, VerifyingKeyNative},
+};
 use snarkvm_console::network::Network;
 use snarkvm_wasm::utilities::{FromBytes, ToBytes};
 
+use js_sys::Array;
 use sha2::Digest;
 use std::{ops::Deref, str::FromStr};
 use wasm_bindgen::prelude::wasm_bindgen;
@@ -90,6 +95,27 @@ impl VerifyingKey {
     #[wasm_bindgen(js_name = "numConstraints")]
     pub fn num_constraints(&self) -> u32 {
         self.0.circuit_info.num_constraints as u32
+    }
+
+    /// Verify a SNARK proof against this verifying key and public inputs.
+    ///
+    /// @param {Array<string>} inputs Array of field element strings representing public inputs (e.g. ["1field", "2field"])
+    /// @param {Proof} proof The proof to verify
+    /// @returns {boolean} True if the proof is valid, false otherwise
+    #[wasm_bindgen(js_name = "verify")]
+    pub fn verify(&self, inputs: Array, proof: &Proof) -> Result<bool, String> {
+        snark_verify(self, inputs, proof)
+    }
+
+    /// Verify a batch SNARK proof against multiple verifying keys and their corresponding public inputs.
+    ///
+    /// @param {Array<string>} verifying_keys Array of verifying key strings, one per circuit
+    /// @param {Array<Array<Array<string>>>} inputs 3D array of field element strings [circuit_idx][instance_idx][field_idx]
+    /// @param {Proof} proof The batch proof to verify
+    /// @returns {boolean} True if the batch proof is valid, false otherwise
+    #[wasm_bindgen(js_name = "verifyBatch")]
+    pub fn verify_batch_static(verifying_keys: Array, inputs: Array, proof: &Proof) -> Result<bool, String> {
+        snark_verify_batch(verifying_keys, inputs, proof)
     }
 }
 

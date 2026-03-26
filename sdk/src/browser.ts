@@ -107,7 +107,7 @@ async function initializeWasm() {
     console.warn("initializeWasm is deprecated, you no longer need to use it");
 }
 
-export { ProgramManager, ProvingRequestOptions, ExecuteOptions, FeeAuthorizationOptions, AuthorizationOptions } from "./program-manager.js";
+export { ProgramManager, ProvingRequestOptions, ExecuteOptions, FeeAuthorizationOptions, AuthorizationOptions, VerificationOptions, BatchVerificationOptions, inputsToFields, verifyProof, verifyBatchProof } from "./program-manager.js";
 
 export { logAndThrow } from "./utils.js";
 
@@ -144,6 +144,7 @@ export {
     PrivateKeyCiphertext,
     Program,
     ProgramManager as ProgramManagerBase,
+    Proof,
     ProvingKey,
     ProvingRequest,
     RecordCiphertext,
@@ -163,6 +164,8 @@ export {
     ViewKey,
     initThreadPool,
     getOrInitConsensusVersionTestHeights,
+    snarkVerify,
+    snarkVerifyBatch,
     verifyFunctionExecution,
 } from "./wasm.js";
 

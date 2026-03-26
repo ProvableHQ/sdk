@@ -66,8 +66,9 @@ impl ProgramManager {
 
         log("Check program imports are valid and add them to the process");
         let program_native = ProgramNative::from_str(program).map_err(|e| e.to_string())?;
-        log(&format!("Creating proving request for {}:{function_name}", program_native.id()));
-        ProgramManager::resolve_imports(process, &program_native, imports)?;
+        let program_id = program_native.id().to_string();
+        log(&format!("Creating proving request for {program_id}:{function_name}"));
+        ProgramManager::resolve_imports(process, imports, Some(program_id.as_str()))?;
         let rng = &mut StdRng::from_entropy();
 
         // Authorize the main program.
@@ -108,8 +109,9 @@ impl ProgramManager {
 
         log("Check program imports are valid and add them to the process");
         let program_native = ProgramNative::from_str(program).map_err(|e| e.to_string())?;
-        log(&format!("Creating proving request for {}:{function_name}", program_native.id()));
-        ProgramManager::resolve_imports(process, &program_native, imports)?;
+        let program_id = program_native.id().to_string();
+        log(&format!("Creating proving request for {program_id}:{function_name}"));
+        ProgramManager::resolve_imports(process, imports, Some(program_id.as_str()))?;
         let rng = &mut StdRng::from_entropy();
 
         // Authorize the main program.
@@ -168,8 +170,9 @@ impl ProgramManager {
             ));
         }
 
+        let program_id = program_native.id().to_string();
         log(&format!("Creating proving request for {request_program_id}:{}", request.function_name()));
-        ProgramManager::resolve_imports(process, &program_native, imports)?;
+        ProgramManager::resolve_imports(process, imports, Some(program_id.as_str()))?;
         let rng = &mut StdRng::from_entropy();
 
         // Add the program to the process if it is not already there.

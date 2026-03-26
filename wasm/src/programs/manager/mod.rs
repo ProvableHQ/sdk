@@ -125,37 +125,89 @@ impl ProgramManager {
         )
     }
 
-    /// Resolve imports for a program in depth first search order
+    /// Resolve imports by iterating all keys in the provided imports Object.
+    ///
+    /// Walks all keys in the provided object, supporting both static imports
+    /// and dynamic dispatch targets that aren't declared in the top-level program.
+    /// If `top_level_program` is provided, that program ID is skipped so the
+    /// caller can add it separately with the correct edition.
     pub(crate) fn resolve_imports(
         process: &mut ProcessNative,
-        program: &ProgramNative,
         imports: Option<Object>,
+        top_level_program: Option<&str>,
     ) -> Result<(), String> {
         if let Some(imports) = imports {
-            program.imports().keys().try_for_each(|program_id| {
-                // Get the program string
-                let program_id = program_id.to_string();
-                if let Some(import_string) = Reflect::get(&imports, &program_id.as_str().into())
-                    .map_err(|_| "Program import not found in imports provided".to_string())?
-                    .as_string()
-                {
-                    if &program_id != "credits.aleo" {
-                        let import = ProgramNative::from_str(&import_string).map_err(|err| err.to_string())?;
-                        // Only process if the program is not already in the process
-                        if !process.contains_program(import.id()) {
-                            log(&format!("Importing program: {program_id}"));
-                            // If the program has imports, add them first (depth-first).
-                            Self::resolve_imports(process, &import, Some(imports.clone()))?;
-                            log(&format!("Adding {program_id} to the process"));
-                            process.add_program_with_edition(&import, 1).map_err(|err| err.to_string())?;
-                        }
-                    }
+            let keys = Object::keys(&imports);
+            for i in 0..keys.length() {
+                let Some(program_id) = keys.get(i).as_string() else {
+                    continue;
+                };
+                if program_id == "credits.aleo" {
+                    continue;
                 }
-                Ok::<(), String>(())
-            })
-        } else {
-            Ok(())
+                if top_level_program == Some(program_id.as_str()) {
+                    continue;
+                }
+                let import_string =
+                    Reflect::get(&imports, &program_id.as_str().into()).ok().and_then(|v| v.as_string()).ok_or_else(
+                        || format!("Invalid import '{program_id}' in imports object: expected a string value"),
+                    )?;
+                let import = ProgramNative::from_str(&import_string).map_err(|err| err.to_string())?;
+                if import.id().to_string() != program_id {
+                    return Err(format!("Import key '{}' does not match program id '{}'", program_id, import.id()));
+                }
+                if !process.contains_program(import.id()) {
+                    log(&format!("Importing program: {program_id}"));
+                    // Recursively resolve this program's static imports first (depth-first).
+                    Self::resolve_program_imports(process, &import, &imports)?;
+                    log(&format!("Adding {program_id} to the process"));
+                    // Edition is hardcoded to 1 — the JS imports Object doesn't carry edition metadata.
+                    process.add_program_with_edition(&import, 1).map_err(|err| err.to_string())?;
+                }
+            }
         }
+        Ok(())
+    }
+
+    /// Recursively resolve a program's declared static imports in depth-first order,
+    /// ensuring transitive dependencies are added before the program that imports them.
+    fn resolve_program_imports(
+        process: &mut ProcessNative,
+        program: &ProgramNative,
+        imports: &Object,
+    ) -> Result<(), String> {
+        program.imports().keys().try_for_each(|import_id| {
+            let import_id_str = import_id.to_string();
+            if import_id_str == "credits.aleo" {
+                return Ok(());
+            }
+            // If already in the process (e.g. credits.aleo loaded at init), skip.
+            if process.contains_program(&ProgramIDNative::from_str(&import_id_str).map_err(|e| e.to_string())?) {
+                return Ok(());
+            }
+            let import_string = Reflect::get(imports, &import_id_str.as_str().into())
+                .ok()
+                .and_then(|v| v.as_string())
+                .ok_or_else(|| {
+                    format!(
+                        "Missing or invalid static import '{}' in imports object: expected a string entry",
+                        import_id_str
+                    )
+                })?;
+            let import = ProgramNative::from_str(&import_string).map_err(|err| err.to_string())?;
+            if import.id().to_string() != import_id_str {
+                return Err(format!(
+                    "Static import key '{}' does not match program id '{}'",
+                    import_id_str,
+                    import.id()
+                ));
+            }
+            log(&format!("Importing program: {import_id_str}"));
+            Self::resolve_program_imports(process, &import, imports)?;
+            log(&format!("Adding {import_id_str} to the process"));
+            process.add_program_with_edition(&import, 1).map_err(|err| err.to_string())?;
+            Ok::<(), String>(())
+        })
     }
 
     pub(crate) fn validate_fee_record(
@@ -235,7 +287,10 @@ function add_and_double:
 "#;
 
     #[wasm_bindgen_test]
-    fn test_import_resolution() {
+    fn test_all_provided_imports_resolved() {
+        // All three programs are provided in the imports Object.
+        // resolve_imports walks all Object keys and adds each program along
+        // with its transitive static dependencies (depth-first).
         let imports = Object::new();
         Reflect::set(&imports, &JsValue::from_str("multiply_test.aleo"), &JsValue::from_str(MULTIPLY_PROGRAM)).unwrap();
         Reflect::set(&imports, &JsValue::from_str("addition_test.aleo"), &JsValue::from_str(ADDITION_PROGRAM)).unwrap();
@@ -243,16 +298,73 @@ function add_and_double:
             .unwrap();
 
         let mut process = ProcessNative::load_web().unwrap();
-        let program = ProgramNative::from_str(NESTED_IMPORT_PROGRAM).unwrap();
         let add_program = ProgramNative::from_str(ADDITION_PROGRAM).unwrap();
         let multiply_program = ProgramNative::from_str(MULTIPLY_PROGRAM).unwrap();
         let double_program = ProgramNative::from_str(MULTIPLY_IMPORT_PROGRAM).unwrap();
 
-        ProgramManager::resolve_imports(&mut process, &program, Some(imports)).unwrap();
+        ProgramManager::resolve_imports(&mut process, Some(imports), None).unwrap();
 
         assert!(process.contains_program(add_program.id()));
         assert!(process.contains_program(multiply_program.id()));
         assert!(process.contains_program(double_program.id()));
+    }
+
+    #[wasm_bindgen_test]
+    fn test_non_static_imports_resolved() {
+        // Both multiply_test.aleo and addition_test.aleo are provided in the imports Object.
+        // addition_test.aleo is not a static dependency of another program in this test,
+        // but it should still be added to the process when resolve_imports is called.
+        let imports = Object::new();
+        Reflect::set(&imports, &JsValue::from_str("multiply_test.aleo"), &JsValue::from_str(MULTIPLY_PROGRAM)).unwrap();
+        Reflect::set(&imports, &JsValue::from_str("addition_test.aleo"), &JsValue::from_str(ADDITION_PROGRAM)).unwrap();
+
+        let mut process = ProcessNative::load_web().unwrap();
+        let add_program = ProgramNative::from_str(ADDITION_PROGRAM).unwrap();
+        let multiply_program = ProgramNative::from_str(MULTIPLY_PROGRAM).unwrap();
+
+        ProgramManager::resolve_imports(&mut process, Some(imports), None).unwrap();
+
+        assert!(process.contains_program(multiply_program.id()));
+        assert!(process.contains_program(add_program.id()), "Non-static import should be resolved");
+    }
+
+    #[wasm_bindgen_test]
+    fn test_top_level_program_skipped() {
+        // If the top-level program is included in the imports Object,
+        // it should be skipped so the caller can add it with the correct edition.
+        let imports = Object::new();
+        Reflect::set(&imports, &JsValue::from_str("multiply_test.aleo"), &JsValue::from_str(MULTIPLY_PROGRAM)).unwrap();
+        Reflect::set(&imports, &JsValue::from_str("double_test.aleo"), &JsValue::from_str(MULTIPLY_IMPORT_PROGRAM))
+            .unwrap();
+
+        let mut process = ProcessNative::load_web().unwrap();
+        let multiply_program = ProgramNative::from_str(MULTIPLY_PROGRAM).unwrap();
+        let double_program = ProgramNative::from_str(MULTIPLY_IMPORT_PROGRAM).unwrap();
+
+        // Skip double_test.aleo (the "top-level" program) during import resolution.
+        ProgramManager::resolve_imports(&mut process, Some(imports), Some("double_test.aleo")).unwrap();
+
+        // multiply_test.aleo should still be resolved as a static dependency.
+        assert!(process.contains_program(multiply_program.id()));
+        // double_test.aleo should NOT be in the process — it was skipped.
+        assert!(!process.contains_program(double_program.id()), "Top-level program should be skipped");
+    }
+
+    #[wasm_bindgen_test]
+    fn test_missing_static_dependency_errors() {
+        // double_test.aleo statically imports multiply_test.aleo.
+        // Provide double_test.aleo in the Object but omit multiply_test.aleo.
+        // resolve_program_imports should error because the static dependency is missing.
+        let imports = Object::new();
+        Reflect::set(&imports, &JsValue::from_str("double_test.aleo"), &JsValue::from_str(MULTIPLY_IMPORT_PROGRAM))
+            .unwrap();
+
+        let mut process = ProcessNative::load_web().unwrap();
+        let result = ProgramManager::resolve_imports(&mut process, Some(imports), None);
+
+        assert!(result.is_err(), "Should error when a static dependency is missing");
+        let err = result.unwrap_err();
+        assert!(err.contains("multiply_test.aleo"), "Error should mention the missing import, got: {err}");
     }
 
     #[wasm_bindgen_test]

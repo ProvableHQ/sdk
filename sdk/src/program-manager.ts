@@ -30,8 +30,10 @@ import {
     Program,
     ProvingKey,
     ProvingRequest,
+    Value,
     VerifyingKey,
     Transaction,
+    Proof,
     ProgramManager as WasmProgramManager,
     verifyFunctionExecution,
 } from "./wasm.js";
@@ -222,6 +224,32 @@ interface FeeEstimateOptions {
     imports?: ProgramImports;
     edition?: number,
     authorization?: Authorization;
+}
+
+/**
+ * Options for verifying a single Aleo zkSnark proof.
+ *
+ * @property {string} verifyingKey - The verifying key string for the circuit
+ * @property {string[]} inputs - Array of public input strings — either field elements (e.g. "1field") or Aleo types (e.g. "1u32", "{ x: 1u8 }")
+ * @property {string} proof - The proof string to verify
+ */
+interface VerificationOptions {
+    verifyingKey: string;
+    inputs: string[];
+    proof: string;
+}
+
+/**
+ * Options for verifying a batch Aleo zkSnark proof.
+ *
+ * @property {string[]} verifyingKeys - Array of verifying key strings, one per circuit
+ * @property {string[][][]} inputs - 3D array of input strings [circuit_idx][instance_idx][input_idx]
+ * @property {string} proof - The batch proof string to verify
+ */
+interface BatchVerificationOptions {
+    verifyingKeys: string[];
+    inputs: string[][][];
+    proof: string;
 }
 
 /**
@@ -3757,4 +3785,123 @@ function validateTransferType(transferType: string): string {
         );
 }
 
-export { ProgramManager, AuthorizationOptions, FeeAuthorizationOptions, ExecuteOptions, ProvingRequestOptions, ExternalSigningOptions };
+/**
+ * Convert an array of Aleo type strings to field element strings.
+ *
+ * Inputs that are already field elements (e.g. "1field") are passed through directly.
+ * Other Aleo values (e.g. "1u32", records, futures, dynamic records) are parsed via
+ * Value and converted to their field representation.
+ *
+ * @param {string[]} inputs Array of Aleo value strings
+ * @returns {string[]} Array of field element strings
+ */
+function inputsToFields(inputs: string[]): string[] {
+    const fields: string[] = [];
+    for (const input of inputs) {
+        if (input.endsWith("field")) {
+            fields.push(input);
+        } else {
+            const value = Value.fromString(input);
+            let valueFields: any[] | undefined;
+            try {
+                valueFields = value.toFields();
+                for (const f of valueFields) {
+                    fields.push(f.toString());
+                }
+            } finally {
+                if (valueFields) {
+                    for (const f of valueFields) {
+                        f.free();
+                    }
+                }
+                value.free();
+            }
+        }
+    }
+    return fields;
+}
+
+/**
+ * Verify an Aleo zkSnark proof against a verifying key and public inputs.
+ *
+ * This verifies a proof produced by an Aleo program that may not be deployed on chain.
+ * It directly invokes the Varuna proof verification from snarkVM.
+ *
+ * **Note:** The proof must have been generated with the Fiat-Shamir domain separator
+ * "snark_verify". Proofs generated via snarkVM with a different function name will fail
+ * verification even if the circuit and inputs are correct.
+ *
+ * Inputs can be raw field element strings (e.g. "1field") or Aleo type strings
+ * (e.g. "1u32", "true", "{ x: 1u8, y: 2u8 }"). Non-field inputs are automatically
+ * converted to their field representation via Value.toFields().
+ *
+ * @param {VerificationOptions} options The verification parameters
+ * @returns {boolean} True if the proof is valid, false otherwise
+ *
+ * @example
+ * import { verifyProof } from "@provablehq/sdk/mainnet.js";
+ *
+ * // Using raw field elements:
+ * const isValid = verifyProof({
+ *     verifyingKey: "verifier1...",
+ *     inputs: ["1field", "2field"],
+ *     proof: "proof1...",
+ * });
+ *
+ * // Using Aleo types (automatically converted to fields):
+ * const isValid2 = verifyProof({
+ *     verifyingKey: "verifier1...",
+ *     inputs: ["1u32", "2u32"],
+ *     proof: "proof1...",
+ * });
+ */
+function verifyProof(options: VerificationOptions): boolean {
+    const fieldInputs = inputsToFields(options.inputs);
+    let verifyingKey: VerifyingKey | undefined;
+    let proof: Proof | undefined;
+    try {
+        verifyingKey = VerifyingKey.fromString(options.verifyingKey);
+        proof = Proof.fromString(options.proof);
+        return verifyingKey.verify(fieldInputs, proof);
+    } finally {
+        if (verifyingKey) verifyingKey.free();
+        if (proof) proof.free();
+    }
+}
+
+/**
+ * Verify a batch Aleo zkSnark proof against multiple verifying keys and their corresponding public inputs.
+ *
+ * Each verifying key is paired with one or more sets of public inputs (instances).
+ * Inputs can be raw field element strings or Aleo type strings — non-field inputs
+ * are automatically converted to their field representation.
+ *
+ * **Note:** The proof must have been generated with the Fiat-Shamir domain separator
+ * "snark_verify_batch". Proofs generated with a different function name will fail
+ * verification even if the circuits and inputs are correct.
+ *
+ * @param {BatchVerificationOptions} options The batch verification parameters
+ * @returns {boolean} True if the batch proof is valid, false otherwise
+ *
+ * @example
+ * import { verifyBatchProof } from "@provablehq/sdk/mainnet.js";
+ *
+ * const isValid = verifyBatchProof({
+ *     verifyingKeys: ["verifier1...", "verifier2..."],
+ *     inputs: [[["1field", "2field"]], [["3field"]]],
+ *     proof: "proof1...",
+ * });
+ */
+function verifyBatchProof(options: BatchVerificationOptions): boolean {
+    const fieldInputs = options.inputs.map(
+        circuit => circuit.map(instance => inputsToFields(instance))
+    );
+    const proof = Proof.fromString(options.proof);
+    try {
+        return VerifyingKey.verifyBatch(options.verifyingKeys, fieldInputs, proof);
+    } finally {
+        proof.free();
+    }
+}
+
+export { ProgramManager, AuthorizationOptions, FeeAuthorizationOptions, ExecuteOptions, ProvingRequestOptions, ExternalSigningOptions, VerificationOptions, BatchVerificationOptions, inputsToFields, verifyProof, verifyBatchProof };

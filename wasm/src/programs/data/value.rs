@@ -367,4 +367,23 @@ mod tests {
         let fields_raw = value.to_fields_raw().unwrap();
         assert!(fields_raw.length() > 0);
     }
+
+    /// Confirm that Value::toFields() encodes metadata and does NOT round-trip a raw field literal.
+    /// This is why inputsToFields() in the SDK must pass "Xfield" strings through verbatim
+    /// rather than routing them through Value::toFields().
+    #[wasm_bindgen_test]
+    fn test_to_fields_does_not_roundtrip_field_literal() {
+        let value = Value::from_string("1field").unwrap();
+        let fields = value.to_fields().unwrap();
+
+        // toFields() encodes type metadata (variant tag, literal type, size) alongside the value,
+        // so it produces 2 field elements instead of the original 1.
+        assert_eq!(fields.length(), 2, "Expected 2 fields due to metadata encoding, got {}", fields.length());
+
+        // Neither output field matches the original "1field".
+        for i in 0..fields.length() {
+            let field_str = fields.get(i).as_string().unwrap_or_default();
+            assert_ne!(field_str, "1field", "toFields() should not return the raw field literal");
+        }
+    }
 }
