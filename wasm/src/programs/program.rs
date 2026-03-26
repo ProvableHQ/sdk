@@ -182,6 +182,20 @@ impl Program {
                     Reflect::set(&input, &"register".into(), &register).map_err(|_| "Failed to set property")?;
                     function_inputs.set(index as u32, input.into());
                 }
+                ValueType::DynamicRecord => {
+                    let input = Object::new();
+                    let value_type = JsValue::from_str("dynamic.record");
+                    Reflect::set(&input, &"type".into(), &value_type).map_err(|_| "Failed to set property")?;
+                    Reflect::set(&input, &"register".into(), &register).map_err(|_| "Failed to set property")?;
+                    function_inputs.set(index as u32, input.into());
+                }
+                ValueType::DynamicFuture => {
+                    let input = Object::new();
+                    let value_type = JsValue::from_str("dynamic.future");
+                    Reflect::set(&input, &"type".into(), &value_type).map_err(|_| "Failed to set property")?;
+                    Reflect::set(&input, &"register".into(), &register).map_err(|_| "Failed to set property")?;
+                    function_inputs.set(index as u32, input.into());
+                }
             }
         }
         Ok(function_inputs)
@@ -265,6 +279,7 @@ impl Program {
             }
             PlaintextType::ExternalStruct(struct_locator) => {
                 let struct_name = struct_locator.name();
+
                 if let Some(name) = name {
                     Reflect::set(&input, &"name".into(), &name.into()).map_err(|_| "Failed to set property")?;
                 }

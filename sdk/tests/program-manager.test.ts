@@ -331,7 +331,8 @@ describe('Program Manager', async () => {
                 inputTypes,
                 undefined,
                 undefined,
-                true
+                true,
+                false,
             );
             
             // Ensure the execution request is valid.
