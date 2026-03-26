@@ -1822,6 +1822,24 @@
   resolved "https://registry.npmjs.org/@pkgjs/parseargs/-/parseargs-0.11.0.tgz"
   integrity sha512-+1VkjdD0QBLPodGrJUeqarH8VAIvQODIbwh9XpP5Syisf7YoQgsJKPNFoqqLQlu+VQ/tVSshMR6loPMn8U+dPg==
 
+"@provablehq/sdk@^0.9.15":
+  version "0.9.18"
+  resolved "https://registry.yarnpkg.com/@provablehq/sdk/-/sdk-0.9.18.tgz#2e0cd632a75959fe74ff24e8e05eaca49647d473"
+  integrity sha512-fQitq7W8btMkV/wiZuoIaywwAMOsYTe+U0fme3RL0IQGb7zsHn0ySf9Pe0D5lS4CZCnmNeuV2PGqyUUZpiG4Aw==
+  dependencies:
+    "@provablehq/wasm" "^0.9.18"
+    "@scure/base" "^2.0.0"
+    comlink "^4.4.2"
+    core-js "^3.40.0"
+    libsodium-wrappers "^0.8.2"
+    mime "^4.0.6"
+    xmlhttprequest-ssl "^4.0.0"
+
+"@provablehq/wasm@^0.9.18":
+  version "0.9.18"
+  resolved "https://registry.yarnpkg.com/@provablehq/wasm/-/wasm-0.9.18.tgz#21e9ca89bbba91f7b3dd8320029409aadc34633a"
+  integrity sha512-wNOHQnLM/et8oAevFSvQrVCvKfQGQQZBBAp8335/BM+CjC2k+ft5PlqPHuLrRb1K0XrKe3b9lSa0NQsO8aND4g==
+
 "@rc-component/async-validator@^5.0.3":
   version "5.0.4"
   resolved "https://registry.npmjs.org/@rc-component/async-validator/-/async-validator-5.0.4.tgz"
@@ -5531,9 +5549,9 @@ handle-thing@^2.0.0:
   integrity sha512-9Qn4yBxelxoh2Ow62nP+Ka/kMnOXRi8BXnRaUwezLNhqelnN49xKz4F/dPP8OYLxLxq6JDtZb2i9XznUQbNPTg==
 
 handlebars@^4.7.8:
-  version "4.7.8"
-  resolved "https://registry.npmjs.org/handlebars/-/handlebars-4.7.8.tgz"
-  integrity sha512-vafaFqs8MZkRrSX7sFVUdo3ap/eNiLnb4IakshzvP56X5Nr1iGKAIqdX6tMlm6HcNRIkr6AxO5jFEoJzzpT8aQ==
+  version "4.7.9"
+  resolved "https://registry.yarnpkg.com/handlebars/-/handlebars-4.7.9.tgz#6f139082ab58dc4e5a0e51efe7db5ae890d56a0f"
+  integrity sha512-4E71E0rpOaQuJR2A3xDZ+GM1HyWYv1clR58tC8emQNeQe3RH7MAzSbat+V0wG78LQBo6m6bzSG/L4pBuCsgnUQ==
   dependencies:
     minimist "^1.2.5"
     neo-async "^2.6.2"
