@@ -1943,7 +1943,7 @@
   dependencies:
     "@rollup/pluginutils" "^5.1.0"
 
-"@rollup/plugin-node-resolve@^16.0.1":
+"@rollup/plugin-node-resolve@^16.0.0", "@rollup/plugin-node-resolve@^16.0.1":
   version "16.0.3"
   resolved "https://registry.npmjs.org/@rollup/plugin-node-resolve/-/plugin-node-resolve-16.0.3.tgz"
   integrity sha512-lUYM3UBGuM93CnMPG1YocWu7X802BrNF3jW2zny5gQyLQgRFJhV1Sq0Zi74+dh/6NBx1DxFC4b4GXg9wUCG5Qg==
