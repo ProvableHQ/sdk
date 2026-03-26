@@ -137,6 +137,8 @@ impl Value {
             ValueNative::Plaintext(..) => "plaintext".to_string(),
             ValueNative::Record(..) => "record".to_string(),
             ValueNative::Future(..) => "future".to_string(),
+            ValueNative::DynamicRecord(..) => "dynamic_record".to_string(),
+            ValueNative::DynamicFuture(..) => "dynamic_future".to_string(),
         }
     }
 

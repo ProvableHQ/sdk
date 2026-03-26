@@ -100,7 +100,7 @@ export type FieldOutput<F extends OutputFormat> = F extends "bytes" ? Uint8Array
  * @property {FieldOutput<F>} [recordViewKey] - The record view key (present for record inputs when viewKey was provided).
  */
 export interface RequestSignInput<F extends OutputFormat = "string"> {
-    signingInputType: "constant" | "public" | "private" | "record" | "external_record";
+    signingInputType: "constant" | "public" | "private" | "record" | "external_record" | "dynamic_record";
     index: FieldOutput<F>;
     data: FieldOutput<F>[];
     name?: string;
