@@ -661,6 +661,45 @@ impl ExecutionRequest {
                         &JsValue::from_str(&record_name.to_string()),
                     )
                     .map_err(|_| "Failed to set name".to_string())?;
+
+                    // If the input is a record, compute the tag and h values.
+                    if let (ValueNative::Record(record_input), Some(vk)) = (input.clone(), view_key.as_ref()) {
+                        // Compute the sk_tag from the view key.
+                        let sk_tag = GraphKey::from_view_key(vk).sk_tag();
+                        let record_view_key = (*record_input.nonce() * ***vk).to_x_coordinate();
+
+                        // Store the record view key on the per-input object.
+                        let record_view_key_str = Field::from(record_view_key).to_string();
+                        Reflect::set(
+                            &request_sign_input,
+                            &JsValue::from_str("recordViewKey"),
+                            &JsValue::from_str(&record_view_key_str),
+                        )
+                        .map_err(|_| "Failed to set recordViewKey".to_string())?;
+
+                        // Compute the commitment for the record input.
+                        let commitment = record_input
+                            .to_commitment(&program_id, &record_name, &record_view_key)
+                            .map_err(|e| e.to_string())?;
+                        // Compute the tag for the record input.
+                        let tag =
+                            RecordPlaintextNative::tag(*sk_tag, commitment).map_err(|e| e.to_string())?.to_string();
+                        Reflect::set(&request_sign_input, &JsValue::from_str("tag"), &JsValue::from_str(&tag))
+                            .map_err(|_| "Failed to set record tag".to_string())?;
+
+                        // Compute h and store it in the resulting object.
+                        let h =
+                            CurrentNetwork::hash_to_group_psd2(&[CurrentNetwork::serial_number_domain(), commitment])
+                                .map_err(|e| e.to_string())?
+                                .to_x_coordinate()
+                                .to_string();
+                        Reflect::set(&request_sign_input, &JsValue::from_str("h"), &JsValue::from_str(&h))
+                            .map_err(|_| "Failed to set h".to_string())?;
+                    } else {
+                        return Err(format!(
+                            "Record of type {program_id}:{record_name} was expected at index {index} received {input}"
+                        ));
+                    }
                 }
                 ValueTypeNative::ExternalRecord(locator) => {
                     // Set the signing input type and name.
@@ -681,47 +720,6 @@ impl ExecutionRequest {
                     return Err("Future inputs are not supported".to_string());
                 }
             };
-
-            // If the input is a record, compute the tag and h values.
-            if let (ValueNative::Record(record_input), Some(vk)) = (input, view_key.as_ref()) {
-                let record_name = match input_type {
-                    ValueTypeNative::ExternalRecord(locator) => *locator.name(),
-                    ValueTypeNative::Record(record_name) => record_name,
-                    _ => {
-                        return Err("Record inputs must have an input_type of record or external_record".to_string());
-                    }
-                };
-
-                // Compute the sk_tag from the view key.
-                let sk_tag = GraphKey::from_view_key(vk).sk_tag();
-                let record_view_key = (*record_input.nonce() * ***vk).to_x_coordinate();
-
-                // Store the record view key on the per-input object.
-                let record_view_key_str = Field::from(record_view_key).to_string();
-                Reflect::set(
-                    &request_sign_input,
-                    &JsValue::from_str("recordViewKey"),
-                    &JsValue::from_str(&record_view_key_str),
-                )
-                .map_err(|_| "Failed to set recordViewKey".to_string())?;
-
-                // Compute the commitment for the record input.
-                let commitment = record_input
-                    .to_commitment(&program_id, &record_name, &record_view_key)
-                    .map_err(|e| e.to_string())?;
-                // Compute the tag for the record input.
-                let tag = RecordPlaintextNative::tag(*sk_tag, commitment).map_err(|e| e.to_string())?.to_string();
-                Reflect::set(&request_sign_input, &JsValue::from_str("tag"), &JsValue::from_str(&tag))
-                    .map_err(|_| "Failed to set record tag".to_string())?;
-
-                // Compute h and store it in the resulting object.
-                let h = CurrentNetwork::hash_to_group_psd2(&[CurrentNetwork::serial_number_domain(), commitment])
-                    .map_err(|e| e.to_string())?
-                    .to_x_coordinate()
-                    .to_string();
-                Reflect::set(&request_sign_input, &JsValue::from_str("h"), &JsValue::from_str(&h))
-                    .map_err(|_| "Failed to set h".to_string())?;
-            }
             input_data.push(&request_sign_input);
         }
 
