@@ -7,6 +7,7 @@ import {
   AleoKeyProvider,
   AleoNetworkClient,
   NetworkRecordProvider,
+  verifyProof,
 } from "@provablehq/sdk";
 import { expose, proxy } from "comlink";
 
@@ -71,14 +72,13 @@ async function deployProgram(program) {
 
 // Verify a standalone SNARK proof. This verifies a proof from a circuit that is not necessarily
 // an Aleo program execution — useful for verifying proofs received from external sources.
-async function verifyProof(verifyingKeyStr, proofStr, inputs) {
-  const programManager = new ProgramManager();
-  return programManager.verifyProof({
+async function verifySnarkProof(verifyingKeyStr, proofStr, inputs) {
+  return verifyProof({
     verifyingKey: verifyingKeyStr,
     inputs,
     proof: proofStr,
   });
 }
 
-const workerMethods = { localProgramExecution, getPrivateKey, deployProgram, verifyProof };
+const workerMethods = { localProgramExecution, getPrivateKey, deployProgram, verifyProof: verifySnarkProof };
 expose(workerMethods);

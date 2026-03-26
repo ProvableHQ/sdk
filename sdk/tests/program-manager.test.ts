@@ -19,8 +19,8 @@ import {
     Transaction,
     verifyFunctionExecution,
     Value,
-    snarkVerify,
-    snarkVerifyBatch,
+    verifyProof,
+    verifyBatchProof,
     VerifyingKey,
     ViewKey,
 } from "@provablehq/sdk/%%NETWORK%%.js";
@@ -489,23 +489,23 @@ describe('Program Manager', async () => {
             expect(recovered.toString()).to.equal(SAMPLE_PROOF);
         });
 
-        it('snarkVerify should return true for a valid proof', () => {
+        it('VerifyingKey.verify should return true for a valid proof', () => {
             const vk = VerifyingKey.fromString(SAMPLE_VERIFYING_KEY);
             const proof = Proof.fromString(SAMPLE_PROOF);
-            const result = snarkVerify(vk, SAMPLE_INPUTS, proof);
+            const result = vk.verify(SAMPLE_INPUTS, proof);
             expect(result).to.equal(true);
         });
 
-        it('snarkVerify should return false for wrong inputs', () => {
+        it('VerifyingKey.verify should return false for wrong inputs', () => {
             const vk = VerifyingKey.fromString(SAMPLE_VERIFYING_KEY);
             const proof = Proof.fromString(SAMPLE_PROOF);
-            const result = snarkVerify(vk, ["1field", "2field"], proof);
+            const result = vk.verify(["1field", "2field"], proof);
             expect(result).to.equal(false);
         });
 
-        it('snarkVerifyBatch should return true for a valid proof', () => {
+        it('VerifyingKey.verifyBatch should return true for a valid proof', () => {
             const proof = Proof.fromString(SAMPLE_PROOF);
-            const result = snarkVerifyBatch(
+            const result = VerifyingKey.verifyBatch(
                 [SAMPLE_VERIFYING_KEY],
                 [[SAMPLE_INPUTS]],
                 proof,
@@ -513,14 +513,14 @@ describe('Program Manager', async () => {
             expect(result).to.equal(true);
         });
 
-        it('snarkVerifyBatch should throw when verifying keys and inputs length mismatch', () => {
+        it('VerifyingKey.verifyBatch should throw when verifying keys and inputs length mismatch', () => {
             const proof = Proof.fromString(SAMPLE_PROOF);
-            expect(() => snarkVerifyBatch(["vk1", "vk2"], [[SAMPLE_INPUTS]], proof)).to.throw();
+            expect(() => VerifyingKey.verifyBatch(["vk1", "vk2"], [[SAMPLE_INPUTS]], proof)).to.throw();
         });
 
-        it('snarkVerifyBatch should return false for wrong inputs', () => {
+        it('VerifyingKey.verifyBatch should return false for wrong inputs', () => {
             const proof = Proof.fromString(SAMPLE_PROOF);
-            const result = snarkVerifyBatch(
+            const result = VerifyingKey.verifyBatch(
                 [SAMPLE_VERIFYING_KEY],
                 [[["1field", "2field"]]],
                 proof,
@@ -529,17 +529,15 @@ describe('Program Manager', async () => {
         });
     });
 
-    describe('ProgramManager SNARK Verification', () => {
+    describe('Standalone SNARK Verification', () => {
         it('verifyProof should accept raw field inputs', () => {
-            const pm = new ProgramManager();
-            expect(pm.verifyProof({ verifyingKey: SAMPLE_VERIFYING_KEY, inputs: SAMPLE_INPUTS, proof: SAMPLE_PROOF })).to.equal(true);
+            expect(verifyProof({ verifyingKey: SAMPLE_VERIFYING_KEY, inputs: SAMPLE_INPUTS, proof: SAMPLE_PROOF })).to.equal(true);
         });
 
         it('verifyProof should convert Aleo types to fields', () => {
-            const pm = new ProgramManager();
             // The sample circuit expects [1field, 1field]. Passing "1field" as a field literal
             // and verifying it still works through the conversion path.
-            expect(pm.verifyProof({ verifyingKey: SAMPLE_VERIFYING_KEY, inputs: ["1field", "1field"], proof: SAMPLE_PROOF })).to.equal(true);
+            expect(verifyProof({ verifyingKey: SAMPLE_VERIFYING_KEY, inputs: ["1field", "1field"], proof: SAMPLE_PROOF })).to.equal(true);
         });
 
         it('Value.toFields should convert Aleo types to field elements', () => {
@@ -558,14 +556,12 @@ describe('Program Manager', async () => {
         });
 
         it('verifyProof should return false when converted inputs do not match the proof', () => {
-            const pm = new ProgramManager();
             // 5u32 is a valid Aleo type but produces different field elements than the proof expects.
-            expect(pm.verifyProof({ verifyingKey: SAMPLE_VERIFYING_KEY, inputs: ["5u32", "5u32"], proof: SAMPLE_PROOF })).to.equal(false);
+            expect(verifyProof({ verifyingKey: SAMPLE_VERIFYING_KEY, inputs: ["5u32", "5u32"], proof: SAMPLE_PROOF })).to.equal(false);
         });
 
         it('verifyBatchProof should return true for valid inputs', () => {
-            const pm = new ProgramManager();
-            expect(pm.verifyBatchProof({
+            expect(verifyBatchProof({
                 verifyingKeys: [SAMPLE_VERIFYING_KEY],
                 inputs: [[SAMPLE_INPUTS]],
                 proof: SAMPLE_PROOF,
@@ -573,8 +569,7 @@ describe('Program Manager', async () => {
         });
 
         it('verifyBatchProof should return false for wrong inputs', () => {
-            const pm = new ProgramManager();
-            expect(pm.verifyBatchProof({
+            expect(verifyBatchProof({
                 verifyingKeys: [SAMPLE_VERIFYING_KEY],
                 inputs: [[["1field", "2field"]]],
                 proof: SAMPLE_PROOF,

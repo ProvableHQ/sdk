@@ -17,6 +17,7 @@
 pub use super::*;
 
 use crate::{
+    Proof,
     Transition,
     log,
     native::ProgramIDNative,
@@ -209,12 +210,8 @@ pub fn verify_function_execution(
 /// @returns {boolean} True if the proof is valid, false otherwise
 #[wasm_bindgen(js_name = "snarkVerify")]
 pub fn snark_verify(verifying_key: &VerifyingKey, inputs: Array, proof: &Proof) -> Result<bool, String> {
-    // Parse the input field elements from strings.
     let raw_inputs = parse_field_inputs(&inputs)?;
-
-    // Verify the proof using VarunaVersion::V2 (current standard).
-    let is_valid = verifying_key.verify("snark_verify", VarunaVersion::V2, &raw_inputs, proof);
-
+    let is_valid = VerifyingKeyNative::verify(verifying_key, "snark_verify", VarunaVersion::V2, &raw_inputs, proof);
     Ok(is_valid)
 }
 
@@ -237,22 +234,21 @@ pub fn snark_verify_batch(verifying_keys: Array, inputs: Array, proof: &Proof) -
         ));
     }
 
-    // Build the (VerifyingKey, Vec<Vec<Field>>) pairs for batch verification.
     let mut vks_with_inputs = Vec::with_capacity(verifying_keys.length() as usize);
 
     for i in 0..verifying_keys.length() {
-        // Parse the verifying key from its string representation.
         let vk_str =
             verifying_keys.get(i).as_string().ok_or_else(|| format!("Expected verifying key string at index {i}"))?;
         let vk_native = VerifyingKeyNative::from_str(&vk_str)
             .map_err(|e| format!("Failed to parse verifying key at index {i}: {e}"))?;
 
-        // Get the instances array for this circuit (Array<Array<string>>).
-        let instances_js = Array::from(&inputs.get(i));
+        let instances_js = Array::try_from(inputs.get(i))
+            .map_err(|_| format!("Expected array of instances for verifying key at index {i}"))?;
         let mut instances = Vec::with_capacity(instances_js.length() as usize);
 
         for j in 0..instances_js.length() {
-            let instance_js = Array::from(&instances_js.get(j));
+            let instance_js = Array::try_from(instances_js.get(j))
+                .map_err(|_| format!("Expected array of field element strings at indices ({i}, {j})"))?;
             let fields = parse_field_inputs(&instance_js)?;
             instances.push(fields);
         }
@@ -260,13 +256,12 @@ pub fn snark_verify_batch(verifying_keys: Array, inputs: Array, proof: &Proof) -
         vks_with_inputs.push((vk_native, instances));
     }
 
-    // Verify the batch proof.
     VerifyingKeyNative::verify_batch("snark_verify_batch", VarunaVersion::V2, vks_with_inputs, proof)
         .map_or(Ok(false), |_| Ok(true))
 }
 
 /// Parse an Array of field element strings into a Vec of raw N::Field elements.
-fn parse_field_inputs(inputs: &Array) -> Result<Vec<<CurrentNetwork as Environment>::Field>, String> {
+pub(crate) fn parse_field_inputs(inputs: &Array) -> Result<Vec<<CurrentNetwork as Environment>::Field>, String> {
     inputs
         .iter()
         .map(|input| {

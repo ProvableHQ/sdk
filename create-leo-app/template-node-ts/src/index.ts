@@ -6,8 +6,6 @@ import {
     initThreadPool,
     Proof,
     ProgramManager,
-    snarkVerify,
-    snarkVerifyBatch,
     Transaction,
     VerifyingKey,
 } from "@provablehq/sdk/testnet.js";
@@ -92,22 +90,22 @@ function snarkProofVerification() {
     const proof = Proof.fromString(SAMPLE_PROOF);
 
     // Verify the proof with the correct public inputs.
-    const isValid = snarkVerify(verifyingKey, SAMPLE_INPUTS, proof);
-    console.log(`  snarkVerify with valid inputs: ${isValid}`); // true
+    const isValid = verifyingKey.verify(SAMPLE_INPUTS, proof);
+    console.log(`  VerifyingKey.verify with valid inputs: ${isValid}`); // true
 
     // Verify the proof with wrong inputs — this should return false.
-    const isInvalid = snarkVerify(verifyingKey, ["1field", "2field"], proof);
-    console.log(`  snarkVerify with wrong inputs: ${isInvalid}`); // false
+    const isInvalid = verifyingKey.verify(["1field", "2field"], proof);
+    console.log(`  VerifyingKey.verify with wrong inputs: ${isInvalid}`); // false
 
     // Batch verification: verify the same proof with its verifying key and inputs in a batch context.
-    // snarkVerifyBatch takes arrays of verifying key strings and a 3D inputs array:
+    // VerifyingKey.verifyBatch takes arrays of verifying key strings and a 3D inputs array:
     // [circuit_index][instance_index][field_index]
-    const batchResult = snarkVerifyBatch(
+    const batchResult = VerifyingKey.verifyBatch(
         [SAMPLE_VERIFYING_KEY],
         [[SAMPLE_INPUTS]],
         proof,
     );
-    console.log(`  snarkVerifyBatch result: ${batchResult}`); // true
+    console.log(`  VerifyingKey.verifyBatch result: ${batchResult}`); // true
 }
 
 // Run a deployment and both online and offline executions.

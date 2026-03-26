@@ -17,5 +17,8 @@
 pub mod authorization;
 pub use authorization::*;
 
+pub mod proof;
+pub use proof::*;
+
 pub mod proving_request;
 pub use proving_request::*;

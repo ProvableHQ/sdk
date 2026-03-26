@@ -92,14 +92,15 @@ impl PartialEq for Proof {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use wasm_bindgen_test::*;
 
-    #[test]
+    #[wasm_bindgen_test]
     fn test_proof_from_invalid_string() {
         let result = Proof::from_string("invalid_proof_string");
         assert!(result.is_err());
     }
 
-    #[test]
+    #[wasm_bindgen_test]
     fn test_proof_from_invalid_bytes() {
         let result = Proof::from_bytes(&[0u8; 10]);
         assert!(result.is_err());
