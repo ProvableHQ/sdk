@@ -39,7 +39,6 @@ export {
     RecordCiphertext,
     RecordPlaintext,
     Scalar,
-    stringToField,
     Signature,
     stringToField,
     Transaction,
