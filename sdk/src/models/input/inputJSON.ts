@@ -6,4 +6,5 @@ export interface InputJSON {
     id: string;
     tag?: string;
     value?: string;
+    dynamic_id?: string;
 }
