@@ -1822,6 +1822,24 @@
   resolved "https://registry.npmjs.org/@pkgjs/parseargs/-/parseargs-0.11.0.tgz"
   integrity sha512-+1VkjdD0QBLPodGrJUeqarH8VAIvQODIbwh9XpP5Syisf7YoQgsJKPNFoqqLQlu+VQ/tVSshMR6loPMn8U+dPg==
 
+"@provablehq/sdk@^0.9.15":
+  version "0.9.18"
+  resolved "https://registry.yarnpkg.com/@provablehq/sdk/-/sdk-0.9.18.tgz#2e0cd632a75959fe74ff24e8e05eaca49647d473"
+  integrity sha512-fQitq7W8btMkV/wiZuoIaywwAMOsYTe+U0fme3RL0IQGb7zsHn0ySf9Pe0D5lS4CZCnmNeuV2PGqyUUZpiG4Aw==
+  dependencies:
+    "@provablehq/wasm" "^0.9.18"
+    "@scure/base" "^2.0.0"
+    comlink "^4.4.2"
+    core-js "^3.40.0"
+    libsodium-wrappers "^0.8.2"
+    mime "^4.0.6"
+    xmlhttprequest-ssl "^4.0.0"
+
+"@provablehq/wasm@^0.9.18":
+  version "0.9.18"
+  resolved "https://registry.yarnpkg.com/@provablehq/wasm/-/wasm-0.9.18.tgz#21e9ca89bbba91f7b3dd8320029409aadc34633a"
+  integrity sha512-wNOHQnLM/et8oAevFSvQrVCvKfQGQQZBBAp8335/BM+CjC2k+ft5PlqPHuLrRb1K0XrKe3b9lSa0NQsO8aND4g==
+
 "@rc-component/async-validator@^5.0.3":
   version "5.0.4"
   resolved "https://registry.npmjs.org/@rc-component/async-validator/-/async-validator-5.0.4.tgz"
@@ -6945,9 +6963,9 @@ node-fetch@^3.3.2:
     formdata-polyfill "^4.0.10"
 
 node-forge@^1:
-  version "1.3.3"
-  resolved "https://registry.npmjs.org/node-forge/-/node-forge-1.3.3.tgz"
-  integrity sha512-rLvcdSyRCyouf6jcOIPe/BgwG/d7hKjzMKOas33/pHEr6gbq18IK9zV7DiPvzsz0oBJPme6qr6H6kGZuI9/DZg==
+  version "1.4.0"
+  resolved "https://registry.yarnpkg.com/node-forge/-/node-forge-1.4.0.tgz#1c7b7d8bdc2d078739f58287d589d903a11b2fc2"
+  integrity sha512-LarFH0+6VfriEhqMMcLX2F7SwSXeWwnEAJEsYm5QKWchiVYVvJyV9v7UDvUv+w5HO23ZpQTXDv/GxdDdMyOuoQ==
 
 node-releases@^2.0.27:
   version "2.0.27"
