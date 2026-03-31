@@ -36,6 +36,7 @@ import {
     Proof,
     ProgramManager as WasmProgramManager,
     verifyFunctionExecution,
+    stringToField,
 } from "./wasm.js";
 
 import {
@@ -972,12 +973,15 @@ class ProgramManager {
             }
         }
 
+        // Auto-convert bare string inputs to field elements where the function expects field type.
+        const preparedInputs = this.prepareInputs(program, functionName, inputs);
+
         // Build an execution transaction
         return await WasmProgramManager.buildExecutionTransaction(
             executionPrivateKey,
             program,
             functionName,
-            inputs,
+            preparedInputs,
             priorityFee,
             feeRecord,
             this.host,
@@ -1263,12 +1267,15 @@ class ProgramManager {
             }
         }
 
+        // Auto-convert bare string inputs to field elements where the function expects field type.
+        const preparedInputs = this.prepareInputs(program, functionName, inputs);
+
         // Build and return an `Authorization` for the desired function.
         return await WasmProgramManager.authorize(
             executionPrivateKey,
             program,
             functionName,
-            inputs,
+            preparedInputs,
             imports,
             edition
         );
@@ -1373,12 +1380,15 @@ class ProgramManager {
             }
         }
 
+        // Auto-convert bare string inputs to field elements where the function expects field type.
+        const preparedInputs = this.prepareInputs(program, functionName, inputs);
+
         // Build and return an `Authorization` for the desired function.
         return await WasmProgramManager.buildAuthorizationUnchecked(
             executionPrivateKey,
             program,
             functionName,
-            inputs,
+            preparedInputs,
             imports,
             edition
         );
@@ -1543,12 +1553,15 @@ class ProgramManager {
                 throw new Error("No inputs provided to build a proving request");
             }
 
+            // Auto-convert bare string inputs to field elements where the function expects field type.
+            const preparedInputs = this.prepareInputs(program, functionName, inputs);
+
             // Build and return the `ProvingRequest`.
             return await WasmProgramManager.buildProvingRequest(
                 executionPrivateKey,
                 program,
                 functionName,
-                inputs,
+                preparedInputs,
                 baseFee,
                 priorityFee,
                 feeRecord,
@@ -1686,6 +1699,48 @@ class ProgramManager {
     }
 
     /**
+     * Prepares user-provided inputs for a function call by auto-converting bare
+     * string identifiers to field elements where the function signature expects
+     * a `field` type. This lets callers of dynamic-dispatch programs pass
+     * human-readable strings (e.g. `"my_program"`) instead of requiring
+     * `stringToField("my_program").toString()`.
+     *
+     * Inputs that already look like a numeric field literal (matching
+     * `/^\d+field$/` after trimming whitespace) are left untouched. Non-field
+     * inputs are returned as-is. If introspection fails for any reason the
+     * original inputs are returned unchanged.
+     *
+     * @param {string | Program} programSource - The program source code or Program object
+     * @param {string} functionName - The function to inspect
+     * @param {string[]} inputs - The raw user-provided inputs
+     * @returns {string[]} The (possibly converted) inputs
+     */
+    prepareInputs(
+        programSource: string | Program,
+        functionName: string,
+        inputs: string[],
+    ): string[] {
+        try {
+            const source = typeof programSource === "string" ? programSource : programSource.toString();
+            const programObj = Program.fromString(source);
+            const functionInputs = programObj.getFunctionInputs(functionName);
+            if (functionInputs.length !== inputs.length) {
+                return inputs;
+            }
+            return inputs.map((input, i) => {
+                const spec = functionInputs[i] as { type?: string };
+                const isFieldLiteral = /^\d+field$/.test(input.trim());
+                if (spec?.type === "field" && !isFieldLiteral) {
+                    return stringToField(input).toString();
+                }
+                return input;
+            });
+        } catch {
+            return inputs;
+        }
+    }
+
+    /**
      * Run an Aleo program in offline mode
      *
      * @param {string} program Program source code containing the function to be executed
@@ -1756,6 +1811,9 @@ class ProgramManager {
             }
         }
 
+        // Auto-convert bare string inputs to field elements where the function expects field type.
+        const preparedInputs = this.prepareInputs(program, function_name, inputs);
+
         // Run the program offline and return the result
         console.log("Running program offline");
         console.log("Proving key: ", provingKey);
@@ -1764,7 +1822,7 @@ class ProgramManager {
             executionPrivateKey,
             program,
             function_name,
-            inputs,
+            preparedInputs,
             proveExecution,
             false,
             imports,
@@ -2056,6 +2114,9 @@ class ProgramManager {
             }
         }
 
+        // Auto-convert bare string inputs to field elements where the function expects field type.
+        const preparedInputs = this.prepareInputs(program, function_id, inputs);
+
         // Attempt to run an offline execution of the program and extract the proving and verifying keys
         try {
             imports = await this.networkClient.getProgramImports(program);
@@ -2063,7 +2124,7 @@ class ProgramManager {
                 executionPrivateKey,
                 program,
                 function_id,
-                inputs,
+                preparedInputs,
                 imports,
             );
             return [
@@ -3489,12 +3550,15 @@ class ProgramManager {
             }
         }
         
+        // Auto-convert bare string inputs to field elements where the function expects field type.
+        const preparedInputs = this.prepareInputs(program, functionName, inputs);
+
         // Build a transaction without a proof
         return await WasmProgramManager.buildDevnodeExecutionTransaction(
             executionPrivateKey,
             program,
             functionName,
-            inputs,
+            preparedInputs,
             priorityFee,
             feeRecord,
             this.host,

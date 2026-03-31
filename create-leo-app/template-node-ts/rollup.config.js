@@ -3,6 +3,7 @@ import typescript from "rollup-plugin-typescript2";
 export default {
     input: {
         index: "./src/index.ts",
+        "dynamic-dispatch": "./src/dynamic-dispatch.ts",
     },
     output: {
         dir: `dist`,

@@ -128,10 +128,13 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        template:
-          - node
-          - node-credits-aleo-functions-ts
-          - node-ts
+        include:
+          - template: node
+            command: start
+          - template: node-credits-aleo-functions-ts
+            command: start
+          - template: node-ts
+            command: test
     steps:
       - uses: actions/checkout@v4
       - uses: ./.github/actions/setup-yarn
@@ -139,7 +142,7 @@ jobs:
 
       - working-directory: create-leo-app/template-${{ matrix.template }}
         run: |
-          yarn start
+          yarn ${{ matrix.command }}
 
 
   create-leo-app-loyalty-program-local:
