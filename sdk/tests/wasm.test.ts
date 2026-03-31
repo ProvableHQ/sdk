@@ -1,5 +1,5 @@
 import { expect } from "chai";
-import { Address, AleoNetworkClient, CREDITS_PROGRAM_KEYS, DynamicRecord, Field, FunctionKeyPair, Plaintext, PrivateKey, ViewKey, Signature, RecordCiphertext, RecordPlaintext, PrivateKeyCiphertext, EncryptionToolkit, Transition, Value, VerifyingKey, AleoKeyProvider, getOrInitConsensusVersionTestHeights} from "../src/node.js";
+import { Address, AleoNetworkClient, CREDITS_PROGRAM_KEYS, DynamicRecord, ExecutionRequest, Field, FunctionKeyPair, Plaintext, PrivateKey, ViewKey, Signature, RecordCiphertext, RecordPlaintext, PrivateKeyCiphertext, EncryptionToolkit, Transition, Value, VerifyingKey, AleoKeyProvider, getOrInitConsensusVersionTestHeights} from "../src/node.js";
 import {
     seed,
     message,
@@ -749,3 +749,64 @@ describe('WASM Objects', () => {
     })
 });
 
+describe('ExecutionRequest error handling', () => {
+    it('Should throw a descriptive error for structurally invalid requests', () => {
+        const invalidRequest = JSON.stringify({
+            signer: "aleo1rhgdu77hgyqd3xjj8ucu3jj9r2krwz6mnzyd80gncr5fxcwlh5rsvzp9px",
+            network: "1u16",
+            program: "credits.aleo",
+            function: "transfer_public",
+            input_ids: [{ type: "public", id: "0field" }],
+            inputs: ["aleo1rhgdu77hgyqd3xjj8ucu3jj9r2krwz6mnzyd80gncr5fxcwlh5rsvzp9px", "100u64"],
+            signature: "sign1invalid",
+            sk_tag: "0field",
+            tvk: "0field",
+            tcm: "0field",
+            scm: "0field",
+        });
+
+        let threw = false;
+        try {
+            ExecutionRequest.fromString(invalidRequest);
+        } catch (e) {
+            threw = true;
+            expect(e).to.not.be.instanceOf(WebAssembly.RuntimeError);
+        }
+        expect(threw, "Expected fromString to throw for invalid request").to.be.true;
+    });
+
+    it('Should throw a descriptive error for completely invalid strings', () => {
+        let threw = false;
+        try {
+            ExecutionRequest.fromString("not a valid request at all");
+        } catch (e) {
+            threw = true;
+            expect(e).to.not.be.instanceOf(WebAssembly.RuntimeError);
+        }
+        expect(threw, "Expected fromString to throw for invalid string").to.be.true;
+    });
+
+    it('Should throw a descriptive error when sign() receives invalid inputs', () => {
+        const privateKey = PrivateKey.from_string(
+            "APrivateKey1zkp7Vc4xJt8HqW9U7VhY6h32d8Z9Xi5C6ZZX3gtXxbBSJmj"
+        );
+
+        try {
+            ExecutionRequest.sign(
+                privateKey,
+                "credits.aleo",
+                "nonexistent_function",
+                ["invalid_input"],
+                ["invalid_type"],
+                undefined,
+                undefined,
+                true,
+            );
+            expect.fail("Should have thrown an error");
+        } catch (e) {
+            const msg = `${e}`;
+            expect(e).to.not.be.instanceOf(WebAssembly.RuntimeError);
+            expect(msg).to.include("Failed to deserialize input");
+        }
+    });
+});

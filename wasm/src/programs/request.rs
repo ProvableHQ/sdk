@@ -250,20 +250,28 @@ impl ExecutionRequest {
         // Ensure the inputs are valid Aleo types.
         let inputs = inputs
             .iter()
-            .map(|input| ValueNative::from_str(&input.as_string().unwrap()).unwrap())
-            .collect::<Vec<ValueNative>>();
+            .enumerate()
+            .map(|(i, input)| {
+                let s = input.as_string().ok_or_else(|| format!("Input {i} is not a string"))?;
+                ValueNative::from_str(&s).map_err(|e| format!("Failed to deserialize input {i} as value '{s}' - please check the input at position {i} and try again: {e}"))
+            })
+            .collect::<Result<Vec<ValueNative>, String>>()?;
 
         // Ensure the input types specified match the types of the specified inputs.
         let input_types = input_types
             .iter()
-            .map(|input_type| ValueTypeNative::from_str(&input_type.as_string().unwrap()).unwrap())
-            .collect::<Vec<ValueTypeNative>>();
+            .enumerate()
+            .map(|(i, input_type)| {
+                let s = input_type.as_string().ok_or_else(|| format!("Input type {i} is not a string"))?;
+                ValueTypeNative::from_str(&s).map_err(|e| format!("Failed to deserialize input {i} as input type '{s}' - please check the input at position {i} and try again: {e}"))
+            })
+            .collect::<Result<Vec<ValueTypeNative>, String>>()?;
 
         // Get the root tvk if it was specified.
         let root_tvk = root_tvk.map(FieldNative::from);
         let program_checksum = program_checksum.map(FieldNative::from);
 
-        // Generate an RNG for the function fro system entropy.
+        // Generate an RNG for the function from system entropy.
         let mut rng = StdRng::from_entropy();
 
         // Generate the signature over the (program_id, function, input, and private_key) tuple.
@@ -543,14 +551,18 @@ impl ExecutionRequest {
     /// @param {string[]} input_types The input types within the request.
     /// @param {boolean} is_root Flag to indicate whether this request is the first function in the call graph.
     /// @param {Field | undefined} program_checksum The checksum of the program. This is undefined if the call is not dynamic.
-    pub fn verify(&self, input_types: Array, is_root: bool, program_checksum: Option<Field>) -> bool {
+    pub fn verify(&self, input_types: Array, is_root: bool, program_checksum: Option<Field>) -> Result<bool, String> {
         let input_types = input_types
             .iter()
-            .map(|input_type| ValueTypeNative::from_str(&input_type.as_string().unwrap()).unwrap())
-            .collect::<Vec<ValueTypeNative>>();
+            .enumerate()
+            .map(|(i, input_type)| {
+                let s = input_type.as_string().ok_or_else(|| format!("Input type {i} is not a string"))?;
+                ValueTypeNative::from_str(&s).map_err(|e| format!("Failed to deserialize input {i} as input type '{s}' - please check the input at position {i} and try again: {e}"))
+            })
+            .collect::<Result<Vec<ValueTypeNative>, String>>()?;
 
         let program_checksum = program_checksum.map(FieldNative::from);
-        self.0.verify(&input_types, is_root, program_checksum)
+        Ok(self.0.verify(&input_types, is_root, program_checksum))
     }
 
     /// Computes the function ID and serialized input data for a program function call.
@@ -895,12 +907,16 @@ impl ExecutionRequest {
                         ValueNative::Record(record) => record,
                         _ => return Err("Expected a record input for record type".to_string()),
                     };
-                    let record_view_key = record_view_keys.pop().unwrap();
+                    let record_view_key = record_view_keys
+                        .pop()
+                        .ok_or_else(|| "Insufficient record view keys for the number of record inputs".to_string())?;
                     let commitment = record_input
                         .to_commitment(program_id, record_name, &record_view_key)
                         .map_err(|e| e.to_string())?;
 
-                    let gamma = gammas_native.pop().unwrap();
+                    let gamma = gammas_native
+                        .pop()
+                        .ok_or_else(|| "Insufficient gammas for the number of record inputs".to_string())?;
                     let serial_number = RecordPlaintextNative::serial_number_from_gamma(&gamma, commitment)
                         .map_err(|e| e.to_string())?;
                     let tag = RecordPlaintextNative::tag(**sk_tag, commitment).map_err(|e| e.to_string())?;
@@ -1148,7 +1164,7 @@ mod tests {
         )
         .expect("sign should succeed");
 
-        let valid = request.verify(input_types, true, None);
+        let valid = request.verify(input_types, true, None).expect("verify should not return an error");
         assert!(valid, "verify should pass for matching input types and is_root");
     }
 
