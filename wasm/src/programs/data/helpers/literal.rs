@@ -86,5 +86,9 @@ pub fn literal_to_js_value(literal: &LiteralNative) -> JsValue {
             (&js_string).into()
         }
         LiteralNative::String(literal) => (&**literal).into(),
+        LiteralNative::Identifier(identifier) => {
+            let js_string = identifier.to_string();
+            (&js_string).into()
+        }
     }
 }

@@ -120,6 +120,7 @@ impl ExecutionRequest {
                 InputIDNative::Constant(f)
                 | InputIDNative::Public(f)
                 | InputIDNative::Private(f)
+                | InputIDNative::DynamicRecord(f)
                 | InputIDNative::ExternalRecord(f) => JsValue::from(Field::from(*f)),
                 InputIDNative::Record(commitment, gamma, record_view_key, serial_number, tag) => {
                     let tuple = Array::new();
@@ -227,7 +228,9 @@ impl ExecutionRequest {
     /// @param {string[]} inputs The inputs to the function.
     /// @param {string[]} input_types The input types of the function.
     /// @param {Field | undefined} root_tvk The tvk of the function at the top of the call graph. This is undefined if this request is built for the top-level call or if there is only one function in the call graph.
+    /// @param {Field | undefined} program_checksum The checksum of the program. This is undefined if the call is not dynamic.
     /// @param {boolean} is_root Flag to indicate if this is the top level function in the call graph.
+    /// @param {boolean} is_dynamic Flag to indicate if this is a dynamic call.
     #[allow(clippy::too_many_arguments)]
     pub fn sign(
         private_key: PrivateKey,
@@ -238,6 +241,7 @@ impl ExecutionRequest {
         root_tvk: Option<Field>,
         program_checksum: Option<Field>,
         is_root: bool,
+        is_dynamic: bool,
     ) -> Result<ExecutionRequest, String> {
         // Convert the ProgramID and function name to their native objects.
         let program_id = ProgramIDNative::from_str(&program_id).map_err(|e| e.to_string())?;
@@ -272,6 +276,7 @@ impl ExecutionRequest {
             root_tvk,
             is_root,
             program_checksum,
+            is_dynamic,
             &mut rng,
         )
         .map_err(|e| e.to_string())?;
@@ -500,14 +505,13 @@ impl ExecutionRequest {
                     ValueTypeNative::Constant(_) => InputIDNative::Constant(input_hash),
                     ValueTypeNative::Public(_) => InputIDNative::Public(input_hash),
                     ValueTypeNative::Private(_) => InputIDNative::Private(input_hash),
-                    ValueTypeNative::ExternalRecord(_) => {
-                        return Err(
-                            "external_record inputs are not yet supported in fromExternallySignedDataWithInputIds"
-                                .to_string(),
-                        );
-                    }
+                    ValueTypeNative::ExternalRecord(_) => InputIDNative::ExternalRecord(input_hash),
+                    ValueTypeNative::DynamicRecord => InputIDNative::DynamicRecord(input_hash),
                     ValueTypeNative::Future(_) => {
                         return Err("Future inputs are not supported".to_string());
+                    }
+                    ValueTypeNative::DynamicFuture => {
+                        return Err("Dynamic future inputs are not supported".to_string());
                     }
                     ValueTypeNative::Record(_) => {
                         return Err(format!(
@@ -536,8 +540,9 @@ impl ExecutionRequest {
 
     /// Verify the input types within a request.
     ///
-    /// @param {string[]} The input_types within the request.
-    /// @param {boolean} Flag to indicate whether this request is the first function in the call graph.
+    /// @param {string[]} input_types The input types within the request.
+    /// @param {boolean} is_root Flag to indicate whether this request is the first function in the call graph.
+    /// @param {Field | undefined} program_checksum The checksum of the program. This is undefined if the call is not dynamic.
     pub fn verify(&self, input_types: Array, is_root: bool, program_checksum: Option<Field>) -> bool {
         let input_types = input_types
             .iter()
@@ -661,6 +666,48 @@ impl ExecutionRequest {
                         &JsValue::from_str(&record_name.to_string()),
                     )
                     .map_err(|_| "Failed to set name".to_string())?;
+
+                    // If the input is a record, compute the tag and h values.
+                    if let (ValueNative::Record(record_input), Some(vk)) = (input, view_key.as_ref()) {
+                        let record_name = match input_type {
+                            ValueTypeNative::Record(record_name) => record_name,
+                            _ => {
+                                return Err("Record inputs must have an input_type of record".to_string());
+                            }
+                        };
+
+                        // Compute the sk_tag from the view key.
+                        let sk_tag = GraphKey::from_view_key(vk).sk_tag();
+                        let record_view_key = (*record_input.nonce() * ***vk).to_x_coordinate();
+
+                        // Store the record view key on the per-input object.
+                        let record_view_key_str = Field::from(record_view_key).to_string();
+                        Reflect::set(
+                            &request_sign_input,
+                            &JsValue::from_str("recordViewKey"),
+                            &JsValue::from_str(&record_view_key_str),
+                        )
+                        .map_err(|_| "Failed to set recordViewKey".to_string())?;
+
+                        // Compute the commitment for the record input.
+                        let commitment = record_input
+                            .to_commitment(&program_id, &record_name, &record_view_key)
+                            .map_err(|e| e.to_string())?;
+                        // Compute the tag for the record input.
+                        let tag =
+                            RecordPlaintextNative::tag(*sk_tag, commitment).map_err(|e| e.to_string())?.to_string();
+                        Reflect::set(&request_sign_input, &JsValue::from_str("tag"), &JsValue::from_str(&tag))
+                            .map_err(|_| "Failed to set record tag".to_string())?;
+
+                        // Compute h and store it in the resulting object.
+                        let h =
+                            CurrentNetwork::hash_to_group_psd2(&[CurrentNetwork::serial_number_domain(), commitment])
+                                .map_err(|e| e.to_string())?
+                                .to_x_coordinate()
+                                .to_string();
+                        Reflect::set(&request_sign_input, &JsValue::from_str("h"), &JsValue::from_str(&h))
+                            .map_err(|_| "Failed to set h".to_string())?;
+                    }
                 }
                 ValueTypeNative::ExternalRecord(locator) => {
                     // Set the signing input type and name.
@@ -677,51 +724,22 @@ impl ExecutionRequest {
                     )
                     .map_err(|_| "Failed to set name".to_string())?;
                 }
+                ValueTypeNative::DynamicRecord => {
+                    // Set the signing input type and name.
+                    Reflect::set(
+                        &request_sign_input,
+                        &JsValue::from_str("signingInputType"),
+                        &JsValue::from_str("dynamic_record"),
+                    )
+                    .map_err(|_| "Failed to set signingInputType".to_string())?;
+                }
+                ValueTypeNative::DynamicFuture => {
+                    return Err("Dynamic future inputs are not supported".to_string());
+                }
                 ValueTypeNative::Future(_) => {
                     return Err("Future inputs are not supported".to_string());
                 }
             };
-
-            // If the input is a record, compute the tag and h values.
-            if let (ValueNative::Record(record_input), Some(vk)) = (input, view_key.as_ref()) {
-                let record_name = match input_type {
-                    ValueTypeNative::ExternalRecord(locator) => *locator.name(),
-                    ValueTypeNative::Record(record_name) => record_name,
-                    _ => {
-                        return Err("Record inputs must have an input_type of record or external_record".to_string());
-                    }
-                };
-
-                // Compute the sk_tag from the view key.
-                let sk_tag = GraphKey::from_view_key(vk).sk_tag();
-                let record_view_key = (*record_input.nonce() * ***vk).to_x_coordinate();
-
-                // Store the record view key on the per-input object.
-                let record_view_key_str = Field::from(record_view_key).to_string();
-                Reflect::set(
-                    &request_sign_input,
-                    &JsValue::from_str("recordViewKey"),
-                    &JsValue::from_str(&record_view_key_str),
-                )
-                .map_err(|_| "Failed to set recordViewKey".to_string())?;
-
-                // Compute the commitment for the record input.
-                let commitment = record_input
-                    .to_commitment(&program_id, &record_name, &record_view_key)
-                    .map_err(|e| e.to_string())?;
-                // Compute the tag for the record input.
-                let tag = RecordPlaintextNative::tag(*sk_tag, commitment).map_err(|e| e.to_string())?.to_string();
-                Reflect::set(&request_sign_input, &JsValue::from_str("tag"), &JsValue::from_str(&tag))
-                    .map_err(|_| "Failed to set record tag".to_string())?;
-
-                // Compute h and store it in the resulting object.
-                let h = CurrentNetwork::hash_to_group_psd2(&[CurrentNetwork::serial_number_domain(), commitment])
-                    .map_err(|e| e.to_string())?
-                    .to_x_coordinate()
-                    .to_string();
-                Reflect::set(&request_sign_input, &JsValue::from_str("h"), &JsValue::from_str(&h))
-                    .map_err(|_| "Failed to set h".to_string())?;
-            }
             input_data.push(&request_sign_input);
         }
 
@@ -843,9 +861,9 @@ impl ExecutionRequest {
 
         let mut computed_ids = Vec::with_capacity(inputs_native.len());
         for (index, (input, input_type)) in inputs_native.iter().zip(input_types_native.iter()).enumerate() {
-            let index_field = FieldNative::from_u16(
-                u16::try_from(index).map_err(|_| format!("Input index {index} exceeds maximum allowed value"))?,
-            );
+            let index =
+                u16::try_from(index).map_err(|_| format!("Input index {index} exceeds maximum allowed value"))?;
+            let index_field = FieldNative::from_u16(index);
 
             match &input_type {
                 ValueTypeNative::Constant(_) | ValueTypeNative::Public(_) => {
@@ -889,7 +907,17 @@ impl ExecutionRequest {
                     computed_ids.push(InputIDNative::Record(commitment, gamma, record_view_key, serial_number, tag));
                 }
                 ValueTypeNative::ExternalRecord(_) => {
-                    return Err("external_record inputs are not yet supported in fromExternallySignedData".to_string());
+                    let input_id =
+                        InputIDNative::external_record(function_id, &input, **tvk, index).map_err(|e| e.to_string())?;
+                    computed_ids.push(input_id);
+                }
+                ValueTypeNative::DynamicRecord => {
+                    let input_id =
+                        InputIDNative::dynamic_record(function_id, &input, **tvk, index).map_err(|e| e.to_string())?;
+                    computed_ids.push(input_id);
+                }
+                ValueTypeNative::DynamicFuture => {
+                    return Err("Dynamic future inputs are not supported".to_string());
                 }
                 ValueTypeNative::Future(_) => {
                     return Err("Future inputs are not supported".to_string());
@@ -925,6 +953,7 @@ impl ExecutionRequest {
             *tvk,
             tcm,
             scm,
+            false,
         ));
         Ok(ExecutionRequest(request))
     }
@@ -994,6 +1023,7 @@ mod tests {
             None,
             None,
             true,
+            false,
         )
         .expect("sign should succeed");
 
@@ -1022,6 +1052,7 @@ mod tests {
             None,
             None,
             true,
+            false,
         )
         .expect("sign should succeed");
 
@@ -1072,6 +1103,7 @@ mod tests {
             None,
             None,
             true,
+            false,
         )
         .expect("sign should succeed");
 
@@ -1112,6 +1144,7 @@ mod tests {
             None,
             None,
             true,
+            false,
         )
         .expect("sign should succeed");
 
@@ -1295,6 +1328,7 @@ mod tests {
             None,
             None,
             true,
+            false,
         )
         .expect("sign should succeed")
     }
@@ -1323,6 +1357,7 @@ mod tests {
             None,
             None,
             true,
+            false,
         )
         .expect("sign should succeed");
         (request, gamma)
@@ -1517,7 +1552,6 @@ mod tests {
         let program_id = ProgramIDNative::from_str("credits.aleo").unwrap();
         let function_name_native = IdentifierNative::from_str("transfer_private").unwrap();
         let function_id = compute_function_id(&network_id, &program_id, &function_name_native).unwrap();
-        let tcm = CurrentNetwork::hash_psd2(&[*signed.tvk()]).unwrap();
 
         let record_native = RecordPlaintextNative::from_str(RECORD_BEACON_OWNED).unwrap();
         let record_view_key = (*record_native.nonce() * **view_key).to_x_coordinate();

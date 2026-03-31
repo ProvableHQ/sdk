@@ -1,5 +1,5 @@
 import { expect } from "chai";
-import { Address, AleoNetworkClient, CREDITS_PROGRAM_KEYS, Field, FunctionKeyPair, Plaintext, PrivateKey, ViewKey, Signature, RecordCiphertext, RecordPlaintext, PrivateKeyCiphertext, EncryptionToolkit, Transition, Value, VerifyingKey, AleoKeyProvider, getOrInitConsensusVersionTestHeights} from "../src/node.js";
+import { Address, AleoNetworkClient, CREDITS_PROGRAM_KEYS, DynamicRecord, Field, FunctionKeyPair, Plaintext, PrivateKey, ViewKey, Signature, RecordCiphertext, RecordPlaintext, PrivateKeyCiphertext, EncryptionToolkit, Transition, Value, VerifyingKey, AleoKeyProvider, getOrInitConsensusVersionTestHeights} from "../src/node.js";
 import {
     seed,
     message,
@@ -434,6 +434,71 @@ describe('WASM Objects', () => {
         });
     });
 
+    describe('DynamicRecord', () => {
+        // A credits record with _version: 1u8 (hiding variant)
+        const creditsRecord = RecordPlaintext.fromString(CREDITS_RECORD_V1);
+        const dynamicRecord = DynamicRecord.fromRecord(creditsRecord);
+        const dynamicRecordString = dynamicRecord.toString();
+
+        it('can be created from a RecordPlaintext', () => {
+            expect(dynamicRecord).instanceof(DynamicRecord);
+        });
+
+        it('round-trips through toString and fromString', () => {
+            const parsed = DynamicRecord.fromString(dynamicRecordString);
+            expect(parsed.toString()).equal(dynamicRecordString);
+        });
+
+        it('returns the correct owner address', () => {
+            expect(dynamicRecord.owner().to_string()).equal('aleo12a4wll9ax6w5355jph0dr5wt2vla5sss2t4cnch0tc3vzh643v8qcfvc7a');
+        });
+
+        it('returns the correct nonce', () => {
+            expect(dynamicRecord.nonce().toString()).equal('3634848344765318974603121890869676775499130077229666060613233255327643175219group');
+        });
+
+        it('returns a non-empty root field', () => {
+            const root = dynamicRecord.root();
+            expect(root.toString()).to.be.a('string');
+            expect(root.toString()).to.include('field');
+        });
+
+        it('is a hiding variant because _version is 1', () => {
+            expect(dynamicRecord.isHiding()).equal(true);
+        });
+
+        it('round-trips through bytes', () => {
+            const bytes = dynamicRecord.toBytesLe();
+            const recovered = DynamicRecord.fromBytesLe(bytes);
+            expect(recovered.owner().to_string()).equal(dynamicRecord.owner().to_string());
+            expect(recovered.root().toString()).equal(dynamicRecord.root().toString());
+            expect(recovered.nonce().toString()).equal(dynamicRecord.nonce().toString());
+        });
+
+        it('returns a non-empty array of field elements', () => {
+            const fields = dynamicRecord.toFields();
+            expect(fields).to.be.an('array');
+            expect(fields.length).greaterThan(0);
+        });
+
+        it('returns a non-empty bit array', () => {
+            const bits = dynamicRecord.toBitsLe();
+            expect(bits).to.be.an('array');
+            expect(bits.length).greaterThan(0);
+        });
+
+        it('can convert back to a RecordPlaintext', () => {
+            const recovered = dynamicRecord.toRecord(true);
+            expect(recovered).instanceof(RecordPlaintext);
+            // Owner and nonce should round-trip
+            expect(recovered.toString()).to.include('aleo12a4wll9ax6w5355jph0dr5wt2vla5sss2t4cnch0tc3vzh643v8qcfvc7a.private');
+        });
+
+        it('throws on an invalid string', () => {
+            expect(() => DynamicRecord.fromString('not a record')).throw();
+        });
+    });
+
     describe('Transition', () => {
         const transitionStringTestnet = `{"id":"au1u62jasyx78x9hktak24awyj38fz73aseq8g9cx98u8egd9pj9uxq3u6s2z","program":"hello_hello.aleo","function":"hello","inputs":[{"type":"public","id":"3748790614260807060977840590007893602934308327222309419419577452790958781330field","value":"1u32"},{"type":"private","id":"5954208307642819953251922459490586292095132973876550778604572231610245257004field","value":"ciphertext1qyq0m5mp0d2gzh2pv9p25z70gz2avhqdt3dp8y8thzwf3aq6g35zcqcuyptz3"}],"outputs":[{"type":"private","id":"1557506318887190915592751299113729867877933642317637206076176689093854281418field","value":"ciphertext1qyqzmhw8ln9r6uuyh0n5jrsqlt25wdggqp3d9yqyttpr3g7g00k2sysdf9rmv"}],"tpk":"7532444547840484531569841377269810017844130178606467837628364672670182422388group","tcm":"7292056195970541935877520517416922164990366931599720071937561392936678536563field","scm":"8283770351301010771186520129040704279224805960417079922462917369178354050332field"}`;
         const transitionTestnet = Transition.fromString(transitionStringTestnet);
@@ -564,9 +629,9 @@ describe('WASM Objects', () => {
     describe('Set development consensus version heights', () => {
         it('Consensus version heights can be set externally', async () => {
             if (process.env["RUN_SKIPPED"]) {
-                const heights = getOrInitConsensusVersionTestHeights("0,1,2,3,4,5,6,7,8,9,10,11,12");
+                const heights = getOrInitConsensusVersionTestHeights("0,1,2,3,4,5,6,7,8,9,10,11,12,13");
                 console.log(heights);
-                expect(heights).to.deep.equal([0,1,2,3,4,5,6,7,8,9,10,11,12]);
+                expect(heights).to.deep.equal([0,1,2,3,4,5,6,7,8,9,10,11,12,13]);
             }
         });
     });
