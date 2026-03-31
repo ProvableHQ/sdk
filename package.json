@@ -18,6 +18,8 @@
     "build:sdk-docs": "sh scripts/jsdoc.sh",
     "build:create-leo-app": "cd create-leo-app && yarn build",
     "build:all": "yarn build:wasm && yarn build:sdk && yarn build:create-leo-app",
+    "build:wasm-debug": "cd wasm && BUILD_DEBUG=1 yarn build",
+    "build:all-debug": "yarn build:wasm-debug && yarn build:sdk && yarn build:create-leo-app",
     "start:website": "cd website && yarn dev",
     "test:wasm": "cd wasm && yarn test",
     "test:sdk": "cd sdk && yarn test",

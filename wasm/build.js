@@ -16,6 +16,8 @@ async function buildRollup(input, output) {
     }
 }
 
+const isDebugBuild = process.env.BUILD_DEBUG === "1";
+
 async function buildWasm(network) {
     await buildRollup({
         input: {
@@ -34,6 +36,7 @@ async function buildWasm(network) {
                     ],
                     wasmOpt: ["-O", "--enable-threads", "--enable-bulk-memory", "--enable-bulk-memory-opt", "--enable-nontrapping-float-to-int"],
                 },
+                optimize: isDebugBuild ? { release: false, wasmOpt: false, rustc: false } : undefined,
 
                 experimental: {
                     atomics: true,
