@@ -5,7 +5,7 @@
     "module": "esnext",
 
     /* Module Resolution Options */
-    "moduleResolution": "node",
+    "moduleResolution": "bundler",
     "esModuleInterop": true,
 
     /* Advanced Options */

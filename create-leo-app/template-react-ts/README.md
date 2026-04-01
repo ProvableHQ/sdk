@@ -3,6 +3,8 @@
 [![Open in StackBlitz](https://developer.stackblitz.com/img/open_in_stackblitz.svg)](https://stackblitz.com/fork/github/ProvableHQ/sdk/tree/mainnet/create-leo-app/template-react)
 
 This template provides a minimal setup to get React and Aleo working in Webpack or Vite with HMR and some ESLint rules.
+The worker initializes ProvableKit explicitly with `createWasmEngine()` via
+`ProvableSDK.init({ engine: createWasmEngine(), env })`.
 
 This template includes a Leo program that is loaded by the web app located in
 the `helloworld` directory.

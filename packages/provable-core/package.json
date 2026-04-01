@@ -10,6 +10,18 @@
     ".": {
       "types": "./dist/index.d.ts",
       "default": "./dist/index.js"
+    },
+    "./testnet.js": {
+      "types": "./dist/testnet.d.ts",
+      "default": "./dist/testnet.js"
+    },
+    "./mainnet.js": {
+      "types": "./dist/mainnet.d.ts",
+      "default": "./dist/mainnet.js"
+    },
+    "./dynamic.js": {
+      "types": "./dist/dynamic.d.ts",
+      "default": "./dist/dynamic.js"
     }
   },
   "files": [
@@ -28,6 +40,9 @@
     "build": "tsc -p tsconfig.json",
     "test": "node --test dist/**/*.test.js",
     "clean": "rimraf dist"
+  },
+  "dependencies": {
+    "@provablehq/sdk": "^0.10.0"
   },
   "devDependencies": {
     "@types/node": "^22.12.0",

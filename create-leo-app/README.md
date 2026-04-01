@@ -31,6 +31,20 @@ Currently supported template presets include:
 
 You can use `.` for the project name to scaffold in the current directory.
 
+## Runtime Initialization Pattern
+
+Templates in this repository use explicit engine initialization:
+
+```ts
+import { ProvableSDK } from "@provablehq/provablekit";
+import { createWasmEngine } from "@provablehq/provable-engine-wasm";
+
+await ProvableSDK.init({
+  engine: createWasmEngine(),
+  env: { network: "testnet" },
+});
+```
+
 ## More Information
 
 Based off of create-vite: https://github.com/vitejs/vite/tree/main/packages/create-vite
