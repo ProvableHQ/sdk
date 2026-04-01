@@ -15,12 +15,39 @@
 // along with the Provable SDK library. If not, see <https://www.gnu.org/licenses/>.
 
 use crate::{
+    Address,
     Plaintext,
     from_js_typed_array,
     to_bits_array_le,
-    types::native::{CurrentNetwork, FieldNative, LiteralNative, PlaintextNative},
+    types::{
+        Boolean,
+        Group,
+        Scalar,
+        integer::{I8, I16, I32, I64, I128, U8, U16, U32, U64, U128},
+        native::{
+            CurrentNetwork,
+            FieldNative,
+            GroupNative,
+            I8Native,
+            I16Native,
+            I32Native,
+            I64Native,
+            I128Native,
+            LiteralNative,
+            PlaintextNative,
+            ScalarNative,
+            U8Native,
+            U16Native,
+            U32Native,
+            U64Native,
+            U128Native,
+        },
+    },
 };
-use snarkvm_console::prelude::{Double, Environment, FromBits, FromBytes, One, Pow, ToBits, ToBytes, Zero};
+use snarkvm_console::{
+    prelude::{Double, Environment, FromBits, FromBytes, One, Pow, ToBits, ToBytes, Zero},
+    program::CastLossy,
+};
 use snarkvm_wasm::{fields::PrimeField, utilities::Uniform};
 
 use js_sys::{Array, Uint8Array};
@@ -152,6 +179,99 @@ impl Field {
     pub fn equals(&self, other: &Field) -> bool {
         self.0 == FieldNative::from(other)
     }
+
+    // ── cast_lossy conversions ──────────────────────────────────────────
+
+    /// Cast the field element to a Scalar with lossy truncation.
+    #[wasm_bindgen(js_name = "toScalar")]
+    pub fn to_scalar(&self) -> Scalar {
+        Scalar::from(ScalarNative::from_field_lossy(&self.0))
+    }
+
+    /// Cast the field element to a Boolean (extracts least-significant bit).
+    #[wasm_bindgen(js_name = "toBoolean")]
+    pub fn to_boolean(&self) -> Boolean {
+        Boolean::new(self.0.to_bits_le()[0])
+    }
+
+    /// Cast the field element to a Group element.
+    ///
+    /// Uses the snarkVM cast_lossy path: tries x-coordinate recovery first,
+    /// falls back to the generator for field == 1, and applies Elligator-2
+    /// otherwise. This conversion never fails.
+    #[wasm_bindgen(js_name = "toGroup")]
+    pub fn to_group(&self) -> Group {
+        let group: GroupNative = self.0.cast_lossy();
+        Group::from(group)
+    }
+
+    /// Cast the field element to an Address (via Group).
+    #[wasm_bindgen(js_name = "toAddress")]
+    pub fn to_address(&self) -> Address {
+        Address::from_group(self.to_group())
+    }
+
+    // Field → Integer lossy conversions
+
+    /// Cast the field to a U8 with lossy truncation.
+    #[wasm_bindgen(js_name = "toU8")]
+    pub fn to_u8(&self) -> U8 {
+        U8::from(U8Native::from_field_lossy(&self.0))
+    }
+
+    /// Cast the field to a U16 with lossy truncation.
+    #[wasm_bindgen(js_name = "toU16")]
+    pub fn to_u16(&self) -> U16 {
+        U16::from(U16Native::from_field_lossy(&self.0))
+    }
+
+    /// Cast the field to a U32 with lossy truncation.
+    #[wasm_bindgen(js_name = "toU32")]
+    pub fn to_u32(&self) -> U32 {
+        U32::from(U32Native::from_field_lossy(&self.0))
+    }
+
+    /// Cast the field to a U64 with lossy truncation.
+    #[wasm_bindgen(js_name = "toU64")]
+    pub fn to_u64(&self) -> U64 {
+        U64::from(U64Native::from_field_lossy(&self.0))
+    }
+
+    /// Cast the field to a U128 with lossy truncation.
+    #[wasm_bindgen(js_name = "toU128")]
+    pub fn to_u128(&self) -> U128 {
+        U128::from(U128Native::from_field_lossy(&self.0))
+    }
+
+    /// Cast the field to an I8 with lossy truncation.
+    #[wasm_bindgen(js_name = "toI8")]
+    pub fn to_i8(&self) -> I8 {
+        I8::from(I8Native::from_field_lossy(&self.0))
+    }
+
+    /// Cast the field to an I16 with lossy truncation.
+    #[wasm_bindgen(js_name = "toI16")]
+    pub fn to_i16(&self) -> I16 {
+        I16::from(I16Native::from_field_lossy(&self.0))
+    }
+
+    /// Cast the field to an I32 with lossy truncation.
+    #[wasm_bindgen(js_name = "toI32")]
+    pub fn to_i32(&self) -> I32 {
+        I32::from(I32Native::from_field_lossy(&self.0))
+    }
+
+    /// Cast the field to an I64 with lossy truncation.
+    #[wasm_bindgen(js_name = "toI64")]
+    pub fn to_i64(&self) -> I64 {
+        I64::from(I64Native::from_field_lossy(&self.0))
+    }
+
+    /// Cast the field to an I128 with lossy truncation.
+    #[wasm_bindgen(js_name = "toI128")]
+    pub fn to_i128(&self) -> I128 {
+        I128::from(I128Native::from_field_lossy(&self.0))
+    }
 }
 
 impl Deref for Field {
@@ -191,5 +311,81 @@ impl FromStr for Field {
 
     fn from_str(field: &str) -> Result<Self, Self::Err> {
         Ok(Self(FieldNative::from_str(field)?))
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_field_to_scalar_roundtrip() {
+        // A small scalar should round-trip through field → scalar → field
+        let scalar = Scalar::from_string("42scalar").unwrap();
+        let field = scalar.to_field().unwrap();
+        let back = field.to_scalar();
+        assert_eq!(back.to_string(), scalar.to_string());
+    }
+
+    #[test]
+    fn test_field_to_boolean() {
+        let zero = Field::from_string("0field").unwrap();
+        assert_eq!(zero.to_boolean().to_string(), "false");
+
+        let one = Field::from_string("1field").unwrap();
+        assert_eq!(one.to_boolean().to_string(), "true");
+
+        // Even field → LSB is false
+        let two = Field::from_string("2field").unwrap();
+        assert_eq!(two.to_boolean().to_string(), "false");
+
+        // Odd field → LSB is true
+        let three = Field::from_string("3field").unwrap();
+        assert_eq!(three.to_boolean().to_string(), "true");
+    }
+
+    #[test]
+    fn test_field_to_group_never_fails() {
+        // toGroup uses Elligator-2 fallback and should never fail
+        let field = Field::from_string("12345field").unwrap();
+        let _group = field.to_group(); // Should not panic
+
+        let zero = Field::from_string("0field").unwrap();
+        let _group = zero.to_group();
+
+        let one = Field::from_string("1field").unwrap();
+        let _group = one.to_group();
+    }
+
+    #[test]
+    fn test_field_to_integer_roundtrip() {
+        // Small value should round-trip through field → u32 → field
+        let field = Field::from_string("255field").unwrap();
+        let u8_val = field.to_u8();
+        assert_eq!(u8_val.to_string(), "255u8");
+
+        let u32_val = field.to_u32();
+        assert_eq!(u32_val.to_string(), "255u32");
+    }
+
+    #[test]
+    fn test_field_to_integer_truncation() {
+        // 256 should truncate to 0 in U8 (only keeps low 8 bits)
+        let field = Field::from_string("256field").unwrap();
+        let u8_val = field.to_u8();
+        assert_eq!(u8_val.to_string(), "0u8");
+
+        // 257 should truncate to 1 in U8
+        let field = Field::from_string("257field").unwrap();
+        let u8_val = field.to_u8();
+        assert_eq!(u8_val.to_string(), "1u8");
+    }
+
+    #[test]
+    fn test_field_to_address() {
+        let field = Field::from_string("42field").unwrap();
+        let addr = field.to_address();
+        // Should produce a valid address string
+        assert!(addr.to_string().starts_with("aleo1"));
     }
 }

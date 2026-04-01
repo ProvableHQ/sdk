@@ -15,13 +15,38 @@
 // along with the Provable SDK library. If not, see <https://www.gnu.org/licenses/>.
 
 use crate::{
+    Address,
     Field,
     Plaintext,
     from_js_typed_array,
     to_bits_array_le,
-    types::native::{LiteralNative, PlaintextNative, ScalarNative},
+    types::{
+        Boolean,
+        Group,
+        integer::{I8, I16, I32, I64, I128, U8, U16, U32, U64, U128},
+        native::{
+            FieldNative,
+            GroupNative,
+            I8Native,
+            I16Native,
+            I32Native,
+            I64Native,
+            I128Native,
+            LiteralNative,
+            PlaintextNative,
+            ScalarNative,
+            U8Native,
+            U16Native,
+            U32Native,
+            U64Native,
+            U128Native,
+        },
+    },
 };
-use snarkvm_console::prelude::{Double, FromBits, FromBytes, One, Pow, ToBits, ToBytes, ToField, Uniform, Zero};
+use snarkvm_console::{
+    prelude::{Double, FromBits, FromBytes, One, Pow, ToBits, ToBytes, ToField, Uniform, Zero},
+    program::CastLossy,
+};
 
 use js_sys::{Array, Uint8Array};
 use std::{ops::Deref, str::FromStr, sync::OnceLock};
@@ -148,6 +173,92 @@ impl Scalar {
     /// Check if one scalar element equals another.
     pub fn equals(&self, other: &Scalar) -> bool {
         self.0 == ScalarNative::from(other)
+    }
+
+    // ── cast_lossy conversions ──────────────────────────────────────────
+
+    /// Cast the scalar to a Boolean (extracts least-significant bit).
+    #[wasm_bindgen(js_name = "toBoolean")]
+    pub fn to_boolean(&self) -> Boolean {
+        Boolean::new(self.0.to_bits_le()[0])
+    }
+
+    /// Cast the scalar to a Group element (via Field, then Elligator-2 fallback).
+    #[wasm_bindgen(js_name = "toGroup")]
+    pub fn to_group(&self) -> Group {
+        // Safe: Scalar::to_field() is infallible for all valid scalar values.
+        let field: FieldNative = self.0.to_field().unwrap();
+        let group: GroupNative = field.cast_lossy();
+        Group::from(group)
+    }
+
+    /// Cast the scalar to an Address (via Group).
+    #[wasm_bindgen(js_name = "toAddress")]
+    pub fn to_address(&self) -> Address {
+        Address::from_group(self.to_group())
+    }
+
+    // Scalar → Integer lossy conversions
+    // Safe: Scalar::to_field() is infallible for all valid scalar values.
+
+    /// Cast the scalar to a U8 with lossy truncation.
+    #[wasm_bindgen(js_name = "toU8")]
+    pub fn to_u8(&self) -> U8 {
+        U8::from(U8Native::from_field_lossy(&self.0.to_field().unwrap()))
+    }
+
+    /// Cast the scalar to a U16 with lossy truncation.
+    #[wasm_bindgen(js_name = "toU16")]
+    pub fn to_u16(&self) -> U16 {
+        U16::from(U16Native::from_field_lossy(&self.0.to_field().unwrap()))
+    }
+
+    /// Cast the scalar to a U32 with lossy truncation.
+    #[wasm_bindgen(js_name = "toU32")]
+    pub fn to_u32(&self) -> U32 {
+        U32::from(U32Native::from_field_lossy(&self.0.to_field().unwrap()))
+    }
+
+    /// Cast the scalar to a U64 with lossy truncation.
+    #[wasm_bindgen(js_name = "toU64")]
+    pub fn to_u64(&self) -> U64 {
+        U64::from(U64Native::from_field_lossy(&self.0.to_field().unwrap()))
+    }
+
+    /// Cast the scalar to a U128 with lossy truncation.
+    #[wasm_bindgen(js_name = "toU128")]
+    pub fn to_u128(&self) -> U128 {
+        U128::from(U128Native::from_field_lossy(&self.0.to_field().unwrap()))
+    }
+
+    /// Cast the scalar to an I8 with lossy truncation.
+    #[wasm_bindgen(js_name = "toI8")]
+    pub fn to_i8(&self) -> I8 {
+        I8::from(I8Native::from_field_lossy(&self.0.to_field().unwrap()))
+    }
+
+    /// Cast the scalar to an I16 with lossy truncation.
+    #[wasm_bindgen(js_name = "toI16")]
+    pub fn to_i16(&self) -> I16 {
+        I16::from(I16Native::from_field_lossy(&self.0.to_field().unwrap()))
+    }
+
+    /// Cast the scalar to an I32 with lossy truncation.
+    #[wasm_bindgen(js_name = "toI32")]
+    pub fn to_i32(&self) -> I32 {
+        I32::from(I32Native::from_field_lossy(&self.0.to_field().unwrap()))
+    }
+
+    /// Cast the scalar to an I64 with lossy truncation.
+    #[wasm_bindgen(js_name = "toI64")]
+    pub fn to_i64(&self) -> I64 {
+        I64::from(I64Native::from_field_lossy(&self.0.to_field().unwrap()))
+    }
+
+    /// Cast the scalar to an I128 with lossy truncation.
+    #[wasm_bindgen(js_name = "toI128")]
+    pub fn to_i128(&self) -> I128 {
+        I128::from(I128Native::from_field_lossy(&self.0.to_field().unwrap()))
     }
 }
 

@@ -745,7 +745,7 @@ describe('WASM Objects', () => {
                 const programAddress = Address.fromProgramId(programIDString);
                 expect(programAddress.to_string()).to.equal("aleo1lqmly7ez2k48ajf5hs92ulphaqr05qm4n8qwzj8v0yprmasgpqgsez59gg");
             }
-        }); 
+        });
     })
 });
 

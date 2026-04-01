@@ -23,7 +23,26 @@ use crate::{
     js_array_from_fields,
     native::AddressNative,
     to_bits_array_le,
-    types::native::{GroupNative, LiteralNative, PlaintextNative},
+    types::{
+        Boolean,
+        integer::{I8, I16, I32, I64, I128, U8, U16, U32, U64, U128},
+        native::{
+            GroupNative,
+            I8Native,
+            I16Native,
+            I32Native,
+            I64Native,
+            I128Native,
+            LiteralNative,
+            PlaintextNative,
+            ScalarNative,
+            U8Native,
+            U16Native,
+            U32Native,
+            U64Native,
+            U128Native,
+        },
+    },
 };
 use snarkvm_console::prelude::{
     Double,
@@ -177,6 +196,95 @@ impl Group {
     /// Get the generator of the group.
     pub fn generator() -> Group {
         Group::from(GroupNative::generator())
+    }
+
+    // ── cast_lossy conversions ──────────────────────────────────────────
+
+    /// Cast the group element to a Field (returns x-coordinate).
+    /// This is an alias for `toXCoordinate()` for consistency with the cast API.
+    #[wasm_bindgen(js_name = "toField")]
+    pub fn to_field(&self) -> Field {
+        self.to_x_coordinate()
+    }
+
+    /// Cast the group element to a Scalar (lossy, via x-coordinate).
+    #[wasm_bindgen(js_name = "toScalar")]
+    pub fn to_scalar(&self) -> Scalar {
+        Scalar::from(ScalarNative::from_field_lossy(&self.0.to_x_coordinate()))
+    }
+
+    /// Cast the group element to a Boolean (LSB of x-coordinate).
+    #[wasm_bindgen(js_name = "toBoolean")]
+    pub fn to_boolean(&self) -> Boolean {
+        Boolean::new(self.0.to_x_coordinate().to_bits_le()[0])
+    }
+
+    /// Cast the group element to an Address.
+    #[wasm_bindgen(js_name = "toAddress")]
+    pub fn to_address(&self) -> Address {
+        Address::from_group(self.clone())
+    }
+
+    // Group → Integer lossy conversions (via x-coordinate)
+
+    /// Cast the group to a U8 with lossy truncation.
+    #[wasm_bindgen(js_name = "toU8")]
+    pub fn to_u8(&self) -> U8 {
+        U8::from(U8Native::from_field_lossy(&self.0.to_x_coordinate()))
+    }
+
+    /// Cast the group to a U16 with lossy truncation.
+    #[wasm_bindgen(js_name = "toU16")]
+    pub fn to_u16(&self) -> U16 {
+        U16::from(U16Native::from_field_lossy(&self.0.to_x_coordinate()))
+    }
+
+    /// Cast the group to a U32 with lossy truncation.
+    #[wasm_bindgen(js_name = "toU32")]
+    pub fn to_u32(&self) -> U32 {
+        U32::from(U32Native::from_field_lossy(&self.0.to_x_coordinate()))
+    }
+
+    /// Cast the group to a U64 with lossy truncation.
+    #[wasm_bindgen(js_name = "toU64")]
+    pub fn to_u64(&self) -> U64 {
+        U64::from(U64Native::from_field_lossy(&self.0.to_x_coordinate()))
+    }
+
+    /// Cast the group to a U128 with lossy truncation.
+    #[wasm_bindgen(js_name = "toU128")]
+    pub fn to_u128(&self) -> U128 {
+        U128::from(U128Native::from_field_lossy(&self.0.to_x_coordinate()))
+    }
+
+    /// Cast the group to an I8 with lossy truncation.
+    #[wasm_bindgen(js_name = "toI8")]
+    pub fn to_i8(&self) -> I8 {
+        I8::from(I8Native::from_field_lossy(&self.0.to_x_coordinate()))
+    }
+
+    /// Cast the group to an I16 with lossy truncation.
+    #[wasm_bindgen(js_name = "toI16")]
+    pub fn to_i16(&self) -> I16 {
+        I16::from(I16Native::from_field_lossy(&self.0.to_x_coordinate()))
+    }
+
+    /// Cast the group to an I32 with lossy truncation.
+    #[wasm_bindgen(js_name = "toI32")]
+    pub fn to_i32(&self) -> I32 {
+        I32::from(I32Native::from_field_lossy(&self.0.to_x_coordinate()))
+    }
+
+    /// Cast the group to an I64 with lossy truncation.
+    #[wasm_bindgen(js_name = "toI64")]
+    pub fn to_i64(&self) -> I64 {
+        I64::from(I64Native::from_field_lossy(&self.0.to_x_coordinate()))
+    }
+
+    /// Cast the group to an I128 with lossy truncation.
+    #[wasm_bindgen(js_name = "toI128")]
+    pub fn to_i128(&self) -> I128 {
+        I128::from(I128Native::from_field_lossy(&self.0.to_x_coordinate()))
     }
 }
 
