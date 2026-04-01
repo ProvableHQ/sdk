@@ -7,14 +7,29 @@ const requiredSnippets = [
     contains: 'from "@provablehq/provablekit"',
   },
   {
+    name: "e2e imports wasm engine",
+    path: "e2e/testnet/index.js",
+    contains: 'from "@provablehq/provable-engine-wasm"',
+  },
+  {
     name: "website hook imports provablekit",
     path: "website/src/aleo-wasm-hook.js",
     contains: 'import("@provablehq/provablekit")',
   },
   {
+    name: "website worker imports wasm engine",
+    path: "website/src/workers/worker.js",
+    contains: 'from "@provablehq/provable-engine-wasm"',
+  },
+  {
     name: "create-leo-app template uses provablekit",
     path: "create-leo-app/template-node/index.js",
     contains: 'from "@provablehq/provablekit"',
+  },
+  {
+    name: "create-leo-app template uses wasm engine",
+    path: "create-leo-app/template-node/index.js",
+    contains: 'from "@provablehq/provable-engine-wasm"',
   },
 ];
 

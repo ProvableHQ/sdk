@@ -8,20 +8,20 @@ function isValidVersion(value) {
 function parseVersionArgs(argv) {
   const single = argv[2];
   if (isValidVersion(single)) {
-    return { legacy: single, engines: single };
+    return { apps: single, engines: single };
   }
 
-  const legacyIndex = argv.indexOf("--legacy-version");
+  const appsIndex = argv.indexOf("--apps-version");
   const enginesIndex = argv.indexOf("--engine-version");
-  const legacy = legacyIndex >= 0 ? argv[legacyIndex + 1] : undefined;
+  const apps = appsIndex >= 0 ? argv[appsIndex + 1] : undefined;
   const engines = enginesIndex >= 0 ? argv[enginesIndex + 1] : undefined;
 
-  if (isValidVersion(legacy) && isValidVersion(engines)) {
-    return { legacy, engines };
+  if (isValidVersion(apps) && isValidVersion(engines)) {
+    return { apps, engines };
   }
 
   throw new Error(
-    "Usage: node scripts/change-version.js <version> OR node scripts/change-version.js --legacy-version <x.y.z> --engine-version <x.y.z>",
+    "Usage: node scripts/change-version.js <version> OR node scripts/change-version.js --apps-version <x.y.z> --engine-version <x.y.z>",
   );
 }
 
@@ -34,8 +34,6 @@ async function updateVersion(path, newVersion) {
 async function updateDependencies(path, versions) {
   const json = await readFile(path, { encoding: "utf8" });
   const replaced = json
-    .replace(/"@provablehq\/sdk": *"[^"]+"/g, `"@provablehq/sdk": "^${versions.legacy}"`)
-    .replace(/"@provablehq\/wasm": *"[^"]+"/g, `"@provablehq/wasm": "^${versions.legacy}"`)
     .replace(/"@provablehq\/provablekit": *"[^"]+"/g, `"@provablehq/provablekit": "^${versions.engines}"`)
     .replace(
       /"@provablehq\/provable-engine-wasm": *"[^"]+"/g,
@@ -51,9 +49,7 @@ async function updateDependencies(path, versions) {
 async function updateVersions(versions) {
   await Promise.all(
     [
-      ["create-leo-app/package.json", versions.legacy],
-      ["sdk/package.json", versions.legacy],
-      ["wasm/package.json", versions.legacy],
+      ["create-leo-app/package.json", versions.apps],
       ["packages/provable-core/package.json", versions.engines],
       ["packages/provable-engine-wasm/package.json", versions.engines],
       ["packages/provable-engine-react-native/package.json", versions.engines],
@@ -63,7 +59,7 @@ async function updateVersions(versions) {
   );
 }
 
-async function updateCargo(legacyVersion) {
+async function updateCargo(engineVersion) {
   const tomlPath = "wasm/Cargo.toml";
   const toml = await readFile(tomlPath, { encoding: "utf8" });
 
@@ -72,7 +68,7 @@ async function updateCargo(legacyVersion) {
     throw new Error(`Could not locate [package] version in ${tomlPath}`);
   }
 
-  const replaced = toml.replace(packageSectionRegex, `$1"${legacyVersion}"`);
+  const replaced = toml.replace(packageSectionRegex, `$1"${engineVersion}"`);
   await writeFile(tomlPath, replaced);
 }
 
@@ -87,9 +83,9 @@ async function updateAllDependencyRanges(versions) {
 
 const versions = parseVersionArgs(process.argv);
 await updateVersions(versions);
-await updateCargo(versions.legacy);
+await updateCargo(versions.engines);
 await updateAllDependencyRanges(versions);
 
 console.log(
-  `Updated versions successfully (legacy=${versions.legacy}, engines=${versions.engines}).`,
+  `Updated versions successfully (apps=${versions.apps}, engines=${versions.engines}).`,
 );

@@ -13,7 +13,7 @@ assetsInclude: ['**/*.wasm'],
         sourcemap: true,
     },
     optimizeDeps: {
-        exclude: ["@provablehq/wasm"],
+        exclude: ["@provablehq/provable-engine-wasm"],
     },
     server: {
         fs: {

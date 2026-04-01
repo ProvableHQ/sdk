@@ -6,7 +6,7 @@ export default defineConfig({
   plugins: [react()],
   assetsInclude: ['**/*.wasm'],
   optimizeDeps: {
-    exclude: ["@provablehq/wasm"],
+    exclude: ["@provablehq/provable-engine-wasm"],
   },
   server: {
     headers: {

@@ -33,33 +33,10 @@ jobs:
         with:
           name: build
           path: |
-            sdk/dist/
-            wasm/dist/
+            packages/provable-core/dist/
+            packages/provable-engine-wasm/dist/
+            packages/provable-engine-react-native/dist/
             create-leo-app/dist/
-
-
-  test-wasm:
-    name: test wasm
-    runs-on: ubuntu-latest-m
-    steps:
-      - uses: actions/checkout@v4
-      - uses: ./.github/actions/setup-yarn
-
-      - run: |
-          yarn test:wasm
-
-
-  test-sdk:
-    name: test sdk
-    runs-on: ubuntu-latest
-    needs: build
-    steps:
-      - uses: actions/checkout@v4
-      - uses: ./.github/actions/setup-yarn
-      - uses: ./.github/actions/use-build
-
-      - run: |
-          yarn test:sdk
 
 
   e2e:

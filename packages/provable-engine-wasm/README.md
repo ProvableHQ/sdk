@@ -2,6 +2,8 @@
 
 WASM-backed engine implementation for `@provablehq/provablekit`.
 
+This package includes the WASM runtime/export surface for both `mainnet` and `testnet`.
+
 Install:
 
 ```bash

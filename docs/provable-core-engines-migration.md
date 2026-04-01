@@ -26,13 +26,11 @@ await ProvableSDK.init({
 
 ## Compatibility
 
-The existing `@provablehq/sdk` package now re-exports:
+There is no legacy SDK facade package in this repo. Consumers should import directly from:
 
-- `ProvableSDK`
-- `WasmEngine` and `createWasmEngine`
-- `ReactNativeEngine` and `createReactNativeEngine`
-
-This allows current SDK users to adopt the new init flow without changing package entrypoints.
+- `@provablehq/provablekit`
+- `@provablehq/provable-engine-wasm`
+- `@provablehq/provable-engine-react-native`
 
 ## Build and Test
 
@@ -45,19 +43,15 @@ From repository root:
 
 The root deploy script publishes in this order:
 
-1. `@provablehq/wasm`
-2. `@provablehq/provablekit`
-3. `@provablehq/provable-engine-wasm`
-4. `@provablehq/provable-engine-react-native`
-5. `@provablehq/sdk`
-6. `create-leo-app`
+1. `@provablehq/provablekit`
+2. `@provablehq/provable-engine-wasm`
+3. `@provablehq/provable-engine-react-native`
+4. `create-leo-app`
 
 ## CI Checklist
 
 - Build packages:
   - `yarn build:packages`
-  - `yarn build:sdk`
 - Test packages:
   - `yarn test:packages`
-  - `yarn test:sdk`
 - Validate examples/e2e as part of normal release gate.

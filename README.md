@@ -26,7 +26,7 @@ The Provable SDK is divided into multiple TypeScript/JavaScript packages:
 This repository now includes a split architecture for multi-platform runtimes:
 
 - `@provablehq/provablekit` - shared SDK contracts and platform-agnostic orchestration
-- `@provablehq/provable-engine-wasm` - web/desktop engine backed by `@provablehq/wasm`
+- `@provablehq/provable-engine-wasm` - web/desktop engine package with inlined WASM runtime
 - `@provablehq/provable-engine-react-native` - mobile engine adapter for React Native runtimes
 
 Implementation note: the workspace folder `packages/provable-core` publishes to npm as `@provablehq/provablekit`.
@@ -45,20 +45,7 @@ await ProvableSDK.init({
 
 For migration details and release order, see `docs/provable-core-engines-migration.md`.
 
-## 1. Provable SDK - Build Zero-Knowledge Web Apps
-
-<a href="https://www.npmjs.com/package/@provablehq/sdk"> <img alt="Provable SDK" src="https://img.shields.io/npm/l/%40provablehq%2Fsdk?label=NPM%20-%20Aleo%20SDK&labelColor=green&color=blue"></a>
-
-The official Provable SDK providing JavaScript/TypeScript tools for creating zero-knowledge applications.
-
-### ⚡ Build your own app
-
-Start here with the [Provable SDK Readme](https://github.com/ProvableHQ/sdk#readme) to get started building your
-first zero-knowledge web app.
-
-#### Source: [`Provable SDK`](https://www.npmjs.com/package/@provablehq/sdk)
-
-## 2. Create-Leo-App - Zero-Knowledge Web App Examples
+## 1. Create-Leo-App - Zero-Knowledge Web App Examples
 <a href="https://www.npmjs.com/package/create-leo-app"> <img alt="Create Leo App" src="https://img.shields.io/npm/l/create-leo-app?label=NPM%20-%20Create-Leo-App&labelColor=green&color=blue"></a>
 
 Create-leo-app provides zero-knowledge web app examples in common web frameworks such as React. Developers looking to
@@ -66,17 +53,9 @@ start with working examples should start here.
 
 #### Source: [`sdk/create-leo-app`](https://github.com/ProvableHQ/sdk/tree/mainnet/create-leo-app)
 
-## 3. Aleo Wasm - Zero-Knowledge Algorithms in JavaScript + WebAssembly
-<a href="https://www.npmjs.com/package/@provablehq/wasm"> <img alt="Create Leo App" src="https://img.shields.io/npm/l/%40provablehq%2Fwasm?label=NPM%20-%20Aleo%20Wasm&labelColor=green&color=blue"></a>
+## 2. Provable Engine (WASM + React Native)
 
-Aleo Wasm is a Rust crate which compiles the Aleo source code responsible for creating and executing zero-knowledge programs into
-WebAssembly.
-
-When compiled with `wasm-pack`, JavaScript bindings are generated for the WebAssembly allowing Aleo zero-knowledge programs to be used in the browser and Node.js. This package is available on NPM (linked above). The Aleo Wasm
-readme provides instructions for compiling this crate and using it in web projects for those interested in building from
-source.
-
-Source: [Aleo Wasm](https://www.npmjs.com/package/@provablehq/wasm)
+The WASM runtime is now distributed directly via `@provablehq/provable-engine-wasm` and no separate wasm package is required.
 
 ## 📚 Documentation
 
@@ -84,13 +63,8 @@ Source: [Aleo Wasm](https://www.npmjs.com/package/@provablehq/wasm)
 API Documentation and tutorials for the Provable SDK can be found on the [SDK Developer Docs](https://developer.aleo.org/sdk/overview) page.
 Documentation on how to build Leo and Aleo Instructions programs can be found on the [Leo Developer Docs](https://docs.leo-lang.org/leo) page.
 
-#### [SDK Readme](https://github.com/ProvableHQ/sdk/tree/mainnet/sdk#readme)
-The SDK readme provides concepts core to executing zero-knowledge programs in the web and several detailed examples of
-how to use the SDK to build web apps using Aleo.
-
-#### [Aleo Wasm Readme](https://github.com/ProvableHQ/sdk/tree/mainnet/wasm#readme)
-The Aleo Wasm readme provides instructions for compiling the Aleo Wasm crate and using it in web projects. Those who
-want to build from source or create their own WebAssembly bindings should start here.
+#### [ProvableKit + Engine Migration](docs/provable-core-engines-migration.md)
+This migration guide explains package boundaries, initialization patterns, and release flow for the engine-based architecture.
 
 ## ❤️ Contributors
 
