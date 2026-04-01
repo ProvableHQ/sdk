@@ -13,10 +13,10 @@ npm install @provablehq/provablekit @provablehq/provable-engine-react-native
 ## Usage
 
 ```ts
-import { ProvableSDK } from "@provablehq/provablekit";
+import { ProvableKit } from "@provablehq/provablekit";
 import { createReactNativeEngine } from "@provablehq/provable-engine-react-native";
 
-await ProvableSDK.init({
+await ProvableKit.init({
   engine: createReactNativeEngine(),
   env: { network: "mainnet" },
 });

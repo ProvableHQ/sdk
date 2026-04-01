@@ -10,6 +10,8 @@ export interface ProvableSdkEnv {
   [key: string]: unknown;
 }
 
+export type ProvableKitEnv = ProvableSdkEnv;
+
 export interface EngineInitContext {
   env: ProvableSdkEnv;
 }
@@ -29,6 +31,12 @@ export interface EngineCapabilities {
   };
   readonly runtime?: {
     initThreadPool?(threadCount: number): Promise<void> | void;
+  };
+  readonly highLevel?: {
+    createProgramManager?(host?: string): unknown;
+    createAccount?(params?: { privateKey?: string }): unknown;
+    createKeyProvider?(): unknown;
+    verifyProof?(options: { verifyingKey: string; inputs: string[]; proof: string }): boolean;
   };
 }
 

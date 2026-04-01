@@ -34,10 +34,10 @@ Implementation note: the workspace folder `packages/provable-core` publishes to 
 Use the unified initialization flow:
 
 ```ts
-import { ProvableSDK } from "@provablehq/provablekit";
+import { ProvableKit } from "@provablehq/provablekit";
 import { createWasmEngine } from "@provablehq/provable-engine-wasm";
 
-await ProvableSDK.init({
+await ProvableKit.init({
   engine: createWasmEngine(),
   env: { network: "mainnet" },
 });

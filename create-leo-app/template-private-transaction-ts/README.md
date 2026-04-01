@@ -2,7 +2,7 @@
 
 This example shows how to build a transfer_private transaction using the ProgramManager.
 It uses explicit engine initialization with
-`ProvableSDK.init({ engine: createWasmEngine(), env })` before transaction building.
+`ProvableKit.init({ engine: createWasmEngine(), env })` before transaction building.
 
 This example can be run with the following
 

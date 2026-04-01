@@ -1,6 +1,6 @@
 //@ts-nocheck
 import { createWasmEngine } from "@provablehq/provable-engine-wasm";
-import { ProvableSDK } from "@provablehq/provablekit";
+import { ProvableKit } from "@provablehq/provablekit";
 import {
   Account,
   ProgramManager,
@@ -14,7 +14,7 @@ import {
 import { expose, proxy } from "comlink";
 
 
-await ProvableSDK.init({
+await ProvableKit.init({
   engine: createWasmEngine(),
   env: { network: "testnet" },
 });

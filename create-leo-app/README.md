@@ -36,10 +36,10 @@ You can use `.` for the project name to scaffold in the current directory.
 Templates in this repository use explicit engine initialization:
 
 ```ts
-import { ProvableSDK } from "@provablehq/provablekit";
+import { ProvableKit } from "@provablehq/provablekit";
 import { createWasmEngine } from "@provablehq/provable-engine-wasm";
 
-await ProvableSDK.init({
+await ProvableKit.init({
   engine: createWasmEngine(),
   env: { network: "testnet" },
 });

@@ -1,14 +1,14 @@
-import type { EngineCapabilities, ProvableEngine, ProvableSdkEnv } from "./contracts.js";
+import type { EngineCapabilities, ProvableEngine, ProvableKitEnv } from "./contracts.js";
 
 export interface ProvableInitOptions {
   engine: ProvableEngine;
-  env: ProvableSdkEnv;
+  env: ProvableKitEnv;
 }
 
-export class ProvableSDK {
+export class ProvableKit {
   private static activeEngine: ProvableEngine | undefined;
   private static capabilities: EngineCapabilities | undefined;
-  private static env: ProvableSdkEnv | undefined;
+  private static env: ProvableKitEnv | undefined;
 
   static async init(options: ProvableInitOptions): Promise<EngineCapabilities> {
     const capabilities = await options.engine.init({ env: options.env });
@@ -20,22 +20,27 @@ export class ProvableSDK {
 
   static getEngine(): ProvableEngine {
     if (!this.activeEngine) {
-      throw new Error("ProvableSDK has not been initialized");
+      throw new Error("ProvableKit has not been initialized");
     }
     return this.activeEngine;
   }
 
-  static getEnv(): ProvableSdkEnv {
+  static getEnv(): ProvableKitEnv {
     if (!this.env) {
-      throw new Error("ProvableSDK has not been initialized");
+      throw new Error("ProvableKit has not been initialized");
     }
     return this.env;
   }
 
   static getCapabilities(): EngineCapabilities {
     if (!this.capabilities) {
-      throw new Error("ProvableSDK has not been initialized");
+      throw new Error("ProvableKit has not been initialized");
     }
     return this.capabilities;
   }
 }
+
+/**
+ * Backward alias retained temporarily while repo consumers migrate.
+ */
+export const ProvableSDK = ProvableKit;

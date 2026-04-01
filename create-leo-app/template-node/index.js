@@ -1,5 +1,5 @@
 import { createWasmEngine } from "@provablehq/provable-engine-wasm";
-import { ProvableSDK } from "@provablehq/provablekit";
+import { ProvableKit } from "@provablehq/provablekit";
 import {Account, AleoKeyProvider, AleoKeyProviderParams, initThreadPool, ProgramManager, PrivateKey} from "@provablehq/provablekit/testnet.js";
 
 import * as process from "node:process";
@@ -7,7 +7,7 @@ import * as process from "node:process";
 // await initThreadPool();
 
 
-await ProvableSDK.init({
+await ProvableKit.init({
   engine: createWasmEngine(),
   env: { network: "testnet" },
 });

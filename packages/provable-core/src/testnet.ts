@@ -1,25 +1,19 @@
-export * from "@provablehq/sdk/testnet.js";
+import * as wasm from "@provablehq/provable-engine-wasm/testnet.js";
+import { createNativeBindings } from "./native-bindings.js";
 
-export class DynamicRecord {
-  private readonly inner: unknown;
+export * from "@provablehq/provable-engine-wasm/testnet.js";
 
-  private constructor(inner: unknown) {
-    this.inner = inner;
-  }
+const native = createNativeBindings(wasm as Record<string, any>, "testnet");
 
-  static fromRecord(record: unknown): DynamicRecord {
-    return new DynamicRecord(record);
-  }
-
-  static fromString(record: string): DynamicRecord {
-    return new DynamicRecord(record);
-  }
-
-  owner(): unknown {
-    return (this.inner as { owner?: () => unknown })?.owner?.();
-  }
-
-  toString(): string {
-    return (this.inner as { toString?: () => string })?.toString?.() ?? "";
-  }
-}
+export const Account = native.Account;
+export const AleoKeyProvider = native.AleoKeyProvider;
+export const AleoKeyProviderParams = native.AleoKeyProviderParams;
+export const AleoNetworkClient = native.AleoNetworkClient;
+export const CREDITS_PROGRAM_KEYS = native.CREDITS_PROGRAM_KEYS;
+export const DynamicRecord = native.DynamicRecord;
+export const NetworkRecordProvider = native.NetworkRecordProvider;
+export const OfflineKeyProvider = native.OfflineKeyProvider;
+export const OfflineSearchParams = native.OfflineSearchParams;
+export const ProgramManager = native.ProgramManager;
+export const verifyBatchProof = native.verifyBatchProof;
+export const verifyProof = native.verifyProof;

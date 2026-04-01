@@ -1,5 +1,5 @@
 import { createWasmEngine } from "@provablehq/provable-engine-wasm";
-import { ProvableSDK } from "@provablehq/provablekit";
+import { ProvableKit } from "@provablehq/provablekit";
 import {
     Account,
     Address,
@@ -16,7 +16,7 @@ import {
 import { getLocalKey, preDownloadBondingKeys, preDownloadTransferKeys } from "./helpers";
 
 
-await ProvableSDK.init({
+await ProvableKit.init({
   engine: createWasmEngine(),
   env: { network: "testnet" },
 });

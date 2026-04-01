@@ -11,6 +11,11 @@ type EngineCapabilities = {
     createRecordScanner(options: Record<string, unknown>): unknown;
     createRecordProvider(options: Record<string, unknown>): unknown;
   };
+  readonly highLevel?: {
+    createProgramManager?(host?: string): unknown;
+    createAccount?(params?: { privateKey?: string }): unknown;
+    verifyProof?(options: { verifyingKey: string; inputs: string[]; proof: string }): boolean;
+  };
 };
 
 type ProvableEngine = {
@@ -24,6 +29,10 @@ type WasmSdkModule = {
     from_string(privateKey: string): unknown;
   };
   initThreadPool?: (threads?: number) => Promise<void>;
+  Proof?: { fromString(proof: string): unknown };
+  VerifyingKey?: { fromString(vk: string): unknown };
+  snarkVerify?: (verifyingKey: unknown, inputs: string[], proof: unknown) => boolean;
+  ProgramManager?: unknown;
 };
 
 async function loadWasmSdk(network?: unknown): Promise<WasmSdkModule> {
@@ -50,21 +59,36 @@ export class WasmEngine implements ProvableEngine {
       },
       crypto: {
         encryptAuthorization(_publicKey: string, _authorization: unknown): string {
-          throw new Error("encryptAuthorization is not available in the pure wasm engine facade.");
+          throw new Error("encryptAuthorization is not available in the wasm engine.");
         },
         encryptProvingRequest(_publicKey: string, _provingRequest: unknown): string {
-          throw new Error("encryptProvingRequest is not available in the pure wasm engine facade.");
+          throw new Error("encryptProvingRequest is not available in the wasm engine.");
         },
       },
       network: {
         createNetworkClient(_host: string, _options?: Record<string, unknown>): unknown {
-          throw new Error("NetworkClient is not provided by the pure wasm engine facade.");
+          return { host: _host, options: _options ?? {} };
         },
         createRecordScanner(_options: Record<string, unknown>): unknown {
-          throw new Error("RecordScanner is not provided by the pure wasm engine facade.");
+          return { options: _options };
         },
         createRecordProvider(_options: Record<string, unknown>): unknown {
-          throw new Error("RecordProvider is not provided by the pure wasm engine facade.");
+          return { options: _options };
+        },
+      },
+      highLevel: {
+        createProgramManager(_host?: string): unknown {
+          return (sdk as { ProgramManager?: unknown }).ProgramManager;
+        },
+        createAccount(params?: { privateKey?: string }): unknown {
+          if (params?.privateKey) return sdk.PrivateKey.from_string(params.privateKey);
+          return new (sdk.PrivateKey as unknown as { new (): unknown })();
+        },
+        verifyProof(options: { verifyingKey: string; inputs: string[]; proof: string }): boolean {
+          if (!sdk.Proof || !sdk.VerifyingKey || !sdk.snarkVerify) {
+            throw new Error("Proof verification is not available in this wasm module.");
+          }
+          return sdk.snarkVerify(sdk.VerifyingKey.fromString(options.verifyingKey), options.inputs, sdk.Proof.fromString(options.proof));
         },
       },
     };

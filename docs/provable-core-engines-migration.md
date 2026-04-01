@@ -6,7 +6,7 @@ This document describes the core/engine package split added to this repository.
 
 - `@provablehq/provablekit`
   - Shared contracts and runtime-agnostic utilities.
-  - Exposes `ProvableSDK.init({ engine, env })`.
+  - Exposes `ProvableKit.init({ engine, env })`.
 - `@provablehq/provable-engine-wasm`
   - WASM-backed runtime adapter for web/desktop.
 - `@provablehq/provable-engine-react-native`
@@ -15,10 +15,10 @@ This document describes the core/engine package split added to this repository.
 ## Initialization
 
 ```ts
-import { ProvableSDK } from "@provablehq/provablekit";
+import { ProvableKit } from "@provablehq/provablekit";
 import { createWasmEngine } from "@provablehq/provable-engine-wasm";
 
-await ProvableSDK.init({
+await ProvableKit.init({
   engine: createWasmEngine(),
   env: { network: "mainnet" },
 });
