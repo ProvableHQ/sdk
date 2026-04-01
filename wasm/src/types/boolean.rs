@@ -45,7 +45,7 @@ use crate::{
     },
 };
 use snarkvm_console::{
-    prelude::{FromBits, FromBytes, ToBits, ToBytes},
+    prelude::{FromBits, FromBytes, FromField, ToBits, ToBytes},
     program::CastLossy,
 };
 use snarkvm_wasm::utilities::Uniform;
@@ -166,38 +166,50 @@ impl Boolean {
         self.0 == BooleanNative::from(other)
     }
 
-    // ── cast_lossy conversions ──────────────────────────────────────────
+    // ── cast conversions (all lossless — Boolean has minimal information) ──
 
-    /// Cast the boolean to a Field element (false=0, true=1).
+    /// Cast the boolean to a Field element (false=0, true=1). Lossless.
     #[wasm_bindgen(js_name = "toField")]
-    pub fn to_field(&self) -> Field {
-        // Safe: from_bits_le with a single bit is infallible.
-        Field::from(FieldNative::from_bits_le(&[*self.0]).unwrap())
+    pub fn to_field(&self) -> Result<Field, String> {
+        Ok(Field::from(FieldNative::from_bits_le(&[*self.0]).map_err(|e| e.to_string())?))
     }
 
-    /// Cast the boolean to a Scalar element (false=0, true=1).
+    /// Cast the boolean to a Scalar element (false=0, true=1). Lossless.
     #[wasm_bindgen(js_name = "toScalar")]
-    pub fn to_scalar(&self) -> Scalar {
-        // Safe: from_bits_le with a single bit is infallible.
-        Scalar::from(ScalarNative::from_bits_le(&[*self.0]).unwrap())
+    pub fn to_scalar(&self) -> Result<Scalar, String> {
+        Ok(Scalar::from(ScalarNative::from_bits_le(&[*self.0]).map_err(|e| e.to_string())?))
     }
 
-    /// Cast the boolean to a Group element (via Field, Elligator-2 fallback).
+    /// Cast the boolean to a Group element (strict, via Field x-coordinate recovery).
+    /// Returns an error if the resulting field is not a valid x-coordinate.
     #[wasm_bindgen(js_name = "toGroup")]
-    pub fn to_group(&self) -> Group {
-        // Safe: from_bits_le with a single bit is infallible.
-        let field = FieldNative::from_bits_le(&[*self.0]).unwrap();
+    pub fn to_group(&self) -> Result<Group, String> {
+        let field = FieldNative::from_bits_le(&[*self.0]).map_err(|e| e.to_string())?;
+        Ok(Group::from(GroupNative::from_field(&field).map_err(|e| e.to_string())?))
+    }
+
+    /// Cast the boolean to a Group element (lossy, via Field with Elligator-2 fallback).
+    /// This conversion never fails.
+    #[wasm_bindgen(js_name = "toGroupLossy")]
+    pub fn to_group_lossy(&self) -> Result<Group, String> {
+        let field = FieldNative::from_bits_le(&[*self.0]).map_err(|e| e.to_string())?;
         let group: GroupNative = field.cast_lossy();
-        Group::from(group)
+        Ok(Group::from(group))
     }
 
-    /// Cast the boolean to an Address (via Group).
+    /// Cast the boolean to an Address (strict, via Group). Returns an error if conversion fails.
     #[wasm_bindgen(js_name = "toAddress")]
-    pub fn to_address(&self) -> Address {
-        Address::from_group(self.to_group())
+    pub fn to_address(&self) -> Result<Address, String> {
+        Ok(Address::from_group(self.to_group()?))
     }
 
-    // Boolean → Integer conversions (false=0, true=1)
+    /// Cast the boolean to an Address (lossy, via Group with Elligator-2 fallback).
+    #[wasm_bindgen(js_name = "toAddressLossy")]
+    pub fn to_address_lossy(&self) -> Result<Address, String> {
+        Ok(Address::from_group(self.to_group_lossy()?))
+    }
+
+    // Boolean → Integer conversions (false=0, true=1). All lossless.
 
     /// Cast the boolean to a U8 (false=0, true=1).
     #[wasm_bindgen(js_name = "toU8")]

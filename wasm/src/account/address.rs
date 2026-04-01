@@ -238,7 +238,7 @@ impl Address {
         false
     }
 
-    // ── cast_lossy conversions ──────────────────────────────────────────
+    // ── cast conversions ───────────────────────────────────────────────
 
     /// Cast the address to a Field element (x-coordinate of the underlying group point).
     #[wasm_bindgen(js_name = "toField")]
@@ -246,78 +246,77 @@ impl Address {
         Field::from(self.0.to_group().to_x_coordinate())
     }
 
-    /// Cast the address to a Scalar (lossy, via x-coordinate).
-    #[wasm_bindgen(js_name = "toScalar")]
-    pub fn to_scalar(&self) -> Scalar {
-        let x_coord = self.0.to_group().to_x_coordinate();
-        Scalar::from(ScalarNative::from_field_lossy(&x_coord))
+    /// Cast the address to a Scalar with lossy truncation (via x-coordinate).
+    #[wasm_bindgen(js_name = "toScalarLossy")]
+    pub fn to_scalar_lossy(&self) -> Scalar {
+        Scalar::from(ScalarNative::from_field_lossy(&self.0.to_group().to_x_coordinate()))
     }
 
-    /// Cast the address to a Boolean (LSB of x-coordinate).
-    #[wasm_bindgen(js_name = "toBoolean")]
-    pub fn to_boolean(&self) -> Boolean {
+    /// Cast the address to a Boolean with lossy truncation (LSB of x-coordinate).
+    #[wasm_bindgen(js_name = "toBooleanLossy")]
+    pub fn to_boolean_lossy(&self) -> Boolean {
         Boolean::new(self.0.to_group().to_x_coordinate().to_bits_le()[0])
     }
 
     // Address → Integer lossy conversions (via x-coordinate)
 
     /// Cast the address to a U8 with lossy truncation.
-    #[wasm_bindgen(js_name = "toU8")]
-    pub fn to_u8(&self) -> U8 {
+    #[wasm_bindgen(js_name = "toU8Lossy")]
+    pub fn to_u8_lossy(&self) -> U8 {
         U8::from(U8Native::from_field_lossy(&self.0.to_group().to_x_coordinate()))
     }
 
     /// Cast the address to a U16 with lossy truncation.
-    #[wasm_bindgen(js_name = "toU16")]
-    pub fn to_u16(&self) -> U16 {
+    #[wasm_bindgen(js_name = "toU16Lossy")]
+    pub fn to_u16_lossy(&self) -> U16 {
         U16::from(U16Native::from_field_lossy(&self.0.to_group().to_x_coordinate()))
     }
 
     /// Cast the address to a U32 with lossy truncation.
-    #[wasm_bindgen(js_name = "toU32")]
-    pub fn to_u32(&self) -> U32 {
+    #[wasm_bindgen(js_name = "toU32Lossy")]
+    pub fn to_u32_lossy(&self) -> U32 {
         U32::from(U32Native::from_field_lossy(&self.0.to_group().to_x_coordinate()))
     }
 
     /// Cast the address to a U64 with lossy truncation.
-    #[wasm_bindgen(js_name = "toU64")]
-    pub fn to_u64(&self) -> U64 {
+    #[wasm_bindgen(js_name = "toU64Lossy")]
+    pub fn to_u64_lossy(&self) -> U64 {
         U64::from(U64Native::from_field_lossy(&self.0.to_group().to_x_coordinate()))
     }
 
     /// Cast the address to a U128 with lossy truncation.
-    #[wasm_bindgen(js_name = "toU128")]
-    pub fn to_u128(&self) -> U128 {
+    #[wasm_bindgen(js_name = "toU128Lossy")]
+    pub fn to_u128_lossy(&self) -> U128 {
         U128::from(U128Native::from_field_lossy(&self.0.to_group().to_x_coordinate()))
     }
 
     /// Cast the address to an I8 with lossy truncation.
-    #[wasm_bindgen(js_name = "toI8")]
-    pub fn to_i8(&self) -> I8 {
+    #[wasm_bindgen(js_name = "toI8Lossy")]
+    pub fn to_i8_lossy(&self) -> I8 {
         I8::from(I8Native::from_field_lossy(&self.0.to_group().to_x_coordinate()))
     }
 
     /// Cast the address to an I16 with lossy truncation.
-    #[wasm_bindgen(js_name = "toI16")]
-    pub fn to_i16(&self) -> I16 {
+    #[wasm_bindgen(js_name = "toI16Lossy")]
+    pub fn to_i16_lossy(&self) -> I16 {
         I16::from(I16Native::from_field_lossy(&self.0.to_group().to_x_coordinate()))
     }
 
     /// Cast the address to an I32 with lossy truncation.
-    #[wasm_bindgen(js_name = "toI32")]
-    pub fn to_i32(&self) -> I32 {
+    #[wasm_bindgen(js_name = "toI32Lossy")]
+    pub fn to_i32_lossy(&self) -> I32 {
         I32::from(I32Native::from_field_lossy(&self.0.to_group().to_x_coordinate()))
     }
 
     /// Cast the address to an I64 with lossy truncation.
-    #[wasm_bindgen(js_name = "toI64")]
-    pub fn to_i64(&self) -> I64 {
+    #[wasm_bindgen(js_name = "toI64Lossy")]
+    pub fn to_i64_lossy(&self) -> I64 {
         I64::from(I64Native::from_field_lossy(&self.0.to_group().to_x_coordinate()))
     }
 
     /// Cast the address to an I128 with lossy truncation.
-    #[wasm_bindgen(js_name = "toI128")]
-    pub fn to_i128(&self) -> I128 {
+    #[wasm_bindgen(js_name = "toI128Lossy")]
+    pub fn to_i128_lossy(&self) -> I128 {
         I128::from(I128Native::from_field_lossy(&self.0.to_group().to_x_coordinate()))
     }
 }

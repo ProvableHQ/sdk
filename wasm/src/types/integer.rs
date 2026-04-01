@@ -15,33 +15,29 @@
 // along with the Provable SDK library. If not, see <https://www.gnu.org/licenses/>.
 
 use crate::{
-    Address,
     Plaintext,
     from_js_typed_array,
     to_bits_array_le,
-    types::{Boolean, Field, Group, native::*},
+    types::{Boolean, Field, native::*},
 };
 use js_sys::{Array, Uint8Array};
-use snarkvm_console::{
-    prelude::{
-        AbsChecked,
-        AbsWrapped,
-        AddWrapped,
-        DivWrapped,
-        FromBits,
-        FromBytes,
-        FromField,
-        FromFields,
-        MulWrapped,
-        Pow,
-        Rem,
-        RemWrapped,
-        SubWrapped,
-        ToBits,
-        ToBytes,
-        ToField,
-    },
-    program::CastLossy,
+use snarkvm_console::prelude::{
+    AbsChecked,
+    AbsWrapped,
+    AddWrapped,
+    DivWrapped,
+    FromBits,
+    FromBytes,
+    FromField,
+    FromFields,
+    MulWrapped,
+    Pow,
+    Rem,
+    RemWrapped,
+    SubWrapped,
+    ToBits,
+    ToBytes,
+    ToField,
 };
 use std::{ops::Deref, str::FromStr};
 use wasm_bindgen::prelude::*;
@@ -214,7 +210,7 @@ macro_rules! impl_integer {
                 $name(self.0)
             }
 
-            // ── cast_lossy conversions ──────────────────────────────────
+            // ── cast conversions ────────────────────────────────────────
 
             /// Convert the integer to a Field element (lossless).
             #[wasm_bindgen(js_name = "toField")]
@@ -228,25 +224,10 @@ macro_rules! impl_integer {
                 Self(<$native>::from_field_lossy(&FieldNative::from(field)))
             }
 
-            /// Cast the integer to a Boolean (extracts least-significant bit).
-            #[wasm_bindgen(js_name = "toBoolean")]
-            pub fn to_boolean(&self) -> Boolean {
+            /// Cast the integer to a Boolean with lossy truncation (extracts least-significant bit).
+            #[wasm_bindgen(js_name = "toBooleanLossy")]
+            pub fn to_boolean_lossy(&self) -> Boolean {
                 Boolean::new(self.0.to_bits_le()[0])
-            }
-
-            /// Cast the integer to a Group element (via Field, Elligator-2 fallback).
-            #[wasm_bindgen(js_name = "toGroup")]
-            pub fn to_group(&self) -> Group {
-                // Safe: Integer::to_field() is infallible for all valid integer values.
-                let field = self.0.to_field().unwrap();
-                let group: GroupNative = field.cast_lossy();
-                Group::from(group)
-            }
-
-            /// Cast the integer to an Address (via Group).
-            #[wasm_bindgen(js_name = "toAddress")]
-            pub fn to_address(&self) -> Address {
-                Address::from_group(self.to_group())
             }
         }
 
@@ -302,69 +283,68 @@ impl_integer!(U128, U128Native);
 // all 10 integer types. Each conversion goes through Field as the
 // universal intermediate: source.to_field() -> TargetNative::from_field_lossy().
 
-// Safe: Integer::to_field() is infallible for all valid integer values in snarkVM.
 macro_rules! impl_integer_cross_casts {
     ($source:ident) => {
         #[wasm_bindgen]
         impl $source {
             /// Cast to U8 with lossy truncation.
-            #[wasm_bindgen(js_name = "toU8")]
-            pub fn to_u8(&self) -> U8 {
-                U8::from(U8Native::from_field_lossy(&self.0.to_field().unwrap()))
+            #[wasm_bindgen(js_name = "toU8Lossy")]
+            pub fn to_u8_lossy(&self) -> Result<U8, String> {
+                Ok(U8::from(U8Native::from_field_lossy(&self.0.to_field().map_err(|e| e.to_string())?)))
             }
 
             /// Cast to U16 with lossy truncation.
-            #[wasm_bindgen(js_name = "toU16")]
-            pub fn to_u16(&self) -> U16 {
-                U16::from(U16Native::from_field_lossy(&self.0.to_field().unwrap()))
+            #[wasm_bindgen(js_name = "toU16Lossy")]
+            pub fn to_u16_lossy(&self) -> Result<U16, String> {
+                Ok(U16::from(U16Native::from_field_lossy(&self.0.to_field().map_err(|e| e.to_string())?)))
             }
 
             /// Cast to U32 with lossy truncation.
-            #[wasm_bindgen(js_name = "toU32")]
-            pub fn to_u32(&self) -> U32 {
-                U32::from(U32Native::from_field_lossy(&self.0.to_field().unwrap()))
+            #[wasm_bindgen(js_name = "toU32Lossy")]
+            pub fn to_u32_lossy(&self) -> Result<U32, String> {
+                Ok(U32::from(U32Native::from_field_lossy(&self.0.to_field().map_err(|e| e.to_string())?)))
             }
 
             /// Cast to U64 with lossy truncation.
-            #[wasm_bindgen(js_name = "toU64")]
-            pub fn to_u64(&self) -> U64 {
-                U64::from(U64Native::from_field_lossy(&self.0.to_field().unwrap()))
+            #[wasm_bindgen(js_name = "toU64Lossy")]
+            pub fn to_u64_lossy(&self) -> Result<U64, String> {
+                Ok(U64::from(U64Native::from_field_lossy(&self.0.to_field().map_err(|e| e.to_string())?)))
             }
 
             /// Cast to U128 with lossy truncation.
-            #[wasm_bindgen(js_name = "toU128")]
-            pub fn to_u128(&self) -> U128 {
-                U128::from(U128Native::from_field_lossy(&self.0.to_field().unwrap()))
+            #[wasm_bindgen(js_name = "toU128Lossy")]
+            pub fn to_u128_lossy(&self) -> Result<U128, String> {
+                Ok(U128::from(U128Native::from_field_lossy(&self.0.to_field().map_err(|e| e.to_string())?)))
             }
 
             /// Cast to I8 with lossy truncation.
-            #[wasm_bindgen(js_name = "toI8")]
-            pub fn to_i8(&self) -> I8 {
-                I8::from(I8Native::from_field_lossy(&self.0.to_field().unwrap()))
+            #[wasm_bindgen(js_name = "toI8Lossy")]
+            pub fn to_i8_lossy(&self) -> Result<I8, String> {
+                Ok(I8::from(I8Native::from_field_lossy(&self.0.to_field().map_err(|e| e.to_string())?)))
             }
 
             /// Cast to I16 with lossy truncation.
-            #[wasm_bindgen(js_name = "toI16")]
-            pub fn to_i16(&self) -> I16 {
-                I16::from(I16Native::from_field_lossy(&self.0.to_field().unwrap()))
+            #[wasm_bindgen(js_name = "toI16Lossy")]
+            pub fn to_i16_lossy(&self) -> Result<I16, String> {
+                Ok(I16::from(I16Native::from_field_lossy(&self.0.to_field().map_err(|e| e.to_string())?)))
             }
 
             /// Cast to I32 with lossy truncation.
-            #[wasm_bindgen(js_name = "toI32")]
-            pub fn to_i32(&self) -> I32 {
-                I32::from(I32Native::from_field_lossy(&self.0.to_field().unwrap()))
+            #[wasm_bindgen(js_name = "toI32Lossy")]
+            pub fn to_i32_lossy(&self) -> Result<I32, String> {
+                Ok(I32::from(I32Native::from_field_lossy(&self.0.to_field().map_err(|e| e.to_string())?)))
             }
 
             /// Cast to I64 with lossy truncation.
-            #[wasm_bindgen(js_name = "toI64")]
-            pub fn to_i64(&self) -> I64 {
-                I64::from(I64Native::from_field_lossy(&self.0.to_field().unwrap()))
+            #[wasm_bindgen(js_name = "toI64Lossy")]
+            pub fn to_i64_lossy(&self) -> Result<I64, String> {
+                Ok(I64::from(I64Native::from_field_lossy(&self.0.to_field().map_err(|e| e.to_string())?)))
             }
 
             /// Cast to I128 with lossy truncation.
-            #[wasm_bindgen(js_name = "toI128")]
-            pub fn to_i128(&self) -> I128 {
-                I128::from(I128Native::from_field_lossy(&self.0.to_field().unwrap()))
+            #[wasm_bindgen(js_name = "toI128Lossy")]
+            pub fn to_i128_lossy(&self) -> Result<I128, String> {
+                Ok(I128::from(I128Native::from_field_lossy(&self.0.to_field().map_err(|e| e.to_string())?)))
             }
         }
     };
@@ -403,67 +383,44 @@ mod tests {
     }
 
     #[test]
-    fn test_integer_to_boolean() {
+    fn test_integer_to_boolean_lossy() {
         let zero = U32::from_string("0u32").unwrap();
-        assert_eq!(zero.to_boolean().to_string(), "false");
+        assert_eq!(zero.to_boolean_lossy().to_string(), "false");
 
         let one = U32::from_string("1u32").unwrap();
-        assert_eq!(one.to_boolean().to_string(), "true");
+        assert_eq!(one.to_boolean_lossy().to_string(), "true");
 
         let even = U32::from_string("4u32").unwrap();
-        assert_eq!(even.to_boolean().to_string(), "false");
+        assert_eq!(even.to_boolean_lossy().to_string(), "false");
 
         let odd = U32::from_string("5u32").unwrap();
-        assert_eq!(odd.to_boolean().to_string(), "true");
-    }
-
-    #[test]
-    fn test_integer_to_group() {
-        let val = U32::from_string("42u32").unwrap();
-        let _group = val.to_group(); // Should not panic
-    }
-
-    #[test]
-    fn test_integer_to_address() {
-        let val = U32::from_string("42u32").unwrap();
-        let addr = val.to_address();
-        assert!(addr.to_string().starts_with("aleo1"));
+        assert_eq!(odd.to_boolean_lossy().to_string(), "true");
     }
 
     #[test]
     fn test_cross_cast_identity() {
-        // U32 → U32 should be identity
         let val = U32::from_string("42u32").unwrap();
-        let cast = val.to_u32();
+        let cast = val.to_u32_lossy().unwrap();
         assert_eq!(val, cast);
     }
 
     #[test]
     fn test_cross_cast_widening() {
-        // U8(255) → U32 should preserve value
         let val = U8::from_string("255u8").unwrap();
-        let wide = val.to_u32();
+        let wide = val.to_u32_lossy().unwrap();
         assert_eq!(wide.to_string(), "255u32");
     }
 
     #[test]
     fn test_cross_cast_narrowing() {
-        // U32(256) → U8 should truncate to 0
-        let val = U32::from_string("256u32").unwrap();
-        let narrow = val.to_u8();
-        assert_eq!(narrow.to_string(), "0u8");
-
-        // U32(257) → U8 should truncate to 1
-        let val = U32::from_string("257u32").unwrap();
-        let narrow = val.to_u8();
-        assert_eq!(narrow.to_string(), "1u8");
+        assert_eq!(U32::from_string("256u32").unwrap().to_u8_lossy().unwrap().to_string(), "0u8");
+        assert_eq!(U32::from_string("257u32").unwrap().to_u8_lossy().unwrap().to_string(), "1u8");
     }
 
     #[test]
     fn test_cross_cast_signed_unsigned() {
-        // I32(42) → U32 should be 42
         let val = I32::from_string("42i32").unwrap();
-        let cast = val.to_u32();
+        let cast = val.to_u32_lossy().unwrap();
         assert_eq!(cast.to_string(), "42u32");
     }
 }
