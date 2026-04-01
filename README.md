@@ -7,19 +7,11 @@
 
 # Zero-Knowledge Web App SDK
 
-The [Provable SDK](https://github.com/ProvableHQ/sdk) provides tools for building zero-knowledge applications. It consists of
-several TypeScript & JavaScript libraries which provide the following functionality:
-1. [Aleo account management](https://provable.tools/account)
-2. [Web-based program execution and deployment](https://provable.tools/develop)
-3. [Aleo credit transfers](https://provable.tools/transfer)
-4. [Management of program state and data](https://provable.tools/protocol)
-5. [Communication with the Aleo network](https://provable.tools/rest)
-6. [Aleo Cryptographic Primitives](https://provable.tools/algebra)
+The [Provable SDK](https://github.com/ProvableHQ/sdk) provides tools for building zero-knowledge applications on the
+[Aleo](https://aleo.org) blockchain. It re-exports core protocol objects from [SnarkVM](https://github.com/ProvableHQ/snarkVM)
+as TypeScript & JavaScript libraries so developers can build Aleo dApps, wallets, servers, and CLI tools entirely in JS/TS.
 
-All of this functionality is demonstrated on [Provable.tools](https://provable.tools).
-
-
-The Provable SDK is divided into three TypeScript/JavaScript packages:
+All of this functionality is demonstrated on [Provable.tools](https://provable.tools). The Provable SDK is divided into three TypeScript/JavaScript packages:
 
 ## 1. Provable SDK - Build Zero-Knowledge Web Apps
 
@@ -52,23 +44,136 @@ When compiled with `wasm-pack`, JavaScript bindings are generated for the WebAss
 readme provides instructions for compiling this crate and using it in web projects for those interested in building from
 source.
 
-Source: [Aleo Wasm](https://www.npmjs.com/package/@provablehq/wasm)
+Source: [`Aleo Wasm`](https://www.npmjs.com/package/@provablehq/wasm)
 
-## 📚 Documentation
+# Features
 
-#### [API Documentation](https://developer.aleo.org/sdk/overview)
-API Documentation and tutorials for the Provable SDK can be found on the [SDK Developer Docs](https://developer.aleo.org/sdk/overview) page.
-Documentation on how to build Leo and Aleo Instructions programs can be found on the [Leo Developer Docs](https://docs.leo-lang.org/leo) page.
+## Roadmap
+The SDK Feature roadmap can be found in the repo milestones below.
+### [Milestones](https://github.com/ProvableHQ/sdk/milestones)
 
-#### [SDK Readme](https://github.com/ProvableHQ/sdk/tree/mainnet/sdk#readme)
+## Core Features
+
+<table>
+  <tr>
+    <td width="180"><b>🔑 Account Management</b></td>
+    <td>Create, import, and encrypt/decrypt Aleo accounts. Full key derivation chain (PrivateKey, ViewKey, ComputeKey, Address, GraphKey). Password-based private key encryption with key material zeroization for secure memory handling.</td>
+  </tr>
+  <tr>
+    <td><b>⚡ Program Execution</b></td>
+    <td>Execute arbitrary Aleo programs locally or on-chain. Build and submit execution transactions with zero-knowledge proofs. Offline execution for testing. Dynamic dispatch support.</td>
+  </tr>
+  <tr>
+    <td><b>🚀 Program Deployment</b></td>
+    <td>Deploy and upgrade Aleo programs to the network. Fee estimation, devnode deployments, and recursive import resolution.</td>
+  </tr>
+  <tr>
+    <td><b>🔍 Program Inspection</b></td>
+    <td>Parse Aleo programs and introspect their structure: list functions, read function input/output types, enumerate mappings with key/value types, inspect record definitions and struct members, and resolve program imports.</td>
+  </tr>
+  <tr>
+    <td><b>📋 Aleo Record Management</b></td>
+    <td>Full lifecycle management for Aleo records. Decrypt individual or bulk records in parallel. Read record data fields and check ownership. Discover unspent records via serial number and tag verification. Convert between static and dynamic (Merkle-root) record representations. Generate and share record view keys for selective disclosure.</td>
+  </tr>
+  <tr>
+    <td><b>💸 Credit Transfers</b></td>
+    <td>Private, public, private-to-public, and public-to-private Aleo credit transfers. Record join and split operations.</td>
+  </tr>
+  <tr>
+    <td><b>🏛️ Validator Operations</b></td>
+    <td>Bond/unbond validators, claim unbonded credits, and set validator state.</td>
+  </tr>
+  <tr>
+    <td><b>🌐 Network Client</b></td>
+    <td>Full REST API client for the Aleo network: query blocks, transactions, programs, mappings, mempool, committee state, state roots, and public balances. Submit transactions and poll for confirmation.</td>
+  </tr>
+  <tr>
+    <td><b>🧮 Cryptographic Primitives</b></td>
+    <td>Field, Group, and Scalar types. Hash functions: BHP256/512/768/1024, Pedersen64/128, Poseidon2/4/8. Digital signatures over raw bytes and typed Aleo values. These primitives enable custom cryptographic schemes for Aleo dApps, wallets that support Aleo, and servers and CLI applications that interact with the Aleo network.</td>
+  </tr>
+  <tr>
+    <td><b>✅ Proof Verification</b></td>
+    <td>Single and batch zk-SNARK proof verification. Verify function execution proofs offline.</td>
+  </tr>
+  <tr>
+    <td><b>✍️ Authorization & External Signing</b></td>
+    <td>Build execution and fee authorizations offline for hardware wallets, multi-signature schemes, and custom signing flows. Construct execution requests from externally signed data with multiple input-ID resolution strategies (explicit record view keys, view key derivation, pre-computed input IDs).</td>
+  </tr>
+  <tr>
+    <td><b>🗝️ Proving Key Management</b></td>
+    <td>Synthesize, cache, fetch, and verify proving/verifying keys. In-memory and file-based keystores. SHA-256 fingerprint verification for key integrity. Offline key provider for air-gapped environments.</td>
+  </tr>
+  <tr>
+    <td><b>🛡️ Security</b></td>
+    <td>Private key material zeroization on drop (<code>Zeroize</code> trait in Rust, <code>Symbol.dispose</code> in TS). libsodium <code>crypto_box_seal</code> encryption for delegated proving and record scanner payloads. Encrypted private key storage with password-based symmetric encryption.</td>
+  </tr>
+</table>
+
+## Aleo RPC Features
+
+<table>
+  <tr>
+    <td width="180"><b>☁️ Delegated Proving Service</b></td>
+    <td>Offload expensive proof generation to a remote proving service. Proving requests and authorizations are encrypted with the service's X25519 public key via libsodium. Supports API key and JWT authentication.</td>
+  </tr>
+  <tr>
+    <td><b>📡 Record Scanner Service</b></td>
+    <td>Privacy-preserving record discovery. Register an encrypted view key with the scanner service, then query for owned records without exposing the view key to the network. Supports revocation, status checking, serial number verification, and filtered queries.</td>
+  </tr>
+  <tr>
+    <td><b>⚖️ Sealance Integration</b></td>
+    <td>Merkle tree construction and proof generation for compliance and KYC exclusion proofs using the Sealance compliant stablecoin standard.</td>
+  </tr>
+</table>
+
+## AI Agent Support
+
+<p>
+  <img src="https://img.shields.io/badge/Claude_Code-ready-blueviolet?logo=anthropic&logoColor=white" alt="Claude Code">
+  <img src="https://img.shields.io/badge/GitHub_Copilot-ready-blueviolet?logo=github&logoColor=white" alt="GitHub Copilot">
+  <img src="https://img.shields.io/badge/Cursor-ready-blueviolet?logo=cursor&logoColor=white" alt="Cursor">
+</p>
+
+The Provable SDK is designed to be used by AI coding agents out of the box. The repository ships with built-in **agent skills** ([`.agents/skills/`](https://github.com/ProvableHQ/sdk/tree/mainnet/.agents/skills)), project context ([`.claude/`](https://github.com/ProvableHQ/sdk/tree/mainnet/.claude)), and **SDK documentation** ([`docs/`](https://github.com/ProvableHQ/sdk/tree/mainnet/docs)) — including a [step-by-step guide](https://github.com/ProvableHQ/sdk/tree/mainnet/docs/guide), [API reference](https://github.com/ProvableHQ/sdk/tree/mainnet/docs/api_reference), and [runnable examples](https://github.com/ProvableHQ/sdk/tree/mainnet/docs/examples). Together these give AI assistants the context they need to build Aleo dApps, contribute to the SDK, and generate correct code against the Rust/WASM/TypeScript stack — no manual prompting required. Compatible with any agent framework that supports skill files, including [Claude Code](https://docs.anthropic.com/en/docs/claude-code), GitHub Copilot, and Cursor.
+
+
+## Networks Supported
+
+<table>
+  <tr>
+    <td width="140"><img src="https://img.shields.io/badge/Mainnet-live-brightgreen" alt="Mainnet"></td>
+    <td>Production Aleo mainnet.</td>
+  </tr>
+  <tr>
+    <td><img src="https://img.shields.io/badge/Testnet-live-blue" alt="Testnet"></td>
+    <td>Aleo testnet for development and testing.</td>
+  </tr>
+</table>
+
+## JavaScript Runtimes & Frameworks
+
+<p>
+  <img src="https://img.shields.io/badge/Browser-supported-brightgreen?logo=googlechrome&logoColor=white" alt="Browser">
+  <img src="https://img.shields.io/badge/Node.js-supported-brightgreen?logo=nodedotjs&logoColor=white" alt="Node.js">
+  <img src="https://img.shields.io/badge/Next.js-supported-brightgreen?logo=nextdotjs&logoColor=white" alt="Next.js">
+  <img src="https://img.shields.io/badge/Bun-supported-brightgreen?logo=bun&logoColor=white" alt="Bun">
+  <img src="https://img.shields.io/badge/Deno-supported-brightgreen?logo=deno&logoColor=white" alt="Deno">
+</p>
+
+Full **browser** support with single-threaded and multi-threaded (web worker) modes — multi-threaded uses Rust-native threading via `rayon` for significant performance improvements during proof generation. First-class **Node.js** support for server-side Aleo applications, CLI tools, and backend services. Compatible with **Next.js**, **Bun**, and **Deno**.
+
+---
+
+# 📚 Documentation
+
+## [Aleo RPC / Provable API Documentation](https://docs.provable.com)
+Documentation on interacting with Aleo network via Provable's API & RPC endpoints.
+
+## [SDK Guide](https://developer.aleo.org/sdk/guides/getting_started)
 The SDK readme provides concepts core to executing zero-knowledge programs in the web and several detailed examples of
 how to use the SDK to build web apps using Aleo.
 
-#### [Aleo Wasm Readme](https://github.com/ProvableHQ/sdk/tree/mainnet/wasm#readme)
-The Aleo Wasm readme provides instructions for compiling the Aleo Wasm crate and using it in web projects. Those who
-want to build from source or create their own WebAssembly bindings should start here.
-
-## ❤️ Contributors
+# ❤️ Contributors
 
 Thanks goes to these wonderful people ([emoji key](https://allcontributors.org/docs/en/emoji-key)):
 
