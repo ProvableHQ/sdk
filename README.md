@@ -4,52 +4,73 @@
     <a href="https://github.com/ProvableHQ/sdk#%EF%B8%8F-contributors"><img src="https://img.shields.io/badge/contributors-23-ee8449"/></a>
 </p>
 
-
 # Zero-Knowledge Web App SDK
 
 The [Provable SDK](https://github.com/ProvableHQ/sdk) provides tools for building zero-knowledge applications on the
 [Aleo](https://aleo.org) blockchain. It re-exports core protocol objects from [SnarkVM](https://github.com/ProvableHQ/snarkVM)
 as TypeScript & JavaScript libraries so developers can build Aleo dApps, wallets, servers, and CLI tools entirely in JS/TS.
 
-All of this functionality is demonstrated on [Provable.tools](https://provable.tools). The Provable SDK is divided into three TypeScript/JavaScript packages:
+All of this functionality is demonstrated on [Provable.tools](https://provable.tools).
 
-## 1. Provable SDK - Build Zero-Knowledge Web Apps
+## Table of Contents
+
+📦 [**Packages**](#packages) — [Provable SDK](#1-provable-sdk---build-zero-knowledge-web-apps) · [Create-Leo-App](#2-create-leo-app---zero-knowledge-web-app-examples) · [Aleo Wasm](#3-aleo-wasm---zero-knowledge-algorithms-in-javascript--webassembly)
+
+⚙️ [**Features**](#features) — [Roadmap](#roadmap) · [Core](#core-features) · [Aleo RPC](#aleo-rpc-features) · [AI Agents](#ai-agent-support) · [Networks](#networks-supported) · [Runtimes](#javascript-runtimes--frameworks)
+
+📚 [**Documentation**](#-documentation) — API reference, SDK guide, and tutorials
+
+❤️ [**Contributors**](#%EF%B8%8F-contributors)
+
+---
+
+## Packages
+
+The Provable SDK is divided into three TypeScript/JavaScript packages:
+
+### 1. Provable SDK - Build Zero-Knowledge Web Apps
 
 <a href="https://www.npmjs.com/package/@provablehq/sdk"> <img alt="Provable SDK" src="https://img.shields.io/npm/l/%40provablehq%2Fsdk?label=NPM%20-%20Aleo%20SDK&labelColor=green&color=blue"></a>
 
 The official Provable SDK providing JavaScript/TypeScript tools for creating zero-knowledge applications.
 
-### ⚡ Build your own app
+#### ⚡ Build your own app
 
 Start here with the [Provable SDK Readme](https://github.com/ProvableHQ/sdk#readme) to get started building your
 first zero-knowledge web app.
 
-#### Source: [`Provable SDK`](https://www.npmjs.com/package/@provablehq/sdk)
+Source: [`@provablehq/sdk`](https://www.npmjs.com/package/@provablehq/sdk)
 
-## 2. Create-Leo-App - Zero-Knowledge Web App Examples
+### 2. Create-Leo-App - Zero-Knowledge Web App Examples
+
 <a href="https://www.npmjs.com/package/create-leo-app"> <img alt="Create Leo App" src="https://img.shields.io/npm/l/create-leo-app?label=NPM%20-%20Create-Leo-App&labelColor=green&color=blue"></a>
 
-Create-leo-app provides zero-knowledge web app examples in common web frameworks such as React. Developers looking to
+Create-Leo-App provides zero-knowledge web app examples in common web frameworks such as React. Developers looking to
 start with working examples should start here.
 
-#### Source: [`sdk/create-leo-app`](https://github.com/ProvableHQ/sdk/tree/mainnet/create-leo-app)
+Source: [`create-leo-app`](https://github.com/ProvableHQ/sdk/tree/mainnet/create-leo-app)
 
-## 3. Aleo Wasm - Zero-Knowledge Algorithms in JavaScript + WebAssembly
-<a href="https://www.npmjs.com/package/@provablehq/wasm"> <img alt="Create Leo App" src="https://img.shields.io/npm/l/%40provablehq%2Fwasm?label=NPM%20-%20Aleo%20Wasm&labelColor=green&color=blue"></a>
+### 3. Aleo Wasm - Zero-Knowledge Algorithms in JavaScript + WebAssembly
 
-Aleo Wasm is a Rust crate which compiles the Aleo source code responsible for creating and executing zero-knowledge programs into
+<a href="https://www.npmjs.com/package/@provablehq/wasm"> <img alt="Aleo Wasm" src="https://img.shields.io/npm/l/%40provablehq%2Fwasm?label=NPM%20-%20Aleo%20Wasm&labelColor=green&color=blue"></a>
+
+Aleo Wasm is a Rust crate that compiles the Aleo source code responsible for creating and executing zero-knowledge programs into
 WebAssembly.
 
-When compiled with `wasm-pack`, JavaScript bindings are generated for the WebAssembly allowing Aleo zero-knowledge programs to be used in the browser and Node.js. This package is available on NPM (linked above). The Aleo Wasm
+When compiled with `wasm-pack`, JavaScript bindings are generated for the WebAssembly, allowing Aleo zero-knowledge programs to be used in the browser and Node.js. This package is available on NPM (linked above). The Aleo Wasm
 readme provides instructions for compiling this crate and using it in web projects for those interested in building from
 source.
 
-Source: [`Aleo Wasm`](https://www.npmjs.com/package/@provablehq/wasm)
+Source: [`@provablehq/wasm`](https://www.npmjs.com/package/@provablehq/wasm)
+
+---
 
 # Features
 
 ## Roadmap
-The SDK Feature roadmap can be found in the repo milestones below.
+
+The SDK feature roadmap can be found in the repo milestones below.
+
 ### [Milestones](https://github.com/ProvableHQ/sdk/milestones)
 
 ## Core Features
@@ -96,7 +117,7 @@ The SDK Feature roadmap can be found in the repo milestones below.
     <td>Single and batch zk-SNARK proof verification. Verify function execution proofs offline.</td>
   </tr>
   <tr>
-    <td><b>✍️ Authorization & External Signing</b></td>
+    <td><b>✍️ Authorization &amp; External Signing</b></td>
     <td>Build execution and fee authorizations offline for hardware wallets, multi-signature schemes, and custom signing flows. Construct execution requests from externally signed data with multiple input-ID resolution strategies (explicit record view keys, view key derivation, pre-computed input IDs).</td>
   </tr>
   <tr>
@@ -136,7 +157,6 @@ The SDK Feature roadmap can be found in the repo milestones below.
 
 The Provable SDK is designed to be used by AI coding agents out of the box. The repository ships with built-in **agent skills** ([`.agents/skills/`](https://github.com/ProvableHQ/sdk/tree/mainnet/.agents/skills)), project context ([`.claude/`](https://github.com/ProvableHQ/sdk/tree/mainnet/.claude)), and **SDK documentation** ([`docs/`](https://github.com/ProvableHQ/sdk/tree/mainnet/docs)) — including a [step-by-step guide](https://github.com/ProvableHQ/sdk/tree/mainnet/docs/guide), [API reference](https://github.com/ProvableHQ/sdk/tree/mainnet/docs/api_reference), and [runnable examples](https://github.com/ProvableHQ/sdk/tree/mainnet/docs/examples). Together these give AI assistants the context they need to build Aleo dApps, contribute to the SDK, and generate correct code against the Rust/WASM/TypeScript stack — no manual prompting required. Compatible with any agent framework that supports skill files, including [Claude Code](https://docs.anthropic.com/en/docs/claude-code), GitHub Copilot, and Cursor.
 
-
 ## Networks Supported
 
 <table>
@@ -166,12 +186,12 @@ Full **browser** support with single-threaded and multi-threaded (web worker) mo
 
 # 📚 Documentation
 
-## [Aleo RPC / Provable API Documentation](https://docs.provable.com)
-Documentation on interacting with Aleo network via Provable's API & RPC endpoints.
+| Resource | Description |
+|----------|-------------|
+| [Aleo RPC / Provable API](https://docs.provable.com) | Documentation on interacting with the Aleo network via Provable's API & RPC endpoints. |
+| [SDK Guide](https://developer.aleo.org/sdk/guides/getting_started) | Core concepts for executing zero-knowledge programs on the web, with detailed examples of how to build apps using Aleo. |
 
-## [SDK Guide](https://developer.aleo.org/sdk/guides/getting_started)
-The SDK readme provides concepts core to executing zero-knowledge programs in the web and several detailed examples of
-how to use the SDK to build web apps using Aleo.
+---
 
 # ❤️ Contributors
 
