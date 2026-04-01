@@ -51,7 +51,7 @@ For migration details and release order, see `docs/provable-core-engines-migrati
 Create-leo-app provides zero-knowledge web app examples in common web frameworks such as React. Developers looking to
 start with working examples should start here.
 
-#### Source: [`sdk/create-leo-app`](https://github.com/ProvableHQ/sdk/tree/mainnet/create-leo-app)
+#### Source: [`create-leo-app`](https://github.com/ProvableHQ/sdk/tree/mainnet/create-leo-app)
 
 ## 2. Provable Engine (WASM + React Native)
 

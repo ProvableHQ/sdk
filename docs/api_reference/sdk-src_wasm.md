@@ -4,7 +4,7 @@
 
 
 
-[Source file](../../sdk/src/wasm.ts)
+[Source file](../../packages/provable-engine-wasm/src/index.ts)
 
 # Class `Address`
 

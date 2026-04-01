@@ -11,13 +11,13 @@ The Provable SDK can be installed via npm and yarn package managers.
 ### NPM
 
 ```bash
-npm install @provablehq/sdk
+npm install @provablehq/provablekit
 ```
 
 ### Yarn
 
 ```bash
-yarn add @provablehq/sdk
+yarn add @provablehq/provablekit
 ```
 
 ## Network Selection
@@ -30,18 +30,18 @@ The following import syntax is used to select the desired network:
 
 ### Mainnet
 ```typescript
-import { Account, ProgramManager, initThreadPool } from '@provablehq/sdk/mainnet.js';
+import { Account, ProgramManager, initThreadPool } from '@provablehq/provablekit/mainnet.js';
 ```
 
 ### Testnet
 ```typescript
-import { Account, ProgramManager, initThreadPool } from '@provablehq/sdk/testnet.js';
+import { Account, ProgramManager, initThreadPool } from '@provablehq/provablekit/testnet.js';
 ```
 
 If no network is explicitly selected, the SDK defaults to the `testnet` network.
 
 ```typescript
-import { Account, ProgramManager, initThreadPool } from '@provablehq/sdk';
+import { Account, ProgramManager, initThreadPool } from '@provablehq/provablekit';
 ```
 
 
@@ -56,7 +56,7 @@ This starts multiple `WebWorker` threads and provides access to the `WebAssembly
 
 **This function only needs to be called once and should be called before any other SDK functions.**
 ```typescript
-import { Account, initThreadPool } from '@provablehq/sdk/mainnet.js';
+import { Account, initThreadPool } from '@provablehq/provablekit/mainnet.js';
 
 // Enables multithreading
 await initThreadPool();

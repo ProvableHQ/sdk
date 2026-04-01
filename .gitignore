@@ -24,3 +24,6 @@ package-lock.json
 .yarn
 
 .env
+
+# Local scaffolded test apps
+create-leo-app/aleo-project/

@@ -1,5 +1,5 @@
 ```typescript
-import { Account, ProgramManager, initThreadPool } from '@provablehq/sdk';
+import { Account, ProgramManager, initThreadPool } from '@provablehq/provablekit';
 
 // Initialize multi-threading to allow WASM execution.
 await initThreadPoool();

@@ -173,7 +173,7 @@ jobs:
       - uses: ./.github/actions/setup-rust
 
       - name: "cargo clippy"
-        working-directory: wasm
+        working-directory: packages/provable-engine-wasm/rust
         run: |
           cargo clippy --features ${{ matrix.network }}
 
@@ -186,7 +186,7 @@ jobs:
       - uses: ./.github/actions/setup-rust
 
       - name: "cargo fmt"
-        working-directory: wasm
+        working-directory: packages/provable-engine-wasm/rust
         run: |
           cargo fmt --all --check
 

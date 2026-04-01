@@ -4,7 +4,7 @@
 
 
 
-[Source file](../../sdk/src/record-provider.ts)
+[Source file](../../packages/provable-core/src/record-provider.ts)
 
 # Class `NetworkRecordProvider`
 

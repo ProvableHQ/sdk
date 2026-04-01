@@ -105,7 +105,7 @@ transaction will still be consumed. Therefore, it is important to ensure the fee
 A simple example of a mapping update can be shown by simply executing `transfer_public` as shown below.
 
 ```typescript
-import { Account, ProgramManager, AleoKeyProvider, NetworkRecordProvider, AleoNetworkClient } from '@provablehq/sdk';
+import { Account, ProgramManager, AleoKeyProvider, NetworkRecordProvider, AleoNetworkClient } from '@provablehq/provablekit';
 
 // Create a new NetworkClient, KeyProvider, and RecordProvider
 const account = Account.from_string({privateKey: process.env.PRIVATE_KEY});
@@ -129,7 +129,7 @@ Any state within a program mapping is public and can be read by any participant 
 The `NetworkClient` class provides the `getProgramMappingNames` method to read the public mappings available within a program.
 
 ```typescript
-import { AleoNetworkClient } from '@provablehq/sdk';
+import { AleoNetworkClient } from '@provablehq/provablekit';
 
 const networkClient = new AleoNetworkClient("https://api.provable.com/v2");
 const creditsMappings = networkClient.getProgramMappingNames("credits.aleo");
@@ -144,7 +144,7 @@ The `getProgramMappingValue` method of the `NetworkClient` can be used to read t
 returns the value associated with the specified key within the mapping or an `Error` if the key does not exist.
 
 ```typescript
-import { AleoNetworkClient } from '@provablehq/sdk';
+import { AleoNetworkClient } from '@provablehq/provablekit';
 
 const networkClient = new AleoNetworkClient("https://api.provable.com/v2");
 const publicCredits = networkClient.getProgramMappingValue("credits.aleo", "aleo1address...");

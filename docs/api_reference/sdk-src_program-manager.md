@@ -4,7 +4,7 @@
 
 
 
-[Source file](../../sdk/src/program-manager.ts)
+[Source file](../../packages/provable-core/src/program-manager.ts)
 
 # Class `ProgramManager`
 
@@ -97,7 +97,7 @@ __value__ | `string` | *The header value*
 #### Examples
 
 ```javascript
-import { ProgramManager } from "@provablehq/sdk/mainnet.js";
+import { ProgramManager } from "@provablehq/provablekit/mainnet.js";
 
 // Create a ProgramManager
 const programManager = new ProgramManager("https://api.provable.com/v2");
@@ -122,7 +122,7 @@ __provingKey__ | [ProvingKey](sdk-src_wasm.md) | **
 #### Examples
 
 ```javascript
-import { ProgramManager, AleoKeyProvider } from "@provablehq/sdk/mainnet.js";
+import { ProgramManager, AleoKeyProvider } from "@provablehq/provablekit/mainnet.js";
 
 const keyProvider = new AleoKeyProvider();
 keyProvider.useCache(true);
@@ -149,7 +149,7 @@ __headerName__ | `string` | *The name of the header to be removed*
 #### Examples
 
 ```javascript
-import { ProgramManager } from "@provablehq/sdk/mainnet.js";
+import { ProgramManager } from "@provablehq/provablekit/mainnet.js";
 
 // Create a ProgramManager
 const programManager = new ProgramManager("https://api.provable.com/v2");
@@ -180,7 +180,7 @@ __*return*__ | `string` | *The transaction id of the deployed program or a failu
 
 ```javascript
 /// Import the mainnet version of the sdk.
-import { AleoKeyProvider, ProgramManager, NetworkRecordProvider } from "@provablehq/sdk/mainnet.js";
+import { AleoKeyProvider, ProgramManager, NetworkRecordProvider } from "@provablehq/provablekit/mainnet.js";
 
 // Create a new NetworkClient, KeyProvider, and RecordProvider
 const keyProvider = new AleoKeyProvider();
@@ -222,7 +222,7 @@ __options__ | `DeployOptions` | *The deployment options.*
 
 ```javascript
 /// Import the mainnet version of the sdk.
-import { AleoKeyProvider, ProgramManager, NetworkRecordProvider } from "@provablehq/sdk/mainnet.js";
+import { AleoKeyProvider, ProgramManager, NetworkRecordProvider } from "@provablehq/provablekit/mainnet.js";
 
 // Create a new NetworkClient, KeyProvider, and RecordProvider
 const keyProvider = new AleoKeyProvider();
@@ -270,7 +270,7 @@ __*return*__ | `string` | *The transaction id of the deployed program or a failu
 
 ```javascript
 /// Import the mainnet version of the sdk.
-import { AleoKeyProvider, ProgramManager, NetworkRecordProvider } from "@provablehq/sdk/mainnet.js";
+import { AleoKeyProvider, ProgramManager, NetworkRecordProvider } from "@provablehq/provablekit/mainnet.js";
 
 // Create a new NetworkClient, KeyProvider, and RecordProvider.
 const keyProvider = new AleoKeyProvider();
@@ -311,7 +311,7 @@ __*return*__ | `Promise.<Transaction>` | *- A promise that resolves to the trans
 
 ```javascript
 /// Import the mainnet version of the sdk.
-import { AleoKeyProvider, ProgramManager, NetworkRecordProvider } from "@provablehq/sdk/mainnet.js";
+import { AleoKeyProvider, ProgramManager, NetworkRecordProvider } from "@provablehq/provablekit/mainnet.js";
 
 // Create a new NetworkClient, KeyProvider, and RecordProvider.
 const keyProvider = new AleoKeyProvider();
@@ -359,7 +359,7 @@ __*return*__ | `Promise.<Transaction>` | *- A promise that resolves to the trans
 #### Examples
 
 ```javascript
-import { AleoKeyProvider, PrivateKey, initThreadPool, ProgramManager } from "@provablehq/sdk";
+import { AleoKeyProvider, PrivateKey, initThreadPool, ProgramManager } from "@provablehq/provablekit";
 
 await initThreadPool();
 
@@ -438,7 +438,7 @@ __*return*__ | `Promise.<Authorization>` | *- A promise that resolves to an &#x6
 
 ```javascript
 /// Import the mainnet version of the sdk.
-import { AleoKeyProvider, ProgramManager, NetworkRecordProvider } from "@provablehq/sdk/mainnet.js";
+import { AleoKeyProvider, ProgramManager, NetworkRecordProvider } from "@provablehq/provablekit/mainnet.js";
 
 // Create a new NetworkClient, KeyProvider, and RecordProvider.
 const keyProvider = new AleoKeyProvider();
@@ -476,7 +476,7 @@ __*return*__ | `Promise.<Authorization>` | *- A promise that resolves to an &#x6
 
 ```javascript
 /// Import the mainnet version of the sdk.
-import { AleoKeyProvider, ProgramManager, NetworkRecordProvider } from "@provablehq/sdk/mainnet.js";
+import { AleoKeyProvider, ProgramManager, NetworkRecordProvider } from "@provablehq/provablekit/mainnet.js";
 
 // Create a new NetworkClient, KeyProvider, and RecordProvider.
 const keyProvider = new AleoKeyProvider();
@@ -514,7 +514,7 @@ __*return*__ | `Promise.<ProvingRequest>` | *- A promise that resolves to the tr
 
 ```javascript
 /// Import the mainnet version of the sdk.
-import { AleoKeyProvider, ProgramManager, NetworkRecordProvider } from "@provablehq/sdk/mainnet.js";
+import { AleoKeyProvider, ProgramManager, NetworkRecordProvider } from "@provablehq/provablekit/mainnet.js";
 
 // Create a new NetworkClient, KeyProvider, and RecordProvider.
 const keyProvider = new AleoKeyProvider();
@@ -555,7 +555,7 @@ __*return*__ | `Promise.<Authorization>` | *- A promise that resolves to an &#x6
 
 ```javascript
 /// Import the mainnet version of the sdk.
-import { AleoKeyProvider, ProgramManager, NetworkRecordProvider } from "@provablehq/sdk/mainnet.js";
+import { AleoKeyProvider, ProgramManager, NetworkRecordProvider } from "@provablehq/provablekit/mainnet.js";
 
 // Create a new NetworkClient, KeyProvider, and RecordProvider.
 const keyProvider = new AleoKeyProvider();
@@ -597,7 +597,7 @@ __*return*__ | `Promise.<string>` | *- The transaction id*
 
 ```javascript
 /// Import the mainnet version of the sdk.
-import { AleoKeyProvider, ProgramManager, NetworkRecordProvider } from "@provablehq/sdk/mainnet.js";
+import { AleoKeyProvider, ProgramManager, NetworkRecordProvider } from "@provablehq/provablekit/mainnet.js";
 
 // Create a new NetworkClient, KeyProvider, and RecordProvider using official Aleo record, key, and network providers
 const keyProvider = new AleoKeyProvider();
@@ -650,7 +650,7 @@ __*return*__ | `Promise.<ExecutionResponse>` | *The execution response containin
 
 ```javascript
 /// Import the mainnet version of the sdk used to build executions.
-import { Account, ProgramManager } from "@provablehq/sdk/mainnet.js";
+import { Account, ProgramManager } from "@provablehq/provablekit/mainnet.js";
 
 /// Create the source for the "helloworld" program
 const program = "program helloworld.aleo;\n\nfunction hello:\n    input r0 as u32.public;\n    input r1 as u32.private;\n    add r0 r1 into r2;\n    output r2 as u32.private;\n";
@@ -690,7 +690,7 @@ __*return*__ | `Promise.<string>` | *The transaction id*
 
 ```javascript
 /// Import the mainnet version of the sdk.
-import { AleoKeyProvider, ProgramManager, NetworkRecordProvider } from "@provablehq/sdk/mainnet.js";
+import { AleoKeyProvider, ProgramManager, NetworkRecordProvider } from "@provablehq/provablekit/mainnet.js";
 
 // Create a new NetworkClient, KeyProvider, and RecordProvider
 const keyProvider = new AleoKeyProvider();
@@ -730,7 +730,7 @@ __*return*__ | `Promise.<string>` | *The transaction id*
 
 ```javascript
 /// Import the mainnet version of the sdk.
-import { AleoKeyProvider, ProgramManager, NetworkRecordProvider } from "@provablehq/sdk/mainnet.js";
+import { AleoKeyProvider, ProgramManager, NetworkRecordProvider } from "@provablehq/provablekit/mainnet.js";
 
 // Create a new NetworkClient, KeyProvider, and RecordProvider
 const keyProvider = new AleoKeyProvider();
@@ -791,7 +791,7 @@ __*return*__ | `Promise.<Transaction>` | *The transaction object*
 
 ```javascript
 /// Import the mainnet version of the sdk.
-import { AleoKeyProvider, ProgramManager, NetworkRecordProvider } from "@provablehq/sdk/mainnet.js";
+import { AleoKeyProvider, ProgramManager, NetworkRecordProvider } from "@provablehq/provablekit/mainnet.js";
 
 // Create a new NetworkClient, KeyProvider, and RecordProvider
 const keyProvider = new AleoKeyProvider();
@@ -831,7 +831,7 @@ __*return*__ | `Promise.<Transaction>` | *The transaction object*
 
 ```javascript
 /// Import the mainnet version of the sdk.
-import { AleoKeyProvider, ProgramManager, NetworkRecordProvider } from "@provablehq/sdk/mainnet.js";
+import { AleoKeyProvider, ProgramManager, NetworkRecordProvider } from "@provablehq/provablekit/mainnet.js";
 
 // Create a new NetworkClient, KeyProvider, and RecordProvider
 const keyProvider = new AleoKeyProvider();
@@ -871,7 +871,7 @@ __*return*__ | `Promise.<Transaction>` | *The transaction object*
 
 ```javascript
 /// Import the mainnet version of the sdk.
-import { AleoKeyProvider, ProgramManager, NetworkRecordProvider } from "@provablehq/sdk/mainnet.js";
+import { AleoKeyProvider, ProgramManager, NetworkRecordProvider } from "@provablehq/provablekit/mainnet.js";
 
 // Create a new NetworkClient, KeyProvider, and RecordProvider
 const keyProvider = new AleoKeyProvider();
@@ -916,7 +916,7 @@ __*return*__ | `Promise.<string>` | *The transaction id*
 
 ```javascript
 /// Import the mainnet version of the sdk.
-import { AleoKeyProvider, ProgramManager, NetworkRecordProvider } from "@provablehq/sdk/mainnet.js";
+import { AleoKeyProvider, ProgramManager, NetworkRecordProvider } from "@provablehq/provablekit/mainnet.js";
 
 // Create a new NetworkClient, KeyProvider, and RecordProvider
 const keyProvider = new AleoKeyProvider();
@@ -954,7 +954,7 @@ __*return*__ | `Promise.<Transaction>` | *The transaction object*
 
 ```javascript
 // Import the mainnet version of the sdk.
-import { AleoKeyProvider, ProgramManager } from "@provablehq/sdk/mainnet.js";
+import { AleoKeyProvider, ProgramManager } from "@provablehq/provablekit/mainnet.js";
 
 // Create a keyProvider to handle key management
 const keyProvider = new AleoKeyProvider();
@@ -997,7 +997,7 @@ __*return*__ | `Promise.<string>` | *The transaction id*
 
 ```javascript
 // Import the mainnet version of the sdk.
-import { AleoKeyProvider, ProgramManager } from "@provablehq/sdk/mainnet.js";
+import { AleoKeyProvider, ProgramManager } from "@provablehq/provablekit/mainnet.js";
 
 // Create a keyProvider to handle key management
 const keyProvider = new AleoKeyProvider();
@@ -1037,7 +1037,7 @@ __*return*__ | `Promise.<Transaction>` | *The transaction object*
 
 ```javascript
 // Import the mainnet version of the sdk.
-import { AleoKeyProvider, ProgramManager } from "@provablehq/sdk/mainnet.js";
+import { AleoKeyProvider, ProgramManager } from "@provablehq/provablekit/mainnet.js";
 
 // Create a keyProvider to handle key management
 const keyProvider = new AleoKeyProvider();
@@ -1081,7 +1081,7 @@ __*return*__ | `Promise.<string>` | *The transaction id*
 
 ```javascript
 // Import the mainnet version of the sdk.
-import { AleoKeyProvider, ProgramManager } from "@provablehq/sdk/mainnet.js";
+import { AleoKeyProvider, ProgramManager } from "@provablehq/provablekit/mainnet.js";
 
 // Create a keyProvider to handle key management
 const keyProvider = new AleoKeyProvider();
@@ -1120,7 +1120,7 @@ __*return*__ | `Promise.<Transaction>` | *- A promise that resolves to the trans
 
 ```javascript
 // Import the mainnet version of the sdk.
-import { AleoKeyProvider, ProgramManager } from "@provablehq/sdk/mainnet.js";
+import { AleoKeyProvider, ProgramManager } from "@provablehq/provablekit/mainnet.js";
 
 // Create a keyProvider to handle key management.
 const keyProvider = new AleoKeyProvider();
@@ -1164,7 +1164,7 @@ __*return*__ | `Promise.<string>` | *The transaction id*
 
 ```javascript
 // Import the mainnet version of the sdk.
-import { AleoKeyProvider, ProgramManager } from "@provablehq/sdk/mainnet.js";
+import { AleoKeyProvider, ProgramManager } from "@provablehq/provablekit/mainnet.js";
 
 // Create a keyProvider to handle key management
 const keyProvider = new AleoKeyProvider();
@@ -1202,7 +1202,7 @@ __*return*__ | `Promise.<Transaction>` | *- A promise that resolves to the trans
 
 ```javascript
 // Import the mainnet version of the sdk.
-import { AleoKeyProvider, ProgramManager } from "@provablehq/sdk/mainnet.js";
+import { AleoKeyProvider, ProgramManager } from "@provablehq/provablekit/mainnet.js";
 
 // Create a keyProvider to handle key management
 const keyProvider = new AleoKeyProvider();
@@ -1243,7 +1243,7 @@ __*return*__ | `Promise.<string>` | *The transaction id*
 
 ```javascript
 // Import the mainnet version of the sdk.
-import { AleoKeyProvider, ProgramManager } from "@provablehq/sdk/mainnet.js";
+import { AleoKeyProvider, ProgramManager } from "@provablehq/provablekit/mainnet.js";
 
 // Create a keyProvider to handle key management
 const keyProvider = new AleoKeyProvider();
@@ -1289,7 +1289,7 @@ __*return*__ | `Promise.<Transaction>` | *The transaction object*
 
 ```javascript
 // Import the mainnet version of the sdk.
-import { AleoKeyProvider, ProgramManager } from "@provablehq/sdk/mainnet.js";
+import { AleoKeyProvider, ProgramManager } from "@provablehq/provablekit/mainnet.js";
 
 // Create a keyProvider to handle key management
 const keyProvider = new AleoKeyProvider();
@@ -1337,7 +1337,7 @@ __*return*__ | `Promise.<string>` | *The transaction id*
 
 ```javascript
 // Import the mainnet version of the sdk.
-import { AleoKeyProvider, ProgramManager } from "@provablehq/sdk/mainnet.js";
+import { AleoKeyProvider, ProgramManager } from "@provablehq/provablekit/mainnet.js";
 
 // Create a keyProvider to handle key management
 const keyProvider = new AleoKeyProvider();
@@ -1376,7 +1376,7 @@ __*return*__ | `boolean` | *True if the proof is valid, false otherwise*
 
 ```javascript
 /// Import the mainnet version of the sdk used to build executions.
-import { Account, ProgramManager } from "@provablehq/sdk/mainnet.js";
+import { Account, ProgramManager } from "@provablehq/provablekit/mainnet.js";
 
 /// Create the source for two programs.
 const program = "import add_it_up.aleo; \n\n program mul_add.aleo;\n\nfunction mul_and_add:\n    input r0 as u32.public;\n    input r1 as u32.private;\n    mul r0 r1 into r2;\n call add_it_up.aleo/add_it r1 r2 into r3;  output r3 as u32.private;\n";
@@ -1452,7 +1452,7 @@ __options__ | `FeeEstimateOptions` | *Options for fee estimate.*
 #### Examples
 
 ```javascript
-import { AleoKeyProvider, PrivateKey, initThreadPool, ProgramManager } from "@provablehq/sdk";
+import { AleoKeyProvider, PrivateKey, initThreadPool, ProgramManager } from "@provablehq/provablekit";
 
 await initThreadPool();
 
@@ -1515,7 +1515,7 @@ __*return*__ | `Promise.<bigint>` | *Execution fee in microcredits for the autho
 #### Examples
 
 ```javascript
-import { AleoKeyProvider, PrivateKey, initThreadPool, ProgramManager } from "@provablehq/sdk";
+import { AleoKeyProvider, PrivateKey, initThreadPool, ProgramManager } from "@provablehq/provablekit";
 
 // Initialize a program manager with the key provider to automatically fetch keys for executions.
 const programManager = new ProgramManager("https://api.provable.com/v2", keyProvider);
@@ -1553,7 +1553,7 @@ __*return*__ | `Promise.<Transaction>` | *- A promise that resolves to the trans
 
 ```javascript
 /// Import the mainnet version of the sdk.
-import { AleoKeyProvider, getOrInitConsensusVersionTestHeights, ProgramManager, NetworkRecordProvider } from "@provablehq/sdk/mainnet.js";
+import { AleoKeyProvider, getOrInitConsensusVersionTestHeights, ProgramManager, NetworkRecordProvider } from "@provablehq/provablekit/mainnet.js";
 
 // Initialize the development consensus heights in order to work with devnode.
 getOrInitConsensusVersionTestHeights("0,1,2,3,4,5,6,7,8,9,10,11,12");
@@ -1603,7 +1603,7 @@ __*return*__ | `string` | *The transaction id of the deployed program or a failu
 
 ```javascript
 /// Import the mainnet version of the sdk.
-import { ProgramManager, NetworkRecordProvider, getOrInitConsensusVersionTestHeights } from "@provablehq/sdk/mainnet.js";
+import { ProgramManager, NetworkRecordProvider, getOrInitConsensusVersionTestHeights } from "@provablehq/provablekit/mainnet.js";
 
 // Initialize the development consensus heights in order to work with a local devnode.
 getOrInitConsensusVersionTestHeights("0,1,2,3,4,5,6,7,8,9,10,11,12");
@@ -1649,7 +1649,7 @@ __*return*__ | `string` | *The transaction id of the deployed program or a failu
 
 ```javascript
 /// Import the mainnet version of the sdk.
-import { ProgramManager, NetworkRecordProvider } from "@provablehq/sdk/mainnet.js";
+import { ProgramManager, NetworkRecordProvider } from "@provablehq/provablekit/mainnet.js";
 
 // Create a new NetworkClient, and RecordProvider
 const recordProvider = new NetworkRecordProvider(account, networkClient);
@@ -1751,7 +1751,7 @@ __value__ | `string` | *The header value*
 #### Examples
 
 ```javascript
-import { ProgramManager } from "@provablehq/sdk/mainnet.js";
+import { ProgramManager } from "@provablehq/provablekit/mainnet.js";
 
 // Create a ProgramManager
 const programManager = new ProgramManager("https://api.provable.com/v2");
@@ -1776,7 +1776,7 @@ __provingKey__ | [ProvingKey](sdk-src_wasm.md) | **
 #### Examples
 
 ```javascript
-import { ProgramManager, AleoKeyProvider } from "@provablehq/sdk/mainnet.js";
+import { ProgramManager, AleoKeyProvider } from "@provablehq/provablekit/mainnet.js";
 
 const keyProvider = new AleoKeyProvider();
 keyProvider.useCache(true);
@@ -1803,7 +1803,7 @@ __headerName__ | `string` | *The name of the header to be removed*
 #### Examples
 
 ```javascript
-import { ProgramManager } from "@provablehq/sdk/mainnet.js";
+import { ProgramManager } from "@provablehq/provablekit/mainnet.js";
 
 // Create a ProgramManager
 const programManager = new ProgramManager("https://api.provable.com/v2");
@@ -1834,7 +1834,7 @@ __*return*__ | `string` | *The transaction id of the deployed program or a failu
 
 ```javascript
 /// Import the mainnet version of the sdk.
-import { AleoKeyProvider, ProgramManager, NetworkRecordProvider } from "@provablehq/sdk/mainnet.js";
+import { AleoKeyProvider, ProgramManager, NetworkRecordProvider } from "@provablehq/provablekit/mainnet.js";
 
 // Create a new NetworkClient, KeyProvider, and RecordProvider
 const keyProvider = new AleoKeyProvider();
@@ -1877,7 +1877,7 @@ __*return*__ | `Promise.<Transaction>` | **
 
 ```javascript
 /// Import the mainnet version of the sdk.
-import { AleoKeyProvider, ProgramManager, NetworkRecordProvider } from "@provablehq/sdk/mainnet.js";
+import { AleoKeyProvider, ProgramManager, NetworkRecordProvider } from "@provablehq/provablekit/mainnet.js";
 
 // Create a new NetworkClient, KeyProvider, and RecordProvider
 const keyProvider = new AleoKeyProvider();
@@ -1925,7 +1925,7 @@ __*return*__ | `string` | *The transaction id of the deployed program or a failu
 
 ```javascript
 /// Import the mainnet version of the sdk.
-import { AleoKeyProvider, ProgramManager, NetworkRecordProvider } from "@provablehq/sdk/mainnet.js";
+import { AleoKeyProvider, ProgramManager, NetworkRecordProvider } from "@provablehq/provablekit/mainnet.js";
 
 // Create a new NetworkClient, KeyProvider, and RecordProvider.
 const keyProvider = new AleoKeyProvider();
@@ -1966,7 +1966,7 @@ __*return*__ | `Promise.<Transaction>` | *- A promise that resolves to the trans
 
 ```javascript
 /// Import the mainnet version of the sdk.
-import { AleoKeyProvider, ProgramManager, NetworkRecordProvider } from "@provablehq/sdk/mainnet.js";
+import { AleoKeyProvider, ProgramManager, NetworkRecordProvider } from "@provablehq/provablekit/mainnet.js";
 
 // Create a new NetworkClient, KeyProvider, and RecordProvider.
 const keyProvider = new AleoKeyProvider();
@@ -2014,7 +2014,7 @@ __*return*__ | `Promise.<Transaction>` | *- A promise that resolves to the trans
 #### Examples
 
 ```javascript
-import { AleoKeyProvider, PrivateKey, initThreadPool, ProgramManager } from "@provablehq/sdk";
+import { AleoKeyProvider, PrivateKey, initThreadPool, ProgramManager } from "@provablehq/provablekit";
 
 await initThreadPool();
 
@@ -2093,7 +2093,7 @@ __*return*__ | `Promise.<Authorization>` | *- A promise that resolves to an &#x6
 
 ```javascript
 /// Import the mainnet version of the sdk.
-import { AleoKeyProvider, ProgramManager, NetworkRecordProvider } from "@provablehq/sdk/mainnet.js";
+import { AleoKeyProvider, ProgramManager, NetworkRecordProvider } from "@provablehq/provablekit/mainnet.js";
 
 // Create a new NetworkClient, KeyProvider, and RecordProvider.
 const keyProvider = new AleoKeyProvider();
@@ -2131,7 +2131,7 @@ __*return*__ | `Promise.<Authorization>` | *- A promise that resolves to an &#x6
 
 ```javascript
 /// Import the mainnet version of the sdk.
-import { AleoKeyProvider, ProgramManager, NetworkRecordProvider } from "@provablehq/sdk/mainnet.js";
+import { AleoKeyProvider, ProgramManager, NetworkRecordProvider } from "@provablehq/provablekit/mainnet.js";
 
 // Create a new NetworkClient, KeyProvider, and RecordProvider.
 const keyProvider = new AleoKeyProvider();
@@ -2169,7 +2169,7 @@ __*return*__ | `Promise.<ProvingRequest>` | *- A promise that resolves to the tr
 
 ```javascript
 /// Import the mainnet version of the sdk.
-import { AleoKeyProvider, ProgramManager, NetworkRecordProvider } from "@provablehq/sdk/mainnet.js";
+import { AleoKeyProvider, ProgramManager, NetworkRecordProvider } from "@provablehq/provablekit/mainnet.js";
 
 // Create a new NetworkClient, KeyProvider, and RecordProvider.
 const keyProvider = new AleoKeyProvider();
@@ -2210,7 +2210,7 @@ __*return*__ | `Promise.<Authorization>` | *- A promise that resolves to an &#x6
 
 ```javascript
 /// Import the mainnet version of the sdk.
-import { AleoKeyProvider, ProgramManager, NetworkRecordProvider } from "@provablehq/sdk/mainnet.js";
+import { AleoKeyProvider, ProgramManager, NetworkRecordProvider } from "@provablehq/provablekit/mainnet.js";
 
 // Create a new NetworkClient, KeyProvider, and RecordProvider.
 const keyProvider = new AleoKeyProvider();
@@ -2252,7 +2252,7 @@ __*return*__ | `Promise.<string>` | *- The transaction id*
 
 ```javascript
 /// Import the mainnet version of the sdk.
-import { AleoKeyProvider, ProgramManager, NetworkRecordProvider } from "@provablehq/sdk/mainnet.js";
+import { AleoKeyProvider, ProgramManager, NetworkRecordProvider } from "@provablehq/provablekit/mainnet.js";
 
 // Create a new NetworkClient, KeyProvider, and RecordProvider using official Aleo record, key, and network providers
 const keyProvider = new AleoKeyProvider();
@@ -2305,7 +2305,7 @@ __*return*__ | `Promise.<ExecutionResponse>` | *The execution response containin
 
 ```javascript
 /// Import the mainnet version of the sdk used to build executions.
-import { Account, ProgramManager } from "@provablehq/sdk/mainnet.js";
+import { Account, ProgramManager } from "@provablehq/provablekit/mainnet.js";
 
 /// Create the source for the "helloworld" program
 const program = "program helloworld.aleo;\n\nfunction hello:\n    input r0 as u32.public;\n    input r1 as u32.private;\n    add r0 r1 into r2;\n    output r2 as u32.private;\n";
@@ -2345,7 +2345,7 @@ __*return*__ | `Promise.<string>` | *The transaction id*
 
 ```javascript
 /// Import the mainnet version of the sdk.
-import { AleoKeyProvider, ProgramManager, NetworkRecordProvider } from "@provablehq/sdk/mainnet.js";
+import { AleoKeyProvider, ProgramManager, NetworkRecordProvider } from "@provablehq/provablekit/mainnet.js";
 
 // Create a new NetworkClient, KeyProvider, and RecordProvider
 const keyProvider = new AleoKeyProvider();
@@ -2385,7 +2385,7 @@ __*return*__ | `Promise.<string>` | *The transaction id*
 
 ```javascript
 /// Import the mainnet version of the sdk.
-import { AleoKeyProvider, ProgramManager, NetworkRecordProvider } from "@provablehq/sdk/mainnet.js";
+import { AleoKeyProvider, ProgramManager, NetworkRecordProvider } from "@provablehq/provablekit/mainnet.js";
 
 // Create a new NetworkClient, KeyProvider, and RecordProvider
 const keyProvider = new AleoKeyProvider();
@@ -2446,7 +2446,7 @@ __*return*__ | `Promise.<Transaction>` | *The transaction object*
 
 ```javascript
 /// Import the mainnet version of the sdk.
-import { AleoKeyProvider, ProgramManager, NetworkRecordProvider } from "@provablehq/sdk/mainnet.js";
+import { AleoKeyProvider, ProgramManager, NetworkRecordProvider } from "@provablehq/provablekit/mainnet.js";
 
 // Create a new NetworkClient, KeyProvider, and RecordProvider
 const keyProvider = new AleoKeyProvider();
@@ -2486,7 +2486,7 @@ __*return*__ | `Promise.<Transaction>` | *The transaction object*
 
 ```javascript
 /// Import the mainnet version of the sdk.
-import { AleoKeyProvider, ProgramManager, NetworkRecordProvider } from "@provablehq/sdk/mainnet.js";
+import { AleoKeyProvider, ProgramManager, NetworkRecordProvider } from "@provablehq/provablekit/mainnet.js";
 
 // Create a new NetworkClient, KeyProvider, and RecordProvider
 const keyProvider = new AleoKeyProvider();
@@ -2526,7 +2526,7 @@ __*return*__ | `Promise.<Transaction>` | *The transaction object*
 
 ```javascript
 /// Import the mainnet version of the sdk.
-import { AleoKeyProvider, ProgramManager, NetworkRecordProvider } from "@provablehq/sdk/mainnet.js";
+import { AleoKeyProvider, ProgramManager, NetworkRecordProvider } from "@provablehq/provablekit/mainnet.js";
 
 // Create a new NetworkClient, KeyProvider, and RecordProvider
 const keyProvider = new AleoKeyProvider();
@@ -2571,7 +2571,7 @@ __*return*__ | `Promise.<string>` | *The transaction id*
 
 ```javascript
 /// Import the mainnet version of the sdk.
-import { AleoKeyProvider, ProgramManager, NetworkRecordProvider } from "@provablehq/sdk/mainnet.js";
+import { AleoKeyProvider, ProgramManager, NetworkRecordProvider } from "@provablehq/provablekit/mainnet.js";
 
 // Create a new NetworkClient, KeyProvider, and RecordProvider
 const keyProvider = new AleoKeyProvider();
@@ -2609,7 +2609,7 @@ __*return*__ | `Promise.<Transaction>` | *The transaction object*
 
 ```javascript
 // Import the mainnet version of the sdk.
-import { AleoKeyProvider, ProgramManager } from "@provablehq/sdk/mainnet.js";
+import { AleoKeyProvider, ProgramManager } from "@provablehq/provablekit/mainnet.js";
 
 // Create a keyProvider to handle key management
 const keyProvider = new AleoKeyProvider();
@@ -2652,7 +2652,7 @@ __*return*__ | `Promise.<string>` | *The transaction id*
 
 ```javascript
 // Import the mainnet version of the sdk.
-import { AleoKeyProvider, ProgramManager } from "@provablehq/sdk/mainnet.js";
+import { AleoKeyProvider, ProgramManager } from "@provablehq/provablekit/mainnet.js";
 
 // Create a keyProvider to handle key management
 const keyProvider = new AleoKeyProvider();
@@ -2692,7 +2692,7 @@ __*return*__ | `Promise.<Transaction>` | *The transaction object*
 
 ```javascript
 // Import the mainnet version of the sdk.
-import { AleoKeyProvider, ProgramManager } from "@provablehq/sdk/mainnet.js";
+import { AleoKeyProvider, ProgramManager } from "@provablehq/provablekit/mainnet.js";
 
 // Create a keyProvider to handle key management
 const keyProvider = new AleoKeyProvider();
@@ -2736,7 +2736,7 @@ __*return*__ | `Promise.<string>` | *The transaction id*
 
 ```javascript
 // Import the mainnet version of the sdk.
-import { AleoKeyProvider, ProgramManager } from "@provablehq/sdk/mainnet.js";
+import { AleoKeyProvider, ProgramManager } from "@provablehq/provablekit/mainnet.js";
 
 // Create a keyProvider to handle key management
 const keyProvider = new AleoKeyProvider();
@@ -2775,7 +2775,7 @@ __*return*__ | `Promise.<Transaction>` | *- A promise that resolves to the trans
 
 ```javascript
 // Import the mainnet version of the sdk.
-import { AleoKeyProvider, ProgramManager } from "@provablehq/sdk/mainnet.js";
+import { AleoKeyProvider, ProgramManager } from "@provablehq/provablekit/mainnet.js";
 
 // Create a keyProvider to handle key management.
 const keyProvider = new AleoKeyProvider();
@@ -2819,7 +2819,7 @@ __*return*__ | `Promise.<string>` | *The transaction id*
 
 ```javascript
 // Import the mainnet version of the sdk.
-import { AleoKeyProvider, ProgramManager } from "@provablehq/sdk/mainnet.js";
+import { AleoKeyProvider, ProgramManager } from "@provablehq/provablekit/mainnet.js";
 
 // Create a keyProvider to handle key management
 const keyProvider = new AleoKeyProvider();
@@ -2857,7 +2857,7 @@ __*return*__ | `Promise.<Transaction>` | *- A promise that resolves to the trans
 
 ```javascript
 // Import the mainnet version of the sdk.
-import { AleoKeyProvider, ProgramManager } from "@provablehq/sdk/mainnet.js";
+import { AleoKeyProvider, ProgramManager } from "@provablehq/provablekit/mainnet.js";
 
 // Create a keyProvider to handle key management
 const keyProvider = new AleoKeyProvider();
@@ -2898,7 +2898,7 @@ __*return*__ | `Promise.<string>` | *The transaction id*
 
 ```javascript
 // Import the mainnet version of the sdk.
-import { AleoKeyProvider, ProgramManager } from "@provablehq/sdk/mainnet.js";
+import { AleoKeyProvider, ProgramManager } from "@provablehq/provablekit/mainnet.js";
 
 // Create a keyProvider to handle key management
 const keyProvider = new AleoKeyProvider();
@@ -2944,7 +2944,7 @@ __*return*__ | `Promise.<Transaction>` | *The transaction object*
 
 ```javascript
 // Import the mainnet version of the sdk.
-import { AleoKeyProvider, ProgramManager } from "@provablehq/sdk/mainnet.js";
+import { AleoKeyProvider, ProgramManager } from "@provablehq/provablekit/mainnet.js";
 
 // Create a keyProvider to handle key management
 const keyProvider = new AleoKeyProvider();
@@ -2992,7 +2992,7 @@ __*return*__ | `Promise.<string>` | *The transaction id*
 
 ```javascript
 // Import the mainnet version of the sdk.
-import { AleoKeyProvider, ProgramManager } from "@provablehq/sdk/mainnet.js";
+import { AleoKeyProvider, ProgramManager } from "@provablehq/provablekit/mainnet.js";
 
 // Create a keyProvider to handle key management
 const keyProvider = new AleoKeyProvider();
@@ -3031,7 +3031,7 @@ __*return*__ | `boolean` | *True if the proof is valid, false otherwise*
 
 ```javascript
 /// Import the mainnet version of the sdk used to build executions.
-import { Account, ProgramManager } from "@provablehq/sdk/mainnet.js";
+import { Account, ProgramManager } from "@provablehq/provablekit/mainnet.js";
 
 /// Create the source for two programs.
 const program = "import add_it_up.aleo; \n\n program mul_add.aleo;\n\nfunction mul_and_add:\n    input r0 as u32.public;\n    input r1 as u32.private;\n    mul r0 r1 into r2;\n call add_it_up.aleo/add_it r1 r2 into r3;  output r3 as u32.private;\n";
@@ -3109,7 +3109,7 @@ __*return*__ | `Promise.<bigint>` | **
 #### Examples
 
 ```javascript
-import { AleoKeyProvider, PrivateKey, initThreadPool, ProgramManager } from "@provablehq/sdk";
+import { AleoKeyProvider, PrivateKey, initThreadPool, ProgramManager } from "@provablehq/provablekit";
 
 await initThreadPool();
 
@@ -3172,7 +3172,7 @@ __*return*__ | `Promise.<bigint>` | *Execution fee in microcredits for the autho
 #### Examples
 
 ```javascript
-import { AleoKeyProvider, PrivateKey, initThreadPool, ProgramManager } from "@provablehq/sdk";
+import { AleoKeyProvider, PrivateKey, initThreadPool, ProgramManager } from "@provablehq/provablekit";
 
 // Initialize a program manager with the key provider to automatically fetch keys for executions.
 const programManager = new ProgramManager("https://api.provable.com/v2", keyProvider);
@@ -3210,7 +3210,7 @@ __*return*__ | `Promise.<Transaction>` | *- A promise that resolves to the trans
 
 ```javascript
 /// Import the mainnet version of the sdk.
-import { AleoKeyProvider, getOrInitConsensusVersionTestHeights, ProgramManager, NetworkRecordProvider } from "@provablehq/sdk/mainnet.js";
+import { AleoKeyProvider, getOrInitConsensusVersionTestHeights, ProgramManager, NetworkRecordProvider } from "@provablehq/provablekit/mainnet.js";
 
 // Initialize the development consensus heights in order to work with devnode.
 getOrInitConsensusVersionTestHeights("0,1,2,3,4,5,6,7,8,9,10,11,12");
@@ -3260,7 +3260,7 @@ __*return*__ | `string` | *The transaction id of the deployed program or a failu
 
 ```javascript
 /// Import the mainnet version of the sdk.
-import { ProgramManager, NetworkRecordProvider, getOrInitConsensusVersionTestHeights } from "@provablehq/sdk/mainnet.js";
+import { ProgramManager, NetworkRecordProvider, getOrInitConsensusVersionTestHeights } from "@provablehq/provablekit/mainnet.js";
 
 // Initialize the development consensus heights in order to work with a local devnode.
 getOrInitConsensusVersionTestHeights("0,1,2,3,4,5,6,7,8,9,10,11,12");
@@ -3306,7 +3306,7 @@ __*return*__ | `string` | *The transaction id of the deployed program or a failu
 
 ```javascript
 /// Import the mainnet version of the sdk.
-import { ProgramManager, NetworkRecordProvider } from "@provablehq/sdk/mainnet.js";
+import { ProgramManager, NetworkRecordProvider } from "@provablehq/provablekit/mainnet.js";
 
 // Create a new NetworkClient, and RecordProvider
 const recordProvider = new NetworkRecordProvider(account, networkClient);

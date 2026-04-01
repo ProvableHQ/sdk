@@ -13,7 +13,7 @@ sidebar_label: Overview
     <a href="https://circleci.com/gh/ProvableHQ/sdk"><img src="https://circleci.com/gh/ProvableHQ/sdk.svg?style=svg"></a>
     <a href="https://discord.com/invite/aleo"><img src="https://img.shields.io/discord/700454073459015690?logo=discord"/></a>
     <a href="https://github.com/ProvableHQ/sdk#%EF%B8%8F-contributors"><img src="https://img.shields.io/badge/contributors-23-ee8449"/></a>
-    <a href="https://www.npmjs.com/package/@provablehq/sdk"> <img alt="Provable SDK" src="https://img.shields.io/npm/l/%40provablehq%2Fsdk?label=NPM%20-%20Aleo%20SDK&labelColor=green&color=blue"></a>
+    <a href="https://www.npmjs.com/package/@provablehq/provablekit"> <img alt="Provable SDK" src="https://img.shields.io/npm/l/%40provablehq%2Fsdk?label=NPM%20-%20Aleo%20SDK&labelColor=green&color=blue"></a>
 </p>
 
 
@@ -45,7 +45,7 @@ The Provable SDK provides the following features. Follow the links below for liv
 Developers interested in using the SDK to build private web applications can get started with the following resources.
 
 ### [The SDK Guide](https://docs.explorer.provable.com/docs/sdk/6p7047svvq2ox-intro-to-aleo)
-<a href="https://www.npmjs.com/package/@provablehq/sdk"> <img alt="Provable SDK" src="https://img.shields.io/npm/l/%40provablehq%2Fsdk?label=NPM%20-%20Aleo%20SDK&labelColor=green&color=blue"></a>
+<a href="https://www.npmjs.com/package/@provablehq/provablekit"> <img alt="Provable SDK" src="https://img.shields.io/npm/l/%40provablehq%2Fsdk?label=NPM%20-%20Aleo%20SDK&labelColor=green&color=blue"></a>
 
 A step-by-step guide to building private web applications with the Provable SDK. The guide covers creating Aleo accounts,
 transferring and receiving aleo credits, executing/deploying/interacting with Aleo programs, managing private and public

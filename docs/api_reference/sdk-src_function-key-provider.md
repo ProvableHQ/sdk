@@ -4,7 +4,7 @@
 
 
 
-[Source file](../../sdk/src/keys/provider/interface.ts)
+[Source file](../../packages/provable-core/src/keys/provider/interface.ts)
 
 # Class `AleoKeyProviderParams`
 

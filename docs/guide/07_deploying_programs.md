@@ -42,7 +42,7 @@ When ready to deploy a program, the `Aleo Instructions` source code must be impo
 available with JS/TS, it can be deployed using the ProgramManager. The following code snippet demonstrates how to deploy 
 a program using the Provable SDK:
 ```typescript
-import { Account, AleoNetworkClient, NetworkRecordProvider, ProgramManager, AleoKeyProvider} from '@provablehq/sdk/testnet.js';
+import { Account, AleoNetworkClient, NetworkRecordProvider, ProgramManager, AleoKeyProvider} from '@provablehq/provablekit/testnet.js';
 
 // Create a key provider that will be used to find public proving & verifying keys for Aleo programs
 const keyProvider = new AleoKeyProvider();

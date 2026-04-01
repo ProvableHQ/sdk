@@ -1,0 +1,9 @@
+{
+  "expo": {
+    "name": "ProvableKit Expo Keygen",
+    "slug": "provablekit-expo-keygen",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "platforms": ["ios", "android", "web"]
+  }
+}

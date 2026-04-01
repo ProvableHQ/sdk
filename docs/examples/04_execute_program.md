@@ -1,6 +1,6 @@
 In this example we will be executing the program that was deployed in [the previous example](03_deploy_program.md)
 ```typescript
-import { Account, ProgramManager, initThreadPool } from '@provablehq/sdk';
+import { Account, ProgramManager, initThreadPool } from '@provablehq/provablekit';
 
 // Initialize multi-threading to allow WASM execution.
 await initThreadPoool();

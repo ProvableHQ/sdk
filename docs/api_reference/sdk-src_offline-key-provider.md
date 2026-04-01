@@ -4,7 +4,7 @@
 
 
 
-[Source file](../../sdk/src/keys/provider/offline.ts)
+[Source file](../../packages/provable-core/src/keys/provider/offline.ts)
 
 # Class `OfflineSearchParams`
 

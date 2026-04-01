@@ -6,7 +6,7 @@ import virtual from "@rollup/plugin-virtual";
 import rust from "@wasm-tool/rollup-plugin-rust";
 
 const here = $path.dirname(fileURLToPath(import.meta.url));
-const wasmSourceRoot = $path.resolve(here, "../../wasm");
+const wasmSourceRoot = $path.resolve(here, "./rust");
 const cargoTomlPath = $path.join(wasmSourceRoot, "Cargo.toml");
 const isDebugBuild = process.env.BUILD_DEBUG === "1";
 

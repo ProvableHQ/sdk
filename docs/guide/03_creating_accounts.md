@@ -71,7 +71,7 @@ should be stored securely.
 All keys can be created using the account object. 
 
 ```typescript
-import { Account } from '@provablehq/sdk';
+import { Account } from '@provablehq/provablekit';
 
 const account = new Account();
 
@@ -84,7 +84,7 @@ const address = account.address();
 
 Alternatively, an account can be created with an existing private key:
 ```typescript
-import { Account } from '@provablehq/sdk';
+import { Account } from '@provablehq/provablekit';
 import { PrivateKey } from './wasm';
 
 // From a newly generated private key
@@ -105,7 +105,7 @@ const account3 = new Account({
 
 Or an encrypted ciphertext of the private key:
 ```typescript
-import { Account } from '@provablehq/sdk';
+import { Account } from '@provablehq/provablekit';
 import { PrivateKey } from './wasm';
 
 // From a newly generated encrypted private key

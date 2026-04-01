@@ -4,7 +4,7 @@
 
 
 
-[Source file](../../sdk/src/account.ts)
+[Source file](../../packages/provable-core/src/account.ts)
 
 # Class `Account`
 
@@ -20,7 +20,7 @@ material can be assured.
 ## Examples
 
 ```javascript
-import { Account } from "@provablehq/sdk/testnet.js";
+import { Account } from "@provablehq/provablekit/testnet.js";
 
 // Create a new account
 const myRandomAccount = new Account();
@@ -57,7 +57,7 @@ __*return*__ | [Account](sdk-src_account.md) | *A new Account instance created f
 #### Examples
 
 ```javascript
-import { Account } from "@provablehq/sdk/testnet.js";
+import { Account } from "@provablehq/provablekit/testnet.js";
 
 // Create an account object from a previously encrypted ciphertext and password.
 const account = Account.fromCiphertext(process.env.ciphertext, process.env.password);
@@ -91,7 +91,7 @@ __*return*__ | [PrivateKey](sdk-src_wasm.md) | *The private key of the account*
 #### Examples
 
 ```javascript
-import { Account } from "@provablehq/sdk/testnet.js";
+import { Account } from "@provablehq/provablekit/testnet.js";
 
 const account = new Account();
 const privateKey = account.privateKey();
@@ -112,7 +112,7 @@ __*return*__ | `ViewKey` | *The view key of the account*
 #### Examples
 
 ```javascript
-import { Account } from "@provablehq/sdk/testnet.js";
+import { Account } from "@provablehq/provablekit/testnet.js";
 
 const account = new Account();
 const viewKey = account.viewKey();
@@ -133,7 +133,7 @@ __*return*__ | `ComputeKey` | *The compute key of the account*
 #### Examples
 
 ```javascript
-import { Account } from "@provablehq/sdk/testnet.js";
+import { Account } from "@provablehq/provablekit/testnet.js";
 
 const account = new Account();
 const computeKey = account.computeKey();
@@ -154,7 +154,7 @@ __*return*__ | [Address](sdk-src_wasm.md) | *The public address of the account*
 #### Examples
 
 ```javascript
-import { Account } from "@provablehq/sdk/testnet.js";
+import { Account } from "@provablehq/provablekit/testnet.js";
 
 const account = new Account();
 const address = account.address();
@@ -175,7 +175,7 @@ __*return*__ | [Account](sdk-src_account.md) | *A new Account instance with the 
 #### Examples
 
 ```javascript
-import { Account } from "@provablehq/sdk/testnet.js";
+import { Account } from "@provablehq/provablekit/testnet.js";
 
 const account = new Account();
 const clonedAccount = account.clone();
@@ -209,7 +209,7 @@ __*return*__ | [PrivateKeyCiphertext](sdk-src_wasm.md) | *The encrypted private 
 #### Examples
 
 ```javascript
-import { Account } from "@provablehq/sdk/testnet.js";
+import { Account } from "@provablehq/provablekit/testnet.js";
 
 const account = new Account();
 const ciphertext = account.encryptAccount("password");
@@ -233,7 +233,7 @@ __*return*__ | [RecordPlaintext](sdk-src_wasm.md) | *The decrypted record plaint
 
 ```javascript
 // Import the AleoNetworkClient and Account classes
-import { AleoNetworkClient, Account } from "@provablehq/sdk/testnet.js";
+import { AleoNetworkClient, Account } from "@provablehq/provablekit/testnet.js";
 
 // Create a connection to the Aleo network and an account
 const networkClient = new AleoNetworkClient("https://api.provable.com/v2");
@@ -269,7 +269,7 @@ __*return*__ | `Array.<RecordPlaintext>` | *An array of decrypted record plainte
 
 ```javascript
 // Import the AleoNetworkClient and Account classes
-import { AleoNetworkClient, Account } from "@provablehq/sdk/testnet.js";
+import { AleoNetworkClient, Account } from "@provablehq/provablekit/testnet.js";
 
 // Create a connection to the Aleo network and an account
 const networkClient = new AleoNetworkClient("https://api.provable.com/v2");
@@ -301,7 +301,7 @@ __*return*__ | [Field](sdk-src_wasm.md) | *The record view key*
 
 ```javascript
 // Import the Account class
-import { Account } from "@provablehq/sdk/testnet.js";
+import { Account } from "@provablehq/provablekit/testnet.js";
 
 // Create an account object from a previously encrypted ciphertext and password.
 const account = Account.fromCiphertext(process.env.ciphertext!, process.env.password!);
@@ -330,7 +330,7 @@ __*return*__ | [Field](sdk-src_wasm.md) | *The transition view key*
 
 ```javascript
 // Import the Account class
-import { Account } from "@provablehq/sdk/testnet.js";
+import { Account } from "@provablehq/provablekit/testnet.js";
 
 // Generate a transition view key from the account's view key and a transition public key
 const tpk = Group.fromString("your_transition_public_key_here");
@@ -355,7 +355,7 @@ __*return*__ | `boolean` | *True if the account owns the record, false otherwise
 
 ```javascript
 // Import the AleoNetworkClient and Account classes
-import { AleoNetworkClient, Account } from "@provablehq/sdk/testnet.js";
+import { AleoNetworkClient, Account } from "@provablehq/provablekit/testnet.js";
 
 // Create a connection to the Aleo network and an account
 const networkClient = new AleoNetworkClient("https://api.provable.com/v2");
@@ -392,7 +392,7 @@ __*return*__ | [Signature](sdk-src_wasm.md) | *Signature over the message in byt
 
 ```javascript
 // Import the Account class
-import { Account } from "@provablehq/sdk/testnet.js";
+import { Account } from "@provablehq/provablekit/testnet.js";
 
 // Create a connection to the Aleo network and an account
 const account = Account.fromCiphertext(process.env.ciphertext, process.env.password);
@@ -424,7 +424,7 @@ __*return*__ | `boolean` | *True if the signature is valid, false otherwise.*
 
 ```javascript
 // Import the Account class
-import { Account } from "@provablehq/sdk/testnet.js";
+import { Account } from "@provablehq/provablekit/testnet.js";
 
 // Create a connection to the Aleo network and an account
 const account = Account.fromCiphertext(process.env.ciphertext, process.env.password);
@@ -454,7 +454,7 @@ __*return*__ | [Account](sdk-src_account.md) | *A new Account instance created f
 #### Examples
 
 ```javascript
-import { Account } from "@provablehq/sdk/testnet.js";
+import { Account } from "@provablehq/provablekit/testnet.js";
 
 // Create an account object from a previously encrypted ciphertext and password.
 const account = Account.fromCiphertext(process.env.ciphertext, process.env.password);
@@ -475,7 +475,7 @@ __*return*__ | [PrivateKey](sdk-src_wasm.md) | *The private key of the account*
 #### Examples
 
 ```javascript
-import { Account } from "@provablehq/sdk/testnet.js";
+import { Account } from "@provablehq/provablekit/testnet.js";
 
 const account = new Account();
 const privateKey = account.privateKey();
@@ -496,7 +496,7 @@ __*return*__ | `ViewKey` | *The view key of the account*
 #### Examples
 
 ```javascript
-import { Account } from "@provablehq/sdk/testnet.js";
+import { Account } from "@provablehq/provablekit/testnet.js";
 
 const account = new Account();
 const viewKey = account.viewKey();
@@ -517,7 +517,7 @@ __*return*__ | `ComputeKey` | *The compute key of the account*
 #### Examples
 
 ```javascript
-import { Account } from "@provablehq/sdk/testnet.js";
+import { Account } from "@provablehq/provablekit/testnet.js";
 
 const account = new Account();
 const computeKey = account.computeKey();
@@ -538,7 +538,7 @@ __*return*__ | [Address](sdk-src_wasm.md) | *The public address of the account*
 #### Examples
 
 ```javascript
-import { Account } from "@provablehq/sdk/testnet.js";
+import { Account } from "@provablehq/provablekit/testnet.js";
 
 const account = new Account();
 const address = account.address();
@@ -559,7 +559,7 @@ __*return*__ | [Account](sdk-src_account.md) | *A new Account instance with the 
 #### Examples
 
 ```javascript
-import { Account } from "@provablehq/sdk/testnet.js";
+import { Account } from "@provablehq/provablekit/testnet.js";
 
 const account = new Account();
 const clonedAccount = account.clone();
@@ -593,7 +593,7 @@ __*return*__ | [PrivateKeyCiphertext](sdk-src_wasm.md) | *The encrypted private 
 #### Examples
 
 ```javascript
-import { Account } from "@provablehq/sdk/testnet.js";
+import { Account } from "@provablehq/provablekit/testnet.js";
 
 const account = new Account();
 const ciphertext = account.encryptAccount("password");
@@ -617,7 +617,7 @@ __*return*__ | [RecordPlaintext](sdk-src_wasm.md) | *The decrypted record plaint
 
 ```javascript
 // Import the AleoNetworkClient and Account classes
-import { AleoNetworkClient, Account } from "@provablehq/sdk/testnet.js";
+import { AleoNetworkClient, Account } from "@provablehq/provablekit/testnet.js";
 
 // Create a connection to the Aleo network and an account
 const networkClient = new AleoNetworkClient("https://api.provable.com/v2");
@@ -653,7 +653,7 @@ __*return*__ | `Array.<RecordPlaintext>` | *An array of decrypted record plainte
 
 ```javascript
 // Import the AleoNetworkClient and Account classes
-import { AleoNetworkClient, Account } from "@provablehq/sdk/testnet.js";
+import { AleoNetworkClient, Account } from "@provablehq/provablekit/testnet.js";
 
 // Create a connection to the Aleo network and an account
 const networkClient = new AleoNetworkClient("https://api.provable.com/v2");
@@ -685,7 +685,7 @@ __*return*__ | [Field](sdk-src_wasm.md) | *The record view key*
 
 ```javascript
 // Import the Account class
-import { Account } from "@provablehq/sdk/testnet.js";
+import { Account } from "@provablehq/provablekit/testnet.js";
 
 // Create an account object from a previously encrypted ciphertext and password.
 const account = Account.fromCiphertext(process.env.ciphertext!, process.env.password!);
@@ -714,7 +714,7 @@ __*return*__ | [Field](sdk-src_wasm.md) | *The transition view key*
 
 ```javascript
 // Import the Account class
-import { Account } from "@provablehq/sdk/testnet.js";
+import { Account } from "@provablehq/provablekit/testnet.js";
 
 // Generate a transition view key from the account's view key and a transition public key
 const tpk = Group.fromString("your_transition_public_key_here");
@@ -739,7 +739,7 @@ __*return*__ | `boolean` | *True if the account owns the record, false otherwise
 
 ```javascript
 // Import the AleoNetworkClient and Account classes
-import { AleoNetworkClient, Account } from "@provablehq/sdk/testnet.js";
+import { AleoNetworkClient, Account } from "@provablehq/provablekit/testnet.js";
 
 // Create a connection to the Aleo network and an account
 const networkClient = new AleoNetworkClient("https://api.provable.com/v2");
@@ -776,7 +776,7 @@ __*return*__ | [Signature](sdk-src_wasm.md) | *Signature over the message in byt
 
 ```javascript
 // Import the Account class
-import { Account } from "@provablehq/sdk/testnet.js";
+import { Account } from "@provablehq/provablekit/testnet.js";
 
 // Create a connection to the Aleo network and an account
 const account = Account.fromCiphertext(process.env.ciphertext, process.env.password);
@@ -808,7 +808,7 @@ __*return*__ | `boolean` | *True if the signature is valid, false otherwise.*
 
 ```javascript
 // Import the Account class
-import { Account } from "@provablehq/sdk/testnet.js";
+import { Account } from "@provablehq/provablekit/testnet.js";
 
 // Create a connection to the Aleo network and an account
 const account = Account.fromCiphertext(process.env.ciphertext, process.env.password);

@@ -77,7 +77,7 @@ If `credits.aleo`records are being searched for, users can also optionally speci
 * A maximum cumulative amount to find between all records.
 
 ```typescript
-import { AleoNetworkClient } from '@provablehq/sdk';
+import { AleoNetworkClient } from '@provablehq/provablekit';
 
 const account = new Account.fromCiphertext(process.env.cipherText, process.env.secret);
 const networkClient = new AleoNetworkClient("https://api.provable.com/v2", undefined, account);
@@ -116,7 +116,7 @@ search for an appropriate record to pay the fee.
 A usage example of the `RecordProvider` is shown below using the `NetworkRecordProvider` implementation of the
 `RecordProvider` interface.
 ```typescript
-import { AleoNetworkClient, AleoKeyProvider, NetworkRecordProvider, ProgramManager } from '@provablehq/sdk';
+import { AleoNetworkClient, AleoKeyProvider, NetworkRecordProvider, ProgramManager } from '@provablehq/provablekit';
 
 // Create a new NetworkClient, KeyProvider, and RecordProvider using official Aleo record, key, and network providers
 const networkClient = new AleoNetworkClient("https://api.provable.com/v2");

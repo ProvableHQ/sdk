@@ -59,19 +59,6 @@ async function updateVersions(versions) {
   );
 }
 
-async function updateCargo(engineVersion) {
-  const tomlPath = "wasm/Cargo.toml";
-  const toml = await readFile(tomlPath, { encoding: "utf8" });
-
-  const packageSectionRegex = /(\[package\][\s\S]*?\nversion\s*=\s*)"[^"]+"/;
-  if (!packageSectionRegex.test(toml)) {
-    throw new Error(`Could not locate [package] version in ${tomlPath}`);
-  }
-
-  const replaced = toml.replace(packageSectionRegex, `$1"${engineVersion}"`);
-  await writeFile(tomlPath, replaced);
-}
-
 async function updateAllDependencyRanges(versions) {
   const files = await glob("**/package.json", { ignore: "**/node_modules/**" });
   await Promise.all(
@@ -83,7 +70,6 @@ async function updateAllDependencyRanges(versions) {
 
 const versions = parseVersionArgs(process.argv);
 await updateVersions(versions);
-await updateCargo(versions.engines);
 await updateAllDependencyRanges(versions);
 
 console.log(

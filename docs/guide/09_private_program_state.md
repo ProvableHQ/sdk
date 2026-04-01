@@ -81,7 +81,7 @@ The above state chain would be executed in the following way using the SDK:
 #### Step 1 - User 1 sends a private value transfer to User 2
 ```typescript
 // USER 1
-import { Account, ProgramManager, AleoKeyProvider, NetworkRecordProvider, AleoNetworkClient } from '@provablehq/sdk';
+import { Account, ProgramManager, AleoKeyProvider, NetworkRecordProvider, AleoNetworkClient } from '@provablehq/provablekit';
 
 // Create a new NetworkClient, KeyProvider, and RecordProvider
 const account = Account.from_string({privateKey: "user1PrivateKey"});
@@ -102,7 +102,7 @@ const tx_id = await programManager.transfer(1, USER_2_ADDRESS, "transfer_private
 
 ```typescript
 // USER 2
-import { Account, ProgramManager, AleoKeyProvider, NetworkRecordProvider, AleoNetworkClient } from '@provablehq/sdk';
+import { Account, ProgramManager, AleoKeyProvider, NetworkRecordProvider, AleoNetworkClient } from '@provablehq/provablekit';
 
 // Create a new NetworkClient, KeyProvider, and RecordProvider
 const account = Account.from_string({privateKey: "user2PrivateKey"});
@@ -198,7 +198,7 @@ that are not owned by the user will fail.
 Record decryption and ownership verification can be done in the SDK using the following code:
 
 ```typescript
-import { Account, RecordCiphertext, RecordPlaintext } from '@provablehq/sdk';
+import { Account, RecordCiphertext, RecordPlaintext } from '@provablehq/provablekit';
 
 // Create an account from an existing private key
 const account = Account.from_string({privateKey: "existingPrivateKey"});
@@ -223,7 +223,7 @@ record by a third party.  This approach enables a user to maintain privacy over 
 ensuring that only the desired record can be decrypted a third party.
 
 ```typescript
-import {Account, EncryptionToolkit, Field, RecordCiphertext, RecordPlaintext} from '@provablehq/sdk';
+import {Account, EncryptionToolkit, Field, RecordCiphertext, RecordPlaintext} from '@provablehq/provablekit';
 
 // Create an account from an existing private key
 const account = Account.from_string({privateKey: "existingPrivateKey"});

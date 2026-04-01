@@ -58,6 +58,17 @@ const FRAMEWORKS: Framework[] = [
         display: "TypeScript + Next.js",
         color: lightGray,
       },
+      {
+        name: "web-keygen",
+        display: "Web Keygen (WASM Worker)",
+        color: cyan,
+      },
+      {
+        name: "expo-keygen",
+        display: "Expo Keygen (React Native)",
+        color: lightGreen,
+        customCommand: "start",
+      },
     ],
   },
   {

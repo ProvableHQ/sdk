@@ -172,7 +172,7 @@ All four of these functions can be used to transfer credits between users via th
 `ProgramManager` by specifying the transfer type as the third argument.
 
 ```typescript
-import { Account, ProgramManager, AleoKeyProvider, NetworkRecordProvider, AleoNetworkClient } from '@provablehq/sdk';
+import { Account, ProgramManager, AleoKeyProvider, NetworkRecordProvider, AleoNetworkClient } from '@provablehq/provablekit';
 
 // Create a new NetworkClient, KeyProvider, and RecordProvider
 const account = Account.from_string({privateKey: "user1PrivateKey"});

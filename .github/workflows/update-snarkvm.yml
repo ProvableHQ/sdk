@@ -29,7 +29,7 @@ jobs:
         id: current-commit
         run: |
           # Extract the first snarkVM rev found in the Cargo.toml
-          CURRENT_COMMIT=$(grep -E 'snarkvm-[a-zA-Z0-9_-]+ = .*rev\s*=' wasm/Cargo.toml | head -n 1 | sed -E 's/.*rev\s*=\s*"([a-f0-9]+)".*/\1/')
+          CURRENT_COMMIT=$(grep -E 'snarkvm-[a-zA-Z0-9_-]+ = .*rev\s*=' packages/provable-engine-wasm/rust/Cargo.toml | head -n 1 | sed -E 's/.*rev\s*=\s*"([a-f0-9]+)".*/\1/')
           echo "Current snarkVM commit: $CURRENT_COMMIT"
           echo "current_commit=$CURRENT_COMMIT" >> $GITHUB_OUTPUT
 
@@ -76,7 +76,7 @@ jobs:
           fi
           
           # First, update the rev in Cargo.toml to point to the new commit
-          cd wasm
+          cd packages/provable-engine-wasm/rust
           cargo add snarkvm-algorithms --git https://github.com/ProvableHQ/snarkVM --rev $LATEST_COMMIT
           cargo add snarkvm-circuit-network --git https://github.com/ProvableHQ/snarkVM --rev $LATEST_COMMIT
           cargo add snarkvm-console --git https://github.com/ProvableHQ/snarkVM --rev $LATEST_COMMIT
@@ -93,7 +93,7 @@ jobs:
       - name: Commit and push changes
         if: steps.snarkvm-commit.outputs.update_needed == 'true'
         run: |
-          git add wasm/Cargo.toml wasm/Cargo.lock
+          git add packages/provable-engine-wasm/rust/Cargo.toml packages/provable-engine-wasm/rust/Cargo.lock
           git commit --no-verify -m "Update snarkVM to latest staging commit ${{ steps.snarkvm-commit.outputs.latest_commit }}
 
           Previous commit: ${{ steps.snarkvm-commit.outputs.current_commit }}

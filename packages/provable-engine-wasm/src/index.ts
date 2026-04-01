@@ -35,13 +35,12 @@ type WasmSdkModule = {
   ProgramManager?: unknown;
 };
 
-async function loadWasmSdk(network?: unknown): Promise<WasmSdkModule> {
+import * as wasmMainnet from "@provablehq/provable-engine-wasm/mainnet.js";
+import * as wasmTestnet from "@provablehq/provable-engine-wasm/testnet.js";
+
+function loadWasmSdk(network?: unknown): WasmSdkModule {
   const normalized = typeof network === "string" ? network.toLowerCase() : "mainnet";
-  const moduleName =
-    normalized === "testnet"
-      ? "@provablehq/provable-engine-wasm/testnet.js"
-      : "@provablehq/provable-engine-wasm/mainnet.js";
-  return (await import(moduleName)) as unknown as WasmSdkModule;
+  return (normalized === "testnet" ? wasmTestnet : wasmMainnet) as unknown as WasmSdkModule;
 }
 
 export class WasmEngine implements ProvableEngine {
@@ -49,7 +48,7 @@ export class WasmEngine implements ProvableEngine {
   readonly displayName = "Provable WASM Engine";
 
   async init(ctx?: { env?: Record<string, unknown> }): Promise<EngineCapabilities> {
-    const sdk = await loadWasmSdk(ctx?.env?.network);
+    const sdk = loadWasmSdk(ctx?.env?.network);
 
     return {
       account: {
