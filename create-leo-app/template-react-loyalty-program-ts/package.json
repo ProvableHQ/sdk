@@ -13,7 +13,8 @@
     "install-leo": "./install.sh"
   },
   "dependencies": {
-    "@provablehq/sdk": "^0.9.15",
+    "@provablehq/provablekit": "^0.1.0",
+    "@provablehq/provable-engine-wasm": "^0.1.0",
     "comlink": "^4.4.2",
     "react": "^19.0.0",
     "react-dom": "^19.0.0"

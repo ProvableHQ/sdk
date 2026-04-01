@@ -14,7 +14,8 @@
         "start:redeem": "npm run build && node dist/index.js redeem_for_voucher"
     },
     "dependencies": {
-        "@provablehq/sdk": "^0.9.15",
+        "@provablehq/provablekit": "^0.1.0",
+        "@provablehq/provable-engine-wasm": "^0.1.0",
         "dotenv": "^16.4.5"
     },
     "devDependencies": {

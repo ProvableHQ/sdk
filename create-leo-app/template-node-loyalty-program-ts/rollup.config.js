@@ -9,7 +9,7 @@ export default {
         format: "es",
         sourcemap: true,
     },
-    external: ["@provablehq/sdk", "fs", "path", "url"],
+    external: ["@provablehq/provablekit", "@provablehq/provable-engine-wasm", "fs", "path", "url"],
     plugins: [
         typescript({
             tsconfig: "tsconfig.json",

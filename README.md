@@ -19,7 +19,31 @@ several TypeScript & JavaScript libraries which provide the following functional
 All of this functionality is demonstrated on [Provable.tools](https://provable.tools).
 
 
-The Provable SDK is divided into three TypeScript/JavaScript packages:
+The Provable SDK is divided into multiple TypeScript/JavaScript packages:
+
+### New Core + Engine Architecture
+
+This repository now includes a split architecture for multi-platform runtimes:
+
+- `@provablehq/provablekit` - shared SDK contracts and platform-agnostic orchestration
+- `@provablehq/provable-engine-wasm` - web/desktop engine backed by `@provablehq/wasm`
+- `@provablehq/provable-engine-react-native` - mobile engine adapter for React Native runtimes
+
+Implementation note: the workspace folder `packages/provable-core` publishes to npm as `@provablehq/provablekit`.
+
+Use the unified initialization flow:
+
+```ts
+import { ProvableSDK } from "@provablehq/provablekit";
+import { createWasmEngine } from "@provablehq/provable-engine-wasm";
+
+await ProvableSDK.init({
+  engine: createWasmEngine(),
+  env: { network: "mainnet" },
+});
+```
+
+For migration details and release order, see `docs/provable-core-engines-migration.md`.
 
 ## 1. Provable SDK - Build Zero-Knowledge Web Apps
 

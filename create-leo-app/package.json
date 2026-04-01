@@ -9,15 +9,20 @@
   "bin": "index.js",
   "files": [
     "index.js",
+    "LICENSE.md",
+    "template-devnode-js",
     "template-extension",
     "template-nextjs-ts",
+    "template-node-loyalty-program-ts",
     "template-node-ts",
     "template-build-and-execute-authorization-ts",
     "template-node",
     "template-offline-public-transaction-ts",
     "template-node-credits-aleo-functions-ts",
+    "template-private-transaction-ts",
     "template-react-credits-aleo-functions-ts",
     "template-react-leo",
+    "template-react-loyalty-program-ts",
     "template-react-ts",
     "template-vanilla",
     "dist"
@@ -25,11 +30,20 @@
   "scripts": {
     "dev": "unbuild --stub",
     "build": "unbuild",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "prepack": "node scripts/prepare-pack.js"
   },
   "engines": {
     "node": "^14.18.0 || >=16.0.0"
   },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/ProvableHQ/sdk.git"
+  },
+  "bugs": {
+    "url": "https://github.com/ProvableHQ/sdk/issues"
+  },
+  "homepage": "https://github.com/ProvableHQ/sdk/tree/mainnet/create-leo-app#readme",
   "devDependencies": {
     "@types/minimist": "^1.2.5",
     "@types/prompts": "^2.4.9",

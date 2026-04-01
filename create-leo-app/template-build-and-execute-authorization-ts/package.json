@@ -8,7 +8,8 @@
     "dev": "npm run build && node dist/index.js"
   },
   "dependencies": {
-    "@provablehq/sdk": "^0.10.0"
+    "@provablehq/provablekit": "^0.1.0",
+    "@provablehq/provable-engine-wasm": "^0.1.0"
   },
   "devDependencies": {
     "rimraf": "^6.0.1",

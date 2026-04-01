@@ -15,8 +15,8 @@ export {
     Field,
     GraphKey,
     Group,
-    I8, 
-    I16, 
+    I8,
+    I16,
     I32,
     I64,
     I128,
@@ -32,13 +32,11 @@ export {
     PrivateKeyCiphertext,
     Program,
     ProgramManager,
-    Proof,
     ProvingKey,
     ProvingRequest,
     RecordCiphertext,
     RecordPlaintext,
     Scalar,
-    stringToField,
     Signature,
     Transaction,
     Transition,
@@ -47,12 +45,40 @@ export {
     U32,
     U64,
     U128,
-    Value,
     VerifyingKey,
     ViewKey,
     initThreadPool,
     getOrInitConsensusVersionTestHeights,
-    snarkVerify,
-    snarkVerifyBatch,
     verifyFunctionExecution,
 } from "@provablehq/wasm/%%NETWORK%%.js";
+
+/**
+ * Legacy compatibility shim retained for hard-cutover transition.
+ * These APIs are no longer provided by the wasm package and are intentionally unsupported.
+ */
+export class Proof {
+    static fromString(_proof: string): never {
+        throw new Error("Proof is no longer exported by @provablehq/wasm. Use engine-level proof handling.");
+    }
+}
+
+/**
+ * Legacy compatibility shim retained for hard-cutover transition.
+ */
+export class Value {
+    static fromString(_value: string): never {
+        throw new Error("Value is no longer exported by @provablehq/wasm. Use engine-level value parsing.");
+    }
+}
+
+export function stringToField(_value: string): never {
+    throw new Error("stringToField is no longer exported by @provablehq/wasm.");
+}
+
+export function snarkVerify(_proof: unknown, _vk: unknown, _inputs: unknown): never {
+    throw new Error("snarkVerify is no longer exported by @provablehq/wasm.");
+}
+
+export function snarkVerifyBatch(_proofs: unknown, _vks: unknown, _inputs: unknown): never {
+    throw new Error("snarkVerifyBatch is no longer exported by @provablehq/wasm.");
+}

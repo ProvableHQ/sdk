@@ -36,7 +36,7 @@ export function encryptProvingRequest(publicKey: string, provingRequest: Proving
  * @returns {string} the encrypted view key in RFC 4648 standard Base64.
  */
 export function encryptViewKey(publicKey: string, viewKey: ViewKey): string {
-    return encryptMessage(publicKey, viewKey.toBytesLe());
+    return encryptMessage(publicKey, viewKey.to_scalar().toBytesLe());
 }
 
 /**
@@ -50,7 +50,7 @@ export function encryptViewKey(publicKey: string, viewKey: ViewKey): string {
  */
 export function encryptRegistrationRequest(publicKey: string, viewKey: ViewKey, start: number): string {
     // Turn the view key into a Uint8Array.
-    const vk_bytes: Uint8Array = viewKey.toBytesLe();
+    const vk_bytes: Uint8Array = viewKey.to_scalar().toBytesLe();
     // Create a new array to hold the original bytes and the 4-byte start height.
     const bytes = new Uint8Array(vk_bytes.length + 4);
 

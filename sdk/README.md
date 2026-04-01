@@ -17,6 +17,26 @@ The [Provable SDK](https://github.com/ProvableHQ/sdk) is an open source TypeScri
 SDK provides an easy API for using Aleo's core suite of cryptographic primitives, zk-SNARKs and private program execution
 protocol directly within Javascript. It also provides APIs for interacting with nodes and applications on the Aleo Network.
 
+## Compatibility Facade Status
+
+`@provablehq/sdk` is now a compatibility facade package. New integrations should prefer:
+
+- `@provablehq/provablekit`
+- `@provablehq/provable-engine-wasm`
+- `@provablehq/provable-engine-react-native`
+
+Recommended initialization:
+
+```ts
+import { ProvableSDK } from "@provablehq/provablekit";
+import { createWasmEngine } from "@provablehq/provable-engine-wasm";
+
+await ProvableSDK.init({
+  engine: createWasmEngine(),
+  env: { network: "mainnet" },
+});
+```
+
 Applications built with the Provable SDK include:
 * **Private DeFi**
 * **Private Data Custody Systems**

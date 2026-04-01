@@ -7,24 +7,24 @@
   ],
   "license": "GPL-3.0",
   "type": "module",
-  "main": "./dist/testnet/node.js",
-  "browser": "./dist/testnet/browser.js",
+  "main": "./dist/node.js",
+  "browser": "./dist/browser.js",
   "exports": {
     ".": {
-      "node": "./dist/testnet/node.js",
-      "default": "./dist/testnet/browser.js"
+      "node": "./dist/node.js",
+      "default": "./dist/browser.js"
     },
     "./testnet.js": {
-      "node": "./dist/testnet/node.js",
-      "default": "./dist/testnet/browser.js"
+      "node": "./dist/node.js",
+      "default": "./dist/browser.js"
     },
     "./mainnet.js": {
-      "node": "./dist/mainnet/node.js",
-      "default": "./dist/mainnet/browser.js"
+      "node": "./dist/node.js",
+      "default": "./dist/browser.js"
     },
     "./dynamic.js": {
-      "node": "./dist/dynamic/node.js",
-      "default": "./dist/dynamic/browser.js"
+      "node": "./dist/node.js",
+      "default": "./dist/browser.js"
     }
   },
   "files": [
@@ -50,14 +50,22 @@
     "url": "https://github.com/ProvableHQ/sdk/issues"
   },
   "homepage": "https://github.com/ProvableHQ/sdk#readme",
-  "dependencies": {
-    "@provablehq/wasm": "^0.10.0",
-    "@scure/base": "^2.0.0",
-    "comlink": "^4.4.2",
-    "core-js": "^3.40.0",
-    "mime": "^4.0.6",
-    "libsodium-wrappers": "^0.8.2",
-    "xmlhttprequest-ssl": "^4.0.0"
+  "dependencies": {},
+  "peerDependencies": {
+    "@provablehq/provablekit": "^0.1.0",
+    "@provablehq/provable-engine-react-native": "^0.1.0",
+    "@provablehq/provable-engine-wasm": "^0.1.0"
+  },
+  "peerDependenciesMeta": {
+    "@provablehq/provablekit": {
+      "optional": true
+    },
+    "@provablehq/provable-engine-react-native": {
+      "optional": true
+    },
+    "@provablehq/provable-engine-wasm": {
+      "optional": true
+    }
   },
   "devDependencies": {
     "@rollup/plugin-replace": "^6.0.2",

@@ -1,11 +1,12 @@
 {
     "name": "nodenext",
+    "version": "0.0.0",
     "type": "module",
     "dependencies": {
-        "@provablehq/sdk": "^0.10.0",
-        "typescript": "^5.7.3"
+        "@provablehq/provablekit": "^0.1.0",
+        "@provablehq/provable-engine-wasm": "^0.1.0"
     },
     "scripts": {
-        "start": "tsc"
+        "start": "node index.js"
     }
 }

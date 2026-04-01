@@ -1822,24 +1822,6 @@
   resolved "https://registry.npmjs.org/@pkgjs/parseargs/-/parseargs-0.11.0.tgz"
   integrity sha512-+1VkjdD0QBLPodGrJUeqarH8VAIvQODIbwh9XpP5Syisf7YoQgsJKPNFoqqLQlu+VQ/tVSshMR6loPMn8U+dPg==
 
-"@provablehq/sdk@^0.9.15":
-  version "0.9.18"
-  resolved "https://registry.yarnpkg.com/@provablehq/sdk/-/sdk-0.9.18.tgz#2e0cd632a75959fe74ff24e8e05eaca49647d473"
-  integrity sha512-fQitq7W8btMkV/wiZuoIaywwAMOsYTe+U0fme3RL0IQGb7zsHn0ySf9Pe0D5lS4CZCnmNeuV2PGqyUUZpiG4Aw==
-  dependencies:
-    "@provablehq/wasm" "^0.9.18"
-    "@scure/base" "^2.0.0"
-    comlink "^4.4.2"
-    core-js "^3.40.0"
-    libsodium-wrappers "^0.8.2"
-    mime "^4.0.6"
-    xmlhttprequest-ssl "^4.0.0"
-
-"@provablehq/wasm@^0.9.18":
-  version "0.9.18"
-  resolved "https://registry.yarnpkg.com/@provablehq/wasm/-/wasm-0.9.18.tgz#21e9ca89bbba91f7b3dd8320029409aadc34633a"
-  integrity sha512-wNOHQnLM/et8oAevFSvQrVCvKfQGQQZBBAp8335/BM+CjC2k+ft5PlqPHuLrRb1K0XrKe3b9lSa0NQsO8aND4g==
-
 "@rc-component/async-validator@^5.0.3":
   version "5.0.4"
   resolved "https://registry.npmjs.org/@rc-component/async-validator/-/async-validator-5.0.4.tgz"
@@ -2241,11 +2223,6 @@
   version "1.1.0"
   resolved "https://registry.npmjs.org/@rtsao/scc/-/scc-1.1.0.tgz"
   integrity sha512-zt6OdqaDoOnJ1ZYsCYGt9YmWzDXl4vQdKTyJev62gFhRGKdx7mcT54V9KIjg+d2wi9EXsPvAPKe7i7WjfVWB8g==
-
-"@scure/base@^2.0.0":
-  version "2.0.0"
-  resolved "https://registry.npmjs.org/@scure/base/-/base-2.0.0.tgz"
-  integrity sha512-3E1kpuZginKkek01ovG8krQ0Z44E3DHPjc5S2rjJw9lZn3KSQOs8S7wqikF/AH7iRanHypj85uGyxk0XAyC37w==
 
 "@sindresorhus/merge-streams@^2.1.0":
   version "2.3.0"
@@ -4083,11 +4060,6 @@ core-js@^2.4.0:
   version "2.6.12"
   resolved "https://registry.npmjs.org/core-js/-/core-js-2.6.12.tgz"
   integrity sha512-Kb2wC0fvsWfQrgk8HU5lW6U/Lcs8+9aaYcy4ZFc6DDlo4nZ7n70dEgE5rtR0oG6ufKDUnrwfWL1mXR5ljDatrQ==
-
-core-js@^3.40.0:
-  version "3.47.0"
-  resolved "https://registry.npmjs.org/core-js/-/core-js-3.47.0.tgz"
-  integrity sha512-c3Q2VVkGAUyupsjRnaNX6u8Dq2vAdzm9iuPj5FW0fRxzlxgq9Q39MDq10IvmQSpLgHQNyQzQmOo6bgGHmH3NNg==
 
 core-util-is@~1.0.0:
   version "1.0.3"
@@ -6408,18 +6380,6 @@ levn@^0.4.1:
     prelude-ls "^1.2.1"
     type-check "~0.4.0"
 
-libsodium-wrappers@^0.8.2:
-  version "0.8.2"
-  resolved "https://registry.npmjs.org/libsodium-wrappers/-/libsodium-wrappers-0.8.2.tgz"
-  integrity sha512-VFLmfxkxo+U9q60tjcnSomQBRx2UzlRjKWJqvB4K1pUqsMQg4cu3QXA2nrcsj9A1qRsnJBbi2Ozx1hsiDoCkhw==
-  dependencies:
-    libsodium "^0.8.0"
-
-libsodium@^0.8.0:
-  version "0.8.2"
-  resolved "https://registry.npmjs.org/libsodium/-/libsodium-0.8.2.tgz"
-  integrity sha512-TsnGYMoZtpweT+kR+lOv5TVsnJ/9U0FZOsLFzFOMWmxqOAYXjX3fsrPAW+i1LthgDKXJnI9A8dWEanT1tnJKIw==
-
 lilconfig@^3.1.3:
   version "3.1.3"
   resolved "https://registry.npmjs.org/lilconfig/-/lilconfig-3.1.3.tgz"
@@ -6708,11 +6668,6 @@ mime@1.6.0:
   version "1.6.0"
   resolved "https://registry.npmjs.org/mime/-/mime-1.6.0.tgz"
   integrity sha512-x0Vn8spI+wuJ1O6S7gnbaQg8Pxh4NNHb7KSINmEWKiPE4RKOplvijn+NkmYmmRgP68mc70j2EbeTFRsrswaQeg==
-
-mime@^4.0.6:
-  version "4.1.0"
-  resolved "https://registry.npmjs.org/mime/-/mime-4.1.0.tgz"
-  integrity sha512-X5ju04+cAzsojXKes0B/S4tcYtFAJ6tTMuSPBEn9CPGlrWr8Fiw7qYeLT0XyH80HSoAoqWCaz+MWKh22P7G1cw==
 
 min-indent@^1.0.0:
   version "1.0.1"
@@ -10051,11 +10006,6 @@ xmlcreate@^2.0.4:
   version "2.0.4"
   resolved "https://registry.npmjs.org/xmlcreate/-/xmlcreate-2.0.4.tgz"
   integrity sha512-nquOebG4sngPmGPICTS5EnxqhKbCmz5Ox5hsszI2T6U5qdrJizBc+0ilYSEjTSzU0yZcmvppztXe/5Al5fUwdg==
-
-xmlhttprequest-ssl@^4.0.0:
-  version "4.0.0"
-  resolved "https://registry.npmjs.org/xmlhttprequest-ssl/-/xmlhttprequest-ssl-4.0.0.tgz"
-  integrity sha512-b7DXzbCm8VWmII2mQiQHy5VG1L6YBUnNxuCooldWpMUXTwa08uXEz1q5Nv6wlULnSI5GiHuwBIq6pNJrqRh/8Q==
 
 y18n@^5.0.5:
   version "5.0.8"
