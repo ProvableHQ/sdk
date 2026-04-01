@@ -15,12 +15,39 @@
 // along with the Provable SDK library. If not, see <https://www.gnu.org/licenses/>.
 
 use crate::{
+    Address,
     Plaintext,
     from_js_typed_array,
     to_bits_array_le,
-    types::native::{BooleanNative, LiteralNative, PlaintextNative},
+    types::{
+        Field,
+        Group,
+        Scalar,
+        integer::{I8, I16, I32, I64, I128, U8, U16, U32, U64, U128},
+        native::{
+            BooleanNative,
+            FieldNative,
+            GroupNative,
+            I8Native,
+            I16Native,
+            I32Native,
+            I64Native,
+            I128Native,
+            LiteralNative,
+            PlaintextNative,
+            ScalarNative,
+            U8Native,
+            U16Native,
+            U32Native,
+            U64Native,
+            U128Native,
+        },
+    },
 };
-use snarkvm_console::prelude::{FromBits, FromBytes, ToBits, ToBytes};
+use snarkvm_console::{
+    prelude::{FromBits, FromBytes, FromField, ToBits, ToBytes},
+    program::CastLossy,
+};
 use snarkvm_wasm::utilities::Uniform;
 
 use js_sys::{Array, Uint8Array};
@@ -137,6 +164,111 @@ impl Boolean {
     /// Check if one boolean element equals another.
     pub fn equals(&self, other: &Boolean) -> bool {
         self.0 == BooleanNative::from(other)
+    }
+
+    // ── cast conversions (all lossless — Boolean has minimal information) ──
+
+    /// Cast the boolean to a Field element (false=0, true=1). Lossless.
+    #[wasm_bindgen(js_name = "toField")]
+    pub fn to_field(&self) -> Result<Field, String> {
+        Ok(Field::from(FieldNative::from_bits_le(&[*self.0]).map_err(|e| e.to_string())?))
+    }
+
+    /// Cast the boolean to a Scalar element (false=0, true=1). Lossless.
+    #[wasm_bindgen(js_name = "toScalar")]
+    pub fn to_scalar(&self) -> Result<Scalar, String> {
+        Ok(Scalar::from(ScalarNative::from_bits_le(&[*self.0]).map_err(|e| e.to_string())?))
+    }
+
+    /// Cast the boolean to a Group element (strict, via Field x-coordinate recovery).
+    /// Returns an error if the resulting field is not a valid x-coordinate.
+    #[wasm_bindgen(js_name = "toGroup")]
+    pub fn to_group(&self) -> Result<Group, String> {
+        let field = FieldNative::from_bits_le(&[*self.0]).map_err(|e| e.to_string())?;
+        Ok(Group::from(GroupNative::from_field(&field).map_err(|e| e.to_string())?))
+    }
+
+    /// Cast the boolean to a Group element (lossy, via Field with Elligator-2 fallback).
+    /// This conversion never fails.
+    #[wasm_bindgen(js_name = "toGroupLossy")]
+    pub fn to_group_lossy(&self) -> Result<Group, String> {
+        let field = FieldNative::from_bits_le(&[*self.0]).map_err(|e| e.to_string())?;
+        let group: GroupNative = field.cast_lossy();
+        Ok(Group::from(group))
+    }
+
+    /// Cast the boolean to an Address (strict, via Group). Returns an error if conversion fails.
+    #[wasm_bindgen(js_name = "toAddress")]
+    pub fn to_address(&self) -> Result<Address, String> {
+        Ok(Address::from_group(self.to_group()?))
+    }
+
+    /// Cast the boolean to an Address (lossy, via Group with Elligator-2 fallback).
+    #[wasm_bindgen(js_name = "toAddressLossy")]
+    pub fn to_address_lossy(&self) -> Result<Address, String> {
+        Ok(Address::from_group(self.to_group_lossy()?))
+    }
+
+    // Boolean → Integer conversions (false=0, true=1). All lossless.
+
+    /// Cast the boolean to a U8 (false=0, true=1).
+    #[wasm_bindgen(js_name = "toU8")]
+    pub fn to_u8(&self) -> U8 {
+        U8::from(U8Native::new(if *self.0 { 1 } else { 0 }))
+    }
+
+    /// Cast the boolean to a U16 (false=0, true=1).
+    #[wasm_bindgen(js_name = "toU16")]
+    pub fn to_u16(&self) -> U16 {
+        U16::from(U16Native::new(if *self.0 { 1 } else { 0 }))
+    }
+
+    /// Cast the boolean to a U32 (false=0, true=1).
+    #[wasm_bindgen(js_name = "toU32")]
+    pub fn to_u32(&self) -> U32 {
+        U32::from(U32Native::new(if *self.0 { 1 } else { 0 }))
+    }
+
+    /// Cast the boolean to a U64 (false=0, true=1).
+    #[wasm_bindgen(js_name = "toU64")]
+    pub fn to_u64(&self) -> U64 {
+        U64::from(U64Native::new(if *self.0 { 1 } else { 0 }))
+    }
+
+    /// Cast the boolean to a U128 (false=0, true=1).
+    #[wasm_bindgen(js_name = "toU128")]
+    pub fn to_u128(&self) -> U128 {
+        U128::from(U128Native::new(if *self.0 { 1 } else { 0 }))
+    }
+
+    /// Cast the boolean to an I8 (false=0, true=1).
+    #[wasm_bindgen(js_name = "toI8")]
+    pub fn to_i8(&self) -> I8 {
+        I8::from(I8Native::new(if *self.0 { 1 } else { 0 }))
+    }
+
+    /// Cast the boolean to an I16 (false=0, true=1).
+    #[wasm_bindgen(js_name = "toI16")]
+    pub fn to_i16(&self) -> I16 {
+        I16::from(I16Native::new(if *self.0 { 1 } else { 0 }))
+    }
+
+    /// Cast the boolean to an I32 (false=0, true=1).
+    #[wasm_bindgen(js_name = "toI32")]
+    pub fn to_i32(&self) -> I32 {
+        I32::from(I32Native::new(if *self.0 { 1 } else { 0 }))
+    }
+
+    /// Cast the boolean to an I64 (false=0, true=1).
+    #[wasm_bindgen(js_name = "toI64")]
+    pub fn to_i64(&self) -> I64 {
+        I64::from(I64Native::new(if *self.0 { 1 } else { 0 }))
+    }
+
+    /// Cast the boolean to an I128 (false=0, true=1).
+    #[wasm_bindgen(js_name = "toI128")]
+    pub fn to_i128(&self) -> I128 {
+        I128::from(I128Native::new(if *self.0 { 1 } else { 0 }))
     }
 }
 
