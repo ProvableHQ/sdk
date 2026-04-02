@@ -27,3 +27,6 @@ package-lock.json
 
 # Local scaffolded test apps
 create-leo-app/aleo-project/
+
+# Local Expo metadata for keygen template
+create-leo-app/template-expo-keygen/.expo/
