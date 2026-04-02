@@ -10,7 +10,7 @@ This document describes the core/engine package split added to this repository.
 - `@provablehq/provable-engine-wasm`
   - WASM-backed runtime adapter for web/desktop.
 - `@provablehq/provable-engine-react-native`
-  - React Native runtime adapter that delegates to `@provablehq/shield-mobile-sdk`.
+  - React Native runtime adapter aligned to the shared engine contract.
 
 ## Initialization
 

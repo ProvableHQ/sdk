@@ -1,3 +1,5 @@
+import { createReactNativeBindings } from "./native-bindings.js";
+
 type EngineCapabilities = {
   readonly account: {
     fromPrivateKey(privateKey: string): unknown;
@@ -11,6 +13,12 @@ type EngineCapabilities = {
     createRecordScanner(options: Record<string, unknown>): unknown;
     createRecordProvider(options: Record<string, unknown>): unknown;
   };
+  readonly highLevel?: {
+    createProgramManager?(host?: string): unknown;
+    createAccount?(params?: { privateKey?: string }): unknown;
+    createKeyProvider?(): unknown;
+    verifyProof?(options: { verifyingKey: string; inputs: string[]; proof: string }): boolean;
+  };
 };
 
 type ProvableEngine = {
@@ -19,52 +27,39 @@ type ProvableEngine = {
   init(ctx?: { env?: Record<string, unknown> }): Promise<EngineCapabilities> | EngineCapabilities;
 };
 
-type ShieldModule = {
-  Account: new (args: Record<string, unknown>) => unknown;
-  AleoNetworkClient: new (host: string, options?: Record<string, unknown>) => unknown;
-  RecordScanner: new (options: Record<string, unknown>) => unknown;
-  NetworkRecordProvider: new (options: Record<string, unknown>) => unknown;
-  encryptAuthorization: (publicKey: string, authorization: unknown) => string;
-  encryptProvingRequest: (publicKey: string, provingRequest: unknown) => string;
-};
-
-async function loadShieldModule(): Promise<ShieldModule> {
-  const shield = (await import("@provablehq/shield-mobile-sdk")) as unknown as ShieldModule;
-  return shield;
-}
-
 export class ReactNativeEngine implements ProvableEngine {
   readonly id = "react-native";
   readonly displayName = "Provable React Native Engine";
 
-  async init(): Promise<EngineCapabilities> {
-    const shield = await loadShieldModule();
+  async init(ctx?: { env?: Record<string, unknown> }): Promise<EngineCapabilities> {
+    const mobile = createReactNativeBindings(ctx?.env?.network);
 
     return {
       account: {
         fromPrivateKey(privateKey: string): unknown {
-          return new shield.Account({ privateKey });
+          return new mobile.Account({ privateKey });
         },
       },
       crypto: {
         encryptAuthorization(publicKey: string, authorization: unknown): string {
-          return shield.encryptAuthorization(publicKey, authorization);
+          return mobile.encryptAuthorization(publicKey, authorization);
         },
         encryptProvingRequest(publicKey: string, provingRequest: unknown): string {
-          return shield.encryptProvingRequest(publicKey, provingRequest);
+          return mobile.encryptProvingRequest(publicKey, provingRequest);
         },
       },
       network: {
         createNetworkClient(host: string, options?: Record<string, unknown>): unknown {
-          return new shield.AleoNetworkClient(host, options);
+          return new mobile.AleoNetworkClient(host, options);
         },
         createRecordScanner(options: Record<string, unknown>): unknown {
-          return new shield.RecordScanner(options);
+          return new mobile.RecordScanner(options);
         },
         createRecordProvider(options: Record<string, unknown>): unknown {
-          return new shield.NetworkRecordProvider(options);
+          return new mobile.NetworkRecordProvider(options);
         },
       },
+      highLevel: mobile.highLevel,
     };
   }
 }

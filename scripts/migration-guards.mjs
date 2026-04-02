@@ -28,6 +28,31 @@ const requiredSnippets = [
     path: "create-leo-app/template-node/index.js",
     contains: "@provablehq/provablekit",
   },
+  {
+    name: "provablekit testnet exports encryptRegistrationRequest",
+    path: "packages/provable-core/src/testnet.ts",
+    contains: "export const encryptRegistrationRequest = native.encryptRegistrationRequest;",
+  },
+  {
+    name: "provablekit mainnet exports encryptRegistrationRequest",
+    path: "packages/provable-core/src/mainnet.ts",
+    contains: "export const encryptRegistrationRequest = native.encryptRegistrationRequest;",
+  },
+  {
+    name: "provablekit dynamic exports SealanceMerkleTree",
+    path: "packages/provable-core/src/dynamic.ts",
+    contains: "export const SealanceMerkleTree = native.SealanceMerkleTree;",
+  },
+  {
+    name: "provablekit exports parseU128 helper",
+    path: "packages/provable-core/src/testnet.ts",
+    contains: "export const parseU128 = native.parseU128;",
+  },
+  {
+    name: "rn engine keeps no placeholder crypto throws",
+    path: "packages/provable-engine-react-native/src/native-bindings.ts",
+    contains: "sealMessageBase64(publicKey",
+  },
 ];
 
 const scanRoots = ["packages", "create-leo-app", "website", "e2e", "scripts", ".github", "docs", "README.md"];
@@ -54,6 +79,10 @@ const bannedPatterns = [
   {
     name: "legacy sdk source path",
     regex: /\b(?:\.\.\/)+sdk\/src\//,
+  },
+  {
+    name: "legacy shield-mobile-sdk import",
+    regex: /\b(?:from\s+["']|import\(\s*["']|require\(\s*["'])@provablehq\/shield-mobile-sdk(?:\/[A-Za-z0-9._/-]+)?["']/,
   },
 ];
 

@@ -42,7 +42,9 @@
     "clean": "rimraf dist"
   },
   "dependencies": {
-    "@provablehq/provable-engine-wasm": "^0.1.0"
+    "@provablehq/provable-engine-wasm": "^0.1.0",
+    "@scure/base": "^2.0.0",
+    "libsodium-wrappers-sumo": "^0.8.2"
   },
   "devDependencies": {
     "@types/node": "^22.12.0",

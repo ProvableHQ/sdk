@@ -2,7 +2,8 @@
 
 React Native engine implementation for `@provablehq/provablekit`.
 
-This package dynamically loads `@provablehq/shield-mobile-sdk` and adapts it to the shared engine contract.
+This package provides a React Native engine surface for `ProvableKit` without relying on
+`@provablehq/shield-mobile-sdk`.
 
 Install:
 

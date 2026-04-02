@@ -8,8 +8,8 @@
     "preview": "vite preview"
   },
   "dependencies": {
-    "@provablehq/provablekit": "^0.1.0",
-    "@provablehq/provable-engine-wasm": "^0.1.0",
+    "@provablehq/provable-engine-wasm": "file:../../packages/provable-engine-wasm",
+    "@provablehq/provablekit": "file:../../packages/provable-core",
     "comlink": "^4.4.2",
     "react": "^19.0.0",
     "react-dom": "^19.0.0"

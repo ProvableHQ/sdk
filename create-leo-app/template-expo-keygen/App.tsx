@@ -2,7 +2,6 @@ import { useState } from "react";
 import { Button, SafeAreaView, ScrollView, StyleSheet, Text, View } from "react-native";
 import { ProvableKit } from "@provablehq/provablekit";
 import { createReactNativeEngine } from "@provablehq/provable-engine-react-native";
-import { Account } from "@provablehq/shield-mobile-sdk";
 
 type KeyBundle = {
   address: string;
@@ -12,6 +11,12 @@ type KeyBundle = {
 
 let bootPromise: Promise<unknown> | null = null;
 
+function callToString(value: any): string {
+  if (value?.toString) return value.toString();
+  if (value?.to_string) return value.to_string();
+  return String(value ?? "");
+}
+
 async function ensureBoot() {
   if (!bootPromise) {
     bootPromise = ProvableKit.init({
@@ -19,7 +24,7 @@ async function ensureBoot() {
       env: { network: "testnet" },
     });
   }
-  await bootPromise;
+  return (await bootPromise) as any;
 }
 
 export default function App() {
@@ -31,12 +36,18 @@ export default function App() {
     setLoading(true);
     setError(null);
     try {
-      await ensureBoot();
-      const account = new Account();
+      const capabilities = await ensureBoot();
+      const account = capabilities?.highLevel?.createAccount?.();
+      if (!account) {
+        throw new Error("React Native engine does not expose highLevel.createAccount");
+      }
+      const privateKey = account.privateKey?.();
+      const viewKey = account.viewKey?.() ?? privateKey?.to_view_key?.();
+      const address = account.address?.();
       setBundle({
-        address: account.address().toString(),
-        privateKey: account.privateKey().toString(),
-        viewKey: account.viewKey().toString(),
+        address: callToString(address),
+        privateKey: callToString(privateKey),
+        viewKey: callToString(viewKey),
       });
     } catch (e: any) {
       setError(e?.message ?? String(e));
