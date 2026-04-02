@@ -3,7 +3,18 @@
     "name": "ProvableKit Expo Keygen",
     "slug": "provablekit-expo-keygen",
     "version": "1.0.0",
+    "jsEngine": "jsc",
     "orientation": "portrait",
-    "platforms": ["ios", "android", "web"]
+    "platforms": [
+      "ios",
+      "android",
+      "web"
+    ],
+    "android": {
+      "package": "com.anonymous.provablekitexpokeygen"
+    },
+    "ios": {
+      "bundleIdentifier": "com.anonymous.provablekitexpokeygen"
+    }
   }
 }

@@ -12,12 +12,12 @@
       "default": "./dist/index.js"
     },
     "./testnet.js": {
-      "types": "./dist/testnet/index.d.ts",
-      "default": "./dist/testnet/index.js"
+      "types": "./testnet.d.ts",
+      "default": "./testnet.js"
     },
     "./mainnet.js": {
-      "types": "./dist/mainnet/index.d.ts",
-      "default": "./dist/mainnet/index.js"
+      "types": "./mainnet.d.ts",
+      "default": "./mainnet.js"
     },
     "./worker.js": {
       "types": "./dist/testnet/worker.d.ts",
@@ -34,6 +34,10 @@
   },
   "files": [
     "dist",
+    "mainnet.js",
+    "mainnet.d.ts",
+    "testnet.js",
+    "testnet.d.ts",
     "README.md"
   ],
   "repository": {

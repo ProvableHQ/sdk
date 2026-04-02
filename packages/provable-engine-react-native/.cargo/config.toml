@@ -1,0 +1,53 @@
+# Generated cargo config for cross-compilation
+
+[target.aarch64-apple-ios]
+linker = "clang"
+rustflags = [
+  "-C", "link-arg=-target",
+  "-C", "link-arg=aarch64-apple-ios15.1",
+  "-C", "link-arg=-isysroot",
+  "-C", "link-arg=/Applications/Xcode.app/Contents/Developer/Platforms/iPhoneOS.platform/Developer/SDKs/iPhoneOS.sdk",
+  "-C", "link-arg=-mios-version-min=15.1"
+]
+
+[target.x86_64-apple-ios]
+linker = "clang"
+rustflags = [
+  "-C", "link-arg=-target",
+  "-C", "link-arg=x86_64-apple-ios15.1-simulator",
+  "-C", "link-arg=-isysroot",
+  "-C", "link-arg=/Applications/Xcode.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/SDKs/iPhoneSimulator.sdk",
+  "-C", "link-arg=-mios-simulator-version-min=15.1"
+]
+
+[target.aarch64-apple-ios-sim]
+linker = "clang"
+rustflags = [
+  "-C", "link-arg=-target",
+  "-C", "link-arg=aarch64-apple-ios15.1-simulator",
+  "-C", "link-arg=-isysroot",
+  "-C", "link-arg=/Applications/Xcode.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/SDKs/iPhoneSimulator.sdk",
+  "-C", "link-arg=-mios-simulator-version-min=15.1"
+]
+
+
+[target.aarch64-apple-darwin]
+linker = "clang"
+rustflags = [
+  "-C", "link-arg=-isysroot",
+  "-C", "link-arg=/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk",
+  "-C", "link-arg=-Wl,-syslibroot,/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk"
+]
+
+[target.x86_64-apple-darwin]
+linker = "clang"
+rustflags = [
+  "-C", "link-arg=-isysroot",
+  "-C", "link-arg=/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk",
+  "-C", "link-arg=-Wl,-syslibroot,/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk"
+]
+
+
+[env]
+# OpenSSL configuration - let build script handle this
+# PKG_CONFIG_ALLOW_CROSS = "1"

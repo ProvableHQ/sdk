@@ -1,0 +1,145 @@
+{
+  "cxxNamespace": [
+    "shield"
+  ],
+  "ios": {
+    "iosModuleName": "ShieldMobileSdk"
+  },
+  "android": {
+    "androidNamespace": [
+      "shield"
+    ],
+    "androidCxxLibName": "ShieldMobileSdk"
+  },
+  "autolinking": {
+    "Account": {
+      "cpp": "HybridAccount"
+    },
+    "Address": {
+      "cpp": "HybridAddress"
+    },
+    "Authorization": {
+      "cpp": "HybridAuthorization"
+    },
+    "PrivateKey": {
+      "cpp": "HybridPrivateKey"
+    },
+    "ProgramManager": {
+      "cpp": "HybridProgramManager"
+    },
+    "ProvingRequest": {
+      "cpp": "HybridProvingRequest"
+    },
+    "ViewKey": {
+      "cpp": "HybridViewKey"
+    },
+    "Program": {
+      "cpp": "HybridProgram"
+    },
+    "Transaction": {
+      "cpp": "HybridTransaction"
+    },
+    "Field": {
+      "cpp": "HybridField"
+    },
+    "Group": {
+      "cpp": "HybridGroup"
+    },
+    "Scalar": {
+      "cpp": "HybridScalar"
+    },
+    "Crypto": {
+      "cpp": "HybridCrypto"
+    },
+    "Plaintext": {
+      "cpp": "HybridPlaintext"
+    },
+    "Network": {
+      "cpp": "HybridNetwork"
+    },
+    "Utilities": {
+      "cpp": "HybridUtilities"
+    },
+    "ProvingKey": {
+      "cpp": "HybridProvingKey"
+    },
+    "VerifyingKey": {
+      "cpp": "HybridVerifyingKey"
+    },
+    "OfflineQuery": {
+      "cpp": "HybridOfflineQuery"
+    },
+    "Metadata": {
+      "cpp": "HybridMetadata"
+    },
+    "AccountTestnet": {
+      "cpp": "HybridAccountTestnet"
+    },
+    "AddressTestnet": {
+      "cpp": "HybridAddressTestnet"
+    },
+    "AuthorizationTestnet": {
+      "cpp": "HybridAuthorizationTestnet"
+    },
+    "PrivateKeyTestnet": {
+      "cpp": "HybridPrivateKeyTestnet"
+    },
+    "ProgramManagerTestnet": {
+      "cpp": "HybridProgramManagerTestnet"
+    },
+    "ProvingRequestTestnet": {
+      "cpp": "HybridProvingRequestTestnet"
+    },
+    "ViewKeyTestnet": {
+      "cpp": "HybridViewKeyTestnet"
+    },
+    "ProgramTestnet": {
+      "cpp": "HybridProgramTestnet"
+    },
+    "TransactionTestnet": {
+      "cpp": "HybridTransactionTestnet"
+    },
+    "FieldTestnet": {
+      "cpp": "HybridFieldTestnet"
+    },
+    "GroupTestnet": {
+      "cpp": "HybridGroupTestnet"
+    },
+    "ScalarTestnet": {
+      "cpp": "HybridScalarTestnet"
+    },
+    "CryptoTestnet": {
+      "cpp": "HybridCryptoTestnet"
+    },
+    "PlaintextTestnet": {
+      "cpp": "HybridPlaintextTestnet"
+    },
+    "NetworkTestnet": {
+      "cpp": "HybridNetworkTestnet"
+    },
+    "UtilitiesTestnet": {
+      "cpp": "HybridUtilitiesTestnet"
+    },
+    "ProvingKeyTestnet": {
+      "cpp": "HybridProvingKeyTestnet"
+    },
+    "VerifyingKeyTestnet": {
+      "cpp": "HybridVerifyingKeyTestnet"
+    },
+    "OfflineQueryTestnet": {
+      "cpp": "HybridOfflineQueryTestnet"
+    },
+    "MetadataTestnet": {
+      "cpp": "HybridMetadataTestnet"
+    }
+  },
+  "ignorePaths": [
+    "node_modules",
+    "lib",
+    "nitrogen/generated",
+    "target",
+    "build",
+    ".cache",
+    "dist"
+  ]
+}

@@ -2,6 +2,7 @@
   "name": "@provablehq/provable-engine-react-native",
   "version": "0.1.0",
   "description": "React Native Nitro engine implementation for @provablehq/provablekit",
+  "authors": "ProvableHQ",
   "license": "MIT",
   "type": "module",
   "main": "./dist/index.js",
@@ -13,7 +14,18 @@
     }
   },
   "files": [
+    "android",
+    "scripts",
+    "nitrogen",
+    "src",
+    "third_party",
     "dist",
+    "build.rs",
+    "Cargo.lock",
+    "Cargo.toml",
+    "nitro.json",
+    "rust-toolchain.toml",
+    "ProvableEngineReactNative.podspec",
     "README.md"
   ],
   "repository": {
@@ -28,11 +40,20 @@
     "build": "tsc -p tsconfig.json",
     "test": "node --test dist/**/*.test.js",
     "clean": "rimraf dist",
-    "specs": "echo \"Nitro specs are managed in the source mobile package\""
+    "specs": "nitrogen"
   },
   "dependencies": {
-    "@provablehq/provable-engine-wasm": "^0.1.0",
-    "libsodium-wrappers-sumo": "^0.8.2"
+    "@scure/base": "^2.0.0",
+    "react-native-nitro-modules": "0.35.0"
+  },
+  "peerDependencies": {
+    "react-native": ">=0.76",
+    "typescript": "^5"
+  },
+  "react-native": {
+    "android": {
+      "sourceDir": "./android"
+    }
   },
   "devDependencies": {
     "@types/node": "^22.12.0",

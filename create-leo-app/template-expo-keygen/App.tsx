@@ -17,6 +17,18 @@ function callToString(value: any): string {
   return String(value ?? "");
 }
 
+function formatError(error: unknown): string {
+  if (error instanceof Error) {
+    return error.stack ?? `${error.name}: ${error.message}`;
+  }
+  if (typeof error === "string") return error;
+  try {
+    return JSON.stringify(error);
+  } catch {
+    return String(error);
+  }
+}
+
 async function ensureBoot() {
   if (!bootPromise) {
     bootPromise = ProvableKit.init({
@@ -50,7 +62,7 @@ export default function App() {
         viewKey: callToString(viewKey),
       });
     } catch (e: any) {
-      setError(e?.message ?? String(e));
+      setError(formatError(e));
     } finally {
       setLoading(false);
     }

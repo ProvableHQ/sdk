@@ -1,5 +1,10 @@
 {
-  "include": ["src"],
+  "include": [
+    "src/index.ts",
+    "src/index.test.ts",
+    "src/nitro-core.ts",
+    "src/native-bindings-nitro.ts"
+  ],
   "exclude": ["node_modules", "dist"],
   "compilerOptions": {
     "outDir": "./dist",

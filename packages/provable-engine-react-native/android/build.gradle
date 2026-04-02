@@ -1,0 +1,212 @@
+buildscript {
+  repositories {
+    google()
+    mavenCentral()
+  }
+
+  dependencies {
+    classpath "com.android.tools.build:gradle:8.12.0"
+    classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:2.1.20"
+  }
+}
+
+def reactNativeArchitectures() {
+  def value = rootProject.getProperties().get("reactNativeArchitectures")
+  return value ? value.split(",") : ["armeabi-v7a", "x86_64", "arm64-v8a"]
+}
+
+def isNewArchitectureEnabled() {
+  return rootProject.hasProperty("newArchEnabled") && rootProject.getProperty("newArchEnabled") == "true"
+}
+
+// Explicit gate for enabling RN Codegen in this library. Defaults to false.
+// Enable with: -PShieldMobileSdk_enableCodegen=true
+def isLibraryCodegenEnabled() {
+  def v = null
+  if (project.hasProperty("ShieldMobileSdk_enableCodegen")) {
+    v = project.getProperty("ShieldMobileSdk_enableCodegen")
+  } else if (rootProject.hasProperty("ShieldMobileSdk_enableCodegen")) {
+    v = rootProject.getProperty("ShieldMobileSdk_enableCodegen")
+  }
+  return v == "true"
+}
+
+apply plugin: "com.android.library"
+apply plugin: "kotlin-android"
+apply from: "../nitrogen/generated/android/ShieldMobileSdk+autolinking.gradle"
+
+if (isNewArchitectureEnabled()) {
+  apply plugin: "com.facebook.react"
+}
+
+def getExtOrDefault(name) {
+  return rootProject.ext.has(name) ? rootProject.ext.get(name) : project.properties["ShieldMobileSdk_" + name]
+}
+
+def getExtOrIntegerDefault(name) {
+  return rootProject.ext.has(name) ? rootProject.ext.get(name) : (project.properties["ShieldMobileSdk_" + name]).toInteger()
+}
+
+android {
+  namespace "com.provable.shield.sdk.mobile"
+
+  ndkVersion getExtOrDefault("ndkVersion")
+  compileSdkVersion getExtOrIntegerDefault("compileSdkVersion")
+
+  defaultConfig {
+    minSdkVersion getExtOrIntegerDefault("minSdkVersion")
+    targetSdkVersion getExtOrIntegerDefault("targetSdkVersion")
+    buildConfigField "boolean", "IS_NEW_ARCHITECTURE_ENABLED", isNewArchitectureEnabled().toString()
+
+    externalNativeBuild {
+      cmake {
+        cppFlags "-frtti -fexceptions -Wall -fstack-protector-all"
+        arguments "-DANDROID_STL=c++_shared", "-DANDROID_SUPPORT_FLEXIBLE_PAGE_SIZES=ON"
+        abiFilters (*reactNativeArchitectures())
+
+        buildTypes {
+          debug {
+            cppFlags "-O1 -g"
+          }
+          release {
+            cppFlags "-O2"
+          }
+        }
+      }
+    }
+  }
+
+  externalNativeBuild {
+    cmake {
+      path "CMakeLists.txt"
+    }
+  }
+
+
+  buildFeatures {
+    buildConfig true
+    prefab true
+  }
+
+  packagingOptions {
+    excludes = [
+            "META-INF",
+            "META-INF/**",
+            "**/libc++_shared.so",
+            "**/libfbjni.so",
+            "**/libjsi.so",
+            "**/libfolly_json.so",
+            "**/libfolly_runtime.so",
+            "**/libglog.so",
+            "**/libhermes.so",
+            "**/libhermes-executor-debug.so",
+            "**/libhermes_executor.so",
+            "**/libreactnative.so",
+            "**/libreactnativejni.so",
+            "**/libturbomodulejsijni.so",
+            "**/libreact_nativemodule_core.so",
+            "**/libjscexecutor.so"
+    ]
+  }
+
+  buildTypes {
+    debug {
+      minifyEnabled false
+    }
+    release {
+      minifyEnabled false
+    }
+  }
+
+  lintOptions {
+    disable "GradleCompatible"
+  }
+
+  compileOptions {
+    sourceCompatibility JavaVersion.VERSION_1_8
+    targetCompatibility JavaVersion.VERSION_1_8
+  }
+
+  sourceSets {
+    main {
+      if (isNewArchitectureEnabled()) {
+        java.srcDirs += [
+          // React Codegen files
+          "${project.buildDir}/generated/source/codegen/java"
+        ]
+      }
+    }
+  }
+}
+
+task buildRustStaticLibs {
+  description 'Build Rust static libraries for all Android architectures'
+  group 'build'
+
+  doLast {
+    // Skip Rust build during clean operations
+    if (gradle.startParameter.taskNames.any { it.contains('clean') }) {
+      println "Skipping Rust build during clean operation"
+      return
+    }
+
+    def architectures = reactNativeArchitectures()
+    architectures.each { arch ->
+      println "Building Rust static library for Android architecture: ${arch}"
+      // Pin NDK used by Rust to the same version Gradle/AGP uses
+      def ndkVersion = getExtOrDefault("ndkVersion")
+      def sdkRoot = System.getenv("ANDROID_SDK_ROOT") ?: System.getenv("ANDROID_HOME") ?: System.getProperty("user.home") + "/Library/Android/sdk"
+      def ndkRoot = sdkRoot + "/ndk/" + ndkVersion
+
+      def execOps = project.services.get(org.gradle.process.ExecOperations)
+      execOps.exec {
+        workingDir '../'
+        environment 'ANDROID_ABI', arch
+        environment 'PLATFORM', 'android'
+        environment 'ANDROID_NDK_ROOT', ndkRoot
+        commandLine './scripts/build-rust.sh'
+      }
+    }
+  }
+}
+
+// Hook task ordering once the project is evaluated
+afterEvaluate {
+  // Ensure RN Codegen artifacts are generated before any native build steps in this module
+  def genArtifacts = tasks.findByName('generateCodegenArtifactsFromSchema')
+  if (genArtifacts != null) {
+    tasks.matching { t ->
+      t.name.startsWith('preBuild') ||
+      t.name.startsWith('configureCMake') ||
+      t.name.startsWith('generateJsonModel') ||
+      t.name.contains('externalNativeBuild')
+    }.configureEach { t ->
+      t.dependsOn(genArtifacts)
+    }
+  }
+
+  // Ensure buildRustStaticLibs runs before native build tasks in this module
+  tasks.matching { task ->
+    task.name.contains('externalNativeBuild') ||
+    task.name.contains('buildCMake')
+  }.configureEach { task ->
+    task.dependsOn buildRustStaticLibs
+  }
+}
+
+repositories {
+  mavenCentral()
+  google()
+}
+
+
+dependencies {
+  //noinspection GradleDynamicVersion
+  implementation "com.facebook.react:react-native:+"
+
+  // Add a dependency on NitroModules
+  implementation project(":react-native-nitro-modules")
+
+  // Kotlin standard library
+  implementation "org.jetbrains.kotlin:kotlin-stdlib:1.9.10"
+}

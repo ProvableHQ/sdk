@@ -1,0 +1,78 @@
+[package]
+name = "mobile-sdk"
+version = "0.1.0"
+edition = "2021"
+build = "build.rs"
+
+[features]
+default = ["mainnet"]
+mainnet = []
+testnet = []
+
+[dependencies]
+# FFI and serialization
+cxx = { version = "1.0.160", features = ["alloc", "std", "c++20"] }
+libc = "0.2"
+serde = { version = "1.0", features = ["derive"] }
+serde_json = "1.0"
+hex = "0.4"
+sha2 = "0.10"
+anyhow = "1"
+async-trait = "0.1"
+indexmap = { version = "2", features = ["serde"] }
+parking_lot = "0.12"
+
+# Random number generation (align with snarkvm-console dependency tree)
+rand = "0.8"
+
+# BIP39 mnemonic generation with secure entropy
+bip39 = { version = "2.1", features = ["rand"] }
+
+# Aleo cryptographic library with minimal features
+# Note: Web SDK uses "wasm" features, but mobile needs native filesystem access
+snarkvm-console = { version = "4.4.0", default-features = false, features = ["account", "program", "network", "filesystem"] }
+snarkvm-circuit = { version = "4.4.0", default-features = false }
+snarkvm-circuit-network = { version = "4.4.0", default-features = false }
+snarkvm-synthesizer = { version = "4.4.0", default-features = true, features = ["async"] }
+snarkvm-ledger-block = { version = "4.4.0", default-features = false }
+snarkvm-ledger-query = { version = "4.4.0", default-features = false, features = ["async"] }
+snarkvm-algorithms = { version = "4.4.0", default-features = false }
+snarkvm-parameters = { version = "4.4.0", default-features = true }
+snarkvm-fields = { version = "4.4.0", default-features = false }
+snarkvm-utilities = { version = "4.4.0", default-features = false }
+
+# Bundle libcurl and OpenSSL statically to avoid host-specific dylibs (esp. on iOS)
+curl-sys = { version = "0.4", features = ["static-curl", "static-ssl"] }
+
+# Platform-specific directory helpers for persisting configuration
+directories = "5.0"
+base64 = "0.22.1"
+libsodium-sys-stable = ">=1, <1.23"
+
+[target.'cfg(any(target_os = "android", target_os = "ios", target_os = "tvos"))'.dependencies]
+# Force vendored OpenSSL on Apple mobile platforms to avoid Homebrew macOS dylibs in iOS link
+openssl-sys = { version = "0.9", features = ["vendored"] }
+
+[build-dependencies]
+cxx-build = "1.0.184"
+
+[lib]
+name = "shield_mobile_sdk"
+crate-type = ["staticlib"]
+path = "src/rust/lib.rs"
+
+[profile.release]
+panic = "abort"
+
+# Remove when branch is merged
+[patch.crates-io]
+snarkvm-console = { git = "https://github.com/fedpre/snarkVM", branch = "update-curl-dep" }
+snarkvm-circuit = { git = "https://github.com/fedpre/snarkVM", branch = "update-curl-dep" }
+snarkvm-circuit-network = { git = "https://github.com/fedpre/snarkVM", branch = "update-curl-dep" }
+snarkvm-synthesizer = { git = "https://github.com/fedpre/snarkVM", branch = "update-curl-dep" }
+snarkvm-ledger-block = { git = "https://github.com/fedpre/snarkVM", branch = "update-curl-dep" }
+snarkvm-ledger-query = { git = "https://github.com/fedpre/snarkVM", branch = "update-curl-dep" }
+snarkvm-algorithms = { git = "https://github.com/fedpre/snarkVM", branch = "update-curl-dep" }
+snarkvm-parameters = { git = "https://github.com/fedpre/snarkVM", branch = "update-curl-dep" }
+snarkvm-fields = { git = "https://github.com/fedpre/snarkVM", branch = "update-curl-dep" }
+snarkvm-utilities = { git = "https://github.com/fedpre/snarkVM", branch = "update-curl-dep" }

@@ -2,8 +2,8 @@
 
 React Native engine implementation for `@provablehq/provablekit`.
 
-This package provides a React Native engine surface for `ProvableKit` without relying on
-`@provablehq/shield-mobile-sdk`.
+This package provides a Nitro-backed React Native engine surface for `ProvableKit`.
+It uses native classes patterned after `@provablehq/shield-mobile-sdk` for mobile runtimes.
 
 Install:
 

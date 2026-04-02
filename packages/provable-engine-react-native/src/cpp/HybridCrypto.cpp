@@ -1,0 +1,343 @@
+#include "HybridCrypto.hpp"
+#include "HybridField.hpp"
+#include <NitroModules/ArrayBuffer.hpp>
+#include <cstring>
+#include <memory>
+#include <stdexcept>
+#include <string>
+#include <utility>
+#include <vector>
+
+// Include generated Rust cxx bridge header
+#ifndef testnet
+#include "rust/shield_mainnet.h"
+#else
+#include "rust/shield_testnet.h"
+#endif
+
+using namespace margelo::nitro;
+using namespace margelo::nitro::shield;
+
+namespace margelo::nitro::shield {
+
+namespace {
+
+  rust::Vec<uint8_t> arrayBufferToRustVec(const std::shared_ptr<ArrayBuffer>& buffer) {
+    rust::Vec<uint8_t> rustVec;
+    auto size = buffer->size();
+    rustVec.reserve(size);
+    auto dataPtr = buffer->data();
+    if (dataPtr != nullptr) {
+      for (size_t i = 0; i < size; ++i) {
+        rustVec.push_back(dataPtr[i]);
+      }
+    }
+    return rustVec;
+  }
+
+  rust::Vec<rust::String> toRustStringVec(const std::vector<std::string>& input) {
+    rust::Vec<rust::String> rustVec;
+    rustVec.reserve(input.size());
+    for (const auto& value : input) {
+      rustVec.push_back(rust::String(value));
+    }
+    return rustVec;
+  }
+
+  std::string unwrapStringResult(shield_mainnet::StringResult result) {
+    if (!result.success) {
+      throw std::runtime_error(std::string(result.error));
+    }
+    return std::string(result.result);
+  }
+
+  std::vector<std::string> unwrapStringVecResult(shield_mainnet::StringVecResult result) {
+    if (!result.success) {
+      throw std::runtime_error(std::string(result.error));
+    }
+    std::vector<std::string> output;
+    rust::Vec<rust::String> rustValues = std::move(result.results);
+    output.reserve(rustValues.size());
+    for (const auto& value : rustValues) {
+      output.emplace_back(std::string(value));
+    }
+    return output;
+  }
+
+} // namespace
+
+// BHP hash functions
+std::string HybridCrypto::bhp256Hash(const std::shared_ptr<ArrayBuffer>& data) {
+  auto result = shield_mainnet::bhp256_hash(arrayBufferToRustVec(data));
+  return unwrapStringResult(std::move(result));
+}
+
+std::string HybridCrypto::bhp256HashToGroup(const std::shared_ptr<ArrayBuffer>& data) {
+  auto result = shield_mainnet::bhp256_hash_to_group(arrayBufferToRustVec(data));
+  return unwrapStringResult(std::move(result));
+}
+
+std::string HybridCrypto::bhp256Commit(const std::shared_ptr<ArrayBuffer>& data, const std::string& scalar) {
+  auto result = shield_mainnet::bhp256_commit(arrayBufferToRustVec(data), scalar);
+  return unwrapStringResult(std::move(result));
+}
+
+std::string HybridCrypto::bhp256CommitToGroup(const std::shared_ptr<ArrayBuffer>& data, const std::string& scalar) {
+  auto result = shield_mainnet::bhp256_commit_to_group(arrayBufferToRustVec(data), scalar);
+  return unwrapStringResult(std::move(result));
+}
+
+std::string HybridCrypto::bhp512Hash(const std::shared_ptr<ArrayBuffer>& data) {
+  auto result = shield_mainnet::bhp512_hash(arrayBufferToRustVec(data));
+  return unwrapStringResult(std::move(result));
+}
+
+std::string HybridCrypto::bhp512HashToGroup(const std::shared_ptr<ArrayBuffer>& data) {
+  auto result = shield_mainnet::bhp512_hash_to_group(arrayBufferToRustVec(data));
+  return unwrapStringResult(std::move(result));
+}
+
+std::string HybridCrypto::bhp512Commit(const std::shared_ptr<ArrayBuffer>& data, const std::string& scalar) {
+  auto result = shield_mainnet::bhp512_commit(arrayBufferToRustVec(data), scalar);
+  return unwrapStringResult(std::move(result));
+}
+
+std::string HybridCrypto::bhp512CommitToGroup(const std::shared_ptr<ArrayBuffer>& data, const std::string& scalar) {
+  auto result = shield_mainnet::bhp512_commit_to_group(arrayBufferToRustVec(data), scalar);
+  return unwrapStringResult(std::move(result));
+}
+
+std::string HybridCrypto::bhp768Hash(const std::shared_ptr<ArrayBuffer>& data) {
+  auto result = shield_mainnet::bhp768_hash(arrayBufferToRustVec(data));
+  return unwrapStringResult(std::move(result));
+}
+
+std::string HybridCrypto::bhp768HashToGroup(const std::shared_ptr<ArrayBuffer>& data) {
+  auto result = shield_mainnet::bhp768_hash_to_group(arrayBufferToRustVec(data));
+  return unwrapStringResult(std::move(result));
+}
+
+std::string HybridCrypto::bhp768Commit(const std::shared_ptr<ArrayBuffer>& data, const std::string& scalar) {
+  auto result = shield_mainnet::bhp768_commit(arrayBufferToRustVec(data), scalar);
+  return unwrapStringResult(std::move(result));
+}
+
+std::string HybridCrypto::bhp768CommitToGroup(const std::shared_ptr<ArrayBuffer>& data, const std::string& scalar) {
+  auto result = shield_mainnet::bhp768_commit_to_group(arrayBufferToRustVec(data), scalar);
+  return unwrapStringResult(std::move(result));
+}
+
+std::string HybridCrypto::bhp1024Hash(const std::shared_ptr<ArrayBuffer>& data) {
+  auto result = shield_mainnet::bhp1024_hash(arrayBufferToRustVec(data));
+  return unwrapStringResult(std::move(result));
+}
+
+std::string HybridCrypto::bhp1024HashToGroup(const std::shared_ptr<ArrayBuffer>& data) {
+  auto result = shield_mainnet::bhp1024_hash_to_group(arrayBufferToRustVec(data));
+  return unwrapStringResult(std::move(result));
+}
+
+std::string HybridCrypto::bhp1024Commit(const std::shared_ptr<ArrayBuffer>& data, const std::string& scalar) {
+  auto result = shield_mainnet::bhp1024_commit(arrayBufferToRustVec(data), scalar);
+  return unwrapStringResult(std::move(result));
+}
+
+std::string HybridCrypto::bhp1024CommitToGroup(const std::shared_ptr<ArrayBuffer>& data, const std::string& scalar) {
+  auto result = shield_mainnet::bhp1024_commit_to_group(arrayBufferToRustVec(data), scalar);
+  return unwrapStringResult(std::move(result));
+}
+
+// Pedersen hash functions
+std::string HybridCrypto::pedersen64Hash(const std::shared_ptr<ArrayBuffer>& data) {
+  auto result = shield_mainnet::pedersen64_hash(arrayBufferToRustVec(data));
+  return unwrapStringResult(std::move(result));
+}
+
+std::string HybridCrypto::pedersen64Commit(const std::shared_ptr<ArrayBuffer>& bits, const std::string& scalar) {
+  auto result = shield_mainnet::pedersen64_commit(arrayBufferToRustVec(bits), scalar);
+  return unwrapStringResult(std::move(result));
+}
+
+std::string HybridCrypto::pedersen64CommitToGroup(const std::shared_ptr<ArrayBuffer>& bits, const std::string& scalar) {
+  auto result = shield_mainnet::pedersen64_commit_to_group(arrayBufferToRustVec(bits), scalar);
+  return unwrapStringResult(std::move(result));
+}
+
+std::string HybridCrypto::pedersen128Hash(const std::shared_ptr<ArrayBuffer>& data) {
+  auto result = shield_mainnet::pedersen128_hash(arrayBufferToRustVec(data));
+  return unwrapStringResult(std::move(result));
+}
+
+std::string HybridCrypto::pedersen128Commit(const std::shared_ptr<ArrayBuffer>& bits, const std::string& scalar) {
+  auto result = shield_mainnet::pedersen128_commit(arrayBufferToRustVec(bits), scalar);
+  return unwrapStringResult(std::move(result));
+}
+
+std::string HybridCrypto::pedersen128CommitToGroup(const std::shared_ptr<ArrayBuffer>& bits, const std::string& scalar) {
+  auto result = shield_mainnet::pedersen128_commit_to_group(arrayBufferToRustVec(bits), scalar);
+  return unwrapStringResult(std::move(result));
+}
+
+// Poseidon hash functions
+std::string HybridCrypto::poseidon2Hash(const std::vector<std::string>& fields) {
+  auto result = shield_mainnet::poseidon2_hash(toRustStringVec(fields));
+  return unwrapStringResult(std::move(result));
+}
+
+std::string HybridCrypto::poseidon2HashToScalar(const std::vector<std::string>& fields) {
+  auto result = shield_mainnet::poseidon2_hash_to_scalar(toRustStringVec(fields));
+  return unwrapStringResult(std::move(result));
+}
+
+std::string HybridCrypto::poseidon2HashToGroup(const std::vector<std::string>& fields) {
+  auto result = shield_mainnet::poseidon2_hash_to_group(toRustStringVec(fields));
+  return unwrapStringResult(std::move(result));
+}
+
+std::vector<std::string> HybridCrypto::poseidon2HashMany(const std::vector<std::string>& fields, double rate) {
+  auto result = shield_mainnet::poseidon2_hash_many(toRustStringVec(fields), rate);
+  return unwrapStringVecResult(std::move(result));
+}
+
+std::shared_ptr<HybridFieldSpec> HybridCrypto::poseidon4Hash(const std::vector<std::string>& fields) {
+  auto result = shield_mainnet::poseidon4_hash(toRustStringVec(fields));
+  if (!result.success) {
+    throw std::runtime_error(std::string(result.error));
+  }
+  return HybridField::create()->fromString(std::string(result.result));
+}
+
+std::string HybridCrypto::poseidon4HashToScalar(const std::vector<std::string>& fields) {
+  auto result = shield_mainnet::poseidon4_hash_to_scalar(toRustStringVec(fields));
+  return unwrapStringResult(std::move(result));
+}
+
+std::string HybridCrypto::poseidon4HashToGroup(const std::vector<std::string>& fields) {
+  auto result = shield_mainnet::poseidon4_hash_to_group(toRustStringVec(fields));
+  return unwrapStringResult(std::move(result));
+}
+
+std::vector<std::string> HybridCrypto::poseidon4HashMany(const std::vector<std::string>& fields, double rate) {
+  auto result = shield_mainnet::poseidon4_hash_many(toRustStringVec(fields), rate);
+  return unwrapStringVecResult(std::move(result));
+}
+
+std::string HybridCrypto::poseidon8Hash(const std::vector<std::string>& fields) {
+  auto result = shield_mainnet::poseidon8_hash(toRustStringVec(fields));
+  return unwrapStringResult(std::move(result));
+}
+
+std::string HybridCrypto::poseidon8HashToScalar(const std::vector<std::string>& fields) {
+  auto result = shield_mainnet::poseidon8_hash_to_scalar(toRustStringVec(fields));
+  return unwrapStringResult(std::move(result));
+}
+
+std::string HybridCrypto::poseidon8HashToGroup(const std::vector<std::string>& fields) {
+  auto result = shield_mainnet::poseidon8_hash_to_group(toRustStringVec(fields));
+  return unwrapStringResult(std::move(result));
+}
+
+std::vector<std::string> HybridCrypto::poseidon8HashMany(const std::vector<std::string>& fields, double rate) {
+  auto result = shield_mainnet::poseidon8_hash_many(toRustStringVec(fields), rate);
+  return unwrapStringVecResult(std::move(result));
+}
+
+// Key generation functions
+KeyPairResult HybridCrypto::generateKeyPair() {
+  try {
+    auto privateKeyHandle = shield_mainnet::create_private_key();
+    auto privateKeyResult = shield_mainnet::private_key_to_string(privateKeyHandle);
+
+    if (!privateKeyResult.success) {
+      throw std::runtime_error("Failed to generate private key: " + std::string(privateKeyResult.error));
+    }
+
+    auto addressHandle = shield_mainnet::private_key_to_address(privateKeyHandle);
+    auto addressResult = shield_mainnet::address_to_string(addressHandle);
+
+    if (!addressResult.success) {
+      shield_mainnet::destroy_private_key(privateKeyHandle);
+      shield_mainnet::destroy_address(addressHandle);
+      throw std::runtime_error("Failed to derive address: " + std::string(addressResult.error));
+    }
+
+    std::string privateKeyStr(privateKeyResult.result);
+    std::string addressStr(addressResult.result);
+    std::string publicKeyStr = addressStr; // For now, use address as public key
+
+    // Clean up handles
+    shield_mainnet::destroy_private_key(privateKeyHandle);
+    shield_mainnet::destroy_address(addressHandle);
+
+    return createKeyPairResult(privateKeyStr, publicKeyStr, addressStr);
+  } catch (const std::exception& e) {
+    throw std::runtime_error("Failed to generate key pair: " + std::string(e.what()));
+  }
+}
+
+std::string HybridCrypto::computeKeyFromPrivateKey(const std::string& privateKey) {
+  try {
+    auto privateKeyHandle = shield_mainnet::private_key_from_string(rust::String(privateKey));
+    if (privateKeyHandle.id == 0) {
+      throw std::runtime_error("Invalid private key");
+    }
+
+    auto computeKeyHandle = shield_mainnet::private_key_to_compute_key(privateKeyHandle);
+    auto result = compute_key_to_string(computeKeyHandle);
+
+    shield_mainnet::destroy_private_key(privateKeyHandle);
+    shield_mainnet::destroy_compute_key(computeKeyHandle);
+
+    if (result.success) {
+      return std::string(result.result);
+    } else {
+      throw std::runtime_error("Failed to compute key: " + std::string(result.error));
+    }
+  } catch (const std::exception& e) {
+    throw std::runtime_error("Failed to compute key from private key: " + std::string(e.what()));
+  }
+}
+
+std::string HybridCrypto::graphKeyFromPrivateKey(const std::string& privateKey) {
+  try {
+    auto result = shield_mainnet::graph_key_from_private_key(rust::String(privateKey));
+    if (result.success) {
+      return std::string(result.result);
+    } else {
+      throw std::runtime_error(std::string(result.error));
+    }
+  } catch (const std::exception& e) {
+    throw std::runtime_error("Failed to derive graph key from private key: " + std::string(e.what()));
+  }
+}
+
+bool HybridCrypto::verifyMnemonic(const std::string& mnemonic) {
+  try {
+    auto result = shield_mainnet::verify_mnemonic(rust::String(mnemonic));
+    if (!result.success) {
+      throw std::runtime_error(std::string(result.error));
+    }
+    return result.result;
+  } catch (const std::exception& e) {
+    return false;
+  }
+}
+
+std::string HybridCrypto::generateMnemonic() {
+  try {
+    auto result = shield_mainnet::generate_mnemonic();
+    return unwrapStringResult(std::move(result));
+  } catch (const std::exception& e) {
+    throw std::runtime_error("Failed to generate mnemonic: " + std::string(e.what()));
+  }
+}
+
+KeyPairResult HybridCrypto::createKeyPairResult(const std::string& privateKey, const std::string& publicKey, const std::string& address) {
+  KeyPairResult result;
+  result.privateKey = privateKey;
+  result.publicKey = publicKey;
+  result.address = address;
+  return result;
+}
+
+} // namespace margelo::nitro::shield

@@ -1,4 +1,4 @@
-import { createReactNativeBindings } from "./native-bindings.js";
+import { createReactNativeBindings } from "./native-bindings-nitro.js";
 
 type EngineCapabilities = {
   readonly account: {
@@ -32,7 +32,7 @@ export class ReactNativeEngine implements ProvableEngine {
   readonly displayName = "Provable React Native Engine";
 
   async init(ctx?: { env?: Record<string, unknown> }): Promise<EngineCapabilities> {
-    const mobile = createReactNativeBindings(ctx?.env?.network);
+    const mobile = await createReactNativeBindings(ctx?.env?.network);
 
     return {
       account: {

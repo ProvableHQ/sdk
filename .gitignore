@@ -30,3 +30,11 @@ create-leo-app/aleo-project/
 
 # Local Expo metadata for keygen template
 create-leo-app/template-expo-keygen/.expo/
+create-leo-app/template-expo-keygen/ios/
+create-leo-app/template-expo-keygen/android/
+
+# Local debug logs
+logs.txt
+
+# Generated native build outputs in RN engine package
+packages/provable-engine-react-native/build/

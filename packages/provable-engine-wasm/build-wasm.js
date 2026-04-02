@@ -125,15 +125,8 @@ async function patchNodeWasmInit(network) {
   const initPattern =
     /const module\$1 = new URL\("aleo_wasm\.wasm", import\.meta\.url\);\s*[\r\n]+\s*await __wbg_init\(\{ module_or_path: module\$1 \}\);/m;
 
-  const initReplacement = `const module$1 = new URL("aleo_wasm.wasm", import.meta.url);
-
-if (typeof process !== "undefined" && process.versions?.node) {
-  const { readFile } = await import("node:fs/promises");
-  const wasmBytes = await readFile(module$1);
-  await __wbg_init({ module_or_path: wasmBytes });
-} else {
-  await __wbg_init({ module_or_path: module$1 });
-}`;
+const initReplacement = `const module$1 = new URL("aleo_wasm.wasm", import.meta.url);
+const ready = __wbg_init({ module_or_path: module$1 });`;
 
   let next = contents.replace(initPattern, initReplacement);
   if (next === contents) {
