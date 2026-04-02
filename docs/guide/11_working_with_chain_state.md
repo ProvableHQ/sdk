@@ -18,7 +18,7 @@ returned `JSON` mirrors the block model returned by the current `@provablehq/pro
 
 The following `typescript` snippet shows how to extract most of the important information from a block.
 ```typescript
-import { AleoNetworkClient } from "@provablehq/provablekit/testnet.js"
+import { AleoNetworkClient } from "@provablehq/provable-engine-wasm/testnet.js"
 
 const networkClient = new AleoNetworkClient("https://api.provable.com/v2");
 const block = await networkClient.getBlock(1);
@@ -105,7 +105,7 @@ representation is up to the developer's personal preference in ergonomics.
 Usage of both methods however are illustrated below.
 
 ```typescript
-import { AleoNetworkClient, Transition } from '@provablehq/provablekit/testnet.js';
+import { AleoNetworkClient, Transition } from '@provablehq/provable-engine-wasm/testnet.js';
 
 const networkClient = new AleoNetworkClient("https://api.provable.com/v2");
 
@@ -156,7 +156,7 @@ any given block it can be queried using the `AleoNetworkClient`.
 The list of mappings within a program can be queried using the `getProgramMappingNames` method of the 
 `AleoNetworkClient`.
 ```typescript
-import { AleoNetworkClient } from '@provablehq/provablekit/testnet.js';
+import { AleoNetworkClient } from '@provablehq/provable-engine-wasm/testnet.js';
 import { networkInterfaces } from "node:os";
 
 const networkClient = new AleoNetworkClient("https://api.provable.com/v2");
@@ -178,7 +178,7 @@ assert.deepStrictEqual(creditsMappings, expectedMappings);
 To get the value from a mapping, one must know the type of the mapping's keys. When this is known, the `getMappingValue`
 method can be used.
 ```typescript
-import { AleoNetworkClient } from '@provablehq/provablekit/testnet.js';
+import { AleoNetworkClient } from '@provablehq/provable-engine-wasm/testnet.js';
 
 const networkClient = new AleoNetworkClient("https://api.provable.com/v2");
 
@@ -206,7 +206,7 @@ has several convenience methods for inspecting the returned value. The `toObject
 This is very useful for extracting complicated struct or array data returned from a mapping.
 
 ```typescript
-import { AleoNetworkClient } from '@provablehq/provablekit/testnet.js';
+import { AleoNetworkClient } from '@provablehq/provable-engine-wasm/testnet.js';
 const networkClient = new AleoNetworkClient("https://api.provable.com/v2");
 
 // Get a token value of the `registered_tokens` mapping in token_registry.aleo.
@@ -235,7 +235,7 @@ query this information.
 To get the source code of a program, the `AleoNetworkClient` provides a method to query the program by its unique ID.
 
 ```typescript
-import { AleoNetworkClient } from '@provablehq/provablekit/testnet.js';
+import { AleoNetworkClient } from '@provablehq/provable-engine-wasm/testnet.js';
 
 const networkClient = new AleoNetworkClient("https://api.provable.com/v2");
 
@@ -253,7 +253,7 @@ representation has several convenience methods for extracting a list of program'
 directly.
 
 ```typescript
-import { AleoNetworkClient } from '@provablehq/provablekit/testnet.js';
+import { AleoNetworkClient } from '@provablehq/provable-engine-wasm/testnet.js';
 
 const networkClient = new AleoNetworkClient("https://api.provable.com/v2");
 
@@ -306,7 +306,7 @@ const records = credits.getImports()
 The following example shows how to query the mappings within a program and the other programs it imports.
 
 ```typescript
-import { AleoNetworkClient, Program } from '@provablehq/provablekit/testnet.js';
+import { AleoNetworkClient, Program } from '@provablehq/provable-engine-wasm/testnet.js';
 
 const networkClient = new AleoNetworkClient("https://api.provable.com/v2");
 

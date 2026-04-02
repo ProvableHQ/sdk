@@ -7,8 +7,8 @@ import {
     AleoKeyProvider,
     AleoKeyProviderParams,
     TransactionObject,
-} from "@provablehq/provablekit/testnet.js";
-import { CREDITS_PROGRAM_KEYS } from "@provablehq/provablekit/testnet.js";
+} from "@provablehq/provable-engine-wasm/testnet.js";
+import { CREDITS_PROGRAM_KEYS } from "@provablehq/provable-engine-wasm/testnet.js";
 
 // Initialize the threadpool to speed up proving.
 

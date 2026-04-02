@@ -29,7 +29,7 @@ import {
   RecordScanner,
   RecordCiphertext,
   OfflineQuery,
-} from "@provablehq/provablekit/testnet.js";
+} from "@provablehq/provable-engine-wasm/testnet.js";
 import { expose, proxy } from "comlink";
 
 console.log("[Worker] Initializing thread pool...");

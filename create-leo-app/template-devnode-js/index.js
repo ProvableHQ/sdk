@@ -6,7 +6,7 @@ await ProvableKit.init({
   env: { network: 'testnet' },
 });
 #!/usr/bin/env ts-node
-import { Account, ProgramManager, initThreadPool, NetworkRecordProvider, AleoNetworkClient, getOrInitConsensusVersionTestHeights } from '@provablehq/provablekit/testnet.js';
+import { Account, ProgramManager, initThreadPool, NetworkRecordProvider, AleoNetworkClient, getOrInitConsensusVersionTestHeights } from '@provablehq/provable-engine-wasm/testnet.js';
 
 const program = `program test_program.aleo;
 

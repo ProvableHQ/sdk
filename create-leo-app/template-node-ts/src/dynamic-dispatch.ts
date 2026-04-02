@@ -6,7 +6,7 @@ import {
     initThreadPool,
     ProgramManager,
     RecordPlaintext,
-} from "@provablehq/provablekit/testnet.js";
+} from "@provablehq/provable-engine-wasm/testnet.js";
 
 
 await ProvableKit.init({

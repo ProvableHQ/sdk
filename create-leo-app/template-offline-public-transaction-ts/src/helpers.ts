@@ -1,4 +1,4 @@
-import { CREDITS_PROGRAM_KEYS } from "@provablehq/provablekit/testnet.js";
+import { CREDITS_PROGRAM_KEYS } from "@provablehq/provable-engine-wasm/testnet.js";
 import { promises as fsPromises, writeFileSync } from "fs";
 import path from "path";
 import { fileURLToPath } from "url";

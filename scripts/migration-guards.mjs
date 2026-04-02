@@ -24,34 +24,19 @@ const requiredSnippets = [
     contains: 'from "@provablehq/provable-engine-wasm"',
   },
   {
-    name: "create-leo-app template uses provablekit",
+    name: "create-leo-app template imports wasm engine",
     path: "create-leo-app/template-node/index.js",
-    contains: "@provablehq/provablekit",
+    contains: "@provablehq/provable-engine-wasm",
   },
   {
-    name: "provablekit testnet exports encryptRegistrationRequest",
-    path: "packages/provable-core/src/testnet.ts",
-    contains: "export const encryptRegistrationRequest = native.encryptRegistrationRequest;",
+    name: "provablekit root export only",
+    path: "packages/provable-core/package.json",
+    contains: '"default": "./dist/index.js"',
   },
   {
-    name: "provablekit mainnet exports encryptRegistrationRequest",
-    path: "packages/provable-core/src/mainnet.ts",
-    contains: "export const encryptRegistrationRequest = native.encryptRegistrationRequest;",
-  },
-  {
-    name: "provablekit dynamic exports SealanceMerkleTree",
-    path: "packages/provable-core/src/dynamic.ts",
-    contains: "export const SealanceMerkleTree = native.SealanceMerkleTree;",
-  },
-  {
-    name: "provablekit exports parseU128 helper",
-    path: "packages/provable-core/src/testnet.ts",
-    contains: "export const parseU128 = native.parseU128;",
-  },
-  {
-    name: "rn engine keeps no placeholder crypto throws",
-    path: "packages/provable-engine-react-native/src/native-bindings.ts",
-    contains: "sealMessageBase64(publicKey",
+    name: "rn engine keeps nitro bindings entry",
+    path: "packages/provable-engine-react-native/src/index.ts",
+    contains: 'import { createReactNativeBindings } from "./native-bindings-nitro.js";',
   },
 ];
 
@@ -83,6 +68,10 @@ const bannedPatterns = [
   {
     name: "legacy shield-mobile-sdk import",
     regex: /\b(?:from\s+["']|import\(\s*["']|require\(\s*["'])@provablehq\/shield-mobile-sdk(?:\/[A-Za-z0-9._/-]+)?["']/,
+  },
+  {
+    name: "legacy provablekit subpath import",
+    regex: /\b(?:from\s+["']|import\(\s*["']|require\(\s*["'])@provablehq\/provablekit\/(?:testnet|mainnet|dynamic)\.js["']/,
   },
 ];
 

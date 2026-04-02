@@ -53,7 +53,7 @@ by calling `initThreadPool` function which initializes `wasm` memory and creates
 advantage of multiple available threads on the host machine.
 
 ```typescript
-import { Account, initThreadPool } from '@provablehq/provablekit/mainnet.js';
+import { Account, initThreadPool } from '@provablehq/provable-engine-wasm/mainnet.js';
 
 // Enables multithreading
 await initThreadPool();
@@ -102,7 +102,7 @@ The example below illustrates how to instantiate a `ProgramManager`, build an ex
 the Aleo network (note: Ensure that your project supports `top-level await`).
 
 ```typescript
-import { Account, AleoNetworkClient, initThreadPool, NetworkRecordProvider, ProgramManager, AleoKeyProvider } from '@provablehq/provablekit/mainnet.js';
+import { Account, AleoNetworkClient, initThreadPool, NetworkRecordProvider, ProgramManager, AleoKeyProvider } from '@provablehq/provable-engine-wasm/mainnet.js';
 
 // If the threadpool has not been initialized, do so (this step can be skipped if it's been initialized elsewhere). 
 await initThreadPool();
@@ -171,7 +171,7 @@ verifying keys. However, developers can implement their own `KeyProvider` to sto
 databases, local file systems, etc.
 
 ```typescript
-import { AleoKeyProvider, VerifyingKey, ProvingKey } from '@provablehq/provablekit/mainnet.js';
+import { AleoKeyProvider, VerifyingKey, ProvingKey } from '@provablehq/provable-engine-wasm/mainnet.js';
 
 // The Aleo key provider is the default implementation of the key provider.
 const keyProvider = new AleoKeyProvider();
@@ -211,7 +211,7 @@ When run in this fashion, the program will execute and return the outputs of the
 This can be useful for testing a function in development.
 
 ```typescript
-import { Account, ProgramManager } from '@provablehq/provablekit/mainnet.js';
+import { Account, ProgramManager } from '@provablehq/provable-engine-wasm/mainnet.js';
 
 /// Create the source for the "hello world" program
 const program = "program helloworld.aleo;\n\nfunction hello:\n    input r0 as u32.public;\n    input r1 as u32.private;\n    add r0 r1 into r2;\n    output r2 as u32.private;\n";
@@ -236,7 +236,7 @@ has the function's proving and verifying keys.
 Note: This approach is **will not work** for any function that has an async future defined within it.
 
 ```typescript
-import { Account, AleoKeyProvider, ProgramManager, ProvingKey, VerifyingKey } from '@provablehq/provablekit/mainnet.js';
+import { Account, AleoKeyProvider, ProgramManager, ProvingKey, VerifyingKey } from '@provablehq/provable-engine-wasm/mainnet.js';
 import { getBindingIdentifiers } from "@babel/types";
 import keys = getBindingIdentifiers.keys;
 

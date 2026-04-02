@@ -7,7 +7,7 @@ This matrix locks the runtime API surface used by `shield-extension` and `shield
 - `encryptRegistrationRequest(publicKey, viewKey, start)`
   - Usage: scanner registration encrypted payloads in `shield-extension` and `shield-mobile`.
   - Implementation: `packages/provable-core/src/native-bindings.ts`.
-  - Exported from: `@provablehq/provablekit/mainnet.js`, `testnet.js`, `dynamic.js`.
+  - Exported from: `@provablehq/provable-engine-wasm/mainnet.js`, `@provablehq/provable-engine-wasm/testnet.js`.
 
 - `ViewKey.fromString(...)` / `ViewKey.from_string(...)`
   - Usage: scanner registration payload creation.
@@ -16,7 +16,7 @@ This matrix locks the runtime API surface used by `shield-extension` and `shield
 - `SealanceMerkleTree`
   - Usage: compliance exclusion proof path.
   - Implementation: `packages/provable-core/src/native-bindings.ts`.
-  - Exported from: `@provablehq/provablekit/mainnet.js`, `testnet.js`, `dynamic.js`.
+  - Exported from: `@provablehq/provable-engine-wasm/mainnet.js`, `@provablehq/provable-engine-wasm/testnet.js`.
 
 ## Mobile-Critical Surface
 

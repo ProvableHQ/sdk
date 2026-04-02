@@ -12,7 +12,7 @@ import {
     ProvingKey,
     Transaction,
     VerifyingKey
-} from "@provablehq/provablekit/testnet.js";
+} from "@provablehq/provable-engine-wasm/testnet.js";
 import { getLocalKey, preDownloadBondingKeys, preDownloadTransferKeys } from "./helpers";
 
 

@@ -11,7 +11,7 @@ import {
     RecordScanner,
     RecordCiphertext,
     OfflineQuery,
-} from "@provablehq/provablekit/testnet.js";
+} from "@provablehq/provable-engine-wasm/testnet.js";
 import { readFileSync } from "fs";
 import { dirname, join } from "path";
 import { fileURLToPath } from "url";

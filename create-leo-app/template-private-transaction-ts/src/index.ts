@@ -1,7 +1,7 @@
 import { createWasmEngine } from "@provablehq/provable-engine-wasm";
 import { ProvableKit } from "@provablehq/provablekit";
-import {Account, initThreadPool, ProgramManager, AleoKeyProvider} from "@provablehq/provablekit/testnet.js";
-import { CREDITS_PROGRAM_KEYS } from "@provablehq/provablekit/testnet.js";
+import {Account, initThreadPool, ProgramManager, AleoKeyProvider} from "@provablehq/provable-engine-wasm/testnet.js";
+import { CREDITS_PROGRAM_KEYS } from "@provablehq/provable-engine-wasm/testnet.js";
 
 // Initialize the threadpool to speed up proving.
 

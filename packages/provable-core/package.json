@@ -10,18 +10,6 @@
     ".": {
       "types": "./dist/index.d.ts",
       "default": "./dist/index.js"
-    },
-    "./testnet.js": {
-      "types": "./dist/testnet.d.ts",
-      "default": "./dist/testnet.js"
-    },
-    "./mainnet.js": {
-      "types": "./dist/mainnet.d.ts",
-      "default": "./dist/mainnet.js"
-    },
-    "./dynamic.js": {
-      "types": "./dist/dynamic.d.ts",
-      "default": "./dist/dynamic.js"
     }
   },
   "files": [
@@ -42,7 +30,6 @@
     "clean": "rimraf dist"
   },
   "dependencies": {
-    "@provablehq/provable-engine-wasm": "^0.1.0",
     "@scure/base": "^2.0.0",
     "libsodium-wrappers-sumo": "^0.8.2"
   },

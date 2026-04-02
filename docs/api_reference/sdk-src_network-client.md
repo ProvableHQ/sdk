@@ -37,7 +37,7 @@ __account__ | [Account](sdk-src_account.md) | *Set an account to use for record 
 #### Examples
 
 ```javascript
-import { Account, AleoNetworkClient } from "@provablehq/provablekit/mainnet.js";
+import { Account, AleoNetworkClient } from "@provablehq/provable-engine-wasm/mainnet.js";
 
 const networkClient = new AleoNetworkClient("https://api.provable.com/v2");
 const account = new Account();
@@ -73,7 +73,7 @@ __host__ | `string` | *The address of a node hosting the Aleo API*
 #### Examples
 
 ```javascript
-import { AleoNetworkClient } from "@provablehq/provablekit/mainnet.js";
+import { AleoNetworkClient } from "@provablehq/provable-engine-wasm/mainnet.js";
 
 // Create a networkClient that connects to a local node.
 const networkClient = new AleoNetworkClient("http://0.0.0.0:3030", undefined);
@@ -97,7 +97,7 @@ __verboseErrors__ | `boolean` | *Set verbose error mode to true or false for the
 #### Examples
 
 ```javascript
-import { AleoNetworkClient } from "@provablehq/provablekit/mainnet.js";
+import { AleoNetworkClient } from "@provablehq/provable-engine-wasm/mainnet.js";
 
 // Create a networkClient
 const networkClient = new AleoNetworkClient();
@@ -122,7 +122,7 @@ __value__ | `string` | *The header value*
 #### Examples
 
 ```javascript
-import { AleoNetworkClient } from "@provablehq/provablekit/mainnet.js";
+import { AleoNetworkClient } from "@provablehq/provable-engine-wasm/mainnet.js";
 
 // Create a networkClient
 const networkClient = new AleoNetworkClient();
@@ -181,7 +181,7 @@ __*return*__ | `Promise.<Array.<RecordPlaintext>>` | *An array of records belong
 #### Examples
 
 ```javascript
-import { Account, AleoNetworkClient } from "@provablehq/provablekit/mainnet.js";
+import { Account, AleoNetworkClient } from "@provablehq/provable-engine-wasm/mainnet.js";
 
 // Import an account from a ciphertext and password.
 const account = Account.fromCiphertext(process.env.ciphertext, process.env.password);
@@ -222,7 +222,7 @@ __*return*__ | `Promise.<Array.<RecordPlaintext>>` | *An array of unspent record
 #### Examples
 
 ```javascript
-import { Account, AleoNetworkClient } from "@provablehq/provablekit/mainnet.js";
+import { Account, AleoNetworkClient } from "@provablehq/provable-engine-wasm/mainnet.js";
 
 const account = Account.fromCiphertext(process.env.ciphertext, process.env.password);
 
@@ -276,7 +276,7 @@ __*return*__ | `Promise.<BlockJSON>` | *A javascript object representation of th
 #### Examples
 
 ```javascript
-import { AleoNetworkClient } from "@provablehq/provablekit/mainnet.js";
+import { AleoNetworkClient } from "@provablehq/provable-engine-wasm/mainnet.js";
 
 const networkClient = new AleoNetworkClient("https://api.provable.com/v2", undefined);
 const block = networkClient.getBlockByHash("ab19dklwl9vp63zu3hwg57wyhvmqf92fx5g8x0t6dr72py8r87pxupqfne5t9");
@@ -299,7 +299,7 @@ __*return*__ | `Promise.<Array.<BlockJSON>>` | *An array of block objects*
 #### Examples
 
 ```javascript
-import { AleoNetworkClient } from "@provablehq/provablekit/mainnet.js";
+import { AleoNetworkClient } from "@provablehq/provable-engine-wasm/mainnet.js";
 
 // Fetch 50 blocks.
 const (start, end) = (2050, 2100);
@@ -328,7 +328,7 @@ __*return*__ | `Promise.<string>` | *The transaction ID of the deployment transa
 #### Examples
 
 ```javascript
-import { AleoNetworkClient } from "@provablehq/provablekit/testnet.js";
+import { AleoNetworkClient } from "@provablehq/provable-engine-wasm/testnet.js";
 
 // Get the transaction ID of the deployment transaction for a program.
 const networkClient = new AleoNetworkClient("https://api.provable.com/v2", undefined);
@@ -357,7 +357,7 @@ __*return*__ | `Promise.<Transaction>` | *JSON representation of the deployment 
 #### Examples
 
 ```javascript
-import { AleoNetworkClient, DeploymentJSON } from "@provablehq/provablekit/testnet.js";
+import { AleoNetworkClient, DeploymentJSON } from "@provablehq/provable-engine-wasm/testnet.js";
 
 // Get the transaction ID of the deployment transaction for a program.
 const networkClient = new AleoNetworkClient("https://api.provable.com/v2", undefined);
@@ -384,7 +384,7 @@ __*return*__ | `Promise.<Transaction>` | *Wasm object representation of the depl
 #### Examples
 
 ```javascript
-import { AleoNetworkClient } from "@provablehq/provablekit/testnet.js";
+import { AleoNetworkClient } from "@provablehq/provable-engine-wasm/testnet.js";
 
 // Get the transaction ID of the deployment transaction for a program.
 const networkClient = new AleoNetworkClient("https://api.provable.com/v2", undefined);
@@ -412,7 +412,7 @@ __*return*__ | `Promise.<BlockJSON>` | *A javascript object containing the lates
 #### Examples
 
 ```javascript
-import { AleoNetworkClient } from "@provablehq/provablekit/testnet.js";
+import { AleoNetworkClient } from "@provablehq/provable-engine-wasm/testnet.js";
 
 // Create a network client.
 const networkClient = new AleoNetworkClient("https://api.provable.com/v2", undefined);
@@ -435,7 +435,7 @@ __*return*__ | `Promise.<object>` | *A javascript object containing the latest c
 #### Examples
 
 ```javascript
-import { AleoNetworkClient } from "@provablehq/provablekit/mainnet.js";
+import { AleoNetworkClient } from "@provablehq/provable-engine-wasm/mainnet.js";
 
 // Create a network client.
 const networkClient = new AleoNetworkClient("https://api.provable.com/v2", undefined);
@@ -461,7 +461,7 @@ __*return*__ | `Promise.<object>` | *A javascript object containing the committe
 #### Examples
 
 ```javascript
-import { AleoNetworkClient } from "@provablehq/provablekit/mainnet.js";
+import { AleoNetworkClient } from "@provablehq/provable-engine-wasm/mainnet.js";
 
 // Create a network client.
 const networkClient = new AleoNetworkClient("https://api.provable.com/v2", undefined);
@@ -486,7 +486,7 @@ __*return*__ | `Promise.<number>` | *The latest block height.*
 #### Examples
 
 ```javascript
-import { AleoNetworkClient } from "@provablehq/provablekit/mainnet.js";
+import { AleoNetworkClient } from "@provablehq/provable-engine-wasm/mainnet.js";
 
 // Create a network client.
 const networkClient = new AleoNetworkClient("https://api.provable.com/v2", undefined);
@@ -509,7 +509,7 @@ __*return*__ | `Promise.<string>` | *The latest block hash.*
 #### Examples
 
 ```javascript
-import { AleoNetworkClient } from "@provablehq/provablekit/mainnet.js";
+import { AleoNetworkClient } from "@provablehq/provable-engine-wasm/mainnet.js";
 
 // Create a network client.
 const networkClient = new AleoNetworkClient("https://api.provable.com/v2", undefined);
@@ -536,7 +536,7 @@ __*return*__ | `Promise.<string>` | *Source code of the program*
 #### Examples
 
 ```javascript
-import { AleoNetworkClient } from "@provablehq/provablekit/mainnet.js";
+import { AleoNetworkClient } from "@provablehq/provable-engine-wasm/mainnet.js";
 
 // Create a network client.
 const networkClient = new AleoNetworkClient("https://api.provable.com/v2", undefined);
@@ -544,7 +544,7 @@ const networkClient = new AleoNetworkClient("https://api.provable.com/v2", undef
 // Get the source code of a program.)
 ```
 ```javascript
-import { AleoNetworkClient } from "@provablehq/provablekit/mainnet.js";
+import { AleoNetworkClient } from "@provablehq/provable-engine-wasm/mainnet.js";
 
 // Create a network client.
 const networkClient = new AleoNetworkClient("https://api.provable.com/v2", undefined);
@@ -570,7 +570,7 @@ __*return*__ | `Promise.<number>` | *The edition of the program.*
 #### Examples
 
 ```javascript
-import { AleoNetworkClient } from "@provablehq/provablekit/mainnet.js";
+import { AleoNetworkClient } from "@provablehq/provable-engine-wasm/mainnet.js";
 
 // Create a network client.
 const networkClient = new AleoNetworkClient("https://api.provable.com/v2", undefined);
@@ -596,7 +596,7 @@ __*return*__ | `Promise.<Program>` | *Source code of the program.*
 #### Examples
 
 ```javascript
-import { AleoNetworkClient } from "@provablehq/provablekit/mainnet.js";
+import { AleoNetworkClient } from "@provablehq/provable-engine-wasm/mainnet.js";
 
 // Create a network client.
 const networkClient = new AleoNetworkClient("https://api.provable.com/v2", undefined);
@@ -628,7 +628,7 @@ __*return*__ | `Promise.<ProgramImports>` | *Object of the form { &quot;program_
 #### Examples
 
 ```javascript
-import { AleoNetworkClient } from "@provablehq/provablekit/mainnet.js";
+import { AleoNetworkClient } from "@provablehq/provable-engine-wasm/mainnet.js";
 
 const double_test_source = "import multiply_test.aleo;\n\nprogram double_test.aleo;\n\nfunction double_it:\n    input r0 as u32.private;\n    call multiply_test.aleo/multiply 2u32 r0 into r1;\n    output r1 as u32.private;\n"
 const double_test = Program.fromString(double_test_source);
@@ -668,7 +668,7 @@ __*return*__ | `Array.<string>` | *- The list of program names that the program 
 #### Examples
 
 ```javascript
-import { AleoNetworkClient } from "@provablehq/provablekit/mainnet.js";
+import { AleoNetworkClient } from "@provablehq/provable-engine-wasm/mainnet.js";
 
 // Create a network client.
 const networkClient = new AleoNetworkClient("https://api.provable.com/v2", undefined);
@@ -694,7 +694,7 @@ __*return*__ | `Promise.<Array.<string>>` | *- The names of the mappings of the 
 #### Examples
 
 ```javascript
-import { AleoNetworkClient } from "@provablehq/provablekit/mainnet.js";
+import { AleoNetworkClient } from "@provablehq/provable-engine-wasm/mainnet.js";
 
 // Create a network client.
 const networkClient = new AleoNetworkClient("https://api.provable.com/v2", undefined);
@@ -730,7 +730,7 @@ __*return*__ | `Promise.<string>` | *String representation of the value of the m
 #### Examples
 
 ```javascript
-import { AleoNetworkClient } from "@provablehq/provablekit/mainnet.js";
+import { AleoNetworkClient } from "@provablehq/provable-engine-wasm/mainnet.js";
 
 // Create a network client.
 const networkClient = new AleoNetworkClient("https://api.provable.com/v2", undefined);
@@ -759,7 +759,7 @@ __*return*__ | `Promise.<Plaintext>` | *String representation of the value of th
 #### Examples
 
 ```javascript
-import { AleoNetworkClient } from "@provablehq/provablekit/mainnet.js";
+import { AleoNetworkClient } from "@provablehq/provable-engine-wasm/mainnet.js";
 
 // Create a network client.
 const networkClient = new AleoNetworkClient("https://api.provable.com/v2", undefined);
@@ -801,7 +801,7 @@ __*return*__ | `Promise.<number>` | *The public balance of the address in microc
 #### Examples
 
 ```javascript
-import { AleoNetworkClient, Account } from "@provablehq/provablekit/mainnet.js";
+import { AleoNetworkClient, Account } from "@provablehq/provable-engine-wasm/mainnet.js";
 
 // Create a network client.
 const networkClient = new AleoNetworkClient("https://api.provable.com/v2", undefined);
@@ -828,7 +828,7 @@ __*return*__ | `Promise.<string>` | *A string representing the latest state root
 #### Examples
 
 ```javascript
-import { AleoNetworkClient, Account } from "@provablehq/provablekit/mainnet.js";
+import { AleoNetworkClient, Account } from "@provablehq/provable-engine-wasm/mainnet.js";
 
 // Create a network client.
 const networkClient = new AleoNetworkClient("https://api.provable.com/v2", undefined);
@@ -853,7 +853,7 @@ __*return*__ | `Promise.<TransactionJSON>` | *A json representation of the trans
 #### Examples
 
 ```javascript
-import { AleoNetworkClient, Account } from "@provablehq/provablekit/mainnet.js";
+import { AleoNetworkClient, Account } from "@provablehq/provable-engine-wasm/mainnet.js";
 
 // Create a network client.
 const networkClient = new AleoNetworkClient("https://api.provable.com/v2", undefined);
@@ -877,7 +877,7 @@ __*return*__ | `Promise.<ConfirmedTransactionJSON>` | *A json object containing 
 #### Examples
 
 ```javascript
-import { AleoNetworkClient, Account } from "@provablehq/provablekit/mainnet.js";
+import { AleoNetworkClient, Account } from "@provablehq/provable-engine-wasm/mainnet.js";
 
 // Create a network client.
 const networkClient = new AleoNetworkClient("https://api.provable.com/v2", undefined);
@@ -937,7 +937,7 @@ __*return*__ | `Promise.<Array.<ConfirmedTransactionJSON>>` | *An array of confi
 #### Examples
 
 ```javascript
-import { AleoNetworkClient, Account } from "@provablehq/provablekit/mainnet.js";
+import { AleoNetworkClient, Account } from "@provablehq/provable-engine-wasm/mainnet.js";
 
 // Create a network client.
 const networkClient = new AleoNetworkClient("https://api.provable.com/v2", undefined);
@@ -961,7 +961,7 @@ __*return*__ | `Promise.<Array.<ConfirmedTransactionJSON>>` | *An array of confi
 #### Examples
 
 ```javascript
-import { AleoNetworkClient, Account } from "@provablehq/provablekit/mainnet.js";
+import { AleoNetworkClient, Account } from "@provablehq/provable-engine-wasm/mainnet.js";
 
 // Create a network client.
 const networkClient = new AleoNetworkClient("https://api.provable.com/v2", undefined);
@@ -984,7 +984,7 @@ __*return*__ | `Promise.<Array.<TransactionJSON>>` | *An array of transactions (
 #### Examples
 
 ```javascript
-import { AleoNetworkClient, Account } from "@provablehq/provablekit/mainnet.js";
+import { AleoNetworkClient, Account } from "@provablehq/provable-engine-wasm/mainnet.js";
 
 // Create a network client.
 const networkClient = new AleoNetworkClient("https://api.provable.com/v2", undefined);
@@ -1083,7 +1083,7 @@ __*return*__ | `Promise.<Transaction>` | *The confirmed transaction object that 
 #### Examples
 
 ```javascript
-import { AleoNetworkClient, Account, ProgramManager } from "@provablehq/provablekit/mainnet.js";
+import { AleoNetworkClient, Account, ProgramManager } from "@provablehq/provable-engine-wasm/mainnet.js";
 
 // Create a network client and program manager.
 const networkClient = new AleoNetworkClient("https://api.provable.com/v2", undefined);
@@ -1117,7 +1117,7 @@ __account__ | [Account](sdk-src_account.md) | *Set an account to use for record 
 #### Examples
 
 ```javascript
-import { Account, AleoNetworkClient } from "@provablehq/provablekit/mainnet.js";
+import { Account, AleoNetworkClient } from "@provablehq/provable-engine-wasm/mainnet.js";
 
 const networkClient = new AleoNetworkClient("https://api.provable.com/v2");
 const account = new Account();
@@ -1157,7 +1157,7 @@ __host__ | `string` | *The address of a node hosting the Aleo API*
 #### Examples
 
 ```javascript
-import { AleoNetworkClient } from "@provablehq/provablekit/mainnet.js";
+import { AleoNetworkClient } from "@provablehq/provable-engine-wasm/mainnet.js";
 
 // Create a networkClient that connects to a local node.
 const networkClient = new AleoNetworkClient("http://0.0.0.0:3030", undefined);
@@ -1181,7 +1181,7 @@ __verboseErrors__ | `boolean` | *Set verbose error mode to true or false for the
 #### Examples
 
 ```javascript
-import { AleoNetworkClient } from "@provablehq/provablekit/mainnet.js";
+import { AleoNetworkClient } from "@provablehq/provable-engine-wasm/mainnet.js";
 
 // Create a networkClient
 const networkClient = new AleoNetworkClient();
@@ -1206,7 +1206,7 @@ __value__ | `string` | *The header value*
 #### Examples
 
 ```javascript
-import { AleoNetworkClient } from "@provablehq/provablekit/mainnet.js";
+import { AleoNetworkClient } from "@provablehq/provable-engine-wasm/mainnet.js";
 
 // Create a networkClient
 const networkClient = new AleoNetworkClient();
@@ -1267,7 +1267,7 @@ __*return*__ | `Promise.<Array.<RecordPlaintext>>` | *An array of records belong
 #### Examples
 
 ```javascript
-import { Account, AleoNetworkClient } from "@provablehq/provablekit/mainnet.js";
+import { Account, AleoNetworkClient } from "@provablehq/provable-engine-wasm/mainnet.js";
 
 // Import an account from a ciphertext and password.
 const account = Account.fromCiphertext(process.env.ciphertext, process.env.password);
@@ -1308,7 +1308,7 @@ __*return*__ | `Promise.<Array.<RecordPlaintext>>` | *An array of unspent record
 #### Examples
 
 ```javascript
-import { Account, AleoNetworkClient } from "@provablehq/provablekit/mainnet.js";
+import { Account, AleoNetworkClient } from "@provablehq/provable-engine-wasm/mainnet.js";
 
 const account = Account.fromCiphertext(process.env.ciphertext, process.env.password);
 
@@ -1362,7 +1362,7 @@ __*return*__ | `Promise.<BlockJSON>` | *A javascript object representation of th
 #### Examples
 
 ```javascript
-import { AleoNetworkClient } from "@provablehq/provablekit/mainnet.js";
+import { AleoNetworkClient } from "@provablehq/provable-engine-wasm/mainnet.js";
 
 const networkClient = new AleoNetworkClient("https://api.provable.com/v2", undefined);
 const block = networkClient.getBlockByHash("ab19dklwl9vp63zu3hwg57wyhvmqf92fx5g8x0t6dr72py8r87pxupqfne5t9");
@@ -1385,7 +1385,7 @@ __*return*__ | `Promise.<Array.<BlockJSON>>` | *An array of block objects*
 #### Examples
 
 ```javascript
-import { AleoNetworkClient } from "@provablehq/provablekit/mainnet.js";
+import { AleoNetworkClient } from "@provablehq/provable-engine-wasm/mainnet.js";
 
 // Fetch 50 blocks.
 const (start, end) = (2050, 2100);
@@ -1414,7 +1414,7 @@ __*return*__ | `Promise.<string>` | *The transaction ID of the deployment transa
 #### Examples
 
 ```javascript
-import { AleoNetworkClient } from "@provablehq/provablekit/testnet.js";
+import { AleoNetworkClient } from "@provablehq/provable-engine-wasm/testnet.js";
 
 // Get the transaction ID of the deployment transaction for a program.
 const networkClient = new AleoNetworkClient("https://api.provable.com/v2", undefined);
@@ -1443,7 +1443,7 @@ __*return*__ | `Promise.<Transaction>` | *JSON representation of the deployment 
 #### Examples
 
 ```javascript
-import { AleoNetworkClient, DeploymentJSON } from "@provablehq/provablekit/testnet.js";
+import { AleoNetworkClient, DeploymentJSON } from "@provablehq/provable-engine-wasm/testnet.js";
 
 // Get the transaction ID of the deployment transaction for a program.
 const networkClient = new AleoNetworkClient("https://api.provable.com/v2", undefined);
@@ -1470,7 +1470,7 @@ __*return*__ | `Promise.<Transaction>` | *Wasm object representation of the depl
 #### Examples
 
 ```javascript
-import { AleoNetworkClient } from "@provablehq/provablekit/testnet.js";
+import { AleoNetworkClient } from "@provablehq/provable-engine-wasm/testnet.js";
 
 // Get the transaction ID of the deployment transaction for a program.
 const networkClient = new AleoNetworkClient("https://api.provable.com/v2", undefined);
@@ -1498,7 +1498,7 @@ __*return*__ | `Promise.<BlockJSON>` | *A javascript object containing the lates
 #### Examples
 
 ```javascript
-import { AleoNetworkClient } from "@provablehq/provablekit/testnet.js";
+import { AleoNetworkClient } from "@provablehq/provable-engine-wasm/testnet.js";
 
 // Create a network client.
 const networkClient = new AleoNetworkClient("https://api.provable.com/v2", undefined);
@@ -1521,7 +1521,7 @@ __*return*__ | `Promise.<object>` | *A javascript object containing the latest c
 #### Examples
 
 ```javascript
-import { AleoNetworkClient } from "@provablehq/provablekit/mainnet.js";
+import { AleoNetworkClient } from "@provablehq/provable-engine-wasm/mainnet.js";
 
 // Create a network client.
 const networkClient = new AleoNetworkClient("https://api.provable.com/v2", undefined);
@@ -1547,7 +1547,7 @@ __*return*__ | `Promise.<object>` | *A javascript object containing the committe
 #### Examples
 
 ```javascript
-import { AleoNetworkClient } from "@provablehq/provablekit/mainnet.js";
+import { AleoNetworkClient } from "@provablehq/provable-engine-wasm/mainnet.js";
 
 // Create a network client.
 const networkClient = new AleoNetworkClient("https://api.provable.com/v2", undefined);
@@ -1572,7 +1572,7 @@ __*return*__ | `Promise.<number>` | *The latest block height.*
 #### Examples
 
 ```javascript
-import { AleoNetworkClient } from "@provablehq/provablekit/mainnet.js";
+import { AleoNetworkClient } from "@provablehq/provable-engine-wasm/mainnet.js";
 
 // Create a network client.
 const networkClient = new AleoNetworkClient("https://api.provable.com/v2", undefined);
@@ -1595,7 +1595,7 @@ __*return*__ | `Promise.<string>` | *The latest block hash.*
 #### Examples
 
 ```javascript
-import { AleoNetworkClient } from "@provablehq/provablekit/mainnet.js";
+import { AleoNetworkClient } from "@provablehq/provable-engine-wasm/mainnet.js";
 
 // Create a network client.
 const networkClient = new AleoNetworkClient("https://api.provable.com/v2", undefined);
@@ -1622,7 +1622,7 @@ __*return*__ | `Promise.<string>` | *Source code of the program*
 #### Examples
 
 ```javascript
-import { AleoNetworkClient } from "@provablehq/provablekit/mainnet.js";
+import { AleoNetworkClient } from "@provablehq/provable-engine-wasm/mainnet.js";
 
 // Create a network client.
 const networkClient = new AleoNetworkClient("https://api.provable.com/v2", undefined);
@@ -1630,7 +1630,7 @@ const networkClient = new AleoNetworkClient("https://api.provable.com/v2", undef
 // Get the source code of a program.)
 ```
 ```javascript
-import { AleoNetworkClient } from "@provablehq/provablekit/mainnet.js";
+import { AleoNetworkClient } from "@provablehq/provable-engine-wasm/mainnet.js";
 
 // Create a network client.
 const networkClient = new AleoNetworkClient("https://api.provable.com/v2", undefined);
@@ -1656,7 +1656,7 @@ __*return*__ | `Promise.<number>` | *The edition of the program.*
 #### Examples
 
 ```javascript
-import { AleoNetworkClient } from "@provablehq/provablekit/mainnet.js";
+import { AleoNetworkClient } from "@provablehq/provable-engine-wasm/mainnet.js";
 
 // Create a network client.
 const networkClient = new AleoNetworkClient("https://api.provable.com/v2", undefined);
@@ -1682,7 +1682,7 @@ __*return*__ | `Promise.<Program>` | *Source code of the program.*
 #### Examples
 
 ```javascript
-import { AleoNetworkClient } from "@provablehq/provablekit/mainnet.js";
+import { AleoNetworkClient } from "@provablehq/provable-engine-wasm/mainnet.js";
 
 // Create a network client.
 const networkClient = new AleoNetworkClient("https://api.provable.com/v2", undefined);
@@ -1714,7 +1714,7 @@ __*return*__ | `Promise.<ProgramImports>` | *Object of the form { &quot;program_
 #### Examples
 
 ```javascript
-import { AleoNetworkClient } from "@provablehq/provablekit/mainnet.js";
+import { AleoNetworkClient } from "@provablehq/provable-engine-wasm/mainnet.js";
 
 const double_test_source = "import multiply_test.aleo;\n\nprogram double_test.aleo;\n\nfunction double_it:\n    input r0 as u32.private;\n    call multiply_test.aleo/multiply 2u32 r0 into r1;\n    output r1 as u32.private;\n"
 const double_test = Program.fromString(double_test_source);
@@ -1754,7 +1754,7 @@ __*return*__ | `Array.<string>` | *- The list of program names that the program 
 #### Examples
 
 ```javascript
-import { AleoNetworkClient } from "@provablehq/provablekit/mainnet.js";
+import { AleoNetworkClient } from "@provablehq/provable-engine-wasm/mainnet.js";
 
 // Create a network client.
 const networkClient = new AleoNetworkClient("https://api.provable.com/v2", undefined);
@@ -1780,7 +1780,7 @@ __*return*__ | `Promise.<Array.<string>>` | *- The names of the mappings of the 
 #### Examples
 
 ```javascript
-import { AleoNetworkClient } from "@provablehq/provablekit/mainnet.js";
+import { AleoNetworkClient } from "@provablehq/provable-engine-wasm/mainnet.js";
 
 // Create a network client.
 const networkClient = new AleoNetworkClient("https://api.provable.com/v2", undefined);
@@ -1816,7 +1816,7 @@ __*return*__ | `Promise.<string>` | *String representation of the value of the m
 #### Examples
 
 ```javascript
-import { AleoNetworkClient } from "@provablehq/provablekit/mainnet.js";
+import { AleoNetworkClient } from "@provablehq/provable-engine-wasm/mainnet.js";
 
 // Create a network client.
 const networkClient = new AleoNetworkClient("https://api.provable.com/v2", undefined);
@@ -1845,7 +1845,7 @@ __*return*__ | `Promise.<Plaintext>` | *String representation of the value of th
 #### Examples
 
 ```javascript
-import { AleoNetworkClient } from "@provablehq/provablekit/mainnet.js";
+import { AleoNetworkClient } from "@provablehq/provable-engine-wasm/mainnet.js";
 
 // Create a network client.
 const networkClient = new AleoNetworkClient("https://api.provable.com/v2", undefined);
@@ -1887,7 +1887,7 @@ __*return*__ | `Promise.<number>` | *The public balance of the address in microc
 #### Examples
 
 ```javascript
-import { AleoNetworkClient, Account } from "@provablehq/provablekit/mainnet.js";
+import { AleoNetworkClient, Account } from "@provablehq/provable-engine-wasm/mainnet.js";
 
 // Create a network client.
 const networkClient = new AleoNetworkClient("https://api.provable.com/v2", undefined);
@@ -1914,7 +1914,7 @@ __*return*__ | `Promise.<string>` | *A string representing the latest state root
 #### Examples
 
 ```javascript
-import { AleoNetworkClient, Account } from "@provablehq/provablekit/mainnet.js";
+import { AleoNetworkClient, Account } from "@provablehq/provable-engine-wasm/mainnet.js";
 
 // Create a network client.
 const networkClient = new AleoNetworkClient("https://api.provable.com/v2", undefined);
@@ -1939,7 +1939,7 @@ __*return*__ | `Promise.<TransactionJSON>` | *A json representation of the trans
 #### Examples
 
 ```javascript
-import { AleoNetworkClient, Account } from "@provablehq/provablekit/mainnet.js";
+import { AleoNetworkClient, Account } from "@provablehq/provable-engine-wasm/mainnet.js";
 
 // Create a network client.
 const networkClient = new AleoNetworkClient("https://api.provable.com/v2", undefined);
@@ -1963,7 +1963,7 @@ __*return*__ | `Promise.<ConfirmedTransactionJSON>` | *A json object containing 
 #### Examples
 
 ```javascript
-import { AleoNetworkClient, Account } from "@provablehq/provablekit/mainnet.js";
+import { AleoNetworkClient, Account } from "@provablehq/provable-engine-wasm/mainnet.js";
 
 // Create a network client.
 const networkClient = new AleoNetworkClient("https://api.provable.com/v2", undefined);
@@ -2023,7 +2023,7 @@ __*return*__ | `Promise.<Array.<ConfirmedTransactionJSON>>` | *An array of confi
 #### Examples
 
 ```javascript
-import { AleoNetworkClient, Account } from "@provablehq/provablekit/mainnet.js";
+import { AleoNetworkClient, Account } from "@provablehq/provable-engine-wasm/mainnet.js";
 
 // Create a network client.
 const networkClient = new AleoNetworkClient("https://api.provable.com/v2", undefined);
@@ -2047,7 +2047,7 @@ __*return*__ | `Promise.<Array.<ConfirmedTransactionJSON>>` | *An array of confi
 #### Examples
 
 ```javascript
-import { AleoNetworkClient, Account } from "@provablehq/provablekit/mainnet.js";
+import { AleoNetworkClient, Account } from "@provablehq/provable-engine-wasm/mainnet.js";
 
 // Create a network client.
 const networkClient = new AleoNetworkClient("https://api.provable.com/v2", undefined);
@@ -2070,7 +2070,7 @@ __*return*__ | `Promise.<Array.<TransactionJSON>>` | *An array of transactions (
 #### Examples
 
 ```javascript
-import { AleoNetworkClient, Account } from "@provablehq/provablekit/mainnet.js";
+import { AleoNetworkClient, Account } from "@provablehq/provable-engine-wasm/mainnet.js";
 
 // Create a network client.
 const networkClient = new AleoNetworkClient("https://api.provable.com/v2", undefined);
@@ -2155,7 +2155,7 @@ __*return*__ | `Promise.<Transaction>` | *The confirmed transaction object that 
 #### Examples
 
 ```javascript
-import { AleoNetworkClient, Account, ProgramManager } from "@provablehq/provablekit/mainnet.js";
+import { AleoNetworkClient, Account, ProgramManager } from "@provablehq/provable-engine-wasm/mainnet.js";
 
 // Create a network client and program manager.
 const networkClient = new AleoNetworkClient("https://api.provable.com/v2", undefined);

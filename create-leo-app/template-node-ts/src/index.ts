@@ -10,7 +10,7 @@ import {
     ProgramManager,
     Transaction,
     VerifyingKey,
-} from "@provablehq/provablekit/testnet.js";
+} from "@provablehq/provable-engine-wasm/testnet.js";
 
 // Initialize the thread pool in order to prove faster.
 

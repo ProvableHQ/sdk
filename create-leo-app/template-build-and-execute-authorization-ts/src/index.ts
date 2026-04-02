@@ -1,6 +1,6 @@
 import { createWasmEngine } from "@provablehq/provable-engine-wasm";
 import { ProvableKit } from "@provablehq/provablekit";
-import { AleoKeyProvider, PrivateKey, initThreadPool, ProgramManager } from "@provablehq/provablekit/testnet.js";
+import { AleoKeyProvider, PrivateKey, initThreadPool, ProgramManager } from "@provablehq/provable-engine-wasm/testnet.js";
 
 
 await ProvableKit.init({

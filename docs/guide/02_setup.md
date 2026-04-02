@@ -30,12 +30,12 @@ The following import syntax is used to select the desired network:
 
 ### Mainnet
 ```typescript
-import { Account, ProgramManager, initThreadPool } from '@provablehq/provablekit/mainnet.js';
+import { Account, ProgramManager, initThreadPool } from '@provablehq/provable-engine-wasm/mainnet.js';
 ```
 
 ### Testnet
 ```typescript
-import { Account, ProgramManager, initThreadPool } from '@provablehq/provablekit/testnet.js';
+import { Account, ProgramManager, initThreadPool } from '@provablehq/provable-engine-wasm/testnet.js';
 ```
 
 If no network is explicitly selected, the SDK defaults to the `testnet` network.
@@ -56,7 +56,7 @@ This starts multiple `WebWorker` threads and provides access to the `WebAssembly
 
 **This function only needs to be called once and should be called before any other SDK functions.**
 ```typescript
-import { Account, initThreadPool } from '@provablehq/provablekit/mainnet.js';
+import { Account, initThreadPool } from '@provablehq/provable-engine-wasm/mainnet.js';
 
 // Enables multithreading
 await initThreadPool();
