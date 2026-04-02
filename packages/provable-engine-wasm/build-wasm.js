@@ -121,17 +121,7 @@ await initializeWorker();`;
 async function patchNodeWasmInit(network) {
   const indexPath = $path.join("dist", network, "index.js");
   const contents = await $fs.readFile(indexPath, "utf8");
-
-  const initPattern =
-    /const module\$1 = new URL\("aleo_wasm\.wasm", import\.meta\.url\);\s*[\r\n]+\s*await __wbg_init\(\{ module_or_path: module\$1 \}\);/m;
-
-const initReplacement = `const module$1 = new URL("aleo_wasm.wasm", import.meta.url);
-const ready = __wbg_init({ module_or_path: module$1 });`;
-
-  let next = contents.replace(initPattern, initReplacement);
-  if (next === contents) {
-    throw new Error(`Failed to patch wasm init for ${network}: expected init snippet not found`);
-  }
+  let next = contents;
 
   next = next.replace(
     /threads = navigator\.hardwareConcurrency;/g,
