@@ -110,7 +110,7 @@ impl ProgramManager {
                 .await
                 .map_err(|err| err.to_string())?;
             trace.prepare_async(&query).await.map_err(|err| err.to_string())?;
-            query.current_block_height().map_err(|e| e.to_string())?
+            query.current_block_height_async().await.map_err(|e| e.to_string())?
         };
 
         log("Proving the split execution");

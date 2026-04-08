@@ -53,6 +53,7 @@ pub enum Mode {
 pub struct SnapshotQuery {
     block_height: u32,
     mode: Mode,
+    node_url: String,
     state_paths: IndexMap<FieldNative, StatePathNative>,
     state_root: <CurrentNetwork as Network>::StateRoot,
 }
@@ -60,14 +61,21 @@ pub struct SnapshotQuery {
 impl SnapshotQuery {
     /// Construct an empty snapshot query with a chosen `(block_height, state_root)`
     pub fn new(block_height: u32, state_root: <CurrentNetwork as Network>::StateRoot) -> Self {
-        Self { block_height, mode: Mode::Local, state_paths: IndexMap::new(), state_root }
+        Self {
+            block_height,
+            mode: Mode::Local,
+            node_url: DEFAULT_URL.to_string(),
+            state_paths: IndexMap::new(),
+            state_root,
+        }
     }
 
-    /// Construct the snapshot query in REST mode.
-    pub fn rest() -> Self {
+    /// Construct the snapshot query in REST mode with a specific node URL.
+    pub fn rest(node_url: &str) -> Self {
         Self {
             block_height: 0,
             mode: Mode::REST,
+            node_url: node_url.to_string(),
             state_paths: IndexMap::new(),
             state_root: <CurrentNetwork as Network>::StateRoot::default(),
         }
@@ -86,11 +94,15 @@ impl SnapshotQuery {
     /// Build a snapshot query directly from inputs.
     ///
     /// Steps:
-    /// 1) Parse JS inputs, detect record plaintexts (heuristic: contains "_nonce"),
+    /// 1) Check if the function uses DynamicRecord inputs. If so, fall back to
+    ///    REST mode — DynamicRecord inputs don't carry the record name needed to
+    ///    pre-compute commitments, and the inner transitions from `call.dynamic`
+    ///    produce commitments that can only be resolved at execution time.
+    /// 2) Parse JS inputs, detect record plaintexts (heuristic: contains "_nonce"),
     ///    and compute their commitments via `to_commitment(program_id, record_name, view_key)`
-    /// 2) If commitments exist, fetch all statepaths and the block height concurrently, and compose
+    /// 3) If commitments exist, fetch all statepaths and the block height concurrently, and compose
     ///    the snapshot query. Else simply fetch the latest stateroot and block height concurrently and
-    ///    return the qury.
+    ///    return the query.
     ///
     /// Notes:
     /// - `view_key` is the sender's record view key as a `Field<Network>`.
@@ -101,6 +113,14 @@ impl SnapshotQuery {
         view_key: &ViewKeyNative,
         js_inputs: &[JsValue],
     ) -> Result<Self> {
+        // Check if the function has DynamicRecord inputs. These inputs don't
+        // carry a record name, so we can't pre-compute their commitments.
+        // Fall back to REST mode so state paths are fetched on-demand during
+        // trace.prepare_async().
+        if Self::has_dynamic_record_inputs(program, function_id) {
+            return Ok(SnapshotQuery::rest(node_url));
+        }
+
         // 1) Extract commitments from inputs.
         let commitments = Self::collect_commitments_from_inputs(program, function_id, view_key, js_inputs)?;
 
@@ -117,6 +137,17 @@ impl SnapshotQuery {
             });
             Ok(query)
         }
+    }
+
+    /// Returns true if the function has any DynamicRecord or DynamicFuture input types.
+    fn has_dynamic_record_inputs(program: &ProgramNative, function_id: &IdentifierNative) -> bool {
+        let Ok(function) = program.get_function(function_id) else {
+            return false;
+        };
+        function
+            .inputs()
+            .iter()
+            .any(|input| matches!(input.value_type(), ValueTypeNative::DynamicRecord | ValueTypeNative::DynamicFuture))
     }
 
     /// Detect plaintext records in `js_inputs` and compute their commitments.
@@ -226,7 +257,7 @@ impl QueryTrait<CurrentNetwork> for SnapshotQuery {
 
     async fn current_state_root_async(&self) -> Result<<CurrentNetwork as Network>::StateRoot> {
         match self.mode {
-            Mode::REST => latest_stateroot(DEFAULT_URL).await,
+            Mode::REST => latest_stateroot(&self.node_url).await,
             Mode::Local => Ok(self.state_root),
         }
     }
@@ -237,7 +268,7 @@ impl QueryTrait<CurrentNetwork> for SnapshotQuery {
 
     async fn get_state_path_for_commitment_async(&self, commitment: &FieldNative) -> Result<StatePathNative> {
         match self.mode {
-            Mode::REST => get_statepath_for_commitment(DEFAULT_URL, commitment).await,
+            Mode::REST => get_statepath_for_commitment(&self.node_url, commitment).await,
             Mode::Local => {
                 self.state_paths.get(commitment).cloned().ok_or_else(|| anyhow!("State path not found for commitment"))
             }
@@ -260,7 +291,7 @@ impl QueryTrait<CurrentNetwork> for SnapshotQuery {
     /// Returns a list of state paths for the given list of `commitments`.
     async fn get_state_paths_for_commitments_async(&self, commitments: &[FieldNative]) -> Result<Vec<StatePathNative>> {
         match self.mode {
-            Mode::REST => get_statepaths_for_commitments(DEFAULT_URL, commitments).await,
+            Mode::REST => get_statepaths_for_commitments(&self.node_url, commitments).await,
             Mode::Local => self.get_state_paths_for_commitments(commitments),
         }
     }
@@ -271,7 +302,7 @@ impl QueryTrait<CurrentNetwork> for SnapshotQuery {
 
     async fn current_block_height_async(&self) -> Result<u32> {
         match self.mode {
-            Mode::REST => latest_block_height(DEFAULT_URL).await,
+            Mode::REST => latest_block_height(&self.node_url).await,
             Mode::Local => Ok(self.block_height),
         }
     }
@@ -334,5 +365,48 @@ mod tests {
         let commitments =
             SnapshotQuery::collect_commitments_from_inputs(&program, &function_id, &view_key, &inputs).unwrap();
         assert_eq!(commitments[0], commitment);
+    }
+
+    #[wasm_bindgen_test]
+    fn test_has_dynamic_record_inputs_detects_dynamic_record() {
+        let program = Program::from_str(
+            r"
+            import credits.aleo;
+            program dd_test.aleo;
+            function dynamic_call:
+                input r0 as field.public;
+                input r1 as field.public;
+                input r2 as field.public;
+                input r3 as dynamic.record;
+                call.dynamic r0 r1 r2 with r3 (as dynamic.record) into r4 (as dynamic.record);
+                output r4 as dynamic.record;
+            constructor:
+                assert.eq true true;
+            ",
+        )
+        .unwrap();
+        let function_id = IdentifierNative::from_str("dynamic_call").unwrap();
+        assert!(SnapshotQuery::has_dynamic_record_inputs(&program, &function_id));
+    }
+
+    #[wasm_bindgen_test]
+    fn test_has_dynamic_record_inputs_false_for_standard_inputs() {
+        // Use a simple program with standard (non-dynamic) inputs.
+        // Note: function name must not collide with a reserved opcode (e.g. "add").
+        let program = Program::from_str(
+            r"
+            program standard_test.aleo;
+            function compute:
+                input r0 as u32.public;
+                input r1 as u32.public;
+                add r0 r1 into r2;
+                output r2 as u32.public;
+            constructor:
+                assert.eq true true;
+            ",
+        )
+        .unwrap();
+        let function_id = IdentifierNative::from_str("compute").unwrap();
+        assert!(!SnapshotQuery::has_dynamic_record_inputs(&program, &function_id));
     }
 }

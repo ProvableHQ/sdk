@@ -273,7 +273,7 @@ macro_rules! execute_fee {
                 .await
                 .map_err(|err| err.to_string())?;
             trace.prepare_async(&query).await.map_err(|err| err.to_string())?;
-            query.current_block_height().map_err(|e| e.to_string())?
+            query.current_block_height_async().await.map_err(|e| e.to_string())?
         };
         let consensus_version = <CurrentNetwork as Network>::CONSENSUS_VERSION(latest_height).map_err(|err| err.to_string())?;
         let inclusion_upgrade_height = <CurrentNetwork as Network>::INCLUSION_UPGRADE_HEIGHT().map_err(|err| err.to_string())?;
