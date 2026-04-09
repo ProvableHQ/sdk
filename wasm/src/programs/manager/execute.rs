@@ -236,7 +236,7 @@ impl ProgramManager {
                     .await
                     .map_err(|err| err.to_string())?;
             trace.prepare_async(&query).await.map_err(|err| err.to_string())?;
-            query.current_block_height().map_err(|e| e.to_string())?
+            query.current_block_height_async().await.map_err(|e| e.to_string())?
         };
 
         log("Proving execution");
@@ -431,7 +431,7 @@ impl ProgramManager {
         if let Some(offline_query) = offline_query.as_ref() {
             trace.prepare_async(offline_query).await.map_err(|e| e.to_string())?;
         } else {
-            let query = SnapshotQuery::rest();
+            let query = SnapshotQuery::rest(node_url);
             trace.prepare_async(&query).await.map_err(|err| err.to_string())?;
         };
 
@@ -455,7 +455,7 @@ impl ProgramManager {
             if let Some(offline_query) = offline_query.as_ref() {
                 fee_trace.prepare_async(offline_query).await.map_err(|e| e.to_string())?;
             } else {
-                let query = SnapshotQuery::rest();
+                let query = SnapshotQuery::rest(node_url);
                 fee_trace.prepare_async(&query).await.map_err(|err| err.to_string())?;
             };
 
