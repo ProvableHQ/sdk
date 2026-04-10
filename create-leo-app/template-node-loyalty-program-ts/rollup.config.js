@@ -9,7 +9,7 @@ export default {
         format: "es",
         sourcemap: true,
     },
-    external: ["@provablehq/sdk", "fs", "path", "url"],
+    external: ["@aleo-viem/core", "@aleo-viem/provable", "dotenv/config", "fs", "path", "url"],
     plugins: [
         typescript({
             tsconfig: "tsconfig.json",
