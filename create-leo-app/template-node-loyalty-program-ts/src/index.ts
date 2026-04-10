@@ -1,7 +1,8 @@
 import "dotenv/config";
-import { getContract, parseAbi } from "@aleo-viem/core";
+import { getContract, parseAbi, parseRecord } from "@aleo-viem/core";
 import type { AleoAbi, ParsedRecordOutput } from "@aleo-viem/core";
-import { createAleoClient } from "@aleo-viem/provable";
+import { createAleoClient, createRecordScanner } from "@aleo-viem/provable";
+import type { ScannedRecord } from "@aleo-viem/provable";
 import { readFileSync } from "fs";
 import { dirname, join } from "path";
 import { fileURLToPath } from "url";
@@ -56,6 +57,9 @@ const provingMode = process.env.ALEO_PROVING_MODE === "delegated" ? "delegated" 
 const networkUrl = process.env.ALEO_NETWORK_URL ?? "https://api.explorer.provable.com/v1";
 const dpsUrl = process.env.ALEO_DPS_URL;
 const dpsApiKey = process.env.ALEO_DPS_API_KEY;
+const rssUrl = process.env.ALEO_RSS_URL;
+const consumerId = process.env.ALEO_CONSUMER_ID;
+const scanStartHeight = parseInt(process.env.ALEO_SCAN_START_HEIGHT ?? "0", 10);
 
 // Demo account
 const DEMO_PRIVATE_KEY = "APrivateKey1zkp8CZNn3yeCseEtxuVPbDCwSyhGW6yZKUYKfgXmcpoGPWH";
@@ -67,6 +71,7 @@ const { publicClient, walletClient, account } = createAleoClient({
     provingMode,
     ...(dpsUrl && { proverUrl: dpsUrl }),
     ...(dpsApiKey && { apiKey: dpsApiKey }),
+    ...(consumerId && { consumerId }),
 });
 
 // Create typed contract instances — ABI enables auto-encode inputs + auto-parse outputs
@@ -115,14 +120,14 @@ function toRewardVoucher(output: ParsedRecordOutput): RewardVoucher {
 
 async function mintCard(recipient: string, initialPoints: number): Promise<LoyaltyCard> {
     const nonce = Math.floor(Math.random() * 1e9);
-    const { outputs } = await tokenContract.simulate.mint_card({
+    const { outputs } = await tokenContract.execute.mint_card({
         inputs: [recipient, BigInt(initialPoints), BigInt(nonce)],
     });
     return toLoyaltyCard(outputs[0] as ParsedRecordOutput);
 }
 
 async function addPoints(card: LoyaltyCard, pointsToAdd: number): Promise<LoyaltyCard> {
-    const { outputs } = await tokenContract.simulate.add_points({
+    const { outputs } = await tokenContract.execute.add_points({
         inputs: [card.raw, BigInt(pointsToAdd)],
     });
     return toLoyaltyCard(outputs[0] as ParsedRecordOutput);
@@ -132,14 +137,14 @@ async function splitCardV2(card: LoyaltyCard, pointsToKeep: number): Promise<{ k
     if (pointsToKeep >= card.points) {
         throw new Error(`pointsToKeep (${pointsToKeep}) must be less than card points (${card.points})`);
     }
-    const { outputs } = await tokenContract.simulate.split_card_v2({
+    const { outputs } = await tokenContract.execute.split_card_v2({
         inputs: [card.raw, BigInt(pointsToKeep)],
     });
     return { keptCard: toLoyaltyCard(outputs[0] as ParsedRecordOutput), splitCard: toLoyaltyCard(outputs[1] as ParsedRecordOutput) };
 }
 
 async function transferCard(card: LoyaltyCard, newOwner: string): Promise<LoyaltyCard> {
-    const { outputs } = await tokenContract.simulate.transfer_card({
+    const { outputs } = await tokenContract.execute.transfer_card({
         inputs: [card.raw, newOwner],
     });
     return toLoyaltyCard(outputs[0] as ParsedRecordOutput);
@@ -157,14 +162,14 @@ async function redeemForVoucher(
     if (card.points < pointsCost) {
         throw new Error(`Insufficient points: have ${card.points}, need ${pointsCost}`);
     }
-    const { outputs } = await rewardsContract.simulate.redeem_points_for_voucher({
+    const { outputs } = await rewardsContract.execute.redeem_points_for_voucher({
         inputs: [card.raw, BigInt(rewardType), BigInt(pointsCost)],
     });
     return { card: toLoyaltyCard(outputs[0] as ParsedRecordOutput), voucher: toRewardVoucher(outputs[1] as ParsedRecordOutput) };
 }
 
 async function useVoucher(voucher: RewardVoucher): Promise<void> {
-    await rewardsContract.simulate.use_voucher({
+    await rewardsContract.execute.use_voucher({
         inputs: [voucher.raw],
     });
 }
@@ -264,6 +269,69 @@ const demos: Record<string, () => Promise<void>> = {
             process.exit(1);
         }
         await demos.full_flow();
+    },
+
+    async scanner() {
+        logHeader("Record Scanner");
+
+        if (!rssUrl) {
+            console.error(`\n${C.yellow}Scanner requires ALEO_RSS_URL${C.reset}`);
+            console.error(`  Example: ALEO_RSS_URL=https://api.provable.com/scanner npm run scanner`);
+            process.exit(1);
+        }
+        if (!dpsApiKey && !consumerId) {
+            console.error(`\n${C.yellow}Scanner requires ALEO_CONSUMER_ID or ALEO_DPS_API_KEY${C.reset}`);
+            process.exit(1);
+        }
+
+        const scanner = createRecordScanner({
+            url: rssUrl,
+            account,
+            apiKey: dpsApiKey,
+            consumerId,
+        });
+
+        console.log(`\nScanning from block ${C.bright}${scanStartHeight}${C.reset}...`);
+
+        try {
+            console.log("\nSearching for LoyaltyCard records...");
+            const cards = await scanner.findRecords({
+                program: "loyalty_token.aleo",
+                record: "LoyaltyCard",
+                startHeight: scanStartHeight,
+            });
+            if (cards.length > 0) {
+                cards.forEach((c: ScannedRecord) => {
+                    const parsed = parseRecord(c.plaintext);
+                    const data: Record<string, bigint | boolean | string> = {};
+                    for (const [k, v] of Object.entries(parsed)) data[k] = v.value;
+                    logCard(toLoyaltyCard({ type: "record", name: "LoyaltyCard", data, raw: c.plaintext }));
+                });
+            } else {
+                console.log(`  ${C.dim}No LoyaltyCard records found${C.reset}`);
+            }
+
+            console.log("\nSearching for RewardVoucher records...");
+            const vouchers = await scanner.findRecords({
+                program: "loyalty_rewards.aleo",
+                record: "RewardVoucher",
+                startHeight: scanStartHeight,
+            });
+            if (vouchers.length > 0) {
+                vouchers.forEach((v: ScannedRecord) => {
+                    const parsed = parseRecord(v.plaintext);
+                    const data: Record<string, bigint | boolean | string> = {};
+                    for (const [k, v2] of Object.entries(parsed)) data[k] = v2.value;
+                    logVoucher(toRewardVoucher({ type: "record", name: "RewardVoucher", data, raw: v.plaintext }));
+                });
+            } else {
+                console.log(`  ${C.dim}No RewardVoucher records found${C.reset}`);
+            }
+        } catch (error) {
+            const msg = error instanceof Error ? error.message : String(error);
+            console.error(`\n  ${C.yellow}Scanner error: ${msg.slice(0, 200)}${C.reset}`);
+            console.error(`  ${C.dim}Check ALEO_RSS_URL and credentials${C.reset}`);
+        }
     },
 };
 

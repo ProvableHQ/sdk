@@ -4,6 +4,7 @@
         "module": "esnext",
         "moduleResolution": "bundler",
         "esModuleInterop": true,
+        "types": ["node"],
         "skipLibCheck": true,
         "forceConsistentCasingInFileNames": true
     }
