@@ -2597,7 +2597,7 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"@provablehq/sdk@npm:^0.9.12, @provablehq/sdk@npm:^0.9.15":
+"@provablehq/sdk@npm:^0.9.15":
   version: 0.9.18
   resolution: "@provablehq/sdk@npm:0.9.18"
   dependencies:
@@ -6407,11 +6407,7 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "e2e-cjs@workspace:e2e/cjs"
   dependencies:
-    "@provablehq/sdk": "npm:^0.9.12"
-    "@types/node": "npm:^25.0.2"
-    ts-node: "npm:^10.9.2"
-    tslib: "npm:^2.8.1"
-    typescript: "npm:^5.9.3"
+    "@provablehq/sdk": "npm:^0.10.2"
   languageName: unknown
   linkType: soft
 
@@ -6443,7 +6439,7 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "e2e-ts-node@workspace:e2e/ts-node"
   dependencies:
-    "@provablehq/sdk": "npm:^0.9.12"
+    "@provablehq/sdk": "npm:^0.10.2"
     "@types/node": "npm:^25.0.2"
     ts-node: "npm:^10.9.2"
     tslib: "npm:^2.8.1"
