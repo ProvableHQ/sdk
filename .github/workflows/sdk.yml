@@ -159,6 +159,60 @@ jobs:
           yarn local
 
 
+  # Cheap, deterministic, no secrets. Always runs on every PR and push.
+  # Exercises: CJS module load (no TLA), Account/signature WASM calls, noble
+  # encryption wire format, `initThreadPool` worker spawning from CJS, dynamic
+  # variant `require()` from CJS, and `exports`-map consistency via
+  # `arethetypeswrong`.
+  cjs-smoke:
+    name: "CJS smoke + exports validation"
+    runs-on: ubuntu-latest
+    needs: build
+    steps:
+      - uses: actions/checkout@v4
+      - uses: ./.github/actions/setup-yarn
+      - uses: ./.github/actions/use-build
+
+      # Exports-map validation runs first so it gates merging even if the
+      # network-dependent e2e job (below) is flaky or skipped.
+      - name: "arethetypeswrong exports validation (wasm)"
+        working-directory: wasm
+        run: yarn test:attw
+
+      - name: "arethetypeswrong exports validation (sdk)"
+        working-directory: sdk
+        run: yarn test:attw
+
+      - name: "Pure-CJS smoke (local)"
+        run: node sdk/tests/cjs-smoke/smoke.cjs
+
+
+  # Full CJS + encrypted DPS round-trip against staging. Proves a CJS consumer
+  # can build a proving request, encrypt with noble, submit, and confirm
+  # on-chain. Costs a real testnet transaction per run, so we only run it on
+  # pushes to protected branches (mainnet/testnet) — the parallel ESM loyalty
+  # job already covers general DPS path validation on every PR, and the
+  # `cjs-smoke` + `attw` jobs above catch CJS-specific packaging regressions
+  # without hitting the network.
+  cjs-e2e:
+    name: "CJS + encrypted DPS end-to-end"
+    runs-on: ubuntu-latest
+    needs: build
+    if: github.event_name == 'push'
+    env:
+      ALEO_CONSUMER_ID: ${{ secrets.ALEO_CONSUMER_ID }}
+      ALEO_DPS_URL: https://api.provable.com/prove/testnet
+      ALEO_DPS_API_KEY: ${{ secrets.ALEO_DPS_API_KEY }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: ./.github/actions/setup-yarn
+      - uses: ./.github/actions/use-build
+
+      - name: "CJS + encrypted DPS full round-trip (staging)"
+        timeout-minutes: 10
+        run: node sdk/tests/cjs-smoke/loyalty-dps.cjs
+
+
   create-leo-app-dynamic-dispatch-proving:
     name: "create-leo-app dynamic-dispatch-proving (testnet)"
     runs-on: ubuntu-latest-m

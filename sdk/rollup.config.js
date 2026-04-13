@@ -14,6 +14,48 @@ const runtimes = [
     "node",
 ];
 
+const sharedExternal = (network) => [
+    // Used by node-polyfill
+    "node:worker_threads",
+    "node:os",
+    "node:fs",
+    "node:crypto",
+    "node:path",
+    "node:url",
+    "mime/lite",
+    "sync-request",
+    "xmlhttprequest-ssl",
+
+    // Used by the SDK
+    "comlink",
+    `@provablehq/wasm/${network}.js`,
+    "core-js/proposals/json-parse-with-source.js",
+];
+
+function sharedPlugins(network) {
+    return [
+        replace({
+            preventAssignment: true,
+            delimiters: ['', ''],
+            values: {
+                '%%VERSION%%': $package.version,
+                '%%NETWORK%%': network,
+            },
+        }),
+        typescript({
+            tsconfig: "tsconfig.json",
+            clean: true,
+        }),
+    ];
+}
+
+// Single config per network with two `output` entries: TypeScript compiles
+// once and Rollup emits both ESM and CJS from the same input graph.
+//
+// Browsers don't consume CJS, but emitting `browser.cjs` costs nothing and
+// keeps the output matrix uniform. Worker entries (wasm workers) stay ESM
+// regardless, because the Node polyfill spawns them via `eval` + dynamic
+// `import()` which works fine from a CJS parent.
 function buildNetwork(network) {
     return {
         input: {
@@ -21,40 +63,55 @@ function buildNetwork(network) {
             "browser": "./src/browser.ts",
             "node": "./src/node.ts",
         },
-        output: {
-            dir: `dist/${network}`,
-            format: "es",
-            sourcemap: true,
-        },
-        external: [
-            // Used by node-polyfill
-            "node:worker_threads",
-            "node:os",
-            "node:fs",
-            "node:crypto",
-            "mime/lite",
-            "sync-request",
-            "xmlhttprequest-ssl",
+        output: [
+            {
+                dir: `dist/${network}`,
+                format: "es",
+                sourcemap: true,
+            },
+            {
+                dir: `dist/${network}`,
+                format: "cjs",
+                entryFileNames: "[name].cjs",
+                chunkFileNames: "[name].cjs",
+                sourcemap: true,
+            },
+        ],
+        external: sharedExternal(network),
+        plugins: [...sharedPlugins(network), emitCtsDeclarations(network)],
+    };
+}
 
-            // Used by the SDK
-            "comlink",
-            `@provablehq/wasm/${network}.js`,
-            "core-js/proposals/json-parse-with-source.js",
-        ],
-        plugins: [
-            replace({
-                preventAssignment: true,
-                delimiters: ['', ''],
-                values: {
-                    '%%VERSION%%': $package.version,
-                    '%%NETWORK%%': network,
-                },
-            }),
-            typescript({
-                tsconfig: "tsconfig.json",
-                clean: true,
-            }),
-        ],
+// Rollup plugin that, at the end of the build, copies every `*.d.ts` in
+// `dist/<network>/` to a `*.d.cts` sibling. CJS consumers resolve types
+// through the `require` condition (which expects `.d.cts`); without these
+// siblings `arethetypeswrong` flags "Masquerading as ESM". The declaration
+// bodies are identical — the distinct filename is all TypeScript's node16
+// module-resolution check cares about.
+async function copyDtsToCts(dir) {
+    let entries;
+    try {
+        entries = await $fs.readdir(dir, { withFileTypes: true });
+    } catch {
+        return;
+    }
+    await Promise.all(entries.map(async (entry) => {
+        const fullPath = $path.join(dir, entry.name);
+        if (entry.isDirectory()) {
+            await copyDtsToCts(fullPath);
+        } else if (entry.isFile() && entry.name.endsWith(".d.ts")) {
+            const target = fullPath.replace(/\.d\.ts$/, ".d.cts");
+            await $fs.copyFile(fullPath, target);
+        }
+    }));
+}
+
+function emitCtsDeclarations(network) {
+    return {
+        name: "emit-cts-declarations",
+        async writeBundle() {
+            await copyDtsToCts(`dist/${network}`);
+        },
     };
 }
 
@@ -62,9 +119,12 @@ async function buildRuntimes() {
     await Promise.all(runtimes.map(async (runtime) => {
         await $fs.mkdir(`dist/dynamic`, { recursive: true });
 
+        // Dynamic `import()` is legal in both ESM and CJS, so the loader body
+        // is identical across formats — only the module-system wrapping
+        // differs (see `.js` vs `.cjs` files emitted below).
         const loading = networks.map((network) => `"${network}": () => import("../${network}/${runtime}.js"),`).join("\n    ");
 
-        const typings = networks.map((network) => `"${network}": typeof import("../${network}/${runtime}"),`).join("\n    ");
+        const typings = networks.map((network) => `"${network}": typeof import("../${network}/${runtime}.js"),`).join("\n    ");
 
         await $fs.writeFile(`dist/dynamic/${runtime}.js`, `const networks = {
     ${loading}
@@ -75,14 +135,30 @@ export function loadNetwork(name) {
 }
 `);
 
-        await $fs.writeFile(`dist/dynamic/${runtime}.d.ts`, `interface Networks {
+        await $fs.writeFile(`dist/dynamic/${runtime}.cjs`, `"use strict";
+
+const networks = {
+    ${loading}
+};
+
+function loadNetwork(name) {
+    return networks[name]();
+}
+
+module.exports = { loadNetwork };
+`);
+
+        const dtsContent = `interface Networks {
     ${typings}
 }
 
 export { Networks };
 
 export declare function loadNetwork<Key extends keyof Networks>(name: Key): Promise<Networks[Key]>;
-`);
+`;
+
+        await $fs.writeFile(`dist/dynamic/${runtime}.d.ts`, dtsContent);
+        await $fs.writeFile(`dist/dynamic/${runtime}.d.cts`, dtsContent);
     }));
 }
 

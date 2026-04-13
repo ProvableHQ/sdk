@@ -7,15 +7,40 @@
     "The Provable Team"
   ],
   "license": "GPL-3.0",
-  "main": "./dist/testnet/index.js",
+  "main": "./dist/testnet/index.cjs",
   "browser": "./dist/testnet/index.js",
+  "module": "./dist/testnet/index.js",
   "types": "./dist/testnet/index.d.ts",
   "exports": {
-    ".": "./dist/testnet/index.js",
+    ".": {
+      "types": {
+        "import": "./dist/testnet/index.d.ts",
+        "require": "./dist/testnet/index.d.cts"
+      },
+      "import": "./dist/testnet/index.js",
+      "require": "./dist/testnet/index.cjs",
+      "default": "./dist/testnet/index.js"
+    },
     "./worker.js": "./dist/testnet/worker.js",
-    "./testnet.js": "./dist/testnet/index.js",
+    "./testnet.js": {
+      "types": {
+        "import": "./dist/testnet/index.d.ts",
+        "require": "./dist/testnet/index.d.cts"
+      },
+      "import": "./dist/testnet/index.js",
+      "require": "./dist/testnet/index.cjs",
+      "default": "./dist/testnet/index.js"
+    },
     "./testnet/worker.js": "./dist/testnet/worker.js",
-    "./mainnet.js": "./dist/mainnet/index.js",
+    "./mainnet.js": {
+      "types": {
+        "import": "./dist/mainnet/index.d.ts",
+        "require": "./dist/mainnet/index.d.cts"
+      },
+      "import": "./dist/mainnet/index.js",
+      "require": "./dist/mainnet/index.cjs",
+      "default": "./dist/mainnet/index.js"
+    },
     "./mainnet/worker.js": "./dist/mainnet/worker.js"
   },
   "files": [
@@ -39,9 +64,12 @@
   "homepage": "https://github.com/ProvableHQ/sdk#readme",
   "scripts": {
     "build": "rimraf dist && node build.js",
-    "test": "node test.js"
+    "test": "node test.js",
+    "_comment:test:attw": "cjs-resolves-to-esm is ignored because the worker subpath (./worker.js, ./testnet/worker.js, ./mainnet/worker.js) is ESM-only by design — the Node polyfill loads it via `eval` + dynamic import() from a CJS parent, not synchronous require().",
+    "test:attw": "yarn pack --filename /tmp/provablehq-wasm-attw.tgz && attw /tmp/provablehq-wasm-attw.tgz --profile=node16 --ignore-rules=cjs-resolves-to-esm"
   },
   "devDependencies": {
+    "@arethetypeswrong/cli": "^0.18.2",
     "@rollup/plugin-virtual": "^3.0.2",
     "@wasm-tool/rollup-plugin-rust": "^3.1.4",
     "binaryen": "^120.0.0",

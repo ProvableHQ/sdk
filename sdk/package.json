@@ -7,23 +7,60 @@
   ],
   "license": "GPL-3.0",
   "type": "module",
-  "main": "./dist/testnet/node.js",
+  "main": "./dist/testnet/node.cjs",
+  "module": "./dist/testnet/node.js",
   "browser": "./dist/testnet/browser.js",
   "exports": {
     ".": {
-      "node": "./dist/testnet/node.js",
+      "node": {
+        "types": {
+          "import": "./dist/testnet/node.d.ts",
+          "require": "./dist/testnet/node.d.cts"
+        },
+        "import": "./dist/testnet/node.js",
+        "require": "./dist/testnet/node.cjs",
+        "default": "./dist/testnet/node.js"
+      },
+      "types": "./dist/testnet/browser.d.ts",
       "default": "./dist/testnet/browser.js"
     },
     "./testnet.js": {
-      "node": "./dist/testnet/node.js",
+      "node": {
+        "types": {
+          "import": "./dist/testnet/node.d.ts",
+          "require": "./dist/testnet/node.d.cts"
+        },
+        "import": "./dist/testnet/node.js",
+        "require": "./dist/testnet/node.cjs",
+        "default": "./dist/testnet/node.js"
+      },
+      "types": "./dist/testnet/browser.d.ts",
       "default": "./dist/testnet/browser.js"
     },
     "./mainnet.js": {
-      "node": "./dist/mainnet/node.js",
+      "node": {
+        "types": {
+          "import": "./dist/mainnet/node.d.ts",
+          "require": "./dist/mainnet/node.d.cts"
+        },
+        "import": "./dist/mainnet/node.js",
+        "require": "./dist/mainnet/node.cjs",
+        "default": "./dist/mainnet/node.js"
+      },
+      "types": "./dist/mainnet/browser.d.ts",
       "default": "./dist/mainnet/browser.js"
     },
     "./dynamic.js": {
-      "node": "./dist/dynamic/node.js",
+      "node": {
+        "types": {
+          "import": "./dist/dynamic/node.d.ts",
+          "require": "./dist/dynamic/node.d.cts"
+        },
+        "import": "./dist/dynamic/node.js",
+        "require": "./dist/dynamic/node.cjs",
+        "default": "./dist/dynamic/node.js"
+      },
+      "types": "./dist/dynamic/browser.d.ts",
       "default": "./dist/dynamic/browser.js"
     }
   },
@@ -34,7 +71,9 @@
   ],
   "scripts": {
     "build": "rimraf dist && rollup -c rollup.config.js",
-    "test": "rimraf tmp && rollup -c rollup.test.js && mocha tmp/**/*.test.js --timeout 60000 && RUN_SKIPPED=true mocha tmp/**/wasm.test.js --timeout 60000 --grep Consensus"
+    "test": "rimraf tmp && rollup -c rollup.test.js && mocha tmp/**/*.test.js --timeout 60000 && RUN_SKIPPED=true mocha tmp/**/wasm.test.js --timeout 60000 --grep Consensus",
+    "test:attw": "yarn pack --filename /tmp/provablehq-sdk-attw.tgz && attw /tmp/provablehq-sdk-attw.tgz --profile=node16",
+    "test:cjs": "node tests/cjs-smoke/smoke.cjs"
   },
   "repository": {
     "type": "git",
@@ -60,6 +99,7 @@
     "xmlhttprequest-ssl": "^4.0.0"
   },
   "devDependencies": {
+    "@arethetypeswrong/cli": "^0.18.2",
     "@rollup/plugin-replace": "^6.0.2",
     "@types/chai": "^5.0.1",
     "@types/mocha": "^10.0.10",
