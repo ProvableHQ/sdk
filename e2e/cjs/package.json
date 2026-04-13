@@ -8,11 +8,5 @@
   },
   "dependencies": {
     "@provablehq/sdk": "^0.9.12"
-  },
-  "devDependencies": {
-    "@types/node": "^25.0.2",
-    "ts-node": "^10.9.2",
-    "tslib": "^2.8.1",
-    "typescript": "^5.9.3"
   }
 }
