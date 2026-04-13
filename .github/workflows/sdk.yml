@@ -183,8 +183,17 @@ jobs:
         working-directory: sdk
         run: yarn test:attw
 
-      - name: "Pure-CJS smoke (local)"
+      - name: "Pure-CJS smoke (local, resolves by file path)"
         run: node sdk/tests/cjs-smoke/smoke.cjs
+
+      # Packs both workspace packages, installs them into a pristine CJS
+      # fixture, and `require('@provablehq/sdk/testnet.js')` through the
+      # actual `exports.require` condition. Catches broken `exports` maps,
+      # missing tarball files, and wrong `main`/`module` fields that the
+      # file-path smoke above cannot see.
+      - name: "Packed-and-installed CJS smoke"
+        working-directory: sdk
+        run: yarn test:cjs:pack
 
 
   # Full CJS + encrypted DPS round-trip against staging. Proves a CJS consumer

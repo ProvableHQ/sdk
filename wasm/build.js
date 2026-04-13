@@ -151,6 +151,14 @@ export async function initThreadPool(threads) {
     }
 }
 
+// BRITTLENESS NOTE: the two helpers below parse wasm-bindgen's emitted JS
+// textually to recover the short-name aliases (e.g. `A as Address`,
+// `a0 as initSync`). This works today with wasm-bindgen 0.2.100's bundler
+// target but relies on the specific `import { … } from` / `export { … } from`
+// shape it emits. If wasm-bindgen changes its codegen shape in a future
+// version, these regexes will need updating. The CI smoke tests will catch
+// such breakage at build time (aliases can't be resolved → throw).
+
 // Extract the named-export alias list from wasm-bindgen's generated
 // `aleo_wasm.js`, skipping items we handle explicitly in the CJS entry.
 function extractReexportAliases(source) {

@@ -73,7 +73,8 @@
     "build": "rimraf dist && rollup -c rollup.config.js",
     "test": "rimraf tmp && rollup -c rollup.test.js && mocha tmp/**/*.test.js --timeout 60000 && RUN_SKIPPED=true mocha tmp/**/wasm.test.js --timeout 60000 --grep Consensus",
     "test:attw": "yarn pack --filename /tmp/provablehq-sdk-attw.tgz && attw /tmp/provablehq-sdk-attw.tgz --profile=node16",
-    "test:cjs": "node tests/cjs-smoke/smoke.cjs"
+    "test:cjs": "node tests/cjs-smoke/smoke.cjs",
+    "test:cjs:pack": "node tests/cjs-smoke/pack-install.cjs"
   },
   "repository": {
     "type": "git",

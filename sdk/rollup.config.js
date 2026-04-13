@@ -119,15 +119,17 @@ async function buildRuntimes() {
     await Promise.all(runtimes.map(async (runtime) => {
         await $fs.mkdir(`dist/dynamic`, { recursive: true });
 
-        // Dynamic `import()` is legal in both ESM and CJS, so the loader body
-        // is identical across formats — only the module-system wrapping
-        // differs (see `.js` vs `.cjs` files emitted below).
-        const loading = networks.map((network) => `"${network}": () => import("../${network}/${runtime}.js"),`).join("\n    ");
+        // Dynamic `import()` is legal in both ESM and CJS, but we point each
+        // format at its format-native leaves so a CJS consumer's
+        // `loadNetwork()` call stays on the CJS code path end-to-end instead
+        // of pulling in an ESM leaf through the dual-package boundary.
+        const esmLeaves = networks.map((network) => `"${network}": () => import("../${network}/${runtime}.js"),`).join("\n    ");
+        const cjsLeaves = networks.map((network) => `"${network}": () => import("../${network}/${runtime}.cjs"),`).join("\n    ");
 
         const typings = networks.map((network) => `"${network}": typeof import("../${network}/${runtime}.js"),`).join("\n    ");
 
         await $fs.writeFile(`dist/dynamic/${runtime}.js`, `const networks = {
-    ${loading}
+    ${esmLeaves}
 };
 
 export function loadNetwork(name) {
@@ -138,7 +140,7 @@ export function loadNetwork(name) {
         await $fs.writeFile(`dist/dynamic/${runtime}.cjs`, `"use strict";
 
 const networks = {
-    ${loading}
+    ${cjsLeaves}
 };
 
 function loadNetwork(name) {
