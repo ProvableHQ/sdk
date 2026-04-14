@@ -99,7 +99,18 @@ assert.ok(account.verify(message, signature), "Signature round-trip failed");
 const dyn = require("@provablehq/sdk/dynamic.js");
 assert.equal(typeof dyn.loadNetwork, "function", "dynamic loadNetwork not exported");
 
-console.log("pack-install smoke passed");
+// Worker / thread pool through the installed tarball. Exercises the
+// import.meta.url → pathToFileURL(__filename) transform against a real
+// node_modules-resolved path, and confirms all worker-related files
+// (node-polyfill, worker.js, aleo_wasm.wasm) made it into the tarball.
+(async () => {
+    await sdk.initThreadPool(2);
+    console.log("pack-install smoke passed");
+    process.exit(0);
+})().catch((err) => {
+    console.error("initThreadPool failed under installed tarball:", err);
+    process.exit(1);
+});
 `,
 );
 
