@@ -3,7 +3,7 @@
 // wait for on-chain confirmation.
 //
 // Mirrors the ESM loyalty template's `mint_card` path but uses `require()`
-// throughout. If this passes, Kraken's CJS integration works.
+// throughout. Validates the full CJS → DPS → on-chain round-trip end to end.
 //
 // Required env: ALEO_CONSUMER_ID, ALEO_DPS_API_KEY, ALEO_DPS_URL.
 

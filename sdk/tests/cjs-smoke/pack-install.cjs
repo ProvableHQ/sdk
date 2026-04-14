@@ -5,14 +5,14 @@
 // This script closes that coverage gap: it packs both workspace packages
 // (`@provablehq/wasm` and `@provablehq/sdk`), installs them into a clean
 // CJS fixture, and exercises the public API through
-// `require('@provablehq/sdk/testnet.js')` — the exact code path a Kraken-style
-// downstream consumer runs. A broken `exports.require` entry, a missing
-// tarball file, or a wrong `main` field all fail here.
+// `require('@provablehq/sdk/testnet.js')` — the exact code path a downstream
+// CJS consumer runs. A broken `exports.require` entry, a missing tarball
+// file, or a wrong `main` field all fail here.
 
 const fs = require("node:fs");
 const os = require("node:os");
 const path = require("node:path");
-const { execFileSync, spawnSync } = require("node:child_process");
+const { spawnSync } = require("node:child_process");
 
 const REPO_ROOT = path.resolve(__dirname, "../../..");
 const WORKDIR = fs.mkdtempSync(path.join(os.tmpdir(), "provablehq-cjs-pack-"));
