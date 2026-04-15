@@ -1,4 +1,4 @@
-import { KeyVerificationError, KeyVerifier, KeyFingerprint, KeyMetadata, sha256Hex } from "./interface";
+import { KeyVerificationError, KeyVerifier, KeyFingerprint, KeyMetadata, sha256Hex } from "./interface.js";
 
 /**
  * In-memory implementation of KeyVerifier that stores and verifies key fingerprints.

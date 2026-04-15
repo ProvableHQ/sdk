@@ -1,4 +1,4 @@
-import { OwnedFilter } from "./ownedFilter";
+import { OwnedFilter } from "./ownedFilter.js";
 
 /**
  * Error thrown when a record scanner request fails (e.g. /register, /register/encrypted).

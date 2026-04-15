@@ -14,7 +14,7 @@ import {
     FunctionKeyPair
 } from "../../models/keyPair.js";
 
-import { FunctionKeyProvider, KeySearchParams } from "./interface";
+import { FunctionKeyProvider, KeySearchParams } from "./interface.js";
 
 import {
     ProvingKey,
