@@ -1,9 +1,9 @@
-import sodium from "libsodium-wrappers";
-import { ViewKey, Authorization, ProvingRequest } from "@provablehq/wasm";
-await sodium.ready;
+import { cryptoBoxSeal } from "@serenity-kit/noble-sodium";
+import { base64 } from "@scure/base";
+import { ViewKey, Authorization, ProvingRequest } from "./wasm.js";
 
 /**
- * Encrypt an authorization with a libsodium cryptobox public key.
+ * Encrypt an authorization with a cryptobox X25519 public key (libsodium-compatible wire format).
  *
  * @param {string} publicKey The cryptobox X25519 public key to encrypt with (encoded in RFC 4648 standard Base64).
  * @param {Authorization} authorization the authorization to encrypt.
@@ -11,15 +11,14 @@ await sodium.ready;
  * @returns {string} the encrypted authorization in RFC 4648 standard Base64.
  */
 export function encryptAuthorization(publicKey: string, authorization: Authorization): string {
-    // Ready the cryptobox lib.
     return encryptMessage(publicKey, authorization.toBytesLe());
 }
 
 /**
- * Encrypt a ProvingRequest with a libsodium cryptobox public key.
+ * Encrypt a ProvingRequest with a cryptobox X25519 public key (libsodium-compatible wire format).
  *
  * @param {string} publicKey The cryptobox X25519 public key to encrypt with (encoded in RFC 4648 standard Base64).
- * @param {Authorization} provingRequest the ProvingRequest to encrypt.
+ * @param {ProvingRequest} provingRequest the ProvingRequest to encrypt.
  *
  * @returns {string} the encrypted ProvingRequest in RFC 4648 standard Base64.
  */
@@ -28,7 +27,7 @@ export function encryptProvingRequest(publicKey: string, provingRequest: Proving
 }
 
 /**
- * Encrypt a view key with a libsodium cryptobox public key.
+ * Encrypt a view key with a cryptobox X25519 public key (libsodium-compatible wire format).
  *
  * @param {string} publicKey The cryptobox X25519 public key to encrypt with (encoded in RFC 4648 standard Base64).
  * @param {ViewKey} viewKey the view key to encrypt.
@@ -99,7 +98,17 @@ export function zeroizeBytes(bytes: Uint8Array): void {
 }
 
 /**
- * Encrypt arbitrary bytes with a libsodium cryptobox public key.
+ * Encrypt arbitrary bytes with a cryptobox public key using the libsodium
+ * `crypto_box_seal` wire format.
+ *
+ * The implementation is delegated to `@serenity-kit/noble-sodium`, which
+ * composes the primitive steps of `crypto_box_seal` — ephemeral X25519
+ * keypair, blake2b-24 nonce derivation over `epk || rpk`, HSalsa20 key
+ * derivation from the ECDH shared secret, and XSalsa20-Poly1305 AEAD — on
+ * top of the audited `@noble/*` primitives. Output is byte-identical to
+ * libsodium's `crypto_box_seal` for any given ephemeral key, so ciphertexts
+ * are decryptable by any libsodium-compatible backend (e.g. `sodiumoxide`,
+ * `libsodium-sys`) with no changes.
  *
  * @param {string} publicKey The cryptobox X25519 public key to encrypt with (encoded in RFC 4648 standard Base64).
  * @param {Uint8Array} message the bytes to encrypt.
@@ -107,6 +116,7 @@ export function zeroizeBytes(bytes: Uint8Array): void {
  * @returns {string} the encrypted bytes in RFC 4648 standard Base64.
  */
 function encryptMessage(publicKey: string, message: Uint8Array): string {
-    const publicKeyBytes = sodium.from_base64(publicKey, sodium.base64_variants.ORIGINAL);
-    return sodium.to_base64(sodium.crypto_box_seal(message, publicKeyBytes), sodium.base64_variants.ORIGINAL);
+    const publicKeyBytes = base64.decode(publicKey);
+    const ciphertext = cryptoBoxSeal({ message, publicKey: publicKeyBytes });
+    return base64.encode(ciphertext);
 }
