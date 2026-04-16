@@ -103,10 +103,8 @@ export async function initThreadPool(threads) {
 
     const threadPoolAlias = extractAliasFor(aleoWasmEsm, "initThreadPool");
     const initSyncAlias = extractAliasFor(aleoWasmEsm, "initSync");
-    const wbgInitAlias = extractAliasFor(aleoWasmEsm, "__wbg_init");
 
     const cjsEntry = `import {
-    ${wbgInitAlias} as __wbg_init,
     ${initSyncAlias} as __initSync,
     ${threadPoolAlias} as wasmInitThreadPool,
 } from "./dist/${network}/tmp/index.js";
@@ -125,7 +123,7 @@ export { ${reexportAliases} } from "./dist/${network}/tmp/index.js";
 
 export async function initThreadPool(threads) {
     if (threads == null) {
-        threads = navigator.hardwareConcurrency;
+        threads = require('node:os').availableParallelism();
     }
 
     console.info(\`Spawning \${threads} threads\`);
@@ -162,13 +160,14 @@ export async function initThreadPool(threads) {
 // Extract the named-export alias list from wasm-bindgen's generated
 // `aleo_wasm.js`, skipping items we handle explicitly in the CJS entry.
 function extractReexportAliases(source) {
-    const exportMatch = source.match(/export \{([^}]+)\} from/);
-    if (!exportMatch) {
+    const blocks = [
+        ...source.matchAll(/export \{([^}]+)\} from/g),
+    ].map((m) => m[1]);
+    if (blocks.length === 0) {
         throw new Error("Could not locate re-export block in aleo_wasm.js");
     }
-    return exportMatch[1]
-        .split(",")
-        .map((s) => s.trim())
+    return blocks
+        .flatMap((block) => block.split(",").map((s) => s.trim()))
         .filter((s) => s && !/\bas (?:initSync|__wbg_init|initThreadPool)$/.test(s))
         .join(", ");
 }
