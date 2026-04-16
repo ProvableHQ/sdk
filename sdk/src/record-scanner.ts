@@ -1,12 +1,12 @@
 import { parseJSON, post } from "./utils.js";
-import { EncryptedRecord } from "./models/record-provider/encryptedRecord";
+import { EncryptedRecord } from "./models/record-provider/encryptedRecord.js";
 import { CryptoBoxPubKey } from "./models/cryptoBoxPubkey.js";
 import { EncryptedRegistrationRequest } from "./models/record-scanner/encryptedRegistrationRequest.js";
-import { OwnedFilter } from "./models/record-scanner/ownedFilter";
-import { OwnedRecord } from "./models/record-provider/ownedRecord";
-import { RecordProvider } from "./record-provider";
-import { Field, Poseidon4, RecordCiphertext, RecordPlaintext, ViewKey } from "./wasm";
-import { RecordsFilter } from "./models/record-scanner/recordsFilter";
+import { OwnedFilter } from "./models/record-scanner/ownedFilter.js";
+import { OwnedRecord } from "./models/record-provider/ownedRecord.js";
+import { RecordProvider } from "./record-provider.js";
+import { Field, Poseidon4, RecordCiphertext, RecordPlaintext, ViewKey } from "./wasm.js";
+import { RecordsFilter } from "./models/record-scanner/recordsFilter.js";
 import { RegisterResult } from "./models/record-scanner/registrationResult.js";
 import { RevokeResult } from "./models/record-scanner/revokeResult.js";
 import {
@@ -17,9 +17,9 @@ import {
     RecordScannerRequestError,
     ViewKeyNotStoredError,
 } from "./models/record-scanner/error.js";
-import { RegistrationRequest } from "./models/record-scanner/registrationRequest";
-import { RegistrationResponse } from "./models/record-scanner/registrationResponse";
-import { StatusResponse } from "./models/record-scanner/statusResponse";
+import { RegistrationRequest } from "./models/record-scanner/registrationRequest.js";
+import { RegistrationResponse } from "./models/record-scanner/registrationResponse.js";
+import { StatusResponse } from "./models/record-scanner/statusResponse.js";
 import { TagsResult } from "./models/record-scanner/tagsResult.js";
 import { SerialNumbersResult } from "./models/record-scanner/serialNumbersResult.js";
 import { StatusResult } from "./models/record-scanner/statusResult.js";

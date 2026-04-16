@@ -24,7 +24,7 @@ import {
 import { CryptoBoxPubKey } from "./models/cryptoBoxPubkey.js";
 import { EncryptedProvingRequest } from "./models/encryptedProvingRequest.js";
 import { encryptProvingRequest } from "./security.js"
-import { FIVE_MINUTES } from "./constants";
+import { FIVE_MINUTES } from "./constants.js";
 
 type ProgramImports = { [key: string]: string | Program };
 

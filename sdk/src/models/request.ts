@@ -1,4 +1,4 @@
-import { InputID} from "./inputID";
+import { InputID} from "./inputID.js";
 
 export interface RequestJSON {
     signer: string;

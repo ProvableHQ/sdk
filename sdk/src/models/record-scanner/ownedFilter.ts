@@ -1,6 +1,6 @@
-import { RecordSearchParams } from "../record-provider/recordSearchParams";
-import { RecordsFilter } from "./recordsFilter";
-import { OwnedRecordsResponseFilter } from "./ownedRecordsResponseFilter";
+import { RecordSearchParams } from "../record-provider/recordSearchParams.js";
+import { RecordsFilter } from "./recordsFilter.js";
+import { OwnedRecordsResponseFilter } from "./ownedRecordsResponseFilter.js";
 
 /**
  * OwnedFilter is an extension of RecordSearchParams that represents a filter for scanning owned records.

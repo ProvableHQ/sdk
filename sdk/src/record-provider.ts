@@ -5,7 +5,7 @@ import { logAndThrow } from "./utils.js";
 import { OwnedRecord } from "./models/record-provider/ownedRecord.js";
 import { RecordSearchParams } from "./models/record-provider/recordSearchParams.js";
 import { RecordsResponseFilter } from "./models/record-scanner/recordsResponseFilter.js";
-import { ViewKey } from "@provablehq/wasm";
+import { ViewKey } from "./wasm.js";
 
 /**
  * Interface for a record provider. A record provider is used to find records for use in deployment and execution

@@ -53,9 +53,9 @@
   "dependencies": {
     "@provablehq/wasm": "^0.10.2",
     "@scure/base": "^2.0.0",
+    "@serenity-kit/noble-sodium": "0.2.3",
     "comlink": "^4.4.2",
     "core-js": "^3.40.0",
-    "libsodium-wrappers": "^0.8.2",
     "mime": "^4.0.6",
     "xmlhttprequest-ssl": "^4.0.0"
   },
@@ -76,6 +76,7 @@
     "glob": "^11.0.1",
     "jsdoc": "^4.0.4",
     "kis-jsdoc-plugin": "^2.2.1",
+    "libsodium-wrappers": "^0.8.2",
     "mocha": "^11.1.0",
     "prettier": "3.4.2",
     "rimraf": "^6.0.1",
