@@ -92,4 +92,7 @@ log("Signature verifies", account.verify(message, signature) === true);
     }
     console.log("\n\x1b[32mAll CJS smoke checks passed.\x1b[0m");
     process.exit(0);
-})();
+})().catch((err) => {
+    console.error("\n\x1b[31m✗ CJS smoke failed:\x1b[0m", err.message || err);
+    process.exit(1);
+});

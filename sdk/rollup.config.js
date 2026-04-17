@@ -124,7 +124,7 @@ async function buildRuntimes() {
         // `loadNetwork()` call stays on the CJS code path end-to-end instead
         // of pulling in an ESM leaf through the dual-package boundary.
         const esmLeaves = networks.map((network) => `"${network}": () => import("../${network}/${runtime}.js"),`).join("\n    ");
-        const cjsLeaves = networks.map((network) => `"${network}": () => import("../${network}/${runtime}.cjs"),`).join("\n    ");
+        const cjsLeaves = networks.map((network) => `"${network}": () => require("../${network}/${runtime}.cjs"),`).join("\n    ");
 
         const typings = networks.map((network) => `"${network}": typeof import("../${network}/${runtime}.js"),`).join("\n    ");
 
@@ -132,7 +132,7 @@ async function buildRuntimes() {
     ${esmLeaves}
 };
 
-export function loadNetwork(name) {
+export async function loadNetwork(name) {
     return networks[name]();
 }
 `);
@@ -143,7 +143,7 @@ const networks = {
     ${cjsLeaves}
 };
 
-function loadNetwork(name) {
+async function loadNetwork(name) {
     return networks[name]();
 }
 

@@ -6,7 +6,7 @@ import * as $os from "node:os";
 // needed when writing Worker code.
 if (globalThis.navigator == null) {
     globalThis.navigator = {
-        hardwareConcurrency: $os.cpus().length,
+        hardwareConcurrency: $os.availableParallelism(),
     } as Navigator;
 }
 

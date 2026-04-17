@@ -55,4 +55,7 @@ function log(label, ok, detail = "") {
     console.log(`\nProving: ${proveMs}ms | Total: ${totalMs}ms`);
     console.log("\n\x1b[32mFull CJS proving smoke passed.\x1b[0m");
     process.exit(0);
-})();
+})().catch((err) => {
+    console.error("\n\x1b[31m✗ Full CJS proving smoke failed:\x1b[0m", err.message || err);
+    process.exit(1);
+});

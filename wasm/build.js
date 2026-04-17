@@ -133,6 +133,7 @@ export async function initThreadPool(threads) {
 
     const bundleCjs = await rollup({
         input: { "index": "entry-cjs" },
+        external: ["node:fs", "node:path", "node:url", "node:os"],
         plugins: [virtual({ "entry-cjs": cjsEntry })],
     });
 
