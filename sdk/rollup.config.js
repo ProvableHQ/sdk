@@ -92,8 +92,9 @@ async function copyDtsToCts(dir) {
     let entries;
     try {
         entries = await $fs.readdir(dir, { withFileTypes: true });
-    } catch {
-        return;
+    } catch (err) {
+        if (err.code === "ENOENT") return;
+        throw err;
     }
     await Promise.all(entries.map(async (entry) => {
         const fullPath = $path.join(dir, entry.name);
@@ -132,7 +133,7 @@ async function buildRuntimes() {
     ${esmLeaves}
 };
 
-export async function loadNetwork(name) {
+export function loadNetwork(name) {
     return networks[name]();
 }
 `);
@@ -143,7 +144,7 @@ const networks = {
     ${cjsLeaves}
 };
 
-async function loadNetwork(name) {
+function loadNetwork(name) {
     return networks[name]();
 }
 
