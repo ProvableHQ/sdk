@@ -56,8 +56,6 @@ async function buildWasm(network) {
 
 
 async function buildJS(network) {
-    // ESM entry: wasm-bindgen's generated aleo_wasm.js uses top-level `await`
-    // to async-fetch and compile the .wasm binary. This is fine for ESM.
     const esmEntry = `export * from "./dist/${network}/tmp/aleo_wasm.js";
 
 import { initThreadPool as wasmInitThreadPool } from "./dist/${network}/tmp/aleo_wasm.js";
@@ -72,128 +70,57 @@ export async function initThreadPool(threads) {
     await wasmInitThreadPool(new URL("worker.js", import.meta.url), threads);
 }`;
 
-    const bundleEsm = await rollup({
+    await buildRollup({
         input: { "index": "entry" },
         plugins: [virtual({ "entry": esmEntry })],
+    }, {
+        dir: `dist/${network}`,
+        format: "es",
+        sourcemap: true,
     });
+}
 
-    try {
-        await bundleEsm.write({
-            dir: `dist/${network}`,
-            format: "es",
-            sourcemap: true,
-        });
-    } finally {
-        await bundleEsm.close();
-    }
 
-    // CJS entry: top-level `await` is illegal in CommonJS, so we cannot go
-    // through `aleo_wasm.js`. We instead import the underlying glue module
-    // (`tmp/index.js`, which has no TLA), synchronously load the .wasm from
-    // disk via `fs.readFileSync`, and call `initSync` before re-exporting.
-    //
-    // The re-export alias list is derived at build time from the ESM entry
-    // that wasm-bindgen produces, so the CJS surface stays in sync with the
-    // ESM surface without hand-maintenance.
-    const aleoWasmEsm = await $fs.readFile(
-        `dist/${network}/tmp/aleo_wasm.js`,
-        "utf8",
-    );
-    const reexportAliases = extractReexportAliases(aleoWasmEsm);
-
-    const threadPoolAlias = extractAliasFor(aleoWasmEsm, "initThreadPool");
-    const initSyncAlias = extractAliasFor(aleoWasmEsm, "initSync");
-
-    const cjsEntry = `import {
-    ${initSyncAlias} as __initSync,
-    ${threadPoolAlias} as wasmInitThreadPool,
-} from "./dist/${network}/tmp/index.js";
+// Builds a .cjs version which initializes the Wasm synchronously so the
+// module can be loaded with `require`. Uses initSync from the custom entry
+// and a shallow copy of the wasm exports to override initThreadPool.
+async function buildCommonJS(network) {
+    const js = `import { module as url, initSync } from "./dist/${network}/tmp/aleo_wasm_custom.js";
 import { readFileSync } from "node:fs";
-import { join, dirname } from "node:path";
 import { fileURLToPath } from "node:url";
 
-// Rollup's CJS output transforms \`import.meta.url\` into
-// \`pathToFileURL(__filename).href\`, so this resolves to the emitted
-// \`index.cjs\` sibling — from which \`aleo_wasm.wasm\` lives next to.
-const __here = dirname(fileURLToPath(import.meta.url));
-const __wasmBytes = readFileSync(join(__here, "aleo_wasm.wasm"));
-__initSync({ module: __wasmBytes });
+const wasm = initSync({
+    module: readFileSync(fileURLToPath(url)),
+});
 
-export { ${reexportAliases} } from "./dist/${network}/tmp/index.js";
+// We have to make a shallow copy because ES6 exports are frozen.
+const exports = { ...wasm };
 
-export async function initThreadPool(threads) {
+const wasmInitThreadPool = wasm.initThreadPool;
+
+exports.initThreadPool = async function initThreadPool(threads) {
     if (threads == null) {
-        threads = require('node:os').availableParallelism();
+        threads = navigator.hardwareConcurrency;
     }
 
     console.info(\`Spawning \${threads} threads\`);
 
     await wasmInitThreadPool(new URL("worker.js", import.meta.url), threads);
-}`;
+};
 
-    const bundleCjs = await rollup({
-        input: { "index": "entry-cjs" },
-        external: ["node:fs", "node:path", "node:url", "node:os"],
-        plugins: [virtual({ "entry-cjs": cjsEntry })],
+module.exports = exports;`;
+
+    await buildRollup({
+        input: { "index": "entry" },
+        plugins: [virtual({ "entry": js })],
+    }, {
+        dir: `dist/${network}`,
+        format: "cjs",
+        external: ["node:fs", "node:url"],
+        entryFileNames: "[name].cjs",
+        chunkFileNames: "[name].cjs",
+        sourcemap: true,
     });
-
-    try {
-        await bundleCjs.write({
-            dir: `dist/${network}`,
-            format: "cjs",
-            entryFileNames: "[name].cjs",
-            chunkFileNames: "[name].cjs",
-            sourcemap: true,
-        });
-    } finally {
-        await bundleCjs.close();
-    }
-}
-
-// The two helpers below parse wasm-bindgen's emitted JS textually to recover
-// the short-name aliases (e.g. `A as Address`, `a0 as initSync`). This works
-// with wasm-bindgen 0.2.100's bundler target but relies on the specific
-// `import { … } from` / `export { … } from` shape it emits — if wasm-bindgen
-// changes its codegen shape in a future version, these regexes will need
-// updating. CI catches such breakage at build time (the alias lookup throws
-// when the expected pattern is missing).
-
-// Extract the named-export alias list from wasm-bindgen's generated
-// `aleo_wasm.js`, skipping items we handle explicitly in the CJS entry.
-function extractReexportAliases(source) {
-    const blocks = [
-        ...source.matchAll(/export \{([^}]+)\} from/g),
-    ].map((m) => m[1]);
-    if (blocks.length === 0) {
-        throw new Error("Could not locate re-export block in aleo_wasm.js");
-    }
-    return blocks
-        .flatMap((block) => block.split(",").map((s) => s.trim()))
-        .filter((s) => s && !/\bas (?:initSync|__wbg_init|initThreadPool)$/.test(s))
-        .join(", ");
-}
-
-// Resolve the wasm-bindgen short-name alias (e.g. "a0") for a given long
-// name (e.g. "initSync"), so the CJS entry can import from `tmp/index.js`
-// (which only exposes short names) rather than through `aleo_wasm.js`
-// (which has a top-level await we cannot emit as CJS).
-//
-// Both `import {…}` and `export {…}` blocks in `aleo_wasm.js` may hold the
-// alias (e.g. `__wbg_init` is only in the import block), so we scan both.
-function extractAliasFor(source, longName) {
-    const blocks = [
-        ...source.matchAll(/(?:import|export) \{([^}]+)\} from/g),
-    ].map((m) => m[1]);
-    for (const block of blocks) {
-        const entry = block
-            .split(",")
-            .map((s) => s.trim())
-            .find((s) => new RegExp(`\\bas ${longName}$`).test(s));
-        if (entry) {
-            return entry.split(/\s+as\s+/)[0];
-        }
-    }
-    throw new Error(`Could not find alias for ${longName} in aleo_wasm.js`);
 }
 
 
@@ -294,6 +221,7 @@ async function build(network) {
 
     await Promise.all([
         buildJS(network),
+        buildCommonJS(network),
         buildWorker(network),
     ]);
 

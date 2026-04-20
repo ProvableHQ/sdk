@@ -2838,10 +2838,10 @@
     "@types/babel__core" "^7.20.5"
     react-refresh "^0.17.0"
 
-"@wasm-tool/rollup-plugin-rust@^3.1.4":
-  version "3.1.4"
-  resolved "https://registry.npmjs.org/@wasm-tool/rollup-plugin-rust/-/rollup-plugin-rust-3.1.4.tgz"
-  integrity sha512-XW3nk8yFPPc86jLXVEXkqQxsx9M6i+j5Boru5yapfS/+egK2IOYsuEOvM3am+/YrKczohKP45+cBKYkxSSGGzg==
+"@wasm-tool/rollup-plugin-rust@^3.1.5":
+  version "3.1.5"
+  resolved "https://registry.yarnpkg.com/@wasm-tool/rollup-plugin-rust/-/rollup-plugin-rust-3.1.5.tgz#9925331dad6d5e59793f317e8523537281d1d537"
+  integrity sha512-9JmWBqn6lZAo+TYLObppMffPhFZJsBX5Oyh9IKDWScCvxDiRfqoM5WnLMf9twgboVO8n0f1a1SwtjqHpmMM9fQ==
   dependencies:
     "@iarna/toml" "^2.2.5"
     "@rollup/pluginutils" "^5.3.0"
