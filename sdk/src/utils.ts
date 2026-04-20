@@ -38,6 +38,16 @@ export function logAndThrow(message: string): never {
     throw new Error(message);
 }
 
+/**
+ * A function matching the global `fetch` signature. Consumers can provide
+ * their own implementation to inject custom HTTP agents, mTLS certificates,
+ * timeouts, or logging.
+ */
+export type TransportFunction = typeof fetch;
+
+/** Default transport — wraps global fetch to avoid illegal-invocation errors in browsers. */
+export const defaultTransport: TransportFunction = (...args) => fetch(...args);
+
 export function parseJSON(json: string): any {
     function revive(key: string, value: any, context: any) {
         if (Number.isInteger(value)) {
@@ -50,8 +60,8 @@ export function parseJSON(json: string): any {
     return JSON.parse(json, revive as any);
 }
 
-export async function get(url: URL | string, options?: RequestInit) {
-    const response = await fetch(url, options);
+export async function get(url: URL | string, options?: RequestInit, transport: TransportFunction = defaultTransport) {
+    const response = await transport(url, options);
 
     if (!response.ok) {
         throw new Error(response.status + " could not get URL " + url);
@@ -60,10 +70,10 @@ export async function get(url: URL | string, options?: RequestInit) {
     return response;
 }
 
-export async function post(url: URL | string, options: RequestInit) {
+export async function post(url: URL | string, options: RequestInit, transport: TransportFunction = defaultTransport) {
     options.method = "POST";
 
-    const response = await fetch(url, options);
+    const response = await transport(url, options);
 
     if (!response.ok) {
         const error = await response.text();

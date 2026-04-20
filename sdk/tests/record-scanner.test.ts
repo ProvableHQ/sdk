@@ -64,15 +64,16 @@ describe("RecordScanner", () => {
         fetchStub.onCall(1).resolves(revokeResponse);
         await recordScanner.register(defaultAccount.viewKey(), 0);
         
-        const request = fetchStub.firstCall.args[0] as Request;
-        expect(request.headers.get("X-Provable-API-Key")).to.equal("1234567890");
+        const requestInit = fetchStub.firstCall.args[1] as any;
+        expect(requestInit.headers["x-provable-api-key"]).to.equal("1234567890");
 
         const revokeResult = await recordScanner.revoke(validTestUuid);
         expect(revokeResult.ok).to.equal(true);
         expect(fetchStub.callCount).to.equal(2);
-        const revokeRequest = fetchStub.secondCall.args[0] as Request;
-        expect(revokeRequest.url).to.equal(recordScanner.url + "/revoke");
-        expect(revokeRequest.method).to.equal("POST");
+        const revokeUrl = fetchStub.secondCall.args[0] as string;
+        const revokeInit = fetchStub.secondCall.args[1] as any;
+        expect(revokeUrl).to.equal(recordScanner.url + "/revoke");
+        expect(revokeInit.method).to.equal("POST");
     });
 
     it("should intialize with the correct api key as an object", async () => {
@@ -94,8 +95,8 @@ describe("RecordScanner", () => {
         fetchStub.onCall(1).resolves(revokeResponse);
         await recordScanner.register(defaultAccount.viewKey(), 0);
         
-        const request = fetchStub.firstCall.args[0] as Request;
-        expect(request.headers.get("Some-API-Key")).to.equal("1234567890");
+        const requestInit = fetchStub.firstCall.args[1] as any;
+        expect(requestInit.headers["some-api-key"]).to.equal("1234567890");
 
         const revokeResult = await recordScanner.revoke(validTestUuid);
         expect(revokeResult.ok).to.equal(true);
@@ -121,23 +122,25 @@ describe("RecordScanner", () => {
         const result = await recordScanner.register(defaultAccount.viewKey(), 0);
         
         expect(fetchStub.called).to.be.true;
-        const request = fetchStub.firstCall.args[0] as Request;
-        expect(request.url).to.equal(recordScanner.url + "/register");
-        expect(request.method).to.equal("POST");
-        expect(request.headers.get("Content-Type")).to.equal("application/json");
-        
-        const body = await request.text();
+        const requestUrl = fetchStub.firstCall.args[0] as string;
+        const requestInit = fetchStub.firstCall.args[1] as any;
+        expect(requestUrl).to.equal(recordScanner.url + "/register");
+        expect(requestInit.method).to.equal("POST");
+        expect(requestInit.headers["content-type"]).to.equal("application/json");
+
+        const body = requestInit.body as string;
         const expectedBody = JSON.stringify({ view_key: defaultAccount.viewKey().to_string(), start: 0 });
         expect(body).to.equal(expectedBody);
-        
+
         expect(result.ok).to.equal(true);
         if (result.ok) expect(result.data.uuid).equal(validTestUuid);
 
         const revokeResult = await recordScanner.revoke(result.ok ? result.data.uuid : undefined);
         expect(revokeResult.ok).to.equal(true);
-        const revokeRequest = fetchStub.secondCall.args[0] as Request;
-        expect(revokeRequest.url).to.equal(recordScanner.url + "/revoke");
-        expect(revokeRequest.method).to.equal("POST");
+        const revokeUrl = fetchStub.secondCall.args[0] as string;
+        const revokeInit = fetchStub.secondCall.args[1] as any;
+        expect(revokeUrl).to.equal(recordScanner.url + "/revoke");
+        expect(revokeInit.method).to.equal("POST");
     });
 
     it("should return the optional fields of RegistrationResponse if present after successfully registering the account", async () => {
@@ -160,15 +163,16 @@ describe("RecordScanner", () => {
         const result = await recordScanner.register(defaultAccount.viewKey(), 0);
 
         expect(fetchStub.called).to.be.true;
-        const request = fetchStub.firstCall.args[0] as Request;
-        expect(request.url).to.equal(recordScanner.url + "/register");
-        expect(request.method).to.equal("POST");
-        expect(request.headers.get("Content-Type")).to.equal("application/json");
-        
-        const body = await request.text();
+        const requestUrl = fetchStub.firstCall.args[0] as string;
+        const requestInit = fetchStub.firstCall.args[1] as any;
+        expect(requestUrl).to.equal(recordScanner.url + "/register");
+        expect(requestInit.method).to.equal("POST");
+        expect(requestInit.headers["content-type"]).to.equal("application/json");
+
+        const body = requestInit.body as string;
         const expectedBody = JSON.stringify({ view_key: defaultAccount.viewKey().to_string(), start: 0 });
         expect(body).to.equal(expectedBody);
-        
+
         expect(result.ok).to.equal(true);
         if (result.ok) {
             expect(result.data.uuid).equal(validTestUuid);
@@ -195,10 +199,11 @@ describe("RecordScanner", () => {
         if (result.ok) {
             expect(result.data.status).to.equal("OK");
         }
-        const request = fetchStub.firstCall.args[0] as Request;
-        expect(request.url).to.equal(recordScanner.url + "/revoke");
-        expect(request.method).to.equal("POST");
-        expect(await request.text()).to.equal(JSON.stringify(validTestUuid));
+        const requestUrl = fetchStub.firstCall.args[0] as string;
+        const requestInit = fetchStub.firstCall.args[1] as any;
+        expect(requestUrl).to.equal(recordScanner.url + "/revoke");
+        expect(requestInit.method).to.equal("POST");
+        expect(requestInit.body).to.equal(JSON.stringify(validTestUuid));
     });
 
     it("revoke throws UUIDError when no UUID configured and none provided", async () => {
@@ -266,13 +271,14 @@ describe("RecordScanner", () => {
         const encryptedRecords = await recordScanner.encryptedRecords(filter);
         expect(encryptedRecords).to.equal(ENCRYPTED_RECORDS);
         
-        const request = fetchStub.firstCall.args[0] as Request;
-        const body = await request.text();
+        const requestUrl = fetchStub.firstCall.args[0] as string;
+        const requestInit = fetchStub.firstCall.args[1] as any;
+        const body = requestInit.body as string;
         const expectedBody = JSON.stringify(filter);
         expect(body).to.equal(expectedBody);
-        expect(request.url).to.equal(recordScanner.url + "/records/encrypted");
-        expect(request.method).to.equal("POST");
-        expect(request.headers.get("Content-Type")).to.equal("application/json");
+        expect(requestUrl).to.equal(recordScanner.url + "/records/encrypted");
+        expect(requestInit.method).to.equal("POST");
+        expect(requestInit.headers["content-type"]).to.equal("application/json");
     });
 
     it("should return OwnedRecord[] after successfully getting owned records", async () => {
@@ -314,13 +320,14 @@ describe("RecordScanner", () => {
         const ownedRecords = await recordScanner.findRecords(filter);
         expect(ownedRecords).to.equal(OWNED_RECORDS);
 
-        const request = fetchStub.firstCall.args[0] as Request;
-        const body = await request.text();
+        const requestUrl = fetchStub.firstCall.args[0] as string;
+        const requestInit = fetchStub.firstCall.args[1] as any;
+        const body = requestInit.body as string;
         const expectedBody = JSON.stringify(filter);
         expect(body).to.equal(expectedBody);
-        expect(request.url).to.equal(recordScanner.url + "/records/owned");
-        expect(request.method).to.equal("POST");
-        expect(request.headers.get("Content-Type")).to.equal("application/json");
+        expect(requestUrl).to.equal(recordScanner.url + "/records/owned");
+        expect(requestInit.method).to.equal("POST");
+        expect(requestInit.headers["content-type"]).to.equal("application/json");
     });
 
     it("should return OwnedRecord after successfully getting owned record", async () => {
@@ -339,15 +346,16 @@ describe("RecordScanner", () => {
         });
         expect(ownedRecord).to.deep.equal(OWNED_RECORDS[0]);
 
-        const request = fetchStub.firstCall.args[0] as Request;
-        const body = await request.text();
+        const requestUrl = fetchStub.firstCall.args[0] as string;
+        const requestInit = fetchStub.firstCall.args[1] as any;
+        const body = requestInit.body as string;
         const expectedBody = JSON.stringify({
             uuid: "7884164224800444110633570141944665301008802280502652120359195870264061098703field",
         });
         expect(body).to.equal(expectedBody);
-        expect(request.url).to.equal(recordScanner.url + "/records/owned");
-        expect(request.method).to.equal("POST");
-        expect(request.headers.get("Content-Type")).to.equal("application/json");
+        expect(requestUrl).to.equal(recordScanner.url + "/records/owned");
+        expect(requestInit.method).to.equal("POST");
+        expect(requestInit.headers["content-type"]).to.equal("application/json");
     });
 
     it("should throw UUIDError if the uuid is not set on scanner and filter uuid is invalid", async () => {
@@ -391,16 +399,17 @@ describe("RecordScanner", () => {
         ]);
         expect(sns).to.deep.equal(CHECK_SNS_RESPONSE);
 
-        const request = fetchStub.firstCall.args[0] as Request;
-        const body = await request.text();
+        const requestUrl = fetchStub.firstCall.args[0] as string;
+        const requestInit = fetchStub.firstCall.args[1] as any;
+        const body = requestInit.body as string;
         const expectedBody = JSON.stringify([
             "1621694306596217216370326054181178914897851479837084979111511176605457690717field",
             "5684626152578699086223993752521225507576791345254401210560771329591763880242field",
         ]);
         expect(body).to.equal(expectedBody);
-        expect(request.url).to.equal(recordScanner.url + "/records/sns");
-        expect(request.method).to.equal("POST");
-        expect(request.headers.get("Content-Type")).to.equal("application/json");
+        expect(requestUrl).to.equal(recordScanner.url + "/records/sns");
+        expect(requestInit.method).to.equal("POST");
+        expect(requestInit.headers["content-type"]).to.equal("application/json");
     });
 
     it("should return record of string->boolean after successfully checking tags", async () => {
@@ -419,17 +428,18 @@ describe("RecordScanner", () => {
         ]);
         expect(tags).to.deep.equal(CHECK_TAGS_RESPONSE);
 
-        const request = fetchStub.firstCall.args[0] as Request;
-        const body = await request.text();
+        const requestUrl = fetchStub.firstCall.args[0] as string;
+        const requestInit = fetchStub.firstCall.args[1] as any;
+        const body = requestInit.body as string;
         const expectedBody = JSON.stringify([
             "2965517500209150226508265073635793457193572667031485750956287906078711930968field",
             "8421937347379608036510120951995833971195343843566214313082589116311107280540field",
             "5941252181432651644402279701137165256963073258332916685063623109173576520831field",
         ]);
         expect(body).to.equal(expectedBody);
-        expect(request.url).to.equal(recordScanner.url + "/records/tags");
-        expect(request.method).to.equal("POST");
-        expect(request.headers.get("Content-Type")).to.equal("application/json");
+        expect(requestUrl).to.equal(recordScanner.url + "/records/tags");
+        expect(requestInit.method).to.equal("POST");
+        expect(requestInit.headers["content-type"]).to.equal("application/json");
     });
 
     it("should return StatusResponse after successfully checking status", async () => {
@@ -448,13 +458,14 @@ describe("RecordScanner", () => {
             expect(statusResponse.data).to.deep.equal({ synced: true, percentage: 100 });
         }
 
-        const request = fetchStub.firstCall.args[0] as Request;
-        const body = await request.text();
+        const requestUrl = fetchStub.firstCall.args[0] as string;
+        const requestInit = fetchStub.firstCall.args[1] as any;
+        const body = requestInit.body as string;
         const expectedBody = JSON.stringify(recordScanner.computeUUID(defaultAccount.viewKey()).toString());
         expect(body).to.equal(expectedBody);
-        expect(request.url).to.equal(recordScanner.url + "/status");
-        expect(request.method).to.equal("POST");
-        expect(request.headers.get("Content-Type")).to.equal("application/json");
+        expect(requestUrl).to.equal(recordScanner.url + "/status");
+        expect(requestInit.method).to.equal("POST");
+        expect(requestInit.headers["content-type"]).to.equal("application/json");
     });
 
     it("should handle HTTP errors", async () => {

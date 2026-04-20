@@ -21,7 +21,7 @@ import {
     VerifyingKey,
 } from "../../wasm.js";
 
-import { get } from "../../utils.js";
+import { get, TransportFunction, defaultTransport } from "../../utils.js";
 import { KeyStore } from "../keystore/interface.js";
 
 type AleoKeyProviderInitParams = {
@@ -66,10 +66,11 @@ class AleoKeyProvider implements FunctionKeyProvider {
     cache: Map<string, CachedKeyPair>;
     cacheOption: boolean;
     keyUris: string;
+    transport: TransportFunction;
 
     async fetchBytes(url = "/"): Promise<Uint8Array> {
         try {
-            const response = await get(url);
+            const response = await get(url, undefined, this.transport);
             const data = await response.arrayBuffer();
             return new Uint8Array(data);
         } catch (error: any) {
@@ -77,10 +78,11 @@ class AleoKeyProvider implements FunctionKeyProvider {
         }
     }
 
-    constructor() {
+    constructor(options?: { transport?: TransportFunction }) {
         this.keyUris = KEY_STORE;
         this.cache = new Map<string, CachedKeyPair>();
         this.cacheOption = false;
+        this.transport = options?.transport ?? defaultTransport;
     }
 
     async keyStore(): Promise<KeyStore | undefined> {
@@ -521,7 +523,7 @@ class AleoKeyProvider implements FunctionKeyProvider {
             default:
                 try {
                     /// Try to fetch the verifying key from the network as a string
-                    const response = await get(verifierUri);
+                    const response = await get(verifierUri, undefined, this.transport);
                     const text = await response.text();
                     return <VerifyingKey>VerifyingKey.fromString(text);
                 } catch (e) {

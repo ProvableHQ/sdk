@@ -109,7 +109,7 @@ async function initializeWasm() {
 
 export { ProgramManager, ProvingRequestOptions, ExecuteOptions, FeeAuthorizationOptions, AuthorizationOptions, VerificationOptions, BatchVerificationOptions, inputsToFields, verifyProof, verifyBatchProof } from "./program-manager.js";
 
-export { logAndThrow } from "./utils.js";
+export { logAndThrow, TransportFunction } from "./utils.js";
 
 export {
     Address,
