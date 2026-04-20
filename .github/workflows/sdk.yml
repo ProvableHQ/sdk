@@ -159,6 +159,43 @@ jobs:
           yarn local
 
 
+  # Cheap, deterministic, no secrets. Always runs on every PR and push.
+  # Exercises: CJS module load (no TLA), Account/signature WASM calls, noble
+  # encryption wire format, `initThreadPool` worker spawning from CJS, dynamic
+  # variant `require()` from CJS, and `exports`-map consistency via
+  # `arethetypeswrong`.
+  cjs-smoke:
+    name: "CJS smoke + exports validation"
+    runs-on: ubuntu-latest
+    needs: build
+    steps:
+      - uses: actions/checkout@v4
+      - uses: ./.github/actions/setup-yarn
+      - uses: ./.github/actions/use-build
+
+      # Exports-map validation runs first so it gates merging even if the
+      # network-dependent e2e job (below) is flaky or skipped.
+      - name: "arethetypeswrong exports validation (wasm)"
+        working-directory: wasm
+        run: yarn test:attw
+
+      - name: "arethetypeswrong exports validation (sdk)"
+        working-directory: sdk
+        run: yarn test:attw
+
+      - name: "Pure-CJS smoke (local, resolves by file path)"
+        run: node sdk/tests/cjs-smoke/smoke.cjs
+
+      # Packs both workspace packages, installs them into a pristine CJS
+      # fixture, and `require('@provablehq/sdk/testnet.js')` through the
+      # actual `exports.require` condition. Catches broken `exports` maps,
+      # missing tarball files, and wrong `main`/`module` fields that the
+      # file-path smoke above cannot see.
+      - name: "Packed-and-installed CJS smoke"
+        working-directory: sdk
+        run: yarn test:cjs:pack
+
+
   create-leo-app-dynamic-dispatch-proving:
     name: "create-leo-app dynamic-dispatch-proving (testnet)"
     runs-on: ubuntu-latest-m

@@ -1,0 +1,6 @@
+{
+  "name": "cjs-smoke",
+  "version": "0.0.0",
+  "private": true,
+  "description": "Smoke test: can a pure-CJS consumer `require()` @provablehq/sdk and use its public API end-to-end?"
+}

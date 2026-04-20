@@ -56,7 +56,7 @@ async function buildWasm(network) {
 
 
 async function buildJS(network) {
-    const js = `export * from "./dist/${network}/tmp/aleo_wasm.js";
+    const esmEntry = `export * from "./dist/${network}/tmp/aleo_wasm.js";
 
 import { initThreadPool as wasmInitThreadPool } from "./dist/${network}/tmp/aleo_wasm.js";
 
@@ -71,17 +71,54 @@ export async function initThreadPool(threads) {
 }`;
 
     await buildRollup({
-        input: {
-            "index": "entry",
-        },
-        plugins: [
-            virtual({
-                "entry": js,
-            }),
-        ],
+        input: { "index": "entry" },
+        plugins: [virtual({ "entry": esmEntry })],
     }, {
         dir: `dist/${network}`,
         format: "es",
+        sourcemap: true,
+    });
+}
+
+
+// Builds a .cjs version which initializes the Wasm synchronously so the
+// module can be loaded with `require`. Uses initSync from the custom entry
+// and a shallow copy of the wasm exports to override initThreadPool.
+async function buildCommonJS(network) {
+    const js = `import { module as url, initSync } from "./dist/${network}/tmp/aleo_wasm_custom.js";
+import { readFileSync } from "node:fs";
+import { fileURLToPath } from "node:url";
+
+const wasm = initSync({
+    module: readFileSync(fileURLToPath(url)),
+});
+
+// We have to make a shallow copy because ES6 exports are frozen.
+const exports = { ...wasm };
+
+const wasmInitThreadPool = wasm.initThreadPool;
+
+exports.initThreadPool = async function initThreadPool(threads) {
+    if (threads == null) {
+        threads = navigator.hardwareConcurrency;
+    }
+
+    console.info(\`Spawning \${threads} threads\`);
+
+    await wasmInitThreadPool(new URL("worker.js", import.meta.url), threads);
+};
+
+module.exports = exports;`;
+
+    await buildRollup({
+        input: { "index": "entry" },
+        plugins: [virtual({ "entry": js })],
+    }, {
+        dir: `dist/${network}`,
+        format: "cjs",
+        external: ["node:fs", "node:url"],
+        entryFileNames: "[name].cjs",
+        chunkFileNames: "[name].cjs",
         sourcemap: true,
     });
 }
@@ -152,7 +189,13 @@ export * from "./aleo_wasm.js";`;
     await $fs.mkdir(`dist/${network}`, { recursive: true })
 
     await Promise.all([
+        // ESM consumers resolve through the `import` condition → `index.d.ts`.
         $fs.writeFile(`dist/${network}/index.d.ts`, js),
+        // CJS consumers resolve through the `require` condition → `index.d.cts`.
+        // Same declarations; distinct filename satisfies TypeScript's node16
+        // module-resolution check and silences `arethetypeswrong`'s
+        // "Masquerading as ESM" warning.
+        $fs.writeFile(`dist/${network}/index.d.cts`, js),
         $fs.writeFile(`dist/${network}/worker.d.ts`, worker),
     ]);
 }
@@ -178,6 +221,7 @@ async function build(network) {
 
     await Promise.all([
         buildJS(network),
+        buildCommonJS(network),
         buildWorker(network),
     ]);
 
