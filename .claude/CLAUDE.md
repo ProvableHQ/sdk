@@ -6,7 +6,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 Yarn monorepo for the **Provable SDK** — a TypeScript/Rust SDK for building zero-knowledge applications on the Aleo 
 blockchain. The SDK re-exports core protocol objects from SnarkVM to allow users to perform operations related to their
-accounts and execute Aleo programs. Main published packages: `@provablehq/sdk` and `@provablehq/wasm` (both v0.10.2).
+accounts and execute Aleo programs. Main published packages: `@provablehq/sdk` and `@provablehq/wasm` (both v0.10.3).
 
 **Workspaces:** `sdk`, `wasm`, `create-leo-app`
 
