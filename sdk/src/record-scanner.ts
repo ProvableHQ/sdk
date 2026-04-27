@@ -1,4 +1,4 @@
-import { parseJSON, post } from "./utils.js";
+import { parseJSON, post, TransportFunction, defaultTransport } from "./utils.js";
 import { EncryptedRecord } from "./models/record-provider/encryptedRecord.js";
 import { CryptoBoxPubKey } from "./models/cryptoBoxPubkey.js";
 import { EncryptedRegistrationRequest } from "./models/record-scanner/encryptedRegistrationRequest.js";
@@ -63,6 +63,7 @@ export interface RecordScannerOptions {
     cacheViewKeysOnRegister?: boolean;
     autoReRegister?: boolean;
     decryptEnabled?: boolean;
+    transport?: TransportFunction;
 }
 
 /**
@@ -119,6 +120,7 @@ class RecordScanner implements RecordProvider {
     private viewKeys?: { [key: string]: ViewKey };
     private autoReRegister?: boolean;
     private decryptEnabled?: boolean;
+    transport: TransportFunction;
     account?: Account | undefined;
 
     /**
@@ -127,6 +129,7 @@ class RecordScanner implements RecordProvider {
     constructor(options: RecordScannerOptions) {
         // Set the network by detecting which version of the SDK is being used.
         const network = "/%%NETWORK%%";
+        this.transport = options.transport ?? defaultTransport;
 
         // If the user has configured a network in their uri, throw.
         if (options.url.endsWith("/mainnet") || options.url.endsWith("/testnet")) {
@@ -283,7 +286,8 @@ class RecordScanner implements RecordProvider {
                 headers: {
                     "X-Provable-API-Key": apiKey,
                 },
-            }
+            },
+            this.transport,
         );
         const authHeader = response.headers.get("authorization");
         if (!authHeader) {
@@ -907,7 +911,14 @@ class RecordScanner implements RecordProvider {
             if (this.apiKey) {
                 req.headers.set(this.apiKey.header, this.apiKey.value);
             }
-            const response = await fetch(req);
+            const body = req.body ? await req.text() : undefined;
+            const plainHeaders: Record<string, string> = {};
+            req.headers.forEach((value, key) => { plainHeaders[key] = value; });
+            const response = await this.transport(req.url, {
+                method: req.method,
+                headers: plainHeaders,
+                body,
+            });
 
             // Non-2xx: throw so callers can handleRequestError or re-register on 422 if autoReRegister is enabled.
             if (!response.ok) {

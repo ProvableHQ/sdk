@@ -279,7 +279,7 @@ class ProgramManager {
         this.host = host ? host : "https://api.provable.com/v2";
         this.networkClient = new AleoNetworkClient(this.host, networkClientOptions);
 
-        this.keyProvider = keyProvider ? keyProvider : new AleoKeyProvider();
+        this.keyProvider = keyProvider ? keyProvider : new AleoKeyProvider({ transport: networkClientOptions?.transport });
         this.recordProvider = recordProvider;
     }
 

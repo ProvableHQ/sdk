@@ -1,4 +1,4 @@
-import { get, post, parseJSON, logAndThrow, retryWithBackoff, environment, isNode } from "./utils.js";
+import { get, post, parseJSON, logAndThrow, retryWithBackoff, environment, isNode, TransportFunction, defaultTransport } from "./utils.js";
 import { Account } from "./account.js";
 import { BlockJSON } from "./models/blockJSON.js";
 import { TransactionJSON } from "./models/transaction/transactionJSON.js";
@@ -32,6 +32,7 @@ interface AleoNetworkClientOptions {
     headers?: { [key: string]: string };
     proverUri?: string;
     recordScannerUri?: string;
+    transport?: TransportFunction;
 }
 
 /**
@@ -86,6 +87,7 @@ class AleoNetworkClient {
     ctx: { [key: string]: string };
     verboseErrors: boolean;
     readonly network: string;
+    transport: TransportFunction;
     apiKey?: string;
     consumerId?: string;
     jwtData?: JWTData;
@@ -100,6 +102,7 @@ class AleoNetworkClient {
         this.network = "%%NETWORK%%";
         this.ctx = {};
         this.verboseErrors = true;
+        this.transport = options?.transport ?? defaultTransport;
 
         if (options) {
             if (options.headers) {
@@ -280,7 +283,7 @@ class AleoNetworkClient {
                         ...this.headers,
                         ...ctx,
                     },
-                });
+                }, this.transport);
                 return await response.text();
             });
         } catch (error) {
@@ -296,7 +299,7 @@ class AleoNetworkClient {
      * @returns The Response object from the POST request.
      */
     private async _sendPost(url: string, options: RequestInit) {
-        return post(url, options);
+        return post(url, options, this.transport);
     }
 
     /**
@@ -1701,7 +1704,7 @@ class AleoNetworkClient {
                     headers: Object.assign({}, {...this.headers, "X-ALEO-METHOD": "submitSolution"}, {
                         "Content-Type": "application/json",
                     }),
-                }),
+                }, this.transport),
             );
 
             try {
@@ -1736,7 +1739,8 @@ class AleoNetworkClient {
                 headers: {
                     'X-Provable-API-Key': apiKey
                 }
-            }
+            },
+            this.transport,
         );
         const authHeader = response.headers.get('authorization');
         if (!authHeader) {
@@ -1856,7 +1860,7 @@ class AleoNetworkClient {
                 const pubKeyResponse = await get(proverUri + "/pubkey", {
                     headers,
                     credentials: "include",
-                });
+                }, this.transport);
 
                 // Encrypt the provingRequest.
                 const pubkey: CryptoBoxPubKey = parseJSON(
@@ -1877,7 +1881,7 @@ class AleoNetworkClient {
                 const cookie = isNode() ? pubKeyResponse.headers.get("set-cookie"): undefined;
 
                 // Send the encrypted proving request to the DPS service.
-                const res = await fetch(`${proverUri}/prove/encrypted`, {
+                const res = await this.transport(`${proverUri}/prove/encrypted`, {
                     method: "POST",
                     body: JSON.stringify(payload),
                     headers: {
@@ -1895,7 +1899,7 @@ class AleoNetworkClient {
             const proveEndpoint = (<string>proverUri).endsWith("/prove")
                 ? proverUri
                 : proverUri + "/prove";
-            const res = await fetch(proveEndpoint, {
+            const res = await this.transport(proveEndpoint, {
                 method: "POST",
                 body: provingRequestString,
                 headers,
@@ -1981,7 +1985,7 @@ class AleoNetworkClient {
                 }
 
                 try {
-                    const res = await fetch(
+                    const res = await this.transport(
                         `${this.host}/transaction/confirmed/${transactionId}`,
                         {
                             headers: {
