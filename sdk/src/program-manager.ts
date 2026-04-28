@@ -3980,8 +3980,13 @@ function verifyBatchProof(options: BatchVerificationOptions): boolean {
  * const checksum = programChecksum("program foo.aleo; ...");
  */
 function programChecksum(program: string | Program): Uint8Array {
-    const p = typeof program === "string" ? Program.fromString(program) : program;
-    return p.toChecksum();
+    const owned = typeof program === "string" ? Program.fromString(program) : undefined;
+    const p = owned ?? (program as Program);
+    try {
+        return p.toChecksum();
+    } finally {
+        if (owned) owned.free();
+    }
 }
 
 export { ProgramManager, AuthorizationOptions, FeeAuthorizationOptions, ExecuteOptions, ProvingRequestOptions, ExternalSigningOptions, VerificationOptions, BatchVerificationOptions, inputsToFields, verifyProof, verifyBatchProof, programChecksum };

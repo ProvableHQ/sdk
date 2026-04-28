@@ -21,6 +21,7 @@ import {
     Value,
     verifyProof,
     verifyBatchProof,
+    programChecksum,
     VerifyingKey,
     ViewKey,
 } from "@provablehq/sdk/%%NETWORK%%.js";
@@ -575,6 +576,24 @@ describe('Program Manager', async () => {
                 inputs: [[["1field", "2field"]]],
                 proof: SAMPLE_PROOF,
             })).to.equal(false);
+        });
+    });
+
+    describe('programChecksum', () => {
+        const expected = new Uint8Array([117, 142, 190, 189, 36, 240, 186, 228, 175, 186, 39, 69, 170, 179, 204, 38, 100, 107, 241, 94, 88, 233, 58, 240, 219, 147, 141, 94, 157, 128, 199, 157]);
+
+        it('should accept a program string', () => {
+            expect(programChecksum(IMPORT_1)).to.deep.equal(expected);
+        });
+
+        it('should accept a Program object', () => {
+            const program = Program.fromString(IMPORT_1);
+            expect(programChecksum(program)).to.deep.equal(expected);
+        });
+
+        it('should produce the same result as Program.toChecksum', () => {
+            const program = Program.fromString(IMPORT_1);
+            expect(programChecksum(IMPORT_1)).to.deep.equal(program.toChecksum());
         });
     });
 
