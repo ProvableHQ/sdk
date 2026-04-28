@@ -3968,4 +3968,20 @@ function verifyBatchProof(options: BatchVerificationOptions): boolean {
     }
 }
 
-export { ProgramManager, AuthorizationOptions, FeeAuthorizationOptions, ExecuteOptions, ProvingRequestOptions, ExternalSigningOptions, VerificationOptions, BatchVerificationOptions, inputsToFields, verifyProof, verifyBatchProof };
+/**
+ * Get the checksum of an Aleo program.
+ *
+ * @param {string | Program} program Program string or Program object
+ * @returns {Uint8Array} The keccak256 checksum of the program as a 32-byte Uint8Array
+ *
+ * @example
+ * import { programChecksum } from "@provablehq/sdk/mainnet.js";
+ *
+ * const checksum = programChecksum("program foo.aleo; ...");
+ */
+function programChecksum(program: string | Program): Uint8Array {
+    const p = typeof program === "string" ? Program.fromString(program) : program;
+    return p.toChecksum();
+}
+
+export { ProgramManager, AuthorizationOptions, FeeAuthorizationOptions, ExecuteOptions, ProvingRequestOptions, ExternalSigningOptions, VerificationOptions, BatchVerificationOptions, inputsToFields, verifyProof, verifyBatchProof, programChecksum };
