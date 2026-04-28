@@ -579,10 +579,10 @@ describe('Program Manager', async () => {
     });
 
     describe('Program.toChecksum', () => {
-        it('should return an array of exactly 32 elements', () => {
+        it('should return a Uint8Array of exactly 32 bytes', () => {
             const program = Program.fromString(PROGRAM);
             const checksum = program.toChecksum();
-            expect(checksum).to.be.an('array');
+            expect(checksum).to.be.instanceOf(Uint8Array);
             expect(checksum.length).to.equal(32);
         });
 
@@ -590,14 +590,14 @@ describe('Program Manager', async () => {
             const program = Program.fromString(IMPORT_1);
             const checksum = program.toChecksum();
             // keccak256 of Program.fromString(IMPORT_1).toString() as UTF-8 bytes
-            const expected = [117, 142, 190, 189, 36, 240, 186, 228, 175, 186, 39, 69, 170, 179, 204, 38, 100, 107, 241, 94, 88, 233, 58, 240, 219, 147, 141, 94, 157, 128, 199, 157];
+            const expected = new Uint8Array([117, 142, 190, 189, 36, 240, 186, 228, 175, 186, 39, 69, 170, 179, 204, 38, 100, 107, 241, 94, 88, 233, 58, 240, 219, 147, 141, 94, 157, 128, 199, 157]);
             expect(checksum).to.deep.equal(expected);
         });
 
         it('should produce the correct checksum for usdcx_stablecoin.aleo', () => {
             const program = Program.fromString(USDCX_STABLECOIN_PROGRAM);
             const checksum = program.toChecksum();
-            const expected = [194, 65, 103, 185, 169, 136, 248, 193, 48, 73, 60, 67, 15, 90, 173, 101, 12, 168, 11, 167, 205, 1, 44, 89, 28, 211, 107, 83, 92, 196, 57, 114];
+            const expected = new Uint8Array([194, 65, 103, 185, 169, 136, 248, 193, 48, 73, 60, 67, 15, 90, 173, 101, 12, 168, 11, 167, 205, 1, 44, 89, 28, 211, 107, 83, 92, 196, 57, 114]);
             expect(checksum).to.deep.equal(expected);
         });
     });

@@ -20,7 +20,7 @@ use crate::{
 };
 use snarkvm_console::program::{EntryType, PlaintextType, ValueType};
 
-use js_sys::{Array, Object, Reflect};
+use js_sys::{Array, Object, Reflect, Uint8Array};
 use std::{ops::Deref, str::FromStr};
 use wasm_bindgen::{JsValue, prelude::wasm_bindgen};
 
@@ -498,15 +498,11 @@ impl Program {
 
     /// Get the checksum of the program
     ///
-    /// @returns {Array} The checksum of the program as a [u8; 32] array
+    /// @returns {Uint8Array} The checksum of the program as a 32-byte Uint8Array
     #[wasm_bindgen(js_name = "toChecksum")]
-    pub fn to_checksum(&self) -> Array {
-        let checksum = self.0.to_checksum();
-        let result = Array::new_with_length(32);
-        for (i, byte) in checksum.iter().enumerate() {
-            result.set(i as u32, JsValue::from(**byte));
-        }
-        result
+    pub fn to_checksum(&self) -> Uint8Array {
+        let checksum: Vec<u8> = self.0.to_checksum().iter().map(|b| **b).collect();
+        Uint8Array::from(checksum.as_slice())
     }
 }
 
