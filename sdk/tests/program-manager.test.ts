@@ -590,7 +590,7 @@ describe('Program Manager', async () => {
             const program = Program.fromString(IMPORT_1);
             const checksum = program.toChecksum();
             // keccak256 of Program.fromString(IMPORT_1).toString() as UTF-8 bytes
-            const expected: number[] = [/* TODO: fill in after running */];
+            const expected = [117, 142, 190, 189, 36, 240, 186, 228, 175, 186, 39, 69, 170, 179, 204, 38, 100, 107, 241, 94, 88, 233, 58, 240, 219, 147, 141, 94, 157, 128, 199, 157];
             expect(checksum).to.deep.equal(expected);
         });
     });
