@@ -495,6 +495,20 @@ impl Program {
         }
         imports
     }
+
+    /// Get the checksum of the program
+    ///
+    /// @returns {Array} The checksum of the program as a [u8; 32] array
+    #[wasm_bindgen(js_name = "toChecksum")]
+    pub fn to_checksum(&self) -> Array {
+        let checksum = self.0.to_checksum();
+        let result = Array::new_with_length(32);
+        for (i, byte) in checksum.iter().enumerate() {
+            result.set(i as u32, JsValue::from(**byte));
+        }
+        result
+    }
+
 }
 
 impl Deref for Program {

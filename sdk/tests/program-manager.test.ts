@@ -577,4 +577,21 @@ describe('Program Manager', async () => {
             })).to.equal(false);
         });
     });
+
+    describe('Program.toChecksum', () => {
+        it('should return an array of exactly 32 elements', () => {
+            const program = Program.fromString(PROGRAM);
+            const checksum = program.toChecksum();
+            expect(checksum).to.be.an('array');
+            expect(checksum.length).to.equal(32);
+        });
+
+        it('should equal the expected keccak256 hash of the program string', () => {
+            const program = Program.fromString(IMPORT_1);
+            const checksum = program.toChecksum();
+            // keccak256 of Program.fromString(IMPORT_1).toString() as UTF-8 bytes
+            const expected: number[] = [/* TODO: fill in after running */];
+            expect(checksum).to.deep.equal(expected);
+        });
+    });
 });
