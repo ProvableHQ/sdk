@@ -22,6 +22,7 @@ use crate::{
     ExecutionResponse,
     OfflineQuery,
     PrivateKey,
+    QueryOption,
     RecordPlaintext,
     SnapshotQuery,
     Transaction,
@@ -103,20 +104,20 @@ impl ProgramManager {
                     .map_err(|e| e.to_string())?;
 
             all_commitments.extend(commitments.iter().map(|c| c.to_string()));
+        }
 
-            // If a fee record is provided, compute its commitment for credits.aleo/fee_private.
-            if let Some(fee_record) = fee_record {
-                let credits_program = ProgramNative::credits().unwrap();
-                let fee_function_id = IdentifierNative::from_str("fee_private").map_err(|e| e.to_string())?;
-                let fee_input = JsValue::from_str(&fee_record.to_string());
-                let fee_commitments =
-                    SnapshotQuery::collect_commitments_from_inputs(&credits_program, &fee_function_id, &view_key, &[
-                        fee_input,
-                    ])
-                    .map_err(|e| e.to_string())?;
+        // Always compute fee record commitments (credits.aleo is never dynamic).
+        if let Some(fee_record) = fee_record {
+            let credits_program = ProgramNative::credits().unwrap();
+            let fee_function_id = IdentifierNative::from_str("fee_private").map_err(|e| e.to_string())?;
+            let fee_input = JsValue::from_str(&fee_record.to_string());
+            let fee_commitments =
+                SnapshotQuery::collect_commitments_from_inputs(&credits_program, &fee_function_id, &view_key, &[
+                    fee_input,
+                ])
+                .map_err(|e| e.to_string())?;
 
-                all_commitments.extend(fee_commitments.iter().map(|c| c.to_string()));
-            }
+            all_commitments.extend(fee_commitments.iter().map(|c| c.to_string()));
         }
 
         // Build the result object.
@@ -164,8 +165,8 @@ impl ProgramManager {
         proving_key: Option<ProvingKey>,
         verifying_key: Option<VerifyingKey>,
         url: Option<String>,
-        offline_query: Option<OfflineQuery>,
         edition: Option<u16>,
+        query: Option<QueryOption>,
     ) -> Result<ExecutionResponse, String> {
         let node_url = url.as_deref().unwrap_or(DEFAULT_URL);
         let inputs = inputs.to_vec();
@@ -194,8 +195,8 @@ impl ProgramManager {
 
         let mut execution_response = if prove_execution {
             log("Preparing inclusion proofs for execution");
-            if let Some(offline_query) = offline_query {
-                trace.prepare_async(&offline_query).await.map_err(|err| err.to_string())?;
+            if let Some(ref query) = query {
+                trace.prepare_async(query).await.map_err(|err| err.to_string())?;
             } else {
                 let function_name = IdentifierNative::from_str(function).map_err(|err| err.to_string())?;
                 let view_key =
@@ -266,8 +267,8 @@ impl ProgramManager {
         verifying_key: Option<VerifyingKey>,
         fee_proving_key: Option<ProvingKey>,
         fee_verifying_key: Option<VerifyingKey>,
-        offline_query: Option<OfflineQuery>,
         edition: Option<u16>,
+        query: Option<QueryOption>,
     ) -> Result<Transaction, String> {
         let mut process_native = ProcessNative::load_web().map_err(|err| err.to_string())?;
         let process = &mut process_native;
@@ -294,9 +295,9 @@ impl ProgramManager {
         );
 
         log("Preparing inclusion proofs for execution");
-        let latest_height = if let Some(offline_query) = offline_query.as_ref() {
-            trace.prepare_async(offline_query).await.map_err(|err| err.to_string())?;
-            offline_query.current_block_height().map_err(|e| e.to_string())?
+        let latest_height = if let Some(ref query) = query {
+            trace.prepare_async(query).await.map_err(|err| err.to_string())?;
+            query.current_block_height_async().await.map_err(|e| e.to_string())?
         } else {
             let function_name = IdentifierNative::from_str(function).map_err(|err| err.to_string())?;
             let view_key =
@@ -323,7 +324,7 @@ impl ProgramManager {
             | ("credits.aleo", "fee_public") => None,
             _ => {
                 log("Calculating the minimum execution fee");
-                let minimum_execution_cost = calculate_minimum_fee!(offline_query, node_url, process, &execution);
+                let minimum_execution_cost = calculate_minimum_fee!(node_url, process, &execution, query);
 
                 // Check to see if the fee record has enough microcredits to pay for the deployment.
                 let priority_fee_microcredits = (priority_fee_credits * 1_000_000.0) as u64;
@@ -343,8 +344,8 @@ impl ProgramManager {
                     fee_verifying_key,
                     execution_id,
                     rng,
-                    offline_query,
-                    minimum_execution_cost
+                    minimum_execution_cost,
+                    query
                 );
                 Some(fee)
             }
@@ -385,7 +386,7 @@ impl ProgramManager {
         fee_verifying_key: Option<VerifyingKey>,
         imports: Option<Object>,
         url: Option<String>,
-        offline_query: Option<OfflineQuery>,
+        query: Option<QueryOption>,
     ) -> Result<Transaction, String> {
         // Create a process and insert the program and its imports.
         log("Loading the SnarkVM process");
@@ -395,8 +396,8 @@ impl ProgramManager {
 
         // Get the latest height.
         log("Checking the latest block height");
-        let latest_height = if let Some(offline_query) = offline_query.as_ref() {
-            offline_query.current_block_height().map_err(|e| e.to_string())?
+        let latest_height = if let Some(ref query) = query {
+            query.current_block_height_async().await.map_err(|e| e.to_string())?
         } else {
             latest_block_height(node_url).await.map_err(|e| e.to_string())?
         };
@@ -498,11 +499,11 @@ impl ProgramManager {
         let (_, mut trace) = process.execute::<CurrentAleo, _>(authorization, rng).map_err(|e| e.to_string())?;
 
         log("Preparing inclusion proofs for execution");
-        if let Some(offline_query) = offline_query.as_ref() {
-            trace.prepare_async(offline_query).await.map_err(|e| e.to_string())?;
+        if let Some(ref query) = query {
+            trace.prepare_async(query).await.map_err(|e| e.to_string())?;
         } else {
-            let query = SnapshotQuery::rest(node_url);
-            trace.prepare_async(&query).await.map_err(|err| err.to_string())?;
+            let q = SnapshotQuery::rest(node_url);
+            trace.prepare_async(&q).await.map_err(|err| err.to_string())?;
         };
 
         log("Proving execution");
@@ -521,12 +522,12 @@ impl ProgramManager {
             let (_, mut fee_trace) =
                 process.execute::<CurrentAleo, _>(fee_authorization, rng).map_err(|e| e.to_string())?;
 
-            log("Preparing inclusion proofs for execution");
-            if let Some(offline_query) = offline_query.as_ref() {
-                fee_trace.prepare_async(offline_query).await.map_err(|e| e.to_string())?;
+            log("Preparing inclusion proofs for fee execution");
+            if let Some(ref query) = query {
+                fee_trace.prepare_async(query).await.map_err(|e| e.to_string())?;
             } else {
-                let query = SnapshotQuery::rest(node_url);
-                fee_trace.prepare_async(&query).await.map_err(|err| err.to_string())?;
+                let q = SnapshotQuery::rest(node_url);
+                fee_trace.prepare_async(&q).await.map_err(|err| err.to_string())?;
             };
 
             Some(fee_trace.prove_fee::<CurrentAleo, _>(varuna_version, rng).map_err(|e| e.to_string())?)

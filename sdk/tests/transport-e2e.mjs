@@ -1,7 +1,9 @@
 #!/usr/bin/env node
 // End-to-end transport verification: proves that buildExecutionTransaction
-// routes ALL network calls through the configured transport, including
-// state root, block height, and state path fetching for record commitments.
+// routes all network calls through the configured transport via QueryOption.
+// ProgramManager wraps a CallbackQuery in QueryOption and passes it to WASM.
+// All state fetching (state root, block height, state paths) goes through
+// the JS transport layer — including programs with DynamicRecord inputs.
 //
 // Global fetch is replaced with a function that throws, simulating an mTLS
 // environment. If WASM makes any direct network call, this test fails.
@@ -60,7 +62,7 @@ try {
     });
     log("transfer_public built with blocked global fetch", true);
 } catch (e) {
-    log("transfer_public", false, e.message?.slice(0, 150));
+    log("transfer_public", false, e.message?.slice(0, 200));
 }
 
 const t1StateRoot = transportCalls.filter(u => u.includes("stateRoot")).length;

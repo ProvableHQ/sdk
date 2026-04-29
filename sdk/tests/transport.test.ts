@@ -129,32 +129,7 @@ describe("Configurable Transport", () => {
         });
     });
 
-    describe("Auto-OfflineQuery construction", () => {
-        it("ProgramManager auto-OfflineQuery calls getLatestStateRoot and getLatestHeight via transport", async () => {
-            const { ProgramManager, Account } = await import("@provablehq/sdk/%%NETWORK%%.js");
-
-            const transport = createMockTransport("{}");
-            const pm = new ProgramManager("https://example.com", undefined, undefined, { transport });
-            pm.setAccount(new Account());
-
-            // Spy on the network client methods that buildAutoOfflineQuery calls
-            const stateRootSpy = sinon.stub(pm.networkClient, "getLatestStateRoot").resolves("sr1test");
-            const heightSpy = sinon.stub(pm.networkClient, "getLatestHeight").resolves(1000);
-
-            // Call run() which triggers buildAutoOfflineQuery before WASM execution.
-            // It will fail at WASM level, but the spies should have been called.
-            const helloProgram = "program hello_oq_test.aleo;\nfunction hello:\n    input r0 as u32.public;\n    input r1 as u32.public;\n    add r0 r1 into r2;\n    output r2 as u32.public;\n";
-
-            try {
-                await pm.run(helloProgram, "hello", ["5u32", "5u32"], false);
-            } catch (e) {
-                // Expected — WASM will fail with mock state root
-            }
-
-            expect(stateRootSpy.calledOnce).to.be.true;
-            expect(heightSpy.calledOnce).to.be.true;
-        });
-
+    describe("Transport-aware state fetching", () => {
         it("getLatestStateRoot uses transport", async () => {
             const transport = createMockTransport('"sr1test"');
             const client = new AleoNetworkClient("https://example.com", { transport });
@@ -177,62 +152,99 @@ describe("Configurable Transport", () => {
             expect(result).to.deep.equal(["path1abc", "path1def"]);
         });
 
-        it("skips auto-OfflineQuery for dynamic record inputs", async () => {
-            const { ProgramManager, Account, ProgramManagerBase } = await import("@provablehq/sdk/%%NETWORK%%.js");
+        it("computeQueryRequirements returns fee commitments for non-dynamic program", async () => {
+            const { ProgramManagerBase, Account, RecordPlaintext } = await import("@provablehq/sdk/%%NETWORK%%.js");
 
-            const transport = createMockTransport("{}");
-            const pm = new ProgramManager("https://example.com", undefined, undefined, { transport });
-            pm.setAccount(new Account());
+            const account = new Account();
+            const address = account.address().to_string();
 
-            const stateRootSpy = sinon.stub(pm.networkClient, "getLatestStateRoot").resolves("sr1test");
-            const heightSpy = sinon.stub(pm.networkClient, "getLatestHeight").resolves(1000);
+            // Create a fee record owned by this account
+            const feeRecord = RecordPlaintext.fromString(`{
+  owner: ${address}.private,
+  microcredits: 1000000u64.private,
+  _nonce: 0group.public
+}`);
 
-            // Stub computeQueryRequirements to return hasDynamicInputs: true
-            sinon.stub(ProgramManagerBase, "computeQueryRequirements").returns({
-                commitments: [],
-                hasDynamicInputs: true,
-            });
+            const helloProgram = "program hello_fee_test.aleo;\nfunction hello:\n    input r0 as u32.public;\n    input r1 as u32.public;\n    add r0 r1 into r2;\n    output r2 as u32.public;\n";
 
-            const helloProgram = "program hello_dyn_test.aleo;\nfunction hello:\n    input r0 as u32.public;\n    input r1 as u32.public;\n    add r0 r1 into r2;\n    output r2 as u32.public;\n";
+            const reqs = ProgramManagerBase.computeQueryRequirements(
+                helloProgram,
+                "hello",
+                ["5u32", "5u32"],
+                account.privateKey(),
+                feeRecord,
+            );
 
-            try {
-                await pm.run(helloProgram, "hello", ["5u32", "5u32"], false);
-            } catch (e) {
-                // Expected — WASM will fail
-            }
-
-            // State root and height should NOT have been fetched
-            // (buildAutoOfflineQuery returns undefined for dynamic inputs)
-            expect(stateRootSpy.called).to.be.false;
-            expect(heightSpy.called).to.be.false;
+            expect(reqs.hasDynamicInputs).to.be.false;
+            expect(reqs.commitments).to.be.an("array");
+            // Fee record should produce a commitment
+            expect(reqs.commitments.length).to.be.greaterThan(0);
         });
 
-        it("falls back gracefully when state fetching fails", async () => {
+        it("computeQueryRequirements returns fee commitments even for dynamic-input program", async () => {
+            const { ProgramManagerBase, Account, RecordPlaintext } = await import("@provablehq/sdk/%%NETWORK%%.js");
+
+            const account = new Account();
+            const address = account.address().to_string();
+
+            const feeRecord = RecordPlaintext.fromString(`{
+  owner: ${address}.private,
+  microcredits: 1000000u64.private,
+  _nonce: 0group.public
+}`);
+
+            // A program with dynamic.record input — triggers hasDynamicInputs
+            const dynamicProgram = `program dd_fee_test.aleo;
+
+function dynamic_fn:
+    input r0 as dynamic.record;
+    output r0 as dynamic.record;
+
+constructor:
+    assert.eq true true;
+`;
+
+            const reqs = ProgramManagerBase.computeQueryRequirements(
+                dynamicProgram,
+                "dynamic_fn",
+                ["{}"],  // placeholder input
+                account.privateKey(),
+                feeRecord,
+            );
+
+            // Main function is dynamic
+            expect(reqs.hasDynamicInputs).to.be.true;
+            // But fee commitments should still be computed (credits.aleo is never dynamic)
+            expect(reqs.commitments).to.be.an("array");
+            expect(reqs.commitments.length).to.be.greaterThan(0);
+        });
+    });
+
+    describe("QueryOption integration", () => {
+        it("ProgramManager wraps CallbackQuery in QueryOption and WASM invokes callbacks", async () => {
             const { ProgramManager, Account } = await import("@provablehq/sdk/%%NETWORK%%.js");
 
             const transport = createMockTransport("{}");
             const pm = new ProgramManager("https://example.com", undefined, undefined, { transport });
             pm.setAccount(new Account());
 
-            // Make state root fetch throw — simulates network failure
-            sinon.stub(pm.networkClient, "getLatestStateRoot").rejects(new Error("network timeout"));
-            sinon.stub(pm.networkClient, "getLatestHeight").resolves(1000);
+            // Spy on the network client methods that the CallbackQuery wraps.
+            // run() constructs a QueryOption.callbackQuery(...) and passes it to WASM.
+            // WASM invokes the callbacks during trace.prepare_async().
+            const stateRootSpy = sinon.stub(pm.networkClient, "getLatestStateRoot").resolves("sr1test");
+            const heightSpy = sinon.stub(pm.networkClient, "getLatestHeight").resolves(1000);
+            const helloProgram = "program hello_cb_test.aleo;\nfunction hello:\n    input r0 as u32.public;\n    input r1 as u32.public;\n    add r0 r1 into r2;\n    output r2 as u32.public;\n";
 
-            const helloProgram = "program hello_fail_test.aleo;\nfunction hello:\n    input r0 as u32.public;\n    input r1 as u32.public;\n    add r0 r1 into r2;\n    output r2 as u32.public;\n";
-
-            // Should not throw — falls back to WASM fetch path
-            let threw = false;
             try {
-                await pm.run(helloProgram, "hello", ["5u32", "5u32"], false);
-            } catch (e: any) {
-                // WASM-level failure is expected (mock host), but the auto-OfflineQuery
-                // failure should not propagate — it should fall through gracefully.
-                if (e.message?.includes("network timeout")) {
-                    threw = true; // This means the error was NOT caught — bad
-                }
+                await pm.run(helloProgram, "hello", ["5u32", "5u32"], true);
+            } catch (e) {
+                // Expected — WASM will fail with mock state data
             }
 
-            expect(threw).to.be.false;
+            // CallbackQuery's callbacks should have been invoked via WASM
+            // (state root and height are always needed for trace preparation)
+            expect(stateRootSpy.called).to.be.true;
+            expect(heightSpy.called).to.be.true;
         });
     });
 

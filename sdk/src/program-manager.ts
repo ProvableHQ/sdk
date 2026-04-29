@@ -20,6 +20,8 @@ import {
 import {
     Address,
     Authorization,
+    CallbackQuery,
+    QueryOption,
     ExecutionRequest,
     ExecutionResponse,
     Execution as FunctionExecution,
@@ -284,53 +286,9 @@ class ProgramManager {
     }
 
     /**
-     * Pre-fetch state data via the transport-aware network client and construct
-     * an OfflineQuery so that WASM execution never makes its own network calls.
-     *
-     * Returns undefined if the function has dynamic record inputs (commitments
-     * can't be pre-computed) — the caller should fall back to passing this.host.
-     */
-    private async buildAutoOfflineQuery(
-        program: string,
-        functionName: string,
-        inputs: string[],
-        privateKey: PrivateKey,
-        feeRecord?: RecordPlaintext,
-    ): Promise<OfflineQuery | undefined> {
-        const reqs = WasmProgramManager.computeQueryRequirements(
-            program,
-            functionName,
-            inputs,
-            privateKey,
-            feeRecord,
-        );
-
-        if (reqs.hasDynamicInputs) {
-            console.warn("Dynamic record inputs detected; WASM will use direct fetch for state resolution. Custom transport will not be used for this call.");
-            return undefined;
-        }
-
-        const [stateRoot, blockHeight] = await Promise.all([
-            this.networkClient.getLatestStateRoot(),
-            this.networkClient.getLatestHeight(),
-        ]);
-
-        const offlineQuery = new OfflineQuery(blockHeight, stateRoot);
-
-        if (reqs.commitments.length > 0) {
-            const statePaths = await this.networkClient.getStatePaths(reqs.commitments);
-            for (let i = 0; i < reqs.commitments.length; i++) {
-                offlineQuery.addStatePath(reqs.commitments[i], statePaths[i]);
-            }
-        }
-
-        return offlineQuery;
-    }
-
-    /**
-     * Load the inclusion prover if an OfflineQuery is present and keys haven't
-     * been loaded yet. Called before WASM execution methods that accept an
-     * OfflineQuery.
+     * Pre-load the inclusion prover for offline execution. Required when the
+     * user provides an explicit OfflineQuery (truly offline — can't fetch lazily).
+     * For CallbackQuery, snarkVM handles inclusion key loading on demand.
      */
     private async ensureInclusionKeys(offlineQuery?: OfflineQuery): Promise<void> {
         if (offlineQuery && !this.inclusionKeysLoaded) {
@@ -342,6 +300,25 @@ class ProgramManager {
                 logAndThrow(`Inclusion key bytes not loaded, please ensure the program manager is initialized with a KeyProvider that includes the inclusion key.`);
             }
         }
+    }
+
+    /**
+     * Create a CallbackQuery that delegates all state fetching to the
+     * transport-aware network client. WASM calls back into these functions
+     * during trace.prepare_async() instead of making its own reqwest calls.
+     *
+     * This handles ALL programs including those with DynamicRecord inputs.
+     */
+    private buildCallbackQuery(): CallbackQuery {
+        const networkClient = this.networkClient;
+        return new CallbackQuery(
+            // getStateRoot: () => Promise<string>
+            async () => await networkClient.getLatestStateRoot(),
+            // getStatePaths: (commitments: string[]) => Promise<string[]>
+            async (commitments: string[]) => await networkClient.getStatePaths(commitments),
+            // getBlockHeight: () => Promise<number>
+            async () => await networkClient.getLatestHeight(),
+        );
     }
 
     /**
@@ -1026,20 +1003,13 @@ class ProgramManager {
         // Auto-convert bare string inputs to field elements where the function expects field type.
         const preparedInputs = this.prepareInputs(program, functionName, inputs);
 
-        // If no offline query was provided, attempt to pre-fetch state data via
-        // the transport-aware network client so WASM never makes its own fetch calls.
-        let effectiveOfflineQuery = offlineQuery;
-        if (!effectiveOfflineQuery) {
-            try {
-                effectiveOfflineQuery = await this.buildAutoOfflineQuery(
-                    program, functionName, preparedInputs, executionPrivateKey, feeRecord,
-                );
-            } catch (e) {
-                console.warn("Failed to build offline query via transport, falling back to WASM fetch:", e);
-            }
-        }
+        // Build the query: user-provided OfflineQuery for truly offline execution,
+        // or a CallbackQuery that delegates state fetching to JS transport.
+        const query = offlineQuery
+            ? QueryOption.offlineQuery(offlineQuery)
+            : QueryOption.callbackQuery(this.buildCallbackQuery());
 
-        await this.ensureInclusionKeys(effectiveOfflineQuery);
+        await this.ensureInclusionKeys(offlineQuery);
 
         // Build an execution transaction
         return await WasmProgramManager.buildExecutionTransaction(
@@ -1055,8 +1025,8 @@ class ProgramManager {
             verifyingKey,
             feeProvingKey,
             feeVerifyingKey,
-            effectiveOfflineQuery,
-            edition
+            edition,
+            query,
         );
     }
 
@@ -1204,7 +1174,10 @@ class ProgramManager {
             }
         }
 
-        // If the offline query exists, add the inclusion key.
+        const query = offlineQuery
+            ? QueryOption.offlineQuery(offlineQuery)
+            : QueryOption.callbackQuery(this.buildCallbackQuery());
+
         await this.ensureInclusionKeys(offlineQuery);
 
         // Build an execution transaction from the authorization.
@@ -1219,7 +1192,7 @@ class ProgramManager {
             feeVerifyingKey,
             imports,
             this.host,
-            offlineQuery
+            query,
         )
     }
 
@@ -1869,20 +1842,11 @@ class ProgramManager {
         // Auto-convert bare string inputs to field elements where the function expects field type.
         const preparedInputs = this.prepareInputs(program, function_name, inputs);
 
-        // If no offline query was provided, attempt to pre-fetch state data via
-        // the transport-aware network client so WASM never makes its own fetch calls.
-        let effectiveOfflineQuery = offlineQuery;
-        if (!effectiveOfflineQuery) {
-            try {
-                effectiveOfflineQuery = await this.buildAutoOfflineQuery(
-                    program, function_name, preparedInputs, executionPrivateKey,
-                );
-            } catch (e) {
-                console.warn("Failed to build offline query via transport, falling back to WASM fetch:", e);
-            }
-        }
+        const query = offlineQuery
+            ? QueryOption.offlineQuery(offlineQuery)
+            : QueryOption.callbackQuery(this.buildCallbackQuery());
 
-        await this.ensureInclusionKeys(effectiveOfflineQuery);
+        await this.ensureInclusionKeys(offlineQuery);
 
         // Run the program offline and return the result
         console.log("Running program offline");
@@ -1899,8 +1863,8 @@ class ProgramManager {
             provingKey,
             verifyingKey,
             this.host,
-            effectiveOfflineQuery,
-            edition
+            edition,
+            query,
         );
     }
 
@@ -2024,21 +1988,11 @@ class ProgramManager {
             );
         }
 
-        // Auto-construct OfflineQuery if not provided.
-        let effectiveOfflineQuery = offlineQuery;
-        if (!effectiveOfflineQuery) {
-            try {
-                const creditsProgram = this.creditsProgram().toString();
-                const joinInputs = [recordOne.toString(), recordTwo.toString()];
-                effectiveOfflineQuery = await this.buildAutoOfflineQuery(
-                    creditsProgram, "join", joinInputs, executionPrivateKey, feeRecord,
-                );
-            } catch (e) {
-                console.warn("Failed to build offline query via transport, falling back to WASM fetch:", e);
-            }
-        }
+        const query = offlineQuery
+            ? QueryOption.offlineQuery(offlineQuery)
+            : QueryOption.callbackQuery(this.buildCallbackQuery());
 
-        await this.ensureInclusionKeys(effectiveOfflineQuery);
+        await this.ensureInclusionKeys(offlineQuery);
 
         // Build an execution transaction and submit it to the network
         const tx = await WasmProgramManager.buildJoinTransaction(
@@ -2052,7 +2006,7 @@ class ProgramManager {
             joinVerifyingKey,
             feeProvingKey,
             feeVerifyingKey,
-            effectiveOfflineQuery,
+            query,
         );
 
         // Check if the account has sufficient credits to pay for the transaction
@@ -2134,21 +2088,11 @@ class ProgramManager {
             );
         }
 
-        // Auto-construct OfflineQuery if not provided.
-        let effectiveOfflineQuery = offlineQuery;
-        if (!effectiveOfflineQuery) {
-            try {
-                const creditsProgram = this.creditsProgram().toString();
-                const splitInputs = [amountRecord.toString(), splitAmount.toString() + "u64"];
-                effectiveOfflineQuery = await this.buildAutoOfflineQuery(
-                    creditsProgram, "split", splitInputs, executionPrivateKey,
-                );
-            } catch (e) {
-                console.warn("Failed to build offline query via transport, falling back to WASM fetch:", e);
-            }
-        }
+        const query = offlineQuery
+            ? QueryOption.offlineQuery(offlineQuery)
+            : QueryOption.callbackQuery(this.buildCallbackQuery());
 
-        await this.ensureInclusionKeys(effectiveOfflineQuery);
+        await this.ensureInclusionKeys(offlineQuery);
 
         // Build an execution transaction and submit it to the network
         const tx = await WasmProgramManager.buildSplitTransaction(
@@ -2158,7 +2102,7 @@ class ProgramManager {
             this.host,
             splitProvingKey,
             splitVerifyingKey,
-            effectiveOfflineQuery,
+            query,
         );
 
         return await this.networkClient.submitTransaction(tx);
@@ -2331,29 +2275,11 @@ class ProgramManager {
             );
         }
 
-        // Auto-construct OfflineQuery if not provided.
-        let effectiveOfflineQuery = offlineQuery;
-        if (!effectiveOfflineQuery) {
-            try {
-                const creditsProgram = this.creditsProgram().toString();
-                // Build inputs matching what the WASM transfer method constructs internally.
-                // NOTE: This is coupled to the WASM buildTransferTransaction input ordering.
-                // If WASM changes the input structure, update this to match.
-                const transferInputs: string[] = [];
-                if (amountRecord) {
-                    transferInputs.push(amountRecord.toString());
-                }
-                transferInputs.push(recipient);
-                transferInputs.push(amount.toString() + "u64");
-                effectiveOfflineQuery = await this.buildAutoOfflineQuery(
-                    creditsProgram, transferType, transferInputs, executionPrivateKey, feeRecord,
-                );
-            } catch (e) {
-                console.warn("Failed to build offline query via transport, falling back to WASM fetch:", e);
-            }
-        }
+        const query = offlineQuery
+            ? QueryOption.offlineQuery(offlineQuery)
+            : QueryOption.callbackQuery(this.buildCallbackQuery());
 
-        await this.ensureInclusionKeys(effectiveOfflineQuery);
+        await this.ensureInclusionKeys(offlineQuery);
 
         // Build an execution transaction
         return await WasmProgramManager.buildTransferTransaction(
@@ -2369,7 +2295,7 @@ class ProgramManager {
             transferVerifyingKey,
             feeProvingKey,
             feeVerifyingKey,
-            effectiveOfflineQuery,
+            query,
         );
     }
 

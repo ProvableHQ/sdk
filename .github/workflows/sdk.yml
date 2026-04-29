@@ -197,8 +197,8 @@ jobs:
 
 
   # Verifies that buildExecutionTransaction routes all network calls through
-  # the configured transport and WASM makes zero direct fetch calls. Global
-  # fetch is replaced with a throwing function to simulate mTLS environments.
+  # the configured transport via QueryOption. Global fetch is replaced with
+  # a throwing function to simulate mTLS environments.
   transport-e2e:
     name: "Transport-aware proving (testnet)"
     runs-on: ubuntu-latest-m

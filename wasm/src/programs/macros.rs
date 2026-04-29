@@ -178,7 +178,7 @@ macro_rules! execute_program {
 
 #[macro_export]
 macro_rules! execute_fee {
-    ($process:expr, $private_key:expr, $fee_record:expr, $priority_fee_microcredits:expr, $node_url:expr, $fee_proving_key:expr, $fee_verifying_key:expr, $deployment_or_execution_id:expr, $rng:expr, $offline_query:expr, $minimum_execution_cost:expr) => {{
+    ($process:expr, $private_key:expr, $fee_record:expr, $priority_fee_microcredits:expr, $node_url:expr, $fee_proving_key:expr, $fee_verifying_key:expr, $deployment_or_execution_id:expr, $rng:expr, $minimum_execution_cost:expr, $query:expr) => {{
         use ::snarkvm_ledger_query::QueryTrait;
         if (($fee_proving_key.is_some() && $fee_verifying_key.is_none())
             || ($fee_proving_key.is_none() && $fee_verifying_key.is_some()))
@@ -242,9 +242,9 @@ macro_rules! execute_fee {
             .map_err(|e| e.to_string())?;
 
         log("Preparing inclusion proofs for fee execution");
-        let latest_height = if let Some(offline_query) = $offline_query.as_ref() {
-            trace.prepare_async(offline_query).await.map_err(|err| err.to_string())?;
-            offline_query.current_block_height().map_err(|e| e.to_string())?
+        let latest_height = if let Some(ref query) = $query {
+            trace.prepare_async(query).await.map_err(|err| err.to_string())?;
+            query.current_block_height_async().await.map_err(|e| e.to_string())?
         } else {
             let credits = ProgramNative::credits().unwrap();
             let function_name = IdentifierNative::from_str("split").unwrap();
@@ -295,14 +295,12 @@ macro_rules! execute_fee {
 
 #[macro_export]
 macro_rules! calculate_minimum_fee {
-    ($offline_query:expr, $node_url: expr, $process:expr, $execution_ref:expr) => {{
+    ($node_url: expr, $process:expr, $execution_ref:expr, $query:expr) => {{
         // Get the block height.
-        let block_height = if let Some(ref offline_query) = $offline_query {
-            let block_height = offline_query.current_block_height().map_err(|e| e.to_string())?;
-            block_height
+        let block_height = if let Some(ref query) = $query {
+            query.current_block_height_async().await.map_err(|e| e.to_string())?
         } else {
-            let block_height = latest_block_height($node_url).await.map_err(|e| e.to_string())?;
-            block_height
+            latest_block_height($node_url).await.map_err(|e| e.to_string())?
         };
 
         // Calculate the execution cost based on the consensus version.

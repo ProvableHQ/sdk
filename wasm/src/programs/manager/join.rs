@@ -17,8 +17,8 @@
 use super::*;
 
 use crate::{
-    OfflineQuery,
     PrivateKey,
+    QueryOption,
     RecordPlaintext,
     SnapshotQuery,
     Transaction,
@@ -79,7 +79,7 @@ impl ProgramManager {
         join_verifying_key: Option<VerifyingKey>,
         fee_proving_key: Option<ProvingKey>,
         fee_verifying_key: Option<VerifyingKey>,
-        offline_query: Option<OfflineQuery>,
+        query: Option<QueryOption>,
     ) -> Result<Transaction, String> {
         log("Executing join program");
         let rng = &mut StdRng::from_entropy();
@@ -125,19 +125,19 @@ impl ProgramManager {
         );
 
         log("Preparing inclusion proof for the join execution");
-        let latest_height = if let Some(offline_query) = offline_query.as_ref() {
-            trace.prepare_async(offline_query).await.map_err(|err| err.to_string())?;
-            offline_query.current_block_height().map_err(|e| e.to_string())?
+        let latest_height = if let Some(ref query) = query {
+            trace.prepare_async(query).await.map_err(|err| err.to_string())?;
+            query.current_block_height_async().await.map_err(|e| e.to_string())?
         } else {
             let credits = ProgramNative::credits().unwrap();
             let function_name = IdentifierNative::from_str("join").unwrap();
             let view_key =
                 ViewKeyNative::try_from(PrivateKeyNative::from(private_key)).map_err(|err| err.to_string())?;
-            let query = SnapshotQuery::try_from_inputs(node_url, &credits, &function_name, &view_key, &inputs.to_vec())
+            let q = SnapshotQuery::try_from_inputs(node_url, &credits, &function_name, &view_key, &inputs.to_vec())
                 .await
                 .map_err(|err| err.to_string())?;
-            trace.prepare_async(&query).await.map_err(|err| err.to_string())?;
-            query.current_block_height_async().await.map_err(|e| e.to_string())?
+            trace.prepare_async(&q).await.map_err(|err| err.to_string())?;
+            q.current_block_height_async().await.map_err(|e| e.to_string())?
         };
 
         log("Proving the join execution");
@@ -159,7 +159,7 @@ impl ProgramManager {
 
         // Calculate the minimum execution fee.
         log("Calculating the minimum execution fee");
-        let minimum_execution_cost = calculate_minimum_fee!(offline_query, node_url, process, &execution);
+        let minimum_execution_cost = calculate_minimum_fee!(node_url, process, &execution, query);
 
         // Check to see if the fee record has enough microcredits to pay for the deployment.
         let priority_fee_microcredits = (priority_fee_credits * 1_000_000.0) as u64;
@@ -176,8 +176,8 @@ impl ProgramManager {
             fee_verifying_key,
             execution_id,
             rng,
-            offline_query,
-            minimum_execution_cost
+            minimum_execution_cost,
+            query
         );
 
         log("Creating execution transaction for join");
