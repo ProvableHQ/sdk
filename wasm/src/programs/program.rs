@@ -496,7 +496,7 @@ impl Program {
         imports
     }
 
-    /// Get the checksum of the program
+    /// Get the checksum of the program.
     ///
     /// @returns {Uint8Array} The checksum of the program as a 32-byte Uint8Array
     #[wasm_bindgen(js_name = "toChecksum")]
