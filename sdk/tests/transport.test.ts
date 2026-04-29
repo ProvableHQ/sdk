@@ -129,6 +129,113 @@ describe("Configurable Transport", () => {
         });
     });
 
+    describe("Auto-OfflineQuery construction", () => {
+        it("ProgramManager auto-OfflineQuery calls getLatestStateRoot and getLatestHeight via transport", async () => {
+            const { ProgramManager, Account } = await import("@provablehq/sdk/%%NETWORK%%.js");
+
+            const transport = createMockTransport("{}");
+            const pm = new ProgramManager("https://example.com", undefined, undefined, { transport });
+            pm.setAccount(new Account());
+
+            // Spy on the network client methods that buildAutoOfflineQuery calls
+            const stateRootSpy = sinon.stub(pm.networkClient, "getLatestStateRoot").resolves("sr1test");
+            const heightSpy = sinon.stub(pm.networkClient, "getLatestHeight").resolves(1000);
+
+            // Call run() which triggers buildAutoOfflineQuery before WASM execution.
+            // It will fail at WASM level, but the spies should have been called.
+            const helloProgram = "program hello_oq_test.aleo;\nfunction hello:\n    input r0 as u32.public;\n    input r1 as u32.public;\n    add r0 r1 into r2;\n    output r2 as u32.public;\n";
+
+            try {
+                await pm.run(helloProgram, "hello", ["5u32", "5u32"], false);
+            } catch (e) {
+                // Expected — WASM will fail with mock state root
+            }
+
+            expect(stateRootSpy.calledOnce).to.be.true;
+            expect(heightSpy.calledOnce).to.be.true;
+        });
+
+        it("getLatestStateRoot uses transport", async () => {
+            const transport = createMockTransport('"sr1test"');
+            const client = new AleoNetworkClient("https://example.com", { transport });
+
+            const result = await client.getLatestStateRoot();
+
+            expect(transport.calledOnce).to.be.true;
+            expect(transport.firstCall.args[0]).to.include("stateRoot/latest");
+            expect(result).to.equal("sr1test");
+        });
+
+        it("getStatePaths uses transport", async () => {
+            const transport = createMockTransport('["path1abc", "path1def"]');
+            const client = new AleoNetworkClient("https://example.com", { transport });
+
+            const result = await client.getStatePaths(["commit1", "commit2"]);
+
+            expect(transport.calledOnce).to.be.true;
+            expect(transport.firstCall.args[0]).to.include("statePaths?commitments=commit1,commit2");
+            expect(result).to.deep.equal(["path1abc", "path1def"]);
+        });
+
+        it("skips auto-OfflineQuery for dynamic record inputs", async () => {
+            const { ProgramManager, Account, ProgramManagerBase } = await import("@provablehq/sdk/%%NETWORK%%.js");
+
+            const transport = createMockTransport("{}");
+            const pm = new ProgramManager("https://example.com", undefined, undefined, { transport });
+            pm.setAccount(new Account());
+
+            const stateRootSpy = sinon.stub(pm.networkClient, "getLatestStateRoot").resolves("sr1test");
+            const heightSpy = sinon.stub(pm.networkClient, "getLatestHeight").resolves(1000);
+
+            // Stub computeQueryRequirements to return hasDynamicInputs: true
+            sinon.stub(ProgramManagerBase, "computeQueryRequirements").returns({
+                commitments: [],
+                hasDynamicInputs: true,
+            });
+
+            const helloProgram = "program hello_dyn_test.aleo;\nfunction hello:\n    input r0 as u32.public;\n    input r1 as u32.public;\n    add r0 r1 into r2;\n    output r2 as u32.public;\n";
+
+            try {
+                await pm.run(helloProgram, "hello", ["5u32", "5u32"], false);
+            } catch (e) {
+                // Expected — WASM will fail
+            }
+
+            // State root and height should NOT have been fetched
+            // (buildAutoOfflineQuery returns undefined for dynamic inputs)
+            expect(stateRootSpy.called).to.be.false;
+            expect(heightSpy.called).to.be.false;
+        });
+
+        it("falls back gracefully when state fetching fails", async () => {
+            const { ProgramManager, Account } = await import("@provablehq/sdk/%%NETWORK%%.js");
+
+            const transport = createMockTransport("{}");
+            const pm = new ProgramManager("https://example.com", undefined, undefined, { transport });
+            pm.setAccount(new Account());
+
+            // Make state root fetch throw — simulates network failure
+            sinon.stub(pm.networkClient, "getLatestStateRoot").rejects(new Error("network timeout"));
+            sinon.stub(pm.networkClient, "getLatestHeight").resolves(1000);
+
+            const helloProgram = "program hello_fail_test.aleo;\nfunction hello:\n    input r0 as u32.public;\n    input r1 as u32.public;\n    add r0 r1 into r2;\n    output r2 as u32.public;\n";
+
+            // Should not throw — falls back to WASM fetch path
+            let threw = false;
+            try {
+                await pm.run(helloProgram, "hello", ["5u32", "5u32"], false);
+            } catch (e: any) {
+                // WASM-level failure is expected (mock host), but the auto-OfflineQuery
+                // failure should not propagate — it should fall through gracefully.
+                if (e.message?.includes("network timeout")) {
+                    threw = true; // This means the error was NOT caught — bad
+                }
+            }
+
+            expect(threw).to.be.false;
+        });
+    });
+
     describe("Transport propagation", () => {
         it("ProgramManager threads transport to both NetworkClient and KeyProvider", async () => {
             const { ProgramManager } = await import("@provablehq/sdk/%%NETWORK%%.js");

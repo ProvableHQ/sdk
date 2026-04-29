@@ -993,6 +993,40 @@ class AleoNetworkClient {
     }
 
     /**
+     * Returns the latest state root of the network.
+     *
+     * @returns {Promise<string>} The latest state root as a string.
+     */
+    async getLatestStateRoot(): Promise<string> {
+        try {
+            this.ctx = { "X-ALEO-METHOD": "getLatestStateRoot" };
+            return String(await this.fetchData<string>("/stateRoot/latest"));
+        } catch (error) {
+            throw new Error(`Error fetching latest state root: ${error}`);
+        } finally {
+            this.ctx = {};
+        }
+    }
+
+    /**
+     * Returns state paths for the given record commitments.
+     *
+     * @param {string[]} commitments - Array of commitment field strings.
+     * @returns {Promise<string[]>} Array of state path strings corresponding to the commitments.
+     */
+    async getStatePaths(commitments: string[]): Promise<string[]> {
+        try {
+            this.ctx = { "X-ALEO-METHOD": "getStatePaths" };
+            const csv = commitments.join(",");
+            return await this.fetchData<string[]>(`/statePaths?commitments=${csv}`);
+        } catch (error) {
+            throw new Error(`Error fetching state paths for commitments: ${error}`);
+        } finally {
+            this.ctx = {};
+        }
+    }
+
+    /**
      * Returns the latest block hash.
      *
      * @returns {Promise<string>} The latest block hash.
