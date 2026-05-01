@@ -2,7 +2,7 @@
     "name": "nodenext",
     "type": "module",
     "dependencies": {
-        "@provablehq/sdk": "^0.10.4",
+        "@provablehq/sdk": "^0.10.5-rc.1",
         "typescript": "^5.7.3"
     },
     "scripts": {

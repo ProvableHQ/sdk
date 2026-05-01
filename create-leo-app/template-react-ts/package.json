@@ -12,7 +12,7 @@
     "install-leo": "./install.sh"
   },
   "dependencies": {
-    "@provablehq/sdk": "^0.10.4",
+    "@provablehq/sdk": "^0.10.5-rc.1",
     "comlink": "^4.4.2",
     "react": "^19.0.0",
     "react-dom": "^19.0.0"
