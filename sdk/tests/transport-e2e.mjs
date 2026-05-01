@@ -16,7 +16,7 @@
 //
 // Run: node tests/transport-e2e.mjs
 
-import { Account, ProgramManager, AleoKeyProvider, RecordPlaintext, initThreadPool } from "../dist/testnet/node.js";
+import { Account, ProgramManager, AleoKeyProvider, AleoNetworkClient, RecordPlaintext, stringToField, initThreadPool } from "../dist/testnet/node.js";
 
 function log(label, ok, detail = "") {
     const prefix = ok ? "\x1b[32m✓\x1b[0m" : "\x1b[31m✗\x1b[0m";
@@ -108,6 +108,46 @@ try {
 
 const t2StatePaths = transportCalls.filter(u => u.includes("statePaths"));
 log("State paths fetched via transport", t2StatePaths.length > 0, `${t2StatePaths.length} call(s)`);
+
+// --- Test 3: Dynamic dispatch (call.dynamic — commitments discovered at runtime) ---
+console.log("\nTest 3: dynamic_transfer_pub_to_priv (call.dynamic)");
+
+// Fetch the deployed program source via transport
+const nc = new AleoNetworkClient("https://api.provable.com/v2", { transport: mtlsTransport });
+const programSource = await nc.getProgram("test_dcall_sdk.aleo");
+log("Fetched test_dcall_sdk.aleo via transport", !!programSource);
+
+const toField = (s) => stringToField(s).toString();
+transportCalls.length = 0;
+try {
+    const tx = await pm.buildExecutionTransaction({
+        programName: "test_dcall_sdk.aleo",
+        functionName: "dynamic_transfer_pub_to_priv",
+        inputs: [
+            toField("credits"),
+            toField("aleo"),
+            toField("transfer_public_to_private"),
+            address,
+            "100u64",
+        ],
+        priorityFee: 0,
+        privateFee: false,
+        program: programSource,
+    });
+    log("dynamic dispatch built with blocked global fetch", true);
+} catch (e) {
+    if (e.message?.includes("BLOCKED")) {
+        log("dynamic dispatch — WASM bypassed transport", false, e.message?.slice(0, 150));
+    } else {
+        // Non-transport errors are OK (e.g., insufficient balance for fee)
+        log("dynamic dispatch — transport worked (non-transport error)", true, e.message?.slice(0, 100));
+    }
+}
+
+const t3StateRoot = transportCalls.filter(u => u.includes("stateRoot")).length;
+const t3Height = transportCalls.filter(u => u.includes("height/latest")).length;
+log("State root fetched via transport (dynamic)", t3StateRoot > 0);
+log("Block height fetched via transport (dynamic)", t3Height > 0);
 
 // --- Summary ---
 console.log("\n=== Summary ===");

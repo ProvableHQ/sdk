@@ -290,8 +290,8 @@ class ProgramManager {
      * user provides an explicit OfflineQuery (truly offline — can't fetch lazily).
      * For CallbackQuery, snarkVM handles inclusion key loading on demand.
      */
-    private async ensureInclusionKeys(offlineQuery?: OfflineQuery): Promise<void> {
-        if (offlineQuery && !this.inclusionKeysLoaded) {
+    private async ensureInclusionKeys(isOffline: boolean): Promise<void> {
+        if (isOffline && !this.inclusionKeysLoaded) {
             try {
                 const inclusionKeys = await this.keyProvider.inclusionKeys();
                 WasmProgramManager.loadInclusionProver(inclusionKeys[0]);
@@ -1012,7 +1012,7 @@ class ProgramManager {
               ? QueryOption.callbackQuery(this.buildCallbackQuery())
               : undefined;
 
-        await this.ensureInclusionKeys(offlineQuery);
+        await this.ensureInclusionKeys(!!offlineQuery);
 
         // Build an execution transaction
         return await WasmProgramManager.buildExecutionTransaction(
@@ -1183,7 +1183,7 @@ class ProgramManager {
               ? QueryOption.callbackQuery(this.buildCallbackQuery())
               : undefined;
 
-        await this.ensureInclusionKeys(offlineQuery);
+        await this.ensureInclusionKeys(!!offlineQuery);
 
         // Build an execution transaction from the authorization.
         console.log("Executing authorizations")
@@ -1853,7 +1853,7 @@ class ProgramManager {
               ? QueryOption.callbackQuery(this.buildCallbackQuery())
               : undefined;
 
-        await this.ensureInclusionKeys(offlineQuery);
+        await this.ensureInclusionKeys(!!offlineQuery);
 
         // Run the program offline and return the result
         console.log("Running program offline");
@@ -2001,7 +2001,7 @@ class ProgramManager {
               ? QueryOption.callbackQuery(this.buildCallbackQuery())
               : undefined;
 
-        await this.ensureInclusionKeys(offlineQuery);
+        await this.ensureInclusionKeys(!!offlineQuery);
 
         // Build an execution transaction and submit it to the network
         const tx = await WasmProgramManager.buildJoinTransaction(
@@ -2103,7 +2103,7 @@ class ProgramManager {
               ? QueryOption.callbackQuery(this.buildCallbackQuery())
               : undefined;
 
-        await this.ensureInclusionKeys(offlineQuery);
+        await this.ensureInclusionKeys(!!offlineQuery);
 
         // Build an execution transaction and submit it to the network
         const tx = await WasmProgramManager.buildSplitTransaction(
@@ -2292,7 +2292,7 @@ class ProgramManager {
               ? QueryOption.callbackQuery(this.buildCallbackQuery())
               : undefined;
 
-        await this.ensureInclusionKeys(offlineQuery);
+        await this.ensureInclusionKeys(!!offlineQuery);
 
         // Build an execution transaction
         return await WasmProgramManager.buildTransferTransaction(
