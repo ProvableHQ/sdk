@@ -313,7 +313,7 @@ class ProgramManager {
         const networkClient = this.networkClient;
         return new CallbackQuery(
             // getStateRoot: () => Promise<string>
-            async () => await networkClient.getLatestStateRoot(),
+            async () => await networkClient.getStateRoot(),
             // getStatePaths: (commitments: string[]) => Promise<string[]>
             async (commitments: string[]) => await networkClient.getStatePaths(commitments),
             // getBlockHeight: () => Promise<number>
@@ -1004,10 +1004,13 @@ class ProgramManager {
         const preparedInputs = this.prepareInputs(program, functionName, inputs);
 
         // Build the query: user-provided OfflineQuery for truly offline execution,
-        // or a CallbackQuery that delegates state fetching to JS transport.
+        // CallbackQuery when a custom transport is configured, or undefined to
+        // let WASM use its internal SnapshotQuery with the default fetch.
         const query = offlineQuery
             ? QueryOption.offlineQuery(offlineQuery)
-            : QueryOption.callbackQuery(this.buildCallbackQuery());
+            : this.networkClient.hasCustomTransport
+              ? QueryOption.callbackQuery(this.buildCallbackQuery())
+              : undefined;
 
         await this.ensureInclusionKeys(offlineQuery);
 
@@ -1025,8 +1028,8 @@ class ProgramManager {
             verifyingKey,
             feeProvingKey,
             feeVerifyingKey,
-            edition,
             query,
+            edition,
         );
     }
 
@@ -1176,7 +1179,9 @@ class ProgramManager {
 
         const query = offlineQuery
             ? QueryOption.offlineQuery(offlineQuery)
-            : QueryOption.callbackQuery(this.buildCallbackQuery());
+            : this.networkClient.hasCustomTransport
+              ? QueryOption.callbackQuery(this.buildCallbackQuery())
+              : undefined;
 
         await this.ensureInclusionKeys(offlineQuery);
 
@@ -1844,7 +1849,9 @@ class ProgramManager {
 
         const query = offlineQuery
             ? QueryOption.offlineQuery(offlineQuery)
-            : QueryOption.callbackQuery(this.buildCallbackQuery());
+            : this.networkClient.hasCustomTransport
+              ? QueryOption.callbackQuery(this.buildCallbackQuery())
+              : undefined;
 
         await this.ensureInclusionKeys(offlineQuery);
 
@@ -1863,8 +1870,8 @@ class ProgramManager {
             provingKey,
             verifyingKey,
             this.host,
-            edition,
             query,
+            edition,
         );
     }
 
@@ -1990,7 +1997,9 @@ class ProgramManager {
 
         const query = offlineQuery
             ? QueryOption.offlineQuery(offlineQuery)
-            : QueryOption.callbackQuery(this.buildCallbackQuery());
+            : this.networkClient.hasCustomTransport
+              ? QueryOption.callbackQuery(this.buildCallbackQuery())
+              : undefined;
 
         await this.ensureInclusionKeys(offlineQuery);
 
@@ -2090,7 +2099,9 @@ class ProgramManager {
 
         const query = offlineQuery
             ? QueryOption.offlineQuery(offlineQuery)
-            : QueryOption.callbackQuery(this.buildCallbackQuery());
+            : this.networkClient.hasCustomTransport
+              ? QueryOption.callbackQuery(this.buildCallbackQuery())
+              : undefined;
 
         await this.ensureInclusionKeys(offlineQuery);
 
@@ -2277,7 +2288,9 @@ class ProgramManager {
 
         const query = offlineQuery
             ? QueryOption.offlineQuery(offlineQuery)
-            : QueryOption.callbackQuery(this.buildCallbackQuery());
+            : this.networkClient.hasCustomTransport
+              ? QueryOption.callbackQuery(this.buildCallbackQuery())
+              : undefined;
 
         await this.ensureInclusionKeys(offlineQuery);
 

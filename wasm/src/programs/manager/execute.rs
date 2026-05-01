@@ -20,7 +20,6 @@ use crate::{
     Address,
     Authorization,
     ExecutionResponse,
-    OfflineQuery,
     PrivateKey,
     QueryOption,
     RecordPlaintext,
@@ -165,8 +164,8 @@ impl ProgramManager {
         proving_key: Option<ProvingKey>,
         verifying_key: Option<VerifyingKey>,
         url: Option<String>,
-        edition: Option<u16>,
         query: Option<QueryOption>,
+        edition: Option<u16>,
     ) -> Result<ExecutionResponse, String> {
         let node_url = url.as_deref().unwrap_or(DEFAULT_URL);
         let inputs = inputs.to_vec();
@@ -267,8 +266,8 @@ impl ProgramManager {
         verifying_key: Option<VerifyingKey>,
         fee_proving_key: Option<ProvingKey>,
         fee_verifying_key: Option<VerifyingKey>,
-        edition: Option<u16>,
         query: Option<QueryOption>,
+        edition: Option<u16>,
     ) -> Result<Transaction, String> {
         let mut process_native = ProcessNative::load_web().map_err(|err| err.to_string())?;
         let process = &mut process_native;

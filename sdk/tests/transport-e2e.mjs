@@ -8,11 +8,15 @@
 // Global fetch is replaced with a function that throws, simulating an mTLS
 // environment. If WASM makes any direct network call, this test fails.
 //
-// Run: node tests/transport-e2e.mjs
+// Test 2 uses a synthetic record (not on-chain) to verify that state path
+// fetching is routed through transport. The record parses and produces valid
+// commitments locally, triggering the getStatePaths transport call. The API
+// returns "not found" which is caught as a non-transport error — proving the
+// transport was used without requiring a funded account or block scanning.
 //
-// Requires: a funded testnet account and a real on-chain record.
+// Run: node tests/transport-e2e.mjs
 
-import { Account, ProgramManager, AleoKeyProvider, AleoNetworkClient, initThreadPool } from "../dist/testnet/node.js";
+import { Account, ProgramManager, AleoKeyProvider, RecordPlaintext, initThreadPool } from "../dist/testnet/node.js";
 
 function log(label, ok, detail = "") {
     const prefix = ok ? "\x1b[32m✓\x1b[0m" : "\x1b[31m✗\x1b[0m";
@@ -70,51 +74,40 @@ const t1Height = transportCalls.filter(u => u.includes("height/latest")).length;
 log("State root fetched via transport", t1StateRoot > 0);
 log("Block height fetched via transport", t1Height > 0);
 
-// --- Test 2: Private transfer (with record input — needs state path) ---
-console.log("\nTest 2: transfer_private (real record input)");
+// --- Test 2: Private transfer (synthetic record — needs state path) ---
+console.log("\nTest 2: transfer_private (synthetic record input)");
 
-// First, get a real record by doing a transfer_public_to_private
-// or use an existing one. Try to find one via the network client.
-const nc = new AleoNetworkClient("https://api.provable.com/v2", { transport: mtlsTransport });
-let record;
+// Construct a synthetic record owned by the test account. This record does
+// not exist on-chain, but it parses correctly and produces a valid commitment
+// that WASM uses to request state paths via the transport. The API will return
+// "not found" which is a non-transport error — proving transport routing works.
+const syntheticRecord = RecordPlaintext.fromString(`{
+  owner: ${address}.private,
+  microcredits: 1000000u64.private,
+  _nonce: 0group.public
+}`);
+
+transportCalls.length = 0;
 try {
-    // Look for existing records in recent blocks
-    nc.setAccount(account);
-    const height = await nc.getLatestHeight();
-    const records = await nc.findUnspentRecords(height - 1000, undefined, privateKey);
-    if (records.length > 0) {
-        record = records[0];
-        console.log(`Found existing record: ${record.toString().slice(0, 80)}...`);
-    }
+    const tx = await pm.buildExecutionTransaction({
+        programName: "credits.aleo",
+        functionName: "transfer_private",
+        inputs: [syntheticRecord.toString(), address, "1u64"],
+        priorityFee: 0,
+        privateFee: false,
+    });
+    log("transfer_private built with blocked global fetch", true);
 } catch (e) {
-    console.log("Could not scan for records (rate limited or none found)");
-}
-
-if (record) {
-    transportCalls.length = 0;
-    try {
-        const tx = await pm.buildExecutionTransaction({
-            programName: "credits.aleo",
-            functionName: "transfer_private",
-            inputs: [record.toString(), address, "1u64"],
-            priorityFee: 0,
-            privateFee: false,
-        });
-        log("transfer_private built with blocked global fetch", true);
-    } catch (e) {
-        if (e.message?.includes("BLOCKED")) {
-            log("transfer_private — WASM bypassed transport", false, e.message?.slice(0, 150));
-        } else {
-            // Non-transport errors are OK (e.g., record already spent)
-            log("transfer_private — transport worked (non-transport error)", true, e.message?.slice(0, 100));
-        }
+    if (e.message?.includes("BLOCKED")) {
+        log("transfer_private — WASM bypassed transport", false, e.message?.slice(0, 150));
+    } else {
+        // Non-transport errors are expected (synthetic record has no on-chain state path)
+        log("transfer_private — transport worked (non-transport error)", true, e.message?.slice(0, 100));
     }
-
-    const t2StatePaths = transportCalls.filter(u => u.includes("statePaths"));
-    log("State paths fetched via transport", t2StatePaths.length > 0, `${t2StatePaths.length} call(s)`);
-} else {
-    console.log("⚠ Skipping record test — no unspent record found. Run transport-create-record.mjs first.");
 }
+
+const t2StatePaths = transportCalls.filter(u => u.includes("statePaths"));
+log("State paths fetched via transport", t2StatePaths.length > 0, `${t2StatePaths.length} call(s)`);
 
 // --- Summary ---
 console.log("\n=== Summary ===");

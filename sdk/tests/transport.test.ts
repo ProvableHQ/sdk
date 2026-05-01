@@ -130,11 +130,11 @@ describe("Configurable Transport", () => {
     });
 
     describe("Transport-aware state fetching", () => {
-        it("getLatestStateRoot uses transport", async () => {
+        it("getStateRoot uses transport", async () => {
             const transport = createMockTransport('"sr1test"');
             const client = new AleoNetworkClient("https://example.com", { transport });
 
-            const result = await client.getLatestStateRoot();
+            const result = await client.getStateRoot();
 
             expect(transport.calledOnce).to.be.true;
             expect(transport.firstCall.args[0]).to.include("stateRoot/latest");
@@ -231,7 +231,7 @@ constructor:
             // Spy on the network client methods that the CallbackQuery wraps.
             // run() constructs a QueryOption.callbackQuery(...) and passes it to WASM.
             // WASM invokes the callbacks during trace.prepare_async().
-            const stateRootSpy = sinon.stub(pm.networkClient, "getLatestStateRoot").resolves("sr1test");
+            const stateRootSpy = sinon.stub(pm.networkClient, "getStateRoot").resolves("sr1test");
             const heightSpy = sinon.stub(pm.networkClient, "getLatestHeight").resolves(1000);
             const helloProgram = "program hello_cb_test.aleo;\nfunction hello:\n    input r0 as u32.public;\n    input r1 as u32.public;\n    add r0 r1 into r2;\n    output r2 as u32.public;\n";
 
@@ -245,6 +245,31 @@ constructor:
             // (state root and height are always needed for trace preparation)
             expect(stateRootSpy.called).to.be.true;
             expect(heightSpy.called).to.be.true;
+        });
+    });
+
+    describe("No custom transport — skips CallbackQuery", () => {
+        it("ProgramManager does not invoke CallbackQuery when no custom transport is set", async () => {
+            const { ProgramManager, Account } = await import("@provablehq/sdk/%%NETWORK%%.js");
+
+            // No transport option — ProgramManager should let WASM use SnapshotQuery
+            const pm = new ProgramManager("https://example.com");
+            pm.setAccount(new Account());
+
+            expect(pm.networkClient.hasCustomTransport).to.be.false;
+
+            // Spy on getStateRoot — if CallbackQuery were used, this would be called
+            const stateRootSpy = sinon.stub(pm.networkClient, "getStateRoot").resolves("sr1test");
+            const helloProgram = "program hello_no_transport.aleo;\nfunction hello:\n    input r0 as u32.public;\n    input r1 as u32.public;\n    add r0 r1 into r2;\n    output r2 as u32.public;\n";
+
+            try {
+                await pm.run(helloProgram, "hello", ["5u32", "5u32"], true);
+            } catch (e) {
+                // Expected — WASM SnapshotQuery will fail against example.com
+            }
+
+            // getStateRoot should NOT have been called — WASM handles it internally
+            expect(stateRootSpy.called).to.be.false;
         });
     });
 

@@ -90,8 +90,8 @@ impl ProgramManager {
             None,
             None,
             None,
-            edition,
             None,
+            edition,
         )
         .await?
         .get_keys()

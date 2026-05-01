@@ -27,7 +27,7 @@ use js_sys::{Array, Function, Promise};
 use snarkvm_console::network::Network;
 use snarkvm_ledger_query::QueryTrait;
 use std::str::FromStr;
-use wasm_bindgen::prelude::*;
+use wasm_bindgen::{JsCast, prelude::*};
 use wasm_bindgen_futures::JsFuture;
 
 /// A query implementation that delegates state fetching to JS callback functions.
@@ -74,7 +74,8 @@ async fn call_js_async(func: &Function, args: &[JsValue]) -> Result<JsValue> {
     };
 
     let promise = result.map_err(|e| anyhow!("JS callback invocation failed: {:?}", e))?;
-    let js_promise = Promise::from(promise);
+    let js_promise: Promise =
+        promise.dyn_into().map_err(|_| anyhow!("JS callback must return a Promise, got a non-thenable value"))?;
     JsFuture::from(js_promise).await.map_err(|e| anyhow!("JS callback Promise rejected: {:?}", e))
 }
 
