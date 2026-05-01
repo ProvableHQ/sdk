@@ -20,8 +20,8 @@ use crate::{
     Address,
     Authorization,
     ExecutionResponse,
-    OfflineQuery,
     PrivateKey,
+    QueryOption,
     RecordPlaintext,
     SnapshotQuery,
     Transaction,
@@ -56,13 +56,83 @@ use snarkvm_synthesizer::prelude::{InclusionVersion, execution_cost, execution_c
 
 use crate::types::native::{PrivateKeyNative, ViewKeyNative};
 use core::ops::Add;
-use js_sys::{Array, Object};
+use js_sys::{Array, Object, Reflect};
 use rand::{SeedableRng, rngs::StdRng};
 use snarkvm_console::network::ConsensusVersion;
 use std::str::FromStr;
+use wasm_bindgen::JsValue;
 
 #[wasm_bindgen]
 impl ProgramManager {
+    /// Compute the query requirements for a function execution without making
+    /// any network calls. Returns the commitments that need state paths and
+    /// whether the function has dynamic record inputs.
+    ///
+    /// This enables the JS layer to pre-fetch state data via its configured
+    /// transport and construct an OfflineQuery, so that the subsequent WASM
+    /// execution call never makes its own network requests.
+    ///
+    /// @param {string} program The source code of the program
+    /// @param {string} function_name The name of the function to execute
+    /// @param {Array} inputs The inputs to the function
+    /// @param {PrivateKey} private_key The private key (used to derive the view key for commitment computation)
+    /// @param {RecordPlaintext | undefined} fee_record Optional fee record to include in commitment computation
+    /// @returns {Object} An object with { commitments: string[], hasDynamicInputs: boolean }
+    #[wasm_bindgen(js_name = "computeQueryRequirements")]
+    pub fn compute_query_requirements(
+        program: &str,
+        function_name: &str,
+        inputs: Array,
+        private_key: &PrivateKey,
+        fee_record: Option<RecordPlaintext>,
+    ) -> Result<JsValue, String> {
+        let program_native = ProgramNative::from_str(program).map_err(|e| e.to_string())?;
+        let function_id = IdentifierNative::from_str(function_name).map_err(|e| e.to_string())?;
+        let view_key = ViewKeyNative::try_from(PrivateKeyNative::from(private_key)).map_err(|e| e.to_string())?;
+
+        // Check for dynamic record inputs — can't pre-compute commitments for these.
+        let has_dynamic_inputs = SnapshotQuery::has_dynamic_record_inputs(&program_native, &function_id);
+
+        let mut all_commitments: Vec<String> = Vec::new();
+
+        if !has_dynamic_inputs {
+            // Compute commitments from the main execution inputs.
+            let inputs_vec = inputs.to_vec();
+            let commitments =
+                SnapshotQuery::collect_commitments_from_inputs(&program_native, &function_id, &view_key, &inputs_vec)
+                    .map_err(|e| e.to_string())?;
+
+            all_commitments.extend(commitments.iter().map(|c| c.to_string()));
+        }
+
+        // Always compute fee record commitments (credits.aleo is never dynamic).
+        if let Some(fee_record) = fee_record {
+            let credits_program = ProgramNative::credits().unwrap();
+            let fee_function_id = IdentifierNative::from_str("fee_private").map_err(|e| e.to_string())?;
+            let fee_input = JsValue::from_str(&fee_record.to_string());
+            let fee_commitments =
+                SnapshotQuery::collect_commitments_from_inputs(&credits_program, &fee_function_id, &view_key, &[
+                    fee_input,
+                ])
+                .map_err(|e| e.to_string())?;
+
+            all_commitments.extend(fee_commitments.iter().map(|c| c.to_string()));
+        }
+
+        // Build the result object.
+        let result = Object::new();
+        let js_commitments = Array::new();
+        for commitment in &all_commitments {
+            js_commitments.push(&JsValue::from_str(commitment));
+        }
+        Reflect::set(&result, &"commitments".into(), &js_commitments.into())
+            .map_err(|_| "Failed to set commitments".to_string())?;
+        Reflect::set(&result, &"hasDynamicInputs".into(), &has_dynamic_inputs.into())
+            .map_err(|_| "Failed to set hasDynamicInputs".to_string())?;
+
+        Ok(result.into())
+    }
+
     /// Execute an arbitrary function locally
     ///
     /// @param {PrivateKey} private_key The private key of the sender
@@ -94,7 +164,7 @@ impl ProgramManager {
         proving_key: Option<ProvingKey>,
         verifying_key: Option<VerifyingKey>,
         url: Option<String>,
-        offline_query: Option<OfflineQuery>,
+        query: Option<QueryOption>,
         edition: Option<u16>,
     ) -> Result<ExecutionResponse, String> {
         let node_url = url.as_deref().unwrap_or(DEFAULT_URL);
@@ -124,8 +194,8 @@ impl ProgramManager {
 
         let mut execution_response = if prove_execution {
             log("Preparing inclusion proofs for execution");
-            if let Some(offline_query) = offline_query {
-                trace.prepare_async(&offline_query).await.map_err(|err| err.to_string())?;
+            if let Some(ref query) = query {
+                trace.prepare_async(query).await.map_err(|err| err.to_string())?;
             } else {
                 let function_name = IdentifierNative::from_str(function).map_err(|err| err.to_string())?;
                 let view_key =
@@ -196,7 +266,7 @@ impl ProgramManager {
         verifying_key: Option<VerifyingKey>,
         fee_proving_key: Option<ProvingKey>,
         fee_verifying_key: Option<VerifyingKey>,
-        offline_query: Option<OfflineQuery>,
+        query: Option<QueryOption>,
         edition: Option<u16>,
     ) -> Result<Transaction, String> {
         let mut process_native = ProcessNative::load_web().map_err(|err| err.to_string())?;
@@ -224,9 +294,9 @@ impl ProgramManager {
         );
 
         log("Preparing inclusion proofs for execution");
-        let latest_height = if let Some(offline_query) = offline_query.as_ref() {
-            trace.prepare_async(offline_query).await.map_err(|err| err.to_string())?;
-            offline_query.current_block_height().map_err(|e| e.to_string())?
+        let latest_height = if let Some(ref query) = query {
+            trace.prepare_async(query).await.map_err(|err| err.to_string())?;
+            query.current_block_height_async().await.map_err(|e| e.to_string())?
         } else {
             let function_name = IdentifierNative::from_str(function).map_err(|err| err.to_string())?;
             let view_key =
@@ -253,7 +323,7 @@ impl ProgramManager {
             | ("credits.aleo", "fee_public") => None,
             _ => {
                 log("Calculating the minimum execution fee");
-                let minimum_execution_cost = calculate_minimum_fee!(offline_query, node_url, process, &execution);
+                let minimum_execution_cost = calculate_minimum_fee!(node_url, process, &execution, query);
 
                 // Check to see if the fee record has enough microcredits to pay for the deployment.
                 let priority_fee_microcredits = (priority_fee_credits * 1_000_000.0) as u64;
@@ -273,8 +343,8 @@ impl ProgramManager {
                     fee_verifying_key,
                     execution_id,
                     rng,
-                    offline_query,
-                    minimum_execution_cost
+                    minimum_execution_cost,
+                    query
                 );
                 Some(fee)
             }
@@ -315,7 +385,7 @@ impl ProgramManager {
         fee_verifying_key: Option<VerifyingKey>,
         imports: Option<Object>,
         url: Option<String>,
-        offline_query: Option<OfflineQuery>,
+        query: Option<QueryOption>,
     ) -> Result<Transaction, String> {
         // Create a process and insert the program and its imports.
         log("Loading the SnarkVM process");
@@ -325,8 +395,8 @@ impl ProgramManager {
 
         // Get the latest height.
         log("Checking the latest block height");
-        let latest_height = if let Some(offline_query) = offline_query.as_ref() {
-            offline_query.current_block_height().map_err(|e| e.to_string())?
+        let latest_height = if let Some(ref query) = query {
+            query.current_block_height_async().await.map_err(|e| e.to_string())?
         } else {
             latest_block_height(node_url).await.map_err(|e| e.to_string())?
         };
@@ -428,11 +498,11 @@ impl ProgramManager {
         let (_, mut trace) = process.execute::<CurrentAleo, _>(authorization, rng).map_err(|e| e.to_string())?;
 
         log("Preparing inclusion proofs for execution");
-        if let Some(offline_query) = offline_query.as_ref() {
-            trace.prepare_async(offline_query).await.map_err(|e| e.to_string())?;
+        if let Some(ref query) = query {
+            trace.prepare_async(query).await.map_err(|e| e.to_string())?;
         } else {
-            let query = SnapshotQuery::rest(node_url);
-            trace.prepare_async(&query).await.map_err(|err| err.to_string())?;
+            let q = SnapshotQuery::rest(node_url);
+            trace.prepare_async(&q).await.map_err(|err| err.to_string())?;
         };
 
         log("Proving execution");
@@ -451,12 +521,12 @@ impl ProgramManager {
             let (_, mut fee_trace) =
                 process.execute::<CurrentAleo, _>(fee_authorization, rng).map_err(|e| e.to_string())?;
 
-            log("Preparing inclusion proofs for execution");
-            if let Some(offline_query) = offline_query.as_ref() {
-                fee_trace.prepare_async(offline_query).await.map_err(|e| e.to_string())?;
+            log("Preparing inclusion proofs for fee execution");
+            if let Some(ref query) = query {
+                fee_trace.prepare_async(query).await.map_err(|e| e.to_string())?;
             } else {
-                let query = SnapshotQuery::rest(node_url);
-                fee_trace.prepare_async(&query).await.map_err(|err| err.to_string())?;
+                let q = SnapshotQuery::rest(node_url);
+                fee_trace.prepare_async(&q).await.map_err(|err| err.to_string())?;
             };
 
             Some(fee_trace.prove_fee::<CurrentAleo, _>(varuna_version, rng).map_err(|e| e.to_string())?)

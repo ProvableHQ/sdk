@@ -17,8 +17,8 @@
 use super::*;
 
 use crate::{
-    OfflineQuery,
     PrivateKey,
+    QueryOption,
     RecordPlaintext,
     SnapshotQuery,
     Transaction,
@@ -65,7 +65,7 @@ impl ProgramManager {
         url: Option<String>,
         split_proving_key: Option<ProvingKey>,
         split_verifying_key: Option<VerifyingKey>,
-        offline_query: Option<OfflineQuery>,
+        query: Option<QueryOption>,
     ) -> Result<Transaction, String> {
         log("Executing split program");
         let amount_microcredits = (split_amount * 1_000_000.0) as u64;
@@ -98,19 +98,19 @@ impl ProgramManager {
         );
 
         log("Preparing the inclusion proof for the split execution");
-        let latest_height = if let Some(offline_query) = offline_query.as_ref() {
-            trace.prepare_async(offline_query).await.map_err(|err| err.to_string())?;
-            offline_query.current_block_height().map_err(|e| e.to_string())?
+        let latest_height = if let Some(ref query) = query {
+            trace.prepare_async(query).await.map_err(|err| err.to_string())?;
+            query.current_block_height_async().await.map_err(|e| e.to_string())?
         } else {
             let credits = ProgramNative::credits().unwrap();
             let function_name = IdentifierNative::from_str("split").unwrap();
             let view_key =
                 ViewKeyNative::try_from(PrivateKeyNative::from(private_key)).map_err(|err| err.to_string())?;
-            let query = SnapshotQuery::try_from_inputs(node_url, &credits, &function_name, &view_key, &inputs.to_vec())
+            let q = SnapshotQuery::try_from_inputs(node_url, &credits, &function_name, &view_key, &inputs.to_vec())
                 .await
                 .map_err(|err| err.to_string())?;
-            trace.prepare_async(&query).await.map_err(|err| err.to_string())?;
-            query.current_block_height_async().await.map_err(|e| e.to_string())?
+            trace.prepare_async(&q).await.map_err(|err| err.to_string())?;
+            q.current_block_height_async().await.map_err(|e| e.to_string())?
         };
 
         log("Proving the split execution");

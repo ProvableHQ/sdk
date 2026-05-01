@@ -88,6 +88,7 @@ class AleoNetworkClient {
     verboseErrors: boolean;
     readonly network: string;
     transport: TransportFunction;
+    hasCustomTransport: boolean;
     apiKey?: string;
     consumerId?: string;
     jwtData?: JWTData;
@@ -103,6 +104,7 @@ class AleoNetworkClient {
         this.ctx = {};
         this.verboseErrors = true;
         this.transport = options?.transport ?? defaultTransport;
+        this.hasCustomTransport = !!options?.transport;
 
         if (options) {
             if (options.headers) {
@@ -987,6 +989,24 @@ class AleoNetworkClient {
             return Number(await this.fetchData<bigint>("/block/height/latest"));
         } catch (error) {
             throw new Error(`Error fetching latest height: ${error}`);
+        } finally {
+            this.ctx = {};
+        }
+    }
+
+    /**
+     * Returns state paths for the given record commitments.
+     *
+     * @param {string[]} commitments - Array of commitment field strings.
+     * @returns {Promise<string[]>} Array of state path strings corresponding to the commitments.
+     */
+    async getStatePaths(commitments: string[]): Promise<string[]> {
+        try {
+            this.ctx = { "X-ALEO-METHOD": "getStatePaths" };
+            const csv = commitments.map(c => encodeURIComponent(c)).join(",");
+            return await this.fetchData<string[]>(`/statePaths?commitments=${csv}`);
+        } catch (error) {
+            throw new Error(`Error fetching state paths for commitments: ${error}`);
         } finally {
             this.ctx = {};
         }

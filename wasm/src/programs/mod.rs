@@ -30,8 +30,18 @@ pub mod manager;
 #[cfg(feature = "browser")]
 pub use manager::*;
 
+#[cfg(feature = "browser")]
+pub mod callback_query;
+#[cfg(feature = "browser")]
+pub use callback_query::*;
+
 pub mod offline_query;
 pub use offline_query::*;
+
+#[cfg(feature = "browser")]
+pub mod query_option;
+#[cfg(feature = "browser")]
+pub use query_option::*;
 
 pub mod program;
 pub use program::*;

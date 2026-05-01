@@ -196,6 +196,24 @@ jobs:
         run: yarn test:cjs:pack
 
 
+  # Verifies that buildExecutionTransaction routes all network calls through
+  # the configured transport via QueryOption. Global fetch is replaced with
+  # a throwing function to simulate mTLS environments.
+  transport-e2e:
+    name: "Transport-aware proving (testnet)"
+    runs-on: ubuntu-latest-m
+    needs: build
+    steps:
+      - uses: actions/checkout@v4
+      - uses: ./.github/actions/setup-yarn
+      - uses: ./.github/actions/use-build
+
+      - name: Run transport e2e verification
+        working-directory: sdk
+        timeout-minutes: 10
+        run: node tests/transport-e2e.mjs
+
+
   create-leo-app-dynamic-dispatch-proving:
     name: "create-leo-app dynamic-dispatch-proving (testnet)"
     runs-on: ubuntu-latest-m

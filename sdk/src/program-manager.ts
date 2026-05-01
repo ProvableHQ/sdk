@@ -20,6 +20,8 @@ import {
 import {
     Address,
     Authorization,
+    CallbackQuery,
+    QueryOption,
     ExecutionRequest,
     ExecutionResponse,
     Execution as FunctionExecution,
@@ -281,6 +283,42 @@ class ProgramManager {
 
         this.keyProvider = keyProvider ? keyProvider : new AleoKeyProvider({ transport: networkClientOptions?.transport });
         this.recordProvider = recordProvider;
+    }
+
+    /**
+     * Pre-load the inclusion prover for offline execution. Required when the
+     * user provides an explicit OfflineQuery (truly offline — can't fetch lazily).
+     * For CallbackQuery, snarkVM handles inclusion key loading on demand.
+     */
+    private async ensureInclusionKeys(isOffline: boolean): Promise<void> {
+        if (isOffline && !this.inclusionKeysLoaded) {
+            try {
+                const inclusionKeys = await this.keyProvider.inclusionKeys();
+                WasmProgramManager.loadInclusionProver(inclusionKeys[0]);
+                this.inclusionKeysLoaded = true;
+            } catch {
+                logAndThrow(`Inclusion key bytes not loaded, please ensure the program manager is initialized with a KeyProvider that includes the inclusion key.`);
+            }
+        }
+    }
+
+    /**
+     * Create a CallbackQuery that delegates all state fetching to the
+     * transport-aware network client. WASM calls back into these functions
+     * during trace.prepare_async() instead of making its own reqwest calls.
+     *
+     * This handles ALL programs including those with DynamicRecord inputs.
+     */
+    private buildCallbackQuery(): CallbackQuery {
+        const networkClient = this.networkClient;
+        return new CallbackQuery(
+            // getStateRoot: () => Promise<string>
+            async () => await networkClient.getStateRoot(),
+            // getStatePaths: (commitments: string[]) => Promise<string[]>
+            async (commitments: string[]) => await networkClient.getStatePaths(commitments),
+            // getBlockHeight: () => Promise<number>
+            async () => await networkClient.getLatestHeight(),
+        );
     }
 
     /**
@@ -962,19 +1000,19 @@ class ProgramManager {
             );
         }
 
-        if (offlineQuery && !this.inclusionKeysLoaded) {
-            try {
-                const inclusionKeys = await this.keyProvider.inclusionKeys();
-                WasmProgramManager.loadInclusionProver(inclusionKeys[0])
-                this.inclusionKeysLoaded = true;
-                console.log("Successfully loaded inclusion key");
-            } catch {
-                logAndThrow(`Inclusion key bytes not loaded, please ensure the program manager is initialized with a KeyProvider that includes the inclusion key.`)
-            }
-        }
-
         // Auto-convert bare string inputs to field elements where the function expects field type.
         const preparedInputs = this.prepareInputs(program, functionName, inputs);
+
+        // Build the query: user-provided OfflineQuery for truly offline execution,
+        // CallbackQuery when a custom transport is configured, or undefined to
+        // let WASM use its internal SnapshotQuery with the default fetch.
+        const query = offlineQuery
+            ? QueryOption.offlineQuery(offlineQuery)
+            : this.networkClient.hasCustomTransport
+              ? QueryOption.callbackQuery(this.buildCallbackQuery())
+              : undefined;
+
+        await this.ensureInclusionKeys(!!offlineQuery);
 
         // Build an execution transaction
         return await WasmProgramManager.buildExecutionTransaction(
@@ -990,8 +1028,8 @@ class ProgramManager {
             verifyingKey,
             feeProvingKey,
             feeVerifyingKey,
-            offlineQuery,
-            edition
+            query,
+            edition,
         );
     }
 
@@ -1139,18 +1177,13 @@ class ProgramManager {
             }
         }
 
-        // If the offline query exists, add the inclusion key.
-        if (offlineQuery && !this.inclusionKeysLoaded) {
-            console.log("Loading inclusion keys for offline proving.");
-            try {
-                const inclusionKeys = await this.keyProvider.inclusionKeys();
-                WasmProgramManager.loadInclusionProver(inclusionKeys[0])
-                this.inclusionKeysLoaded = true;
-                console.log("Successfully loaded inclusion key");
-            } catch {
-                logAndThrow(`Inclusion key bytes not loaded, please ensure the program manager is initialized with a KeyProvider that includes the inclusion key.`)
-            }
-        }
+        const query = offlineQuery
+            ? QueryOption.offlineQuery(offlineQuery)
+            : this.networkClient.hasCustomTransport
+              ? QueryOption.callbackQuery(this.buildCallbackQuery())
+              : undefined;
+
+        await this.ensureInclusionKeys(!!offlineQuery);
 
         // Build an execution transaction from the authorization.
         console.log("Executing authorizations")
@@ -1164,7 +1197,7 @@ class ProgramManager {
             feeVerifyingKey,
             imports,
             this.host,
-            offlineQuery
+            query,
         )
     }
 
@@ -1814,6 +1847,14 @@ class ProgramManager {
         // Auto-convert bare string inputs to field elements where the function expects field type.
         const preparedInputs = this.prepareInputs(program, function_name, inputs);
 
+        const query = offlineQuery
+            ? QueryOption.offlineQuery(offlineQuery)
+            : this.networkClient.hasCustomTransport
+              ? QueryOption.callbackQuery(this.buildCallbackQuery())
+              : undefined;
+
+        await this.ensureInclusionKeys(!!offlineQuery);
+
         // Run the program offline and return the result
         console.log("Running program offline");
         console.log("Proving key: ", provingKey);
@@ -1829,8 +1870,8 @@ class ProgramManager {
             provingKey,
             verifyingKey,
             this.host,
-            offlineQuery,
-            edition
+            query,
+            edition,
         );
     }
 
@@ -1954,17 +1995,13 @@ class ProgramManager {
             );
         }
 
-        // Load the inclusion prover offline.
-        if (offlineQuery && !this.inclusionKeysLoaded) {
-            try {
-                const inclusionKeys = await this.keyProvider.inclusionKeys();
-                WasmProgramManager.loadInclusionProver(inclusionKeys[0])
-                this.inclusionKeysLoaded = true;
-                console.log("Successfully loaded inclusion key");
-            } catch {
-                logAndThrow(`Inclusion key bytes not loaded, please ensure the program manager is initialized with a KeyProvider that includes the inclusion key.`)
-            }
-        }
+        const query = offlineQuery
+            ? QueryOption.offlineQuery(offlineQuery)
+            : this.networkClient.hasCustomTransport
+              ? QueryOption.callbackQuery(this.buildCallbackQuery())
+              : undefined;
+
+        await this.ensureInclusionKeys(!!offlineQuery);
 
         // Build an execution transaction and submit it to the network
         const tx = await WasmProgramManager.buildJoinTransaction(
@@ -1978,7 +2015,7 @@ class ProgramManager {
             joinVerifyingKey,
             feeProvingKey,
             feeVerifyingKey,
-            offlineQuery,
+            query,
         );
 
         // Check if the account has sufficient credits to pay for the transaction
@@ -2060,17 +2097,13 @@ class ProgramManager {
             );
         }
 
-        // Load the inclusion prover offline.
-        if (offlineQuery && !this.inclusionKeysLoaded) {
-            try {
-                const inclusionKeys = await this.keyProvider.inclusionKeys();
-                WasmProgramManager.loadInclusionProver(inclusionKeys[0])
-                this.inclusionKeysLoaded = true;
-                console.log("Successfully loaded inclusion key");
-            } catch {
-                logAndThrow(`Inclusion key bytes not loaded, please ensure the program manager is initialized with a KeyProvider that includes the inclusion key.`)
-            }
-        }
+        const query = offlineQuery
+            ? QueryOption.offlineQuery(offlineQuery)
+            : this.networkClient.hasCustomTransport
+              ? QueryOption.callbackQuery(this.buildCallbackQuery())
+              : undefined;
+
+        await this.ensureInclusionKeys(!!offlineQuery);
 
         // Build an execution transaction and submit it to the network
         const tx = await WasmProgramManager.buildSplitTransaction(
@@ -2080,7 +2113,7 @@ class ProgramManager {
             this.host,
             splitProvingKey,
             splitVerifyingKey,
-            offlineQuery,
+            query,
         );
 
         return await this.networkClient.submitTransaction(tx);
@@ -2253,19 +2286,13 @@ class ProgramManager {
             );
         }
 
-        // Load the inclusion prover offline.
-        if (offlineQuery && !this.inclusionKeysLoaded) {
-            const inclusionKeys = await this.keyProvider.inclusionKeys();
-            WasmProgramManager.loadInclusionProver(inclusionKeys[0])
-            try {
-                const inclusionKeys = await this.keyProvider.inclusionKeys();
-                WasmProgramManager.loadInclusionProver(inclusionKeys[0])
-                this.inclusionKeysLoaded = true;
-                console.log("Successfully loaded inclusion key");
-            } catch {
-                logAndThrow(`Inclusion key bytes not loaded, please ensure the program manager is initialized with a KeyProvider that includes the inclusion key.`)
-            }
-        }
+        const query = offlineQuery
+            ? QueryOption.offlineQuery(offlineQuery)
+            : this.networkClient.hasCustomTransport
+              ? QueryOption.callbackQuery(this.buildCallbackQuery())
+              : undefined;
+
+        await this.ensureInclusionKeys(!!offlineQuery);
 
         // Build an execution transaction
         return await WasmProgramManager.buildTransferTransaction(
@@ -2281,7 +2308,7 @@ class ProgramManager {
             transferVerifyingKey,
             feeProvingKey,
             feeVerifyingKey,
-            offlineQuery,
+            query,
         );
     }
 

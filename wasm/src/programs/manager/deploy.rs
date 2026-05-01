@@ -19,6 +19,7 @@ use super::*;
 use crate::{
     OfflineQuery,
     PrivateKey,
+    QueryOption,
     RecordPlaintext,
     SnapshotQuery,
     Transaction,
@@ -135,6 +136,7 @@ impl ProgramManager {
         // Execute the fee.
         let deployment_id = deployment.to_deployment_id().map_err(|e| e.to_string())?;
         let owner = ProgramOwnerNative::new(private_key, deployment_id, rng).map_err(|err| err.to_string())?;
+        let deploy_query: Option<QueryOption> = offline_query.map(QueryOption::from_offline);
         let fee = execute_fee!(
             process,
             private_key,
@@ -145,8 +147,8 @@ impl ProgramManager {
             fee_verifying_key,
             deployment_id,
             rng,
-            offline_query,
-            minimum_deployment_cost
+            minimum_deployment_cost,
+            deploy_query
         );
 
         log("Creating deployment transaction");
@@ -311,6 +313,7 @@ impl ProgramManager {
         // Execute the fee.
         let deployment_id = deployment.to_deployment_id().map_err(|e| e.to_string())?;
         let owner = ProgramOwnerNative::new(private_key, deployment_id, rng).map_err(|err| err.to_string())?;
+        let deploy_query: Option<QueryOption> = offline_query.map(QueryOption::from_offline);
         let fee = execute_fee!(
             process,
             private_key,
@@ -321,8 +324,8 @@ impl ProgramManager {
             fee_verifying_key,
             deployment_id,
             rng,
-            offline_query,
-            minimum_deployment_cost
+            minimum_deployment_cost,
+            deploy_query
         );
 
         log("Creating deployment transaction");

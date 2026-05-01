@@ -140,7 +140,7 @@ impl SnapshotQuery {
     }
 
     /// Returns true if the function has any DynamicRecord or DynamicFuture input types.
-    fn has_dynamic_record_inputs(program: &ProgramNative, function_id: &IdentifierNative) -> bool {
+    pub fn has_dynamic_record_inputs(program: &ProgramNative, function_id: &IdentifierNative) -> bool {
         let Ok(function) = program.get_function(function_id) else {
             return false;
         };
