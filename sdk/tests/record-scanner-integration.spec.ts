@@ -10,7 +10,7 @@ describe("RecordScanner", () => {
     let recordScanner = new RecordScanner({ url: recordScannerUrl, apiKey });
 
     it("should successfully register a view key", async () => {
-        const result = await recordScanner.register(viewKey, 0);
+        const result = await recordScanner.registerEncrypted(viewKey, 0);
         expect(result.ok).to.equal(true);
         if (result.ok) {
             expect(result.data.uuid).to.equal(recordScanner.computeUUID(viewKey).toString());

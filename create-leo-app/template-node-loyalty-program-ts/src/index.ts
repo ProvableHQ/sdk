@@ -373,11 +373,7 @@ class LoyaltyProgram {
         logScanStart(this.TOKEN_PROGRAM_ID, "LoyaltyCard", startHeight, endHeight);
 
         // Register with the scanner.
-        if (this._rssPrivacy) {
-            await this._recordScanner.registerEncrypted(this._account.viewKey(), startHeight);
-        } else {
-            await this._recordScanner.register(this._account.viewKey(), startHeight);
-        }
+        await this._recordScanner.registerEncrypted(this._account.viewKey(), startHeight);
 
         const records = await this._recordScanner.findRecords({
             decrypt: true,
@@ -424,11 +420,7 @@ class LoyaltyProgram {
         logScanStart(this.REWARDS_PROGRAM_ID, "RewardVoucher", startHeight, endHeight);
 
         // Register with the scanner.
-        if (this._rssPrivacy) {
-            await this._recordScanner.registerEncrypted(this._account.viewKey(), startHeight);
-        } else {
-            await this._recordScanner.register(this._account.viewKey(), startHeight);
-        }
+        await this._recordScanner.registerEncrypted(this._account.viewKey(), startHeight);
 
         const records = await this._recordScanner.findRecords({
             decrypt: true,

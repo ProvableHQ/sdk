@@ -382,11 +382,7 @@ class LoyaltyProgram {
     });
 
     // Register with the scanner.
-    if (this._rssPrivacy) {
-      await this._recordScanner.registerEncrypted(this.account.viewKey(), startHeight);
-    } else {
-      await this._recordScanner.register(this.account.viewKey(), startHeight);
-    }
+    await this._recordScanner.registerEncrypted(this.account.viewKey(), startHeight);
 
     const records = await this._recordScanner.findRecords({
       decrypt: true,
@@ -440,11 +436,7 @@ class LoyaltyProgram {
     });
 
     // Register with the scanner.
-    if (this._rssPrivacy) {
-      await this._recordScanner.registerEncrypted(this.account.viewKey(), startHeight);
-    } else {
-      await this._recordScanner.register(this.account.viewKey(), startHeight);
-    }
+    await this._recordScanner.registerEncrypted(this.account.viewKey(), startHeight);
 
     const records = await this._recordScanner.findRecords({
       decrypt: true,

@@ -17,8 +17,6 @@ import {
     RecordScannerRequestError,
     ViewKeyNotStoredError,
 } from "./models/record-scanner/error.js";
-import { RegistrationRequest } from "./models/record-scanner/registrationRequest.js";
-import { RegistrationResponse } from "./models/record-scanner/registrationResponse.js";
 import { StatusResponse } from "./models/record-scanner/statusResponse.js";
 import { TagsResult } from "./models/record-scanner/tagsResult.js";
 import { SerialNumbersResult } from "./models/record-scanner/serialNumbersResult.js";
@@ -76,7 +74,7 @@ export interface RecordScannerOptions {
  * const recordScanner = new RecordScanner({ url: "https://record-scanner.aleo.org" });
  * recordScanner.setAccount(account);
  * recordScanner.setApiKey("example-api-key");
- * const result = await recordScanner.register(viewKey, 0);
+ * const result = await recordScanner.registerEncrypted(viewKey, 0);
  * if (result.ok) { const uuid = result.data.uuid; }
  *
  * const filter = {
@@ -350,44 +348,6 @@ class RecordScanner implements RecordProvider {
             };
         }
         throw err;
-    }
-
-    /**
-     * Register the account with the record scanning service (unencrypted POST /register). Does not throw if a valid error response from the record scanner is received; returns a result object instead.
-     *
-     * @param {ViewKey} viewKey The view key to register.
-     * @param {number} startBlock The block height to start scanning from.
-     * @returns {Promise<RegisterResult>} `{ ok: true, data }` on success, or `{ ok: false, status, error }` on failure.
-     */
-    async register(viewKey: ViewKey, startBlock: number): Promise<RegisterResult> {
-        try {
-            const request: RegistrationRequest = {
-                view_key: viewKey.to_string(),
-                start: startBlock,
-            };
-            const response = await this.request(
-                new Request(`${this.url}/register`, {
-                    method: "POST",
-                    headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify(request),
-                }),
-            );
-            const data = await response.json();
-
-            // If the uuid is not set, set it on the scanner.
-            if (!this.uuid) {
-                this.uuid = data.uuid;
-            }
-
-            // Add the view key to the local scanner's view keys if configured to do so.
-            if (this.cacheViewKeysOnRegister) {
-                this.addViewKey(viewKey);
-            }
-            return { ok: true, data };
-        } catch (err) {
-            console.error(`Failed to register view key: ${err}`);
-            return this.handleRequestError(err);
-        }
     }
 
     /**
