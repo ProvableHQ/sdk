@@ -15,7 +15,6 @@ interface ImportMetaEnv {
   // RSS scanner
   readonly VITE_ALEO_RSS_URL?: string;
   readonly VITE_ALEO_RSS_API_KEY?: string;
-  readonly VITE_ALEO_RSS_PRIVACY?: string;
   readonly VITE_ALEO_SCAN_START_HEIGHT?: string;
 }
 

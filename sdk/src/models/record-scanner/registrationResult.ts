@@ -7,5 +7,5 @@ export interface RegisterSuccess {
     data: RegistrationResponse;
 }
 
-/** Result of register() and registerEncrypted(); never throws on HTTP error. */
+/** Result of registerEncrypted(); never throws on HTTP error. */
 export type RegisterResult = RegisterSuccess | RecordScannerFailure;
