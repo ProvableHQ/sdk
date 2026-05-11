@@ -1888,24 +1888,6 @@
   resolved "https://registry.npmjs.org/@pkgjs/parseargs/-/parseargs-0.11.0.tgz"
   integrity sha512-+1VkjdD0QBLPodGrJUeqarH8VAIvQODIbwh9XpP5Syisf7YoQgsJKPNFoqqLQlu+VQ/tVSshMR6loPMn8U+dPg==
 
-"@provablehq/sdk@^0.9.15":
-  version "0.9.18"
-  resolved "https://registry.yarnpkg.com/@provablehq/sdk/-/sdk-0.9.18.tgz#2e0cd632a75959fe74ff24e8e05eaca49647d473"
-  integrity sha512-fQitq7W8btMkV/wiZuoIaywwAMOsYTe+U0fme3RL0IQGb7zsHn0ySf9Pe0D5lS4CZCnmNeuV2PGqyUUZpiG4Aw==
-  dependencies:
-    "@provablehq/wasm" "^0.9.18"
-    "@scure/base" "^2.0.0"
-    comlink "^4.4.2"
-    core-js "^3.40.0"
-    libsodium-wrappers "^0.8.2"
-    mime "^4.0.6"
-    xmlhttprequest-ssl "^4.0.0"
-
-"@provablehq/wasm@^0.9.18":
-  version "0.9.18"
-  resolved "https://registry.yarnpkg.com/@provablehq/wasm/-/wasm-0.9.18.tgz#21e9ca89bbba91f7b3dd8320029409aadc34633a"
-  integrity sha512-wNOHQnLM/et8oAevFSvQrVCvKfQGQQZBBAp8335/BM+CjC2k+ft5PlqPHuLrRb1K0XrKe3b9lSa0NQsO8aND4g==
-
 "@rc-component/async-validator@^5.0.3":
   version "5.0.4"
   resolved "https://registry.npmjs.org/@rc-component/async-validator/-/async-validator-5.0.4.tgz"
@@ -3382,14 +3364,14 @@ available-typed-arrays@^1.0.7:
   dependencies:
     possible-typed-array-names "^1.0.0"
 
-axios@1.13.6:
-  version "1.13.6"
-  resolved "https://registry.yarnpkg.com/axios/-/axios-1.13.6.tgz#c3f92da917dc209a15dd29936d20d5089b6b6c98"
-  integrity sha512-ChTCHMouEe2kn713WHbQGcuYrr6fXTBiu460OTwWrWob16g1bXn4vtz07Ope7ewMozJAnEquLk5lWQWtBig9DQ==
+axios@1.15.2:
+  version "1.15.2"
+  resolved "https://registry.yarnpkg.com/axios/-/axios-1.15.2.tgz#eb8fb6d30349abace6ade5b4cb4d9e8a0dc23e5b"
+  integrity sha512-wLrXxPtcrPTsNlJmKjkPnNPK2Ihe0hn0wGSaTEiHRPxwjvJwT3hKmXF4dpqxmPO9SoNb2FsYXj/xEo0gHN+D5A==
   dependencies:
     follow-redirects "^1.15.11"
     form-data "^4.0.5"
-    proxy-from-env "^1.1.0"
+    proxy-from-env "^2.1.0"
 
 axios@^0.26.1:
   version "0.26.1"
@@ -7744,10 +7726,10 @@ proxy-addr@~2.0.7:
     forwarded "0.2.0"
     ipaddr.js "1.9.1"
 
-proxy-from-env@^1.1.0:
-  version "1.1.0"
-  resolved "https://registry.npmjs.org/proxy-from-env/-/proxy-from-env-1.1.0.tgz"
-  integrity sha512-D+zkORCbA9f1tdWRK0RaCR3GPv50cMxcrz4X8k5LTSUD1Dkw47mKJEZQNunItRTkWwgtaUSo1RVFRIG9ZXiFYg==
+proxy-from-env@^2.1.0:
+  version "2.1.0"
+  resolved "https://registry.yarnpkg.com/proxy-from-env/-/proxy-from-env-2.1.0.tgz#a7487568adad577cfaaa7e88c49cab3ab3081aba"
+  integrity sha512-cJ+oHTW1VAEa8cJslgmUZrc+sjRKgAKl3Zyse6+PV38hZe/V6Z14TbCuXcan9F9ghlz4QrFr2c92TNF82UkYHA==
 
 pseudomap@^1.0.2:
   version "1.0.2"
