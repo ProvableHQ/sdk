@@ -22,6 +22,7 @@ import {
   RecordScanner,
   RecordCiphertext,
   OfflineQuery,
+  IndexedDBKeyStore,
 } from "@provablehq/sdk";
 import { expose, proxy } from "comlink";
 
@@ -232,6 +233,14 @@ class LoyaltyProgram {
     this.keyProvider = new AleoKeyProvider();
     this.keyProvider.useCache(true);
     this.programManager.setKeyProvider(this.keyProvider);
+
+    // Set up an IndexedDB-backed KeyStore for automatic proving/verifying key
+    // caching across page reloads. The ProgramManager's internal
+    // ProgramImportsBuilder pipeline (buildProgramImports → WASM execution
+    // → persistExtractedKeys) uses this store to persist synthesized keys
+    // and reload them on subsequent runs, avoiding expensive re-synthesis.
+    const keyStore = new IndexedDBKeyStore();
+    this.programManager.setKeyStore(keyStore);
 
     if (account) {
       this.account = account;

@@ -37,7 +37,6 @@ use crate::{
         DeploymentNative,
         FeeNative,
         PrivateKeyNative,
-        ProcessNative,
         ProgramNative,
         ProgramOwnerNative,
         RecordPlaintextNative,
@@ -82,17 +81,16 @@ impl ProgramManager {
         fee_proving_key: Option<ProvingKey>,
         fee_verifying_key: Option<VerifyingKey>,
         offline_query: Option<OfflineQuery>,
+        program_imports: Option<ProgramImports>,
     ) -> Result<Transaction, String> {
         log("Creating deployment transaction");
-        let mut process_native = ProcessNative::load_web().map_err(|err| err.to_string())?;
-        let process = &mut process_native;
 
         log("Checking program has a valid name");
         let program = ProgramNative::from_str(program).map_err(|err| err.to_string())?;
-        let program_id = program.id().to_string();
 
-        log("Checking program imports are valid and add them to the process");
-        ProgramManager::resolve_imports(process, imports, Some(program_id.as_str()))?;
+        let mut resolved = ResolvedProcess::resolve_with_program(&program_imports, &program, imports)?;
+        let process = resolved.process_mut();
+
         let rng = &mut StdRng::from_entropy();
 
         log("Creating deployment");
@@ -167,19 +165,20 @@ impl ProgramManager {
     /// are a string representing the program source code \{ "hello.aleo": "hello.aleo source code" \}
     /// @returns {u64}
     #[wasm_bindgen(js_name = estimateDeploymentFee)]
-    pub async fn estimate_deployment_fee(program: &str, imports: Option<Object>) -> Result<u64, String> {
+    pub async fn estimate_deployment_fee(
+        program: &str,
+        imports: Option<Object>,
+        program_imports: Option<ProgramImports>,
+    ) -> Result<u64, String> {
         log(
             "Disclaimer: Fee estimation is experimental and may not represent a correct estimate on any current or future network",
         );
-        let mut process_native = ProcessNative::load_web().map_err(|err| err.to_string())?;
-        let process = &mut process_native;
 
         log("Check program has a valid name");
         let program = ProgramNative::from_str(program).map_err(|err| err.to_string())?;
-        let program_id = program.id().to_string();
 
-        log("Check program imports are valid and add them to the process");
-        ProgramManager::resolve_imports(process, imports, Some(program_id.as_str()))?;
+        let mut resolved = ResolvedProcess::resolve_with_program(&program_imports, &program, imports)?;
+        let process = resolved.process_mut();
 
         log("Create sample deployment");
         let mut deployment =
@@ -254,26 +253,30 @@ impl ProgramManager {
         fee_proving_key: Option<ProvingKey>,
         fee_verifying_key: Option<VerifyingKey>,
         offline_query: Option<OfflineQuery>,
+        program_imports: Option<ProgramImports>,
     ) -> Result<Transaction, String> {
         log("Creating deployment transaction");
-        let mut process_native = ProcessNative::load_web().map_err(|err| err.to_string())?;
-        let process = &mut process_native;
 
         log("Checking if the program is deployed on the network");
         let node_url = url.as_deref().unwrap_or(DEFAULT_URL);
         let program = ProgramNative::from_str(&program).map_err(|err| err.to_string())?;
         let program_id = program.id().to_string();
+
+        let mut resolved = ResolvedProcess::resolve_with_program(&program_imports, &program, imports)?;
+        let process = resolved.process_mut();
         let program_string = get_program_from_network(node_url, &program_id).await.map_err(|err| err.to_string())?;
         let deployed_program = ProgramNative::from_str(&program_string).map_err(|err| err.to_string())?;
         let deployed_program_edition =
             latest_program_edition(node_url, &program.id().to_string()).await.map_err(|err| err.to_string())?;
 
-        // Load the deployed program into the process
-        log("Adding deployed program to the process");
-        process.add_program_with_edition(&deployed_program, deployed_program_edition).map_err(|err| err.to_string())?;
-
-        log("Checking program imports are valid and add them to the process");
-        ProgramManager::resolve_imports(process, imports, Some(program_id.as_str()))?;
+        // Load the deployed program into the process (skip if already present,
+        // e.g. when ProgramImports' prepare_for_execution already added it).
+        if !process.contains_program(deployed_program.id()) {
+            log("Adding deployed program to the process");
+            process
+                .add_program_with_edition(&deployed_program, deployed_program_edition)
+                .map_err(|err| err.to_string())?;
+        }
         let rng = &mut StdRng::from_entropy();
 
         log("Creating deployment");
@@ -361,18 +364,16 @@ impl ProgramManager {
         fee_record: Option<RecordPlaintext>,
         url: Option<String>,
         imports: Option<Object>,
+        program_imports: Option<ProgramImports>,
     ) -> Result<Transaction, String> {
         log("Creating deployment transaction");
-        let mut process_native = ProcessNative::load_web().map_err(|err| err.to_string())?;
-        let process = &mut process_native;
 
         log("Checking program has a valid name");
         let program = ProgramNative::from_str(program).map_err(|err| err.to_string())?;
-        let program_id = program.id();
-        let program_id_str = program_id.to_string();
 
-        log("Checking program imports are valid and add them to the process");
-        ProgramManager::resolve_imports(process, imports, Some(program_id_str.as_str()))?;
+        let mut resolved = ResolvedProcess::resolve_with_program(&program_imports, &program, imports)?;
+        let process = resolved.process_mut();
+
         let rng = &mut StdRng::from_entropy();
 
         log("Creating deployment");
@@ -384,7 +385,7 @@ impl ProgramManager {
             Err("Program must have at least one function".to_string())?;
         }
         // Attempt to set the edition.
-        let edition_response = latest_program_edition(node_url, &program_id.to_string()).await;
+        let edition_response = latest_program_edition(node_url, &program.id().to_string()).await;
         let edition = match edition_response {
             Ok(edition) => edition + 1,
             Err(_) => 0,
@@ -499,15 +500,16 @@ impl ProgramManager {
         fee_record: Option<RecordPlaintext>,
         url: Option<String>,
         imports: Option<Object>,
+        program_imports: Option<ProgramImports>,
     ) -> Result<Transaction, String> {
         log("Creating deployment transaction");
-        let mut process_native = ProcessNative::load_web().map_err(|err| err.to_string())?;
-        let process = &mut process_native;
 
         log("Checking program imports are valid and add them to the process");
         let program = ProgramNative::from_str(&program).map_err(|err| err.to_string())?;
-        let program_id_str = program.id().to_string();
-        ProgramManager::resolve_imports(process, imports, Some(program_id_str.as_str()))?;
+
+        let mut resolved = ResolvedProcess::resolve_with_program(&program_imports, &program, imports)?;
+        let process = resolved.process_mut();
+
         let rng = &mut StdRng::from_entropy();
 
         log("Creating deployment");
@@ -520,9 +522,14 @@ impl ProgramManager {
         let deployed_program_edition =
             latest_program_edition(node_url, &program.id().to_string()).await.map_err(|err| err.to_string())?;
 
-        // Load the deployed program into the process
-        log("Adding deployed program to the process");
-        process.add_program_with_edition(&deployed_program, deployed_program_edition).map_err(|err| err.to_string())?;
+        // Load the deployed program into the process (skip if already present,
+        // e.g. when ProgramImports' prepare_for_execution already added it).
+        if !process.contains_program(deployed_program.id()) {
+            log("Adding deployed program to the process");
+            process
+                .add_program_with_edition(&deployed_program, deployed_program_edition)
+                .map_err(|err| err.to_string())?;
+        }
 
         // Get the consensus version to determine which VKs are needed.
         let latest_height = latest_block_height(node_url).await.map_err(|err| err.to_string())?;
@@ -547,7 +554,7 @@ impl ProgramManager {
         }
 
         // Attempt to get the latest program edition.
-        let edition_response = latest_program_edition(node_url, &program_id.to_string()).await;
+        let edition_response = latest_program_edition(node_url, &program.id().to_string()).await;
         let edition = match edition_response {
             Ok(edition) => edition + 1,
             Err(_) => 0,

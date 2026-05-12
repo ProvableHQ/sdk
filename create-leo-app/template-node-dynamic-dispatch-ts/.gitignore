@@ -1,0 +1,6 @@
+.aleo
+dist
+node_modules
+stress-results.md
+benchmark-results.md
+bench-results.txt

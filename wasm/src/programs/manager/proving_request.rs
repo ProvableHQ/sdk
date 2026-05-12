@@ -25,14 +25,7 @@ use crate::{
     authorize_fee,
     log,
     process_inputs,
-    types::native::{
-        AuthorizationNative,
-        CurrentAleo,
-        IdentifierNative,
-        ProcessNative,
-        ProgramNative,
-        RecordPlaintextNative,
-    },
+    types::native::{AuthorizationNative, CurrentAleo, IdentifierNative, ProgramNative, RecordPlaintextNative},
 };
 
 use js_sys::{Array, Object};
@@ -71,32 +64,37 @@ impl ProgramManager {
         unchecked: bool,
         edition: Option<u16>,
         use_fee_master: bool,
+        program_imports: Option<ProgramImports>,
     ) -> Result<ProvingRequest, String> {
         log(&format!("Creating proving request for {function_name}"));
-        let mut process_native = ProcessNative::load_web().map_err(|err| err.to_string())?;
-        let process = &mut process_native;
+        let edition = edition.unwrap_or(1);
 
-        log("Check program imports are valid and add them to the process");
-        let program_native = ProgramNative::from_str(program).map_err(|e| e.to_string())?;
-        let program_id = program_native.id().to_string();
-        ProgramManager::resolve_imports(process, imports.clone(), Some(program_id.as_str()))?;
+        let mut resolved = ResolvedProcess::resolve(&program_imports, program, edition, imports.clone())?;
+        let program_native = resolved.program().clone();
+        let process = resolved.process_mut();
+
         let rng = &mut StdRng::from_entropy();
 
         // Convert the fee to microcredits.
         let _base_fee_microcredits = (base_fee_credits * 1_000_000.0) as u64;
         let priority_fee_microcredits = (priority_fee_credits * 1_000_000.0) as u64;
-        let edition = edition.unwrap_or(1);
 
         // Authorize the main program.
         let authorization =
             authorize!(process, process_inputs!(inputs), program, function_name, private_key, rng, unchecked, edition);
 
         // Add base fee to the authorization.
+        // Note: We intentionally pass None for program_imports here to avoid a
+        // RefCell double-borrow panic. The inner_guard (from prepare_for_execution)
+        // still holds a mutable borrow on the builder's Rc<RefCell<>>, so passing
+        // the builder to estimate_fee_for_authorization would trigger a second
+        // borrow_mut(). The legacy imports Object path is used instead.
         let base_fee_microcredits = ProgramManager::estimate_fee_for_authorization(
             &crate::Authorization::from(&authorization),
             program,
             imports,
             Some(edition),
+            None,
         )?;
 
         // Authorize the fee.
@@ -143,11 +141,19 @@ impl ProgramManager {
         edition: Option<u16>,
         imports: Option<Object>,
         private_key: Option<PrivateKey>,
+        program_imports: Option<ProgramImports>,
     ) -> Result<ProvingRequest, String> {
-        let authorization =
-            ProgramManager::authorize_request(request, program, unchecked, edition, imports, private_key)
-                .await
-                .map_err(|e| e.to_string())?;
+        let authorization = ProgramManager::authorize_request(
+            request,
+            program,
+            unchecked,
+            edition,
+            imports,
+            private_key,
+            program_imports,
+        )
+        .await
+        .map_err(|e| e.to_string())?;
 
         // Return the proving request.
         Ok(ProvingRequest::from((AuthorizationNative::from(authorization), None, broadcast)))
@@ -203,6 +209,7 @@ mod tests {
             Some(1),
             None,
             Some(private_key),
+            None,
         )
         .await
         .unwrap();
@@ -234,6 +241,7 @@ mod tests {
             false,
             Some(1),
             false, // use_fee_master: expect fee authorization
+            None,
         )
         .await
         .unwrap();
@@ -288,6 +296,7 @@ mod tests {
             false,
             Some(1),
             true, // use_fee_master: no fee authorization
+            None,
         )
         .await
         .unwrap();

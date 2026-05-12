@@ -126,17 +126,29 @@ pub fn verify_function_execution(
     imports: Option<Object>,
     imported_verifying_keys: Option<Object>,
     block_height: u32,
+    program_imports: Option<ProgramImports>,
 ) -> Result<bool, String> {
     // Get the function
     let function = IdentifierNative::from_str(function_id).map_err(|e| e.to_string())?;
-    let mut process = ProcessNative::load_web().map_err(|e| e.to_string())?;
     let program_native = ProgramNative::from(program);
     let program_id = program_native.id().to_string();
 
-    // First resolve the program's imports.
-    ProgramManager::resolve_imports(&mut process, imports, Some(program_id.as_str()))?;
+    // Use ProgramImports' internal process when available, otherwise load fresh.
+    let mut owned_process;
+    let mut inner_guard;
+    let process: &mut ProcessNative = match program_imports.as_ref() {
+        Some(pi) => {
+            inner_guard = pi.borrow_inner_mut();
+            &mut inner_guard.process
+        }
+        None => {
+            owned_process = ProcessNative::load_web().map_err(|e| e.to_string())?;
+            ProgramManager::resolve_imports(&mut owned_process, imports, Some(program_id.as_str()))?;
+            &mut owned_process
+        }
+    };
 
-    // Secondly, get the verifying keys and insert them into the process object.
+    // Get the verifying keys and insert them into the process object.
     if let Some(imported_verifying_keys) = imported_verifying_keys {
         // Go through the imports and get the program IDs.
         let program_ids = Object::keys(&imported_verifying_keys)
@@ -180,7 +192,9 @@ pub fn verify_function_execution(
 
     // If the program is not credits.aleo, add the program and its verifying key to the process.
     if &program.id() != "credits.aleo" {
-        process.add_program(&program_native).map_err(|e| e.to_string())?;
+        if !process.contains_program(program_native.id()) {
+            process.add_program(&program_native).map_err(|e| e.to_string())?;
+        }
         process
             .insert_verifying_key(program_native.id(), &function, VerifyingKeyNative::from(verifying_key))
             .map_err(|e| e.to_string())?;

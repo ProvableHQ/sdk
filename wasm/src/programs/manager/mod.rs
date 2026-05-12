@@ -17,10 +17,14 @@
 mod authorize;
 mod deploy;
 mod execute;
+pub mod imports;
 mod join;
 mod proving_request;
 mod split;
 mod transfer;
+
+pub use imports::ProgramImports;
+use imports::{ResolvedProcess, extract_source};
 
 pub const DEFAULT_URL: &str = "https://api.provable.com/v2";
 pub const LOCAL_URL: &str = "http://localhost:3030";
@@ -78,8 +82,9 @@ impl ProgramManager {
         inputs: js_sys::Array,
         imports: Option<Object>,
         edition: Option<u16>,
+        program_imports: Option<ProgramImports>,
     ) -> Result<KeyPair, String> {
-        ProgramManager::execute_function_offline(
+        let mut offline_result = ProgramManager::execute_function_offline(
             private_key,
             program,
             function_id,
@@ -92,9 +97,10 @@ impl ProgramManager {
             None,
             None,
             edition,
+            program_imports,
         )
-        .await?
-        .get_keys()
+        .await?;
+        offline_result.get_keys()
     }
 
     #[wasm_bindgen(js_name = "loadInclusionProver")]
@@ -151,21 +157,21 @@ impl ProgramManager {
                 if top_level_program == Some(program_id.as_str()) {
                     continue;
                 }
-                let import_string =
-                    Reflect::get(&imports, &program_id.as_str().into()).ok().and_then(|v| v.as_string()).ok_or_else(
-                        || format!("Invalid import '{program_id}' in imports object: expected a string value"),
-                    )?;
-                let import = ProgramNative::from_str(&import_string).map_err(|err| err.to_string())?;
-                if import.id().to_string() != program_id {
-                    return Err(format!("Import key '{}' does not match program id '{}'", program_id, import.id()));
-                }
-                if !process.contains_program(import.id()) {
-                    log(&format!("Importing program: {program_id}"));
-                    // Recursively resolve this program's static imports first (depth-first).
-                    Self::resolve_program_imports(process, &import, &imports)?;
-                    log(&format!("Adding {program_id} to the process"));
-                    // Edition is hardcoded to 1 — the JS imports Object doesn't carry edition metadata.
-                    process.add_program_with_edition(&import, 1).map_err(|err| err.to_string())?;
+                let value = Reflect::get(&imports, &program_id.as_str().into()).ok();
+                if let Some(import_string) = extract_source(&value) {
+                    let import = ProgramNative::from_str(&import_string).map_err(|err| err.to_string())?;
+                    if import.id().to_string() != program_id {
+                        return Err(format!("Import key '{}' does not match program id '{}'", program_id, import.id()));
+                    }
+                    if !process.contains_program(import.id()) {
+                        log(&format!("Importing program: {program_id}"));
+                        // Recursively resolve this program's static imports first (depth-first).
+                        Self::resolve_program_imports(process, &import, &imports)?;
+                        log(&format!("Adding {program_id} to the process"));
+                        // Edition 1 is required: since ConsensusVersion::V8, Authorization::check_valid_edition
+                        // rejects edition 0 for non-constructor programs.
+                        process.add_program_with_edition(&import, 1).map_err(|err| err.to_string())?;
+                    }
                 }
             }
         }
@@ -184,19 +190,9 @@ impl ProgramManager {
             if import_id_str == "credits.aleo" {
                 return Ok(());
             }
-            // If already in the process (e.g. credits.aleo loaded at init), skip.
-            if process.contains_program(&ProgramIDNative::from_str(&import_id_str).map_err(|e| e.to_string())?) {
-                return Ok(());
-            }
-            let import_string = Reflect::get(imports, &import_id_str.as_str().into())
-                .ok()
-                .and_then(|v| v.as_string())
-                .ok_or_else(|| {
-                    format!(
-                        "Missing or invalid static import '{}' in imports object: expected a string entry",
-                        import_id_str
-                    )
-                })?;
+            let value = Reflect::get(imports, &import_id_str.as_str().into()).ok();
+            let import_string = extract_source(&value)
+                .ok_or_else(|| format!("Missing required import '{import_id_str}' in provided imports object"))?;
             let import = ProgramNative::from_str(&import_string).map_err(|err| err.to_string())?;
             if import.id().to_string() != import_id_str {
                 return Err(format!(
@@ -205,10 +201,14 @@ impl ProgramManager {
                     import.id()
                 ));
             }
-            log(&format!("Importing program: {import_id_str}"));
-            Self::resolve_program_imports(process, &import, imports)?;
-            log(&format!("Adding {import_id_str} to the process"));
-            process.add_program_with_edition(&import, 1).map_err(|err| err.to_string())?;
+            if !process.contains_program(import.id()) {
+                log(&format!("Importing program: {import_id_str}"));
+                Self::resolve_program_imports(process, &import, imports)?;
+                log(&format!("Adding {import_id_str} to the process"));
+                // Edition 1 is required: since ConsensusVersion::V8, Authorization::check_valid_edition
+                // rejects edition 0 for non-constructor programs.
+                process.add_program_with_edition(&import, 1).map_err(|err| err.to_string())?;
+            }
             Ok::<(), String>(())
         })
     }
@@ -301,6 +301,7 @@ function add_and_double:
             .unwrap();
 
         let mut process = ProcessNative::load_web().unwrap();
+        let _program = ProgramNative::from_str(NESTED_IMPORT_PROGRAM).unwrap();
         let add_program = ProgramNative::from_str(ADDITION_PROGRAM).unwrap();
         let multiply_program = ProgramNative::from_str(MULTIPLY_PROGRAM).unwrap();
         let double_program = ProgramNative::from_str(MULTIPLY_IMPORT_PROGRAM).unwrap();
