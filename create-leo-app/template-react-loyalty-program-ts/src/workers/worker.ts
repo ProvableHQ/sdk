@@ -121,8 +121,6 @@ export interface ProgramConfig {
   dpsApiKey?: string;
   /** Enable encrypted DPS flow (TEE-protected proving). */
   dpsPrivacy?: boolean;
-  /** Enable encrypted RSS flow (TEE-protected record scanning). */
-  rssPrivacy?: boolean;
 }
 
 /**
@@ -210,7 +208,6 @@ class LoyaltyProgram {
   private _dpsApiKey?: string;
   private _consumerId?: string;
   private _dpsPrivacy: boolean = false;
-  private _rssPrivacy: boolean = false;
 
   // Transaction confirmation polling configuration
   private readonly TX_POLL_INTERVAL_MS = 5000;
@@ -273,9 +270,6 @@ class LoyaltyProgram {
     }
     if (config?.dpsPrivacy) {
       this._dpsPrivacy = config.dpsPrivacy;
-    }
-    if (config?.rssPrivacy) {
-      this._rssPrivacy = config.rssPrivacy;
     }
   }
 
@@ -382,11 +376,7 @@ class LoyaltyProgram {
     });
 
     // Register with the scanner.
-    if (this._rssPrivacy) {
-      await this._recordScanner.registerEncrypted(this.account.viewKey(), startHeight);
-    } else {
-      await this._recordScanner.register(this.account.viewKey(), startHeight);
-    }
+    await this._recordScanner.registerEncrypted(this.account.viewKey(), startHeight);
 
     const records = await this._recordScanner.findRecords({
       decrypt: true,
@@ -440,11 +430,7 @@ class LoyaltyProgram {
     });
 
     // Register with the scanner.
-    if (this._rssPrivacy) {
-      await this._recordScanner.registerEncrypted(this.account.viewKey(), startHeight);
-    } else {
-      await this._recordScanner.register(this.account.viewKey(), startHeight);
-    }
+    await this._recordScanner.registerEncrypted(this.account.viewKey(), startHeight);
 
     const records = await this._recordScanner.findRecords({
       decrypt: true,

@@ -1,7 +1,7 @@
 import { OwnedFilter } from "./ownedFilter.js";
 
 /**
- * Error thrown when a record scanner request fails (e.g. /register, /register/encrypted).
+ * Error thrown when a record scanner request fails (e.g. /register/encrypted).
  * Includes HTTP status so callers can handle 422 vs 500 etc.
  */
 export class RecordScannerRequestError extends Error {

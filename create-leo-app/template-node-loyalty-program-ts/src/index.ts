@@ -100,8 +100,6 @@ export interface ProgramConfig {
     dpsApiKey?: string;
     /** Enable encrypted DPS flow (TEE-protected proving). */
     dpsPrivacy?: boolean;
-    /** Enable encrypted RSS flow (TEE-protected record scanning). */
-    rssPrivacy?: boolean;
 }
 
 // ============================================================================
@@ -125,14 +123,14 @@ function logHeader(title: string): void {
     console.log(`${COLORS.cyan}╚${"═".repeat(58)}╝${COLORS.reset}`);
 }
 
-function logConfig(provingMode: ProvingMode, hasRecordScanner: boolean, dpsPrivacy: boolean, rssPrivacy: boolean): void {
+function logConfig(provingMode: ProvingMode, hasRecordScanner: boolean, dpsPrivacy: boolean): void {
     console.log(`${COLORS.dim}┌──────────────────────────────────────────────────────────┐${COLORS.reset}`);
     const provingModeStr = provingMode === ProvingMode.Local
         ? `${COLORS.green}LOCAL${COLORS.reset}`
         : `${COLORS.magenta}DELEGATED${COLORS.reset}${dpsPrivacy ? ` ${COLORS.cyan}(encrypted)${COLORS.reset}` : ''}`;
     console.log(`${COLORS.dim}│${COLORS.reset} Proving Mode:    ${provingModeStr}`.padEnd(78) + `${COLORS.dim}│${COLORS.reset}`);
     const scannerStr = hasRecordScanner
-        ? `${COLORS.magenta}RSS${COLORS.reset}${rssPrivacy ? ` ${COLORS.cyan}(encrypted)${COLORS.reset}` : ''}`
+        ? `${COLORS.magenta}RSS${COLORS.reset} ${COLORS.cyan}(encrypted)${COLORS.reset}`
         : `${COLORS.yellow}DISABLED${COLORS.reset}`;
     console.log(`${COLORS.dim}│${COLORS.reset} Record Scanner:  ${scannerStr}`.padEnd(78) + `${COLORS.dim}│${COLORS.reset}`);
     console.log(`${COLORS.dim}└──────────────────────────────────────────────────────────┘${COLORS.reset}`);
@@ -229,7 +227,6 @@ class LoyaltyProgram {
     private _dpsApiKey?: string;
     private _consumerId?: string;
     private _dpsPrivacy: boolean = false;
-    private _rssPrivacy: boolean = false;
 
     // Transaction confirmation polling configuration
     private readonly TX_POLL_INTERVAL_MS = 5000;
@@ -283,9 +280,6 @@ class LoyaltyProgram {
         }
         if (config?.dpsPrivacy) {
             this._dpsPrivacy = config.dpsPrivacy;
-        }
-        if (config?.rssPrivacy) {
-            this._rssPrivacy = config.rssPrivacy;
         }
     }
 
@@ -373,11 +367,7 @@ class LoyaltyProgram {
         logScanStart(this.TOKEN_PROGRAM_ID, "LoyaltyCard", startHeight, endHeight);
 
         // Register with the scanner.
-        if (this._rssPrivacy) {
-            await this._recordScanner.registerEncrypted(this._account.viewKey(), startHeight);
-        } else {
-            await this._recordScanner.register(this._account.viewKey(), startHeight);
-        }
+        await this._recordScanner.registerEncrypted(this._account.viewKey(), startHeight);
 
         const records = await this._recordScanner.findRecords({
             decrypt: true,
@@ -424,11 +414,7 @@ class LoyaltyProgram {
         logScanStart(this.REWARDS_PROGRAM_ID, "RewardVoucher", startHeight, endHeight);
 
         // Register with the scanner.
-        if (this._rssPrivacy) {
-            await this._recordScanner.registerEncrypted(this._account.viewKey(), startHeight);
-        } else {
-            await this._recordScanner.register(this._account.viewKey(), startHeight);
-        }
+        await this._recordScanner.registerEncrypted(this._account.viewKey(), startHeight);
 
         const records = await this._recordScanner.findRecords({
             decrypt: true,
@@ -974,7 +960,6 @@ try {
 //   ALEO_SCAN_START_HEIGHT - Block height to start scanning from (default: 0)
 //   ALEO_RSS_URL         - Record Scanning Service URL (e.g., "https://api.provable.com/scanner")
 //   ALEO_RSS_API_KEY     - JWT token for RSS authentication (optional if using ALEO_CONSUMER_ID)
-//   ALEO_RSS_PRIVACY     - "true" to enable encrypted RSS flow (TEE-protected)
 const consumerId = process.env.ALEO_CONSUMER_ID;
 const provingMode = process.env.ALEO_PROVING_MODE === "delegated"
     ? ProvingMode.Delegated
@@ -984,7 +969,6 @@ const dpsApiKey = process.env.ALEO_DPS_API_KEY;
 const dpsPrivacy = process.env.ALEO_DPS_PRIVACY === "true";
 const recordScannerUrl = process.env.ALEO_RSS_URL;
 let recordScannerApiKey = process.env.ALEO_RSS_API_KEY;
-const rssPrivacy = process.env.ALEO_RSS_PRIVACY === "true";
 const scanStartHeight = parseInt(process.env.ALEO_SCAN_START_HEIGHT ?? "0", 10);
 
 // Derive JWT endpoint from DPS URL base (e.g., "https://api.provable.com/prove/testnet" -> "https://api.provable.com")
@@ -1064,7 +1048,6 @@ const loyalty = new LoyaltyProgram(account, {
     dpsApiKey,
     consumerId,
     dpsPrivacy,
-    rssPrivacy,
 });
 loyalty.setPrograms(tokenProgram, rewardsProgram);
 
@@ -1073,7 +1056,7 @@ const address = account.address().to_string();
 
 // Display configuration.
 logHeader("Aleo Loyalty Program Demo");
-logConfig(loyalty.provingMode, loyalty.hasRecordScanner, dpsPrivacy, rssPrivacy);
+logConfig(loyalty.provingMode, loyalty.hasRecordScanner, dpsPrivacy);
 
 // Demo functions.
 const functions: Record<string, () => Promise<void>> = {

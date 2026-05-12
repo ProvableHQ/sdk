@@ -21,7 +21,6 @@ const getConfig = () => {
     // RSS configuration
     recordScannerUrl: import.meta.env.VITE_ALEO_RSS_URL,
     recordScannerApiKey: import.meta.env.VITE_ALEO_RSS_API_KEY,
-    rssPrivacy: import.meta.env.VITE_ALEO_RSS_PRIVACY === "true",
   };
 };
 

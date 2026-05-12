@@ -44,7 +44,6 @@ import {
 import { OwnedRecordsResult, OwnedRecordsSuccess } from "./models/record-scanner/ownedRecordsResult.js";
 import { OwnedRecordsResponseFilter } from "./models/record-scanner/ownedRecordsResponseFilter.js";
 import { RegisterResult, RegisterSuccess } from "./models/record-scanner/registrationResult.js";
-import { RegistrationRequest } from "./models/record-scanner/registrationRequest.js";
 import { RegistrationResponse } from "./models/record-scanner/registrationResponse.js";
 import { RevokeResult, RevokeSuccess, RevokeResponse } from "./models/record-scanner/revokeResult.js";
 import { RecordsFilter } from "./models/record-scanner/recordsFilter.js";
@@ -281,7 +280,6 @@ export {
     RecordSearchParams,
     RegisterResult,
     RegisterSuccess,
-    RegistrationRequest,
     RegistrationResponse,
     RevokeResult,
     RevokeSuccess,

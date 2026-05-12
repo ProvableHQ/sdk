@@ -46,8 +46,17 @@ describe("RecordScanner", () => {
     const validTestUuid = "7884164224800444110633570141944665301008802280502652120359195870264061098703field";
 
     it("should intialize with the correct api key as a string", async () => {
+        await sodium.ready;
+        const keyPair = sodium.crypto_box_keypair();
+        const pubKeyB64 = sodium.to_base64(keyPair.publicKey, sodium.base64_variants.ORIGINAL);
+
         recordScanner = new RecordScanner({ url: baseUrl, apiKey: "1234567890" });
-        
+
+        const pubkeyResponse = {
+            ok: true,
+            status: 200,
+            text: () => Promise.resolve(JSON.stringify({ key_id: "test-key-id", public_key: pubKeyB64 })),
+        };
         const mockResponse = {
             ok: true,
             status: 201,
@@ -60,25 +69,35 @@ describe("RecordScanner", () => {
             text: () => Promise.resolve('{"status": "OK"}'),
             json: () => Promise.resolve({ status: "OK" }),
         };
-        fetchStub.onCall(0).resolves(mockResponse);
-        fetchStub.onCall(1).resolves(revokeResponse);
-        await recordScanner.register(defaultAccount.viewKey(), 0);
-        
+        fetchStub.onCall(0).resolves(pubkeyResponse);
+        fetchStub.onCall(1).resolves(mockResponse);
+        fetchStub.onCall(2).resolves(revokeResponse);
+        await recordScanner.registerEncrypted(defaultAccount.viewKey(), 0);
+
         const requestInit = fetchStub.firstCall.args[1] as any;
         expect(requestInit.headers["x-provable-api-key"]).to.equal("1234567890");
 
         const revokeResult = await recordScanner.revoke(validTestUuid);
         expect(revokeResult.ok).to.equal(true);
-        expect(fetchStub.callCount).to.equal(2);
-        const revokeUrl = fetchStub.secondCall.args[0] as string;
-        const revokeInit = fetchStub.secondCall.args[1] as any;
+        expect(fetchStub.callCount).to.equal(3);
+        const revokeUrl = fetchStub.thirdCall.args[0] as string;
+        const revokeInit = fetchStub.thirdCall.args[1] as any;
         expect(revokeUrl).to.equal(recordScanner.url + "/revoke");
         expect(revokeInit.method).to.equal("POST");
     });
 
     it("should intialize with the correct api key as an object", async () => {
+        await sodium.ready;
+        const keyPair = sodium.crypto_box_keypair();
+        const pubKeyB64 = sodium.to_base64(keyPair.publicKey, sodium.base64_variants.ORIGINAL);
+
         recordScanner = new RecordScanner({ url: baseUrl, apiKey: { header: "Some-API-Key", value: "1234567890" } });
-        
+
+        const pubkeyResponse = {
+            ok: true,
+            status: 200,
+            text: () => Promise.resolve(JSON.stringify({ key_id: "test-key-id", public_key: pubKeyB64 })),
+        };
         const mockResponse = {
             ok: true,
             status: 201,
@@ -91,10 +110,11 @@ describe("RecordScanner", () => {
             text: () => Promise.resolve('{"status": "OK"}'),
             json: () => Promise.resolve({ status: "OK" }),
         };
-        fetchStub.onCall(0).resolves(mockResponse);
-        fetchStub.onCall(1).resolves(revokeResponse);
-        await recordScanner.register(defaultAccount.viewKey(), 0);
-        
+        fetchStub.onCall(0).resolves(pubkeyResponse);
+        fetchStub.onCall(1).resolves(mockResponse);
+        fetchStub.onCall(2).resolves(revokeResponse);
+        await recordScanner.registerEncrypted(defaultAccount.viewKey(), 0);
+
         const requestInit = fetchStub.firstCall.args[1] as any;
         expect(requestInit.headers["some-api-key"]).to.equal("1234567890");
 
@@ -102,50 +122,18 @@ describe("RecordScanner", () => {
         expect(revokeResult.ok).to.equal(true);
     });
 
-    it("should return RegisterResult with data after successfully registering the account", async () => {
+    it("should return the optional fields of RegistrationResponse if present after successfully registering the account", async () => {
+        await sodium.ready;
+        const keyPair = sodium.crypto_box_keypair();
+        const pubKeyB64 = sodium.to_base64(keyPair.publicKey, sodium.base64_variants.ORIGINAL);
+
         recordScanner = new RecordScanner({ url: baseUrl });
-        
-        const mockResponse = {
-            ok: true,
-            status: 201,
-            text: () => Promise.resolve(JSON.stringify({ uuid: validTestUuid })),
-            json: () => Promise.resolve({ uuid: validTestUuid })
-        };
-        const revokeResponse = {
+
+        const pubkeyResponse = {
             ok: true,
             status: 200,
-            text: () => Promise.resolve('{"status": "OK"}'),
-            json: () => Promise.resolve({ status: "OK" }),
+            text: () => Promise.resolve(JSON.stringify({ key_id: "test-key-id", public_key: pubKeyB64 })),
         };
-        fetchStub.onCall(0).resolves(mockResponse);
-        fetchStub.onCall(1).resolves(revokeResponse);
-        const result = await recordScanner.register(defaultAccount.viewKey(), 0);
-        
-        expect(fetchStub.called).to.be.true;
-        const requestUrl = fetchStub.firstCall.args[0] as string;
-        const requestInit = fetchStub.firstCall.args[1] as any;
-        expect(requestUrl).to.equal(recordScanner.url + "/register");
-        expect(requestInit.method).to.equal("POST");
-        expect(requestInit.headers["content-type"]).to.equal("application/json");
-
-        const body = requestInit.body as string;
-        const expectedBody = JSON.stringify({ view_key: defaultAccount.viewKey().to_string(), start: 0 });
-        expect(body).to.equal(expectedBody);
-
-        expect(result.ok).to.equal(true);
-        if (result.ok) expect(result.data.uuid).equal(validTestUuid);
-
-        const revokeResult = await recordScanner.revoke(result.ok ? result.data.uuid : undefined);
-        expect(revokeResult.ok).to.equal(true);
-        const revokeUrl = fetchStub.secondCall.args[0] as string;
-        const revokeInit = fetchStub.secondCall.args[1] as any;
-        expect(revokeUrl).to.equal(recordScanner.url + "/revoke");
-        expect(revokeInit.method).to.equal("POST");
-    });
-
-    it("should return the optional fields of RegistrationResponse if present after successfully registering the account", async () => {
-        recordScanner = new RecordScanner({ url: baseUrl });
-        
         const mockResponse = {
             ok: true,
             status: 201,
@@ -158,20 +146,17 @@ describe("RecordScanner", () => {
             text: () => Promise.resolve('{"status": "OK"}'),
             json: () => Promise.resolve({ status: "OK" }),
         };
-        fetchStub.onCall(0).resolves(mockResponse);
-        fetchStub.onCall(1).resolves(revokeResponse);
-        const result = await recordScanner.register(defaultAccount.viewKey(), 0);
+        fetchStub.onCall(0).resolves(pubkeyResponse);
+        fetchStub.onCall(1).resolves(mockResponse);
+        fetchStub.onCall(2).resolves(revokeResponse);
+        const result = await recordScanner.registerEncrypted(defaultAccount.viewKey(), 0);
 
         expect(fetchStub.called).to.be.true;
-        const requestUrl = fetchStub.firstCall.args[0] as string;
-        const requestInit = fetchStub.firstCall.args[1] as any;
-        expect(requestUrl).to.equal(recordScanner.url + "/register");
-        expect(requestInit.method).to.equal("POST");
-        expect(requestInit.headers["content-type"]).to.equal("application/json");
-
-        const body = requestInit.body as string;
-        const expectedBody = JSON.stringify({ view_key: defaultAccount.viewKey().to_string(), start: 0 });
-        expect(body).to.equal(expectedBody);
+        const registerUrl = fetchStub.secondCall.args[0] as string;
+        const registerInit = fetchStub.secondCall.args[1] as any;
+        expect(registerUrl).to.equal(recordScanner.url + "/register/encrypted");
+        expect(registerInit.method).to.equal("POST");
+        expect(registerInit.headers["content-type"]).to.equal("application/json");
 
         expect(result.ok).to.equal(true);
         if (result.ok) {
@@ -468,48 +453,6 @@ describe("RecordScanner", () => {
         expect(requestInit.headers["content-type"]).to.equal("application/json");
     });
 
-    it("should handle HTTP errors", async () => {
-        recordScanner = new RecordScanner({ url: baseUrl });
-        let mockResponse = {
-            ok: false,
-            status: 500,
-            text: () => Promise.resolve('{"error": "Internal server error"}'),
-        };
-
-        fetchStub.resolves(mockResponse);
-        let result = await recordScanner.register(defaultAccount.viewKey(), 0);
-        expect(result.ok).to.equal(false);
-        if (!result.ok) {
-            expect(result.status).to.equal(500);
-            expect(result.error.message).to.equal('{"error": "Internal server error"}');
-        }
-
-        mockResponse = {
-            ok: false,
-            status: 422,
-            text: () => Promise.resolve('{"error": "Invalid view key"}'),
-        };
-
-        fetchStub.resolves(mockResponse);
-        result = await recordScanner.register(defaultAccount.viewKey(), 0);
-        expect(result.ok).to.equal(false);
-        if (!result.ok) {
-            expect(result.status).to.equal(422);
-            expect(result.error.message).to.equal('{"error": "Invalid view key"}');
-        }
-
-        fetchStub.rejects(new Error("Unknown error"));
-        let failed = false;
-        try {
-            await recordScanner.register(defaultAccount.viewKey(), 0);
-        } catch (err: any) {
-            expect(err).to.be.instanceOf(Error);
-            expect(err.message).to.equal("Unknown error");
-            failed = true;
-        }
-        expect(failed).to.be.true;
-    });
-
     describe("registerEncrypted error handling", () => {
         it("registerEncrypted returns ok: false with status 422 when server returns 422", async () => {
             await sodium.ready;
@@ -660,29 +603,6 @@ describe("Record scanner encrypted registration", function () {
         }
     });
 
-    it("should execute unencrypted registration (/register)", async function () {
-        const startBlock = 0;
-
-        const viewKey = new Account().viewKey();
-
-        // Register via encrypted flow against sandbox.
-        const recordScanner = new RecordScanner({
-            url: sandboxUrl,
-            ...(apiKey && { apiKey }),
-            ...(consumerId && { consumerId }),
-        });
-        const result = await recordScanner.register(viewKey, startBlock);
-        expect(result.ok).to.equal(true);
-        if (result.ok) {
-            expect(result.data).to.have.property("uuid");
-            expect(result.data.uuid).to.equal(
-                recordScanner.computeUUID(viewKey).toString(),
-            );
-            await new Promise((r) => setTimeout(r, 5000));
-            const revokeResult = await recordScanner.revoke(result.data.uuid);
-            expect(revokeResult.ok).to.equal(true);
-        }
-    });
 });
 
 const hasRealApiEnv = Boolean(sandboxUrl && viewKeyStr);
@@ -705,7 +625,7 @@ describe("RecordScanner (real API)", function () {
             ...(apiKey && { apiKey }),
             ...(consumerId && { consumerId }),
         });
-        const result = await scanner.register(viewKey, 0);
+        const result = await scanner.registerEncrypted(viewKey, 0);
         if (result.ok) {
             registeredUuid = result.data.uuid;
         }
@@ -931,27 +851,7 @@ describe("RecordScanner (real API)", function () {
         });
     });
 
-    describe("register and status", function () {
-        it("register returns ok and uuid matches computeUUID", async function () {
-            const ephemeralViewKey = new Account().viewKey();
-            const scanner = new RecordScanner({
-                url: sandboxUrl,
-                ...(apiKey && { apiKey }),
-                ...(consumerId && { consumerId }),
-            });
-            const result = await scanner.register(ephemeralViewKey, 0);
-            const expectedUUID = scanner.computeUUID(ephemeralViewKey).toString();
-            expect(result.ok).to.equal(true);
-            let actualUUID = expectedUUID;
-            if (result.ok) {
-                actualUUID = result.data.uuid;
-                expect(actualUUID).to.equal(expectedUUID);
-                const revokeResult = await scanner.revoke(result.data.uuid);
-                expect(revokeResult.ok).to.equal(true);
-            }
-
-        });
-
+    describe("registerEncrypted and status", function () {
         it("registerEncrypted returns ok and uuid matches computeUUID", async function () {
             await sodium.ready;
             const ephemeralViewKey = new Account().viewKey();
