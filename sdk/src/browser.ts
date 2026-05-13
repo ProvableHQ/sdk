@@ -1,6 +1,6 @@
 import "./polyfill/shared.js";
 
-import { sdkWarn } from "./logger.js";
+import { logger } from "./utils/logger.js";
 import { Account } from "./account.js";
 import { AleoNetworkClient, ProgramImports } from "./network-client.js";
 import { BlockJSON, Header, Metadata } from "./models/blockJSON.js";
@@ -104,15 +104,15 @@ import { SealanceMerkleTree } from "./integrations/sealance/merkle-tree.js";
 
 // @TODO: This function is no longer needed, remove it.
 async function initializeWasm() {
-    sdkWarn("initializeWasm is deprecated, you no longer need to use it");
+    logger.warn("initializeWasm is deprecated, you no longer need to use it");
 }
 
 export { ProgramManager, ProvingRequestOptions, ExecuteOptions, FeeAuthorizationOptions, AuthorizationOptions, VerificationOptions, BatchVerificationOptions, inputsToFields, verifyProof, verifyBatchProof, programChecksum } from "./program-manager.js";
 
-export { logAndThrow, TransportFunction } from "./utils.js";
+export { logAndThrow, TransportFunction } from "./utils/utils.js";
 
-export { setLogLevel, getLogLevel } from "./logger.js";
-export type { LogLevel } from "./logger.js";
+export { setLogLevel, getLogLevel } from "./utils/logger.js";
+export type { LogLevel } from "./utils/logger.js";
 
 export {
     Address,

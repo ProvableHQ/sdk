@@ -21,8 +21,8 @@ import {
     VerifyingKey,
 } from "../../wasm.js";
 
-import { sdkDebug } from "../../logger.js";
-import { get, TransportFunction, defaultTransport } from "../../utils.js";
+import { logger } from "../../utils/logger.js";
+import { get, TransportFunction, defaultTransport } from "../../utils/utils.js";
 import { KeyStore } from "../keystore/interface.js";
 
 type AleoKeyProviderInitParams = {
@@ -145,7 +145,7 @@ class AleoKeyProvider implements FunctionKeyProvider {
      * @returns {FunctionKeyPair} Proving and verifying keys for the specified program
      */
     getKeys(keyId: string): FunctionKeyPair {
-        sdkDebug(`Checking if key exists in cache. KeyId: ${keyId}`);
+        logger.debug(`Checking if key exists in cache. KeyId: ${keyId}`);
         if (this.cache.has(keyId)) {
             const [provingKeyBytes, verifyingKeyBytes] = <CachedKeyPair>(
                 this.cache.get(keyId)
@@ -267,13 +267,13 @@ class AleoKeyProvider implements FunctionKeyProvider {
                         VerifyingKey.fromBytes(value[1]),
                     ];
                 } else {
-                    sdkDebug(
+                    logger.debug(
                         "Fetching proving keys from url " + proverUrl,
                     );
                     const provingKey = <ProvingKey>(
                         ProvingKey.fromBytes(await this.fetchBytes(proverUrl))
                     );
-                    sdkDebug("Fetching verifying keys " + verifierUrl);
+                    logger.debug("Fetching verifying keys " + verifierUrl);
                     const verifyingKey = <VerifyingKey>(
                         await this.getVerifyingKey(verifierUrl)
                     );
@@ -322,7 +322,7 @@ class AleoKeyProvider implements FunctionKeyProvider {
                 if (typeof value !== "undefined") {
                     return ProvingKey.fromBytes(value[0]);
                 } else {
-                    sdkDebug(
+                    logger.debug(
                         "Fetching proving keys from url " + proverUrl,
                     );
                     const provingKey = <ProvingKey>(

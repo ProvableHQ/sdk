@@ -1,4 +1,4 @@
-import { sdkError } from "./logger.js";
+import { logger } from "./utils/logger.js";
 import {
   Address,
   ComputeKey,
@@ -66,7 +66,7 @@ export class Account {
     try {
       this._privateKey = this.privateKeyFromParams(params);
     } catch (e) {
-      sdkError("Wrong parameter", e);
+      logger.error("Wrong parameter", e);
       throw new Error("Wrong Parameter");
     }
     this._viewKey = ViewKey.from_private_key(this._privateKey);

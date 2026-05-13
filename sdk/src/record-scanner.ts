@@ -1,5 +1,5 @@
-import { sdkError } from "./logger.js";
-import { parseJSON, post, TransportFunction, defaultTransport } from "./utils.js";
+import { logger } from "./utils/logger.js";
+import { parseJSON, post, TransportFunction, defaultTransport } from "./utils/utils.js";
 import { EncryptedRecord } from "./models/record-provider/encryptedRecord.js";
 import { CryptoBoxPubKey } from "./models/cryptoBoxPubkey.js";
 import { EncryptedRegistrationRequest } from "./models/record-scanner/encryptedRegistrationRequest.js";
@@ -614,7 +614,7 @@ class RecordScanner implements RecordProvider {
             }
             throw new Error("Record not found");
         } catch (error) {
-            sdkError(`Failed to find record: ${error}`);
+            logger.error(`Failed to find record: ${error}`);
             throw error;
         }
     }
@@ -793,7 +793,7 @@ class RecordScanner implements RecordProvider {
 
             return record;
         } catch (error) {
-            sdkError(`Failed to find credits record: ${error}`);
+            logger.error(`Failed to find credits record: ${error}`);
             throw error;
         }
     }
@@ -849,7 +849,7 @@ class RecordScanner implements RecordProvider {
                 }
             });
         } catch (error) {
-            sdkError(`Failed to find credits records: ${error}`);
+            logger.error(`Failed to find credits records: ${error}`);
             throw error;
         }
     }
@@ -892,7 +892,7 @@ class RecordScanner implements RecordProvider {
 
             return response;
         } catch (error) {
-            sdkError(`Failed to make request to ${req.url}: ${error}`);
+            logger.error(`Failed to make request to ${req.url}: ${error}`);
             throw error;
         }
     }

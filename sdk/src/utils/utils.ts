@@ -1,4 +1,4 @@
-import { sdkError, sdkWarn } from "./logger.js";
+import { logger } from "./logger.js";
 
 function detectBrowser() {
     const userAgent = navigator.userAgent;
@@ -36,7 +36,7 @@ export function environment() {
 }
 
 export function logAndThrow(message: string): never {
-    sdkError(message);
+    logger.error(message);
     throw new Error(message);
 }
 
@@ -131,7 +131,7 @@ export async function retryWithBackoff<T>(
             const jitterAmount = jitter ?? baseDelay;
             const actualJitter = Math.floor(Math.random() * jitterAmount);
             const delay = baseDelay * 2 ** (attempt - 1) + actualJitter;
-            sdkWarn(
+            logger.warn(
                 `Retry ${attempt}/${maxAttempts} failed. Retrying in ${delay}ms...`,
             );
 

@@ -18,7 +18,7 @@ import {
     TransitionObject,
 } from "@provablehq/sdk/%%NETWORK%%.js";
 import { beaconPrivateKeyString } from "./data/account-data.js";
-import { retryWithBackoff } from "../src/utils.js";
+import { retryWithBackoff } from "../src/utils/utils.js";
 import { Program } from "@provablehq/wasm";
 
 async function catchError(f: () => Promise<any>): Promise<Error | null> {

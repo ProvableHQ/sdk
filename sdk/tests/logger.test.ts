@@ -5,7 +5,7 @@ import {
     getLogLevel,
     logAndThrow,
 } from "../src/node.js";
-import { sdkLog, sdkWarn, sdkError, sdkDebug } from "../src/logger.js";
+import { logger } from "../src/utils/logger.js";
 
 describe("Logger", () => {
     let logStub: sinon.SinonStub;
@@ -30,26 +30,26 @@ describe("Logger", () => {
             expect(getLogLevel()).to.equal("info");
         });
 
-        it("should pass through sdkLog at default level", () => {
-            sdkLog("test message");
+        it("should pass through logger.log at default level", () => {
+            logger.log("test message");
             expect(logStub.calledOnce).to.be.true;
             expect(logStub.firstCall.args[0]).to.equal("test message");
         });
 
-        it("should pass through sdkWarn at default level", () => {
-            sdkWarn("test warning");
+        it("should pass through logger.warn at default level", () => {
+            logger.warn("test warning");
             expect(warnStub.calledOnce).to.be.true;
             expect(warnStub.firstCall.args[0]).to.equal("test warning");
         });
 
-        it("should pass through sdkError at default level", () => {
-            sdkError("test error");
+        it("should pass through logger.error at default level", () => {
+            logger.error("test error");
             expect(errorStub.calledOnce).to.be.true;
             expect(errorStub.firstCall.args[0]).to.equal("test error");
         });
 
-        it("should suppress sdkDebug at default level", () => {
-            sdkDebug("test debug");
+        it("should suppress logger.debug at default level", () => {
+            logger.debug("test debug");
             expect(debugStub.called).to.be.false;
         });
     });
@@ -57,10 +57,10 @@ describe("Logger", () => {
     describe("setLogLevel('silent')", () => {
         it("should suppress all logging", () => {
             setLogLevel("silent");
-            sdkLog("info");
-            sdkWarn("warn");
-            sdkError("error");
-            sdkDebug("debug");
+            logger.log("info");
+            logger.warn("warn");
+            logger.error("error");
+            logger.debug("debug");
             expect(logStub.called).to.be.false;
             expect(warnStub.called).to.be.false;
             expect(errorStub.called).to.be.false;
@@ -71,10 +71,10 @@ describe("Logger", () => {
     describe("setLogLevel('error')", () => {
         it("should only allow error messages", () => {
             setLogLevel("error");
-            sdkError("error");
-            sdkWarn("warn");
-            sdkLog("info");
-            sdkDebug("debug");
+            logger.error("error");
+            logger.warn("warn");
+            logger.log("info");
+            logger.debug("debug");
             expect(errorStub.calledOnce).to.be.true;
             expect(warnStub.called).to.be.false;
             expect(logStub.called).to.be.false;
@@ -85,10 +85,10 @@ describe("Logger", () => {
     describe("setLogLevel('warn')", () => {
         it("should allow error and warn messages", () => {
             setLogLevel("warn");
-            sdkError("error");
-            sdkWarn("warn");
-            sdkLog("info");
-            sdkDebug("debug");
+            logger.error("error");
+            logger.warn("warn");
+            logger.log("info");
+            logger.debug("debug");
             expect(errorStub.calledOnce).to.be.true;
             expect(warnStub.calledOnce).to.be.true;
             expect(logStub.called).to.be.false;
@@ -99,10 +99,10 @@ describe("Logger", () => {
     describe("setLogLevel('info')", () => {
         it("should allow error, warn, and info messages", () => {
             setLogLevel("info");
-            sdkError("error");
-            sdkWarn("warn");
-            sdkLog("info");
-            sdkDebug("debug");
+            logger.error("error");
+            logger.warn("warn");
+            logger.log("info");
+            logger.debug("debug");
             expect(errorStub.calledOnce).to.be.true;
             expect(warnStub.calledOnce).to.be.true;
             expect(logStub.calledOnce).to.be.true;
@@ -113,10 +113,10 @@ describe("Logger", () => {
     describe("setLogLevel('debug')", () => {
         it("should allow all messages", () => {
             setLogLevel("debug");
-            sdkError("error");
-            sdkWarn("warn");
-            sdkLog("info");
-            sdkDebug("debug");
+            logger.error("error");
+            logger.warn("warn");
+            logger.log("info");
+            logger.debug("debug");
             expect(errorStub.calledOnce).to.be.true;
             expect(warnStub.calledOnce).to.be.true;
             expect(logStub.calledOnce).to.be.true;
@@ -137,7 +137,7 @@ describe("Logger", () => {
 
     describe("variadic arguments", () => {
         it("should forward all arguments to console.*", () => {
-            sdkLog("a", "b", 3);
+            logger.log("a", "b", 3);
             expect(logStub.calledOnce).to.be.true;
             expect(logStub.firstCall.args).to.deep.equal(["a", "b", 3]);
         });

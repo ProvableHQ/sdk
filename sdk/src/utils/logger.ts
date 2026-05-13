@@ -39,18 +39,21 @@ function shouldLog(level: LogLevel): boolean {
     return LEVEL_PRIORITY[level] <= LEVEL_PRIORITY[currentLevel];
 }
 
-export function sdkLog(...args: unknown[]): void {
-    if (shouldLog("info")) console.log(...args);
-}
-
-export function sdkWarn(...args: unknown[]): void {
-    if (shouldLog("warn")) console.warn(...args);
-}
-
-export function sdkError(...args: unknown[]): void {
-    if (shouldLog("error")) console.error(...args);
-}
-
-export function sdkDebug(...args: unknown[]): void {
-    if (shouldLog("debug")) console.debug(...args);
-}
+/**
+ * SDK logger object following console.log/warn/error/debug syntax.
+ * Respects the current log level set via setLogLevel().
+ */
+export const logger = {
+    log(...args: unknown[]): void {
+        if (shouldLog("info")) console.log(...args);
+    },
+    warn(...args: unknown[]): void {
+        if (shouldLog("warn")) console.warn(...args);
+    },
+    error(...args: unknown[]): void {
+        if (shouldLog("error")) console.error(...args);
+    },
+    debug(...args: unknown[]): void {
+        if (shouldLog("debug")) console.debug(...args);
+    },
+};
