@@ -1,3 +1,5 @@
+import { logger } from "./logger.js";
+
 function detectBrowser() {
     const userAgent = navigator.userAgent;
 
@@ -34,7 +36,7 @@ export function environment() {
 }
 
 export function logAndThrow(message: string): never {
-    console.error(message);
+    logger.error(message);
     throw new Error(message);
 }
 
@@ -129,7 +131,7 @@ export async function retryWithBackoff<T>(
             const jitterAmount = jitter ?? baseDelay;
             const actualJitter = Math.floor(Math.random() * jitterAmount);
             const delay = baseDelay * 2 ** (attempt - 1) + actualJitter;
-            console.warn(
+            logger.warn(
                 `Retry ${attempt}/${maxAttempts} failed. Retrying in ${delay}ms...`,
             );
 

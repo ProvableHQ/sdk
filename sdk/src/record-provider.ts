@@ -1,7 +1,8 @@
+import { logger } from "./utils/logger.js";
 import { Account } from "./account.js";
 import { AleoNetworkClient } from "./network-client.js";
 import { EncryptedRecord } from "./models/record-provider/encryptedRecord.js";
-import { logAndThrow } from "./utils.js";
+import { logAndThrow } from "./utils/utils.js";
 import { OwnedRecord } from "./models/record-provider/ownedRecord.js";
 import { RecordSearchParams } from "./models/record-provider/recordSearchParams.js";
 import { RecordsResponseFilter } from "./models/record-scanner/recordsResponseFilter.js";
@@ -300,14 +301,14 @@ class NetworkRecordProvider implements RecordProvider {
         try {
             records = await this.findCreditsRecords([microcredits], searchParameters);
         } catch (e) {
-            console.log("No records found with error:", e);
+            logger.log("No records found with error:", e);
         }
 
         if (records && records.length > 0) {
             return records[0];
         }
 
-        console.error("Record not found with error:", records);
+        logger.error("Record not found with error:", records);
         throw new Error("Record not found");
     }
 
@@ -320,14 +321,14 @@ class NetworkRecordProvider implements RecordProvider {
         try {
             records = await this.findRecords(searchParameters);
         } catch (e) {
-            console.log("No records found with error:", e);
+            logger.log("No records found with error:", e);
         }
 
         if (records && records.length > 0) {
             return records[0];
         }
 
-        console.error("Record not found with error:", records);
+        logger.error("Record not found with error:", records);
         throw new Error("Record not found");
     }
 

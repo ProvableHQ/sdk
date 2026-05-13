@@ -4,7 +4,7 @@ import {
     Field,
     Group,
 } from "./wasm.js";
-import { logAndThrow } from "./utils.js";
+import { logAndThrow } from "./utils/utils.js";
 import {
     toField,
     toGroup,

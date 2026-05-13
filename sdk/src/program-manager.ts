@@ -1,3 +1,4 @@
+import { logger } from "./utils/logger.js";
 import { Account } from "./account.js";
 import { AleoNetworkClient, AleoNetworkClientOptions, ProgramImports } from "./network-client.js";
 import { ImportedPrograms, ImportedVerifyingKeys } from "./models/imports.js";
@@ -47,7 +48,7 @@ import {
     VALID_TRANSFER_TYPES,
 } from "./constants.js";
 
-import { logAndThrow } from "./utils.js";
+import { logAndThrow } from "./utils/utils.js";
 import { ExternalSigningOptions } from "./models/external-signing.js";
 
 /**
@@ -423,7 +424,7 @@ class ProgramManager {
             }
             return;
         } catch {
-            console.log("Setting the inclusion prover requires either a key provider to be configured for the ProgramManager OR to pass the inclusion prover directly");
+            logger.log("Setting the inclusion prover requires either a key provider to be configured for the ProgramManager OR to pass the inclusion prover directly");
         }
     }
 
@@ -510,7 +511,7 @@ class ProgramManager {
                 );
             } catch (e) {
                 // Program does not exist on the network, deployment can proceed
-                console.log(
+                logger.log(
                     `Program ${programObject.id()} does not exist on the network, deploying...`,
                 );
             }
@@ -540,7 +541,7 @@ class ProgramManager {
                 let fee = priorityFee;
                 // If a private fee is specified, but no fee record is provided, estimate the fee and find a matching record.
                 if (!feeRecord) {
-                    console.log("Private fee specified, but no private fee record provided, estimating fee and finding a matching fee record.")
+                    logger.log("Private fee specified, but no private fee record provided, estimating fee and finding a matching fee record.")
                     const programString = programObject.toString();
                     const imports = await this.networkClient.getProgramImports(programString);
                     const baseFee = Number(WasmProgramManager.estimateDeploymentFee(programString, imports));
@@ -658,7 +659,7 @@ class ProgramManager {
                 );
             } catch (e) {
                 // Program does not exist on the network, deployment can proceed
-                console.log(
+                logger.log(
                     `Program ${programObject.id()} does not exist on the network...`,
                 );
             }
@@ -685,7 +686,7 @@ class ProgramManager {
                 let fee = priorityFee;
                 // If a private fee is specified, but no fee record is provided, estimate the fee and find a matching record.
                 if (!feeRecord) {
-                    console.log("Private fee specified, but no private fee record provided, estimating fee and finding a matching fee record.")
+                    logger.log("Private fee specified, but no private fee record provided, estimating fee and finding a matching fee record.")
                     const programString = programObject.toString();
                     const imports = await this.networkClient.getProgramImports(programString);
                     const baseFee = Number(WasmProgramManager.estimateDeploymentFee(programString, imports));
@@ -915,7 +916,7 @@ class ProgramManager {
             try {
                 edition = await this.networkClient.getLatestProgramEdition(programName);
             } catch (e: any) {
-                console.warn(`Error finding edition for ${programName}. Network response: '${e.message}'. Assuming edition 0.`);
+                logger.warn(`Error finding edition for ${programName}. Network response: '${e.message}'. Assuming edition 0.`);
                 edition = 0;
             }
         }
@@ -953,7 +954,7 @@ class ProgramManager {
                     await this.keyProvider.functionKeys(keySearchParams)
                 );
             } catch (e) {
-                console.log(
+                logger.log(
                     `Function keys not found. Key finder response: '${e}'. The function keys will be synthesized`,
                 );
             }
@@ -1156,14 +1157,14 @@ class ProgramManager {
                     await this.keyProvider.functionKeys(keySearchParams)
                 );
             } catch (e) {
-                console.log(
+                logger.log(
                     `Function keys not found. Key finder response: '${e}'. The function keys will be synthesized`,
                 );
             }
         }
 
         // Resolve the program imports if they exist.
-        console.log("Resolving program imports");
+        logger.log("Resolving program imports");
         const numberOfImports = Program.fromString(program).getImports().length;
         if (numberOfImports > 0 && !imports) {
             try {
@@ -1186,7 +1187,7 @@ class ProgramManager {
         await this.ensureInclusionKeys(!!offlineQuery);
 
         // Build an execution transaction from the authorization.
-        console.log("Executing authorizations")
+        logger.log("Executing authorizations")
         return await WasmProgramManager.executeAuthorization(
             authorization,
             feeAuthorization,
@@ -1281,7 +1282,7 @@ class ProgramManager {
             try {
                 edition = await this.networkClient.getLatestProgramEdition(programName);
             } catch (e: any) {
-                console.warn(`Error finding edition for ${programName}. Network response: '${e.message}'. Assuming edition 0.`);
+                logger.warn(`Error finding edition for ${programName}. Network response: '${e.message}'. Assuming edition 0.`);
                 edition = 0;
             }
         }
@@ -1408,7 +1409,7 @@ class ProgramManager {
             try {
                 edition = await this.networkClient.getLatestProgramEdition(programName);
             } catch (e: any) {
-                console.warn(`Error finding edition for ${programName}. Network response: '${e.message}'. Assuming edition 0.`);
+                logger.warn(`Error finding edition for ${programName}. Network response: '${e.message}'. Assuming edition 0.`);
                 edition = 0;
             }
         }
@@ -1509,7 +1510,7 @@ class ProgramManager {
             try {
                 edition = await this.networkClient.getLatestProgramEdition(programName);
             } catch (e: any) {
-                console.warn(`Error finding edition for ${programName}. Network response: '${e.message}'. Assuming edition 0.`);
+                logger.warn(`Error finding edition for ${programName}. Network response: '${e.message}'. Assuming edition 0.`);
                 edition = 0;
             }
         }
@@ -1838,7 +1839,7 @@ class ProgramManager {
                     await this.keyProvider.functionKeys(keySearchParams)
                 );
             } catch (e) {
-                console.log(
+                logger.log(
                     `Function keys not found. Key finder response: '${e}'. The function keys will be synthesized`,
                 );
             }
@@ -1856,9 +1857,9 @@ class ProgramManager {
         await this.ensureInclusionKeys(!!offlineQuery);
 
         // Run the program offline and return the result
-        console.log("Running program offline");
-        console.log("Proving key: ", provingKey);
-        console.log("Verifying key: ", verifyingKey);
+        logger.log("Running program offline");
+        logger.log("Proving key: ", provingKey);
+        logger.log("Verifying key: ", verifyingKey);
         return WasmProgramManager.executeFunctionOffline(
             executionPrivateKey,
             program,
@@ -3225,7 +3226,7 @@ class ProgramManager {
                 blockHeight
             );
         } catch (e) {
-            console.warn(
+            logger.warn(
                 `The execution was not found in the response, cannot verify the execution: ${e}`,
             );
             return false;
@@ -3332,7 +3333,7 @@ class ProgramManager {
         }
         const programSource = program ? program.toString() : await this.networkClient.getProgram(programName, edition);
         const programImports = imports ? imports : await this.networkClient.getProgramImports(programSource);
-        console.log(JSON.stringify(programImports));
+        logger.log(JSON.stringify(programImports));
         if (Object.keys(programImports)) {
             return WasmProgramManager.estimateFeeForAuthorization(authorization, programSource, programImports, edition);
         }
@@ -3515,7 +3516,7 @@ class ProgramManager {
             try {
                 edition = await this.networkClient.getLatestProgramEdition(programName);
             } catch (e: any) {
-                console.warn(`Error finding edition for ${programName}. Network response: '${e.message}'. Assuming edition 0.`);
+                logger.warn(`Error finding edition for ${programName}. Network response: '${e.message}'. Assuming edition 0.`);
                 edition = 0;
             }
         }
@@ -3539,7 +3540,7 @@ class ProgramManager {
                 let fee = priorityFee;
                 // If a private fee is specified, but no fee record is provided, estimate the fee and find a matching record.
                 if (!feeRecord) {
-                    console.log("Private fee specified, but no private fee record provided, estimating fee and finding a matching fee record.")
+                    logger.log("Private fee specified, but no private fee record provided, estimating fee and finding a matching fee record.")
                     const programString = programObject.toString();
                     const imports = await this.networkClient.getProgramImports(programString);
                     const baseFee = Number(WasmProgramManager.estimateDeploymentFee(programString, imports));
@@ -3657,7 +3658,7 @@ class ProgramManager {
                 );
             } catch (e) {
                 // Program does not exist on the network, deployment can proceed
-                console.log(
+                logger.log(
                     `Program ${programObject.id()} does not exist on the network, deploying...`,
                 );
             }
@@ -3687,7 +3688,7 @@ class ProgramManager {
                 let fee = priorityFee;
                 // If a private fee is specified, but no fee record is provided, estimate the fee and find a matching record.
                 if (!feeRecord) {
-                    console.log("Private fee specified, but no private fee record provided, estimating fee and finding a matching fee record.")
+                    logger.log("Private fee specified, but no private fee record provided, estimating fee and finding a matching fee record.")
                     const programString = programObject.toString();
                     const imports = await this.networkClient.getProgramImports(programString);
                     const baseFee = Number(WasmProgramManager.estimateDeploymentFee(programString, imports));
@@ -3817,7 +3818,7 @@ class ProgramManager {
                 let fee = priorityFee;
                 // If a private fee is specified, but no fee record is provided, estimate the fee and find a matching record.
                 if (!feeRecord) {
-                    console.log("Private fee specified, but no private fee record provided, estimating fee and finding a matching fee record.")
+                    logger.log("Private fee specified, but no private fee record provided, estimating fee and finding a matching fee record.")
                     const programString = programObject.toString();
                     const imports = await this.networkClient.getProgramImports(programString);
                     const baseFee = Number(WasmProgramManager.estimateDeploymentFee(programString, imports));

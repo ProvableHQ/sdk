@@ -1,3 +1,4 @@
+import { logger } from "./utils/logger.js";
 import {
   Address,
   ComputeKey,
@@ -65,7 +66,7 @@ export class Account {
     try {
       this._privateKey = this.privateKeyFromParams(params);
     } catch (e) {
-      console.error("Wrong parameter", e);
+      logger.error("Wrong parameter", e);
       throw new Error("Wrong Parameter");
     }
     this._viewKey = ViewKey.from_private_key(this._privateKey);
@@ -283,7 +284,7 @@ export class Account {
    */
   decryptRecord(ciphertext: string): RecordPlaintext {
     this.assertNotDestroyed();
-    return this._viewKey.decrypt(ciphertext);
+    return this._viewKey.decrypt(ciphertext) as unknown as RecordPlaintext;
   }
 
   /**
@@ -309,7 +310,7 @@ export class Account {
    */
   decryptRecords(ciphertexts: string[]): RecordPlaintext[] {
     this.assertNotDestroyed();
-    return ciphertexts.map((ciphertext) => this._viewKey.decrypt(ciphertext));
+    return ciphertexts.map((ciphertext) => this._viewKey.decrypt(ciphertext) as unknown as RecordPlaintext);
   }
 
   /**

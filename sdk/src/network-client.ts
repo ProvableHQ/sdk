@@ -1,4 +1,5 @@
-import { get, post, parseJSON, logAndThrow, retryWithBackoff, environment, isNode, TransportFunction, defaultTransport } from "./utils.js";
+import { logger } from "./utils/logger.js";
+import { get, post, parseJSON, logAndThrow, retryWithBackoff, environment, isNode, TransportFunction, defaultTransport } from "./utils/utils.js";
 import { Account } from "./account.js";
 import { BlockJSON } from "./models/blockJSON.js";
 import { TransactionJSON } from "./models/transaction/transactionJSON.js";
@@ -524,7 +525,7 @@ class AleoNetworkClient {
                                                                     );
                                                                     continue;
                                                                 } catch (error) {
-                                                                    console.log(
+                                                                    logger.log(
                                                                         "Found unspent record!",
                                                                     );
                                                                 }
@@ -612,16 +613,16 @@ class AleoNetworkClient {
                 }
             } catch (error) {
                 // If there is an error fetching blocks, log it and keep searching
-                console.warn(
+                logger.warn(
                     "Error fetching blocks in range: " +
                     start.toString() +
                     "-" +
                     end.toString(),
                 );
-                console.warn("Error: ", error);
+                logger.warn("Error: ", error);
                 failures += 1;
                 if (failures > 10) {
-                    console.warn(
+                    logger.warn(
                         "10 failures fetching records reached. Returning records fetched so far",
                     );
                     return records;
@@ -1858,7 +1859,7 @@ class AleoNetworkClient {
                 this.jwtData = jwtData;
                 options.jwtData = jwtData;
             } else {
-                console.warn('JWT or both apiKey and consumerId are required when using the Provable API');
+                logger.warn('JWT or both apiKey and consumerId are required when using the Provable API');
             }
         }
 
@@ -2018,9 +2019,9 @@ class AleoNetworkClient {
                         let text = "";
                         try {
                             text = await res.text();
-                            console.warn("Response text from server:", text);
+                            logger.warn("Response text from server:", text);
                         } catch (err) {
-                            console.warn("Failed to read response text:", err);
+                            logger.warn("Failed to read response text:", err);
                         }
 
                         // If the transaction ID is malformed (e.g. invalid checksum, wrong length),
@@ -2037,7 +2038,7 @@ class AleoNetworkClient {
                         }
 
                         // Log and continue polling for 404s or 5XX errors in case a tx doesn't exist yet
-                        console.warn(
+                        logger.warn(
                             "Non-OK response (retrying):",
                             res.status,
                             text,
@@ -2060,7 +2061,7 @@ class AleoNetworkClient {
                         );
                     }
                 } catch (err) {
-                    console.error("Polling error:", err);
+                    logger.error("Polling error:", err);
                 }
             }, checkInterval);
         });
