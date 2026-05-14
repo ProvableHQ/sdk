@@ -154,10 +154,31 @@ jobs:
       - uses: ./.github/actions/setup-yarn
       - uses: ./.github/actions/use-build
 
-      - working-directory: create-leo-app/template-node-loyalty-program-ts
+      - name: Run local mode
+        working-directory: create-leo-app/template-node-loyalty-program-ts
         run: |
           yarn local
 
+      - name: Run key caching mode (ProgramImportsBuilder + LocalFileKeyStore)
+        working-directory: create-leo-app/template-node-loyalty-program-ts
+        run: |
+          yarn start:caching
+
+
+  create-leo-app-dynamic-dispatch:
+    name: "create-leo-app dynamic-dispatch (call.dynamic + deep chain)"
+    runs-on: ubuntu-latest-m
+    needs: build
+    steps:
+      - uses: actions/checkout@v4
+      - uses: ./.github/actions/setup-yarn
+      - uses: ./.github/actions/use-build
+
+      - name: Run dynamic dispatch and deep chain key caching tests
+        working-directory: create-leo-app/template-node-dynamic-dispatch-ts
+        timeout-minutes: 10
+        run: |
+          yarn start
 
   # Cheap, deterministic, no secrets. Always runs on every PR and push.
   # Exercises: CJS module load (no TLA), Account/signature WASM calls, noble

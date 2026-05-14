@@ -1,6 +1,7 @@
 import "./polyfill/shared.js";
 
 import { logger } from "./utils/logger.js";
+import { IndexedDBKeyStore } from "./keys/keystore/indexeddb.js";
 import { Account } from "./account.js";
 import { AleoNetworkClient, ProgramImports } from "./network-client.js";
 import { BlockJSON, Header, Metadata } from "./models/blockJSON.js";
@@ -138,6 +139,7 @@ export {
     I64,
     I128,
     OfflineQuery,
+    QueryOption,
     Pedersen64,
     Pedersen128,
     Plaintext,
@@ -147,6 +149,7 @@ export {
     PrivateKey,
     PrivateKeyCiphertext,
     Program,
+    ProgramImportsBuilder,
     ProgramManager as ProgramManagerBase,
     Proof,
     ProvingKey,
@@ -224,6 +227,7 @@ export {
     isProveApiErrorBody,
     ImportedPrograms,
     ImportedVerifyingKeys,
+    IndexedDBKeyStore,
     InputJSON,
     InputObject,
     InvalidLocatorError,

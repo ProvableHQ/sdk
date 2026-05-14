@@ -1109,6 +1109,29 @@ class AleoNetworkClient {
     }
 
     /**
+     * Returns the current edition and amendment count for a program.
+     *
+     * @param {string} programId - The program ID (e.g. "hello_hello.aleo")
+     * @returns {{ program_id: string, edition: number, amendment_count: number }}
+     *
+     * @example
+     * const networkClient = new AleoNetworkClient("https://api.provable.com/v2");
+     * const info = await networkClient.getProgramAmendmentCount("hello_hello.aleo");
+     * console.log(info.edition, info.amendment_count);
+     */
+    async getProgramAmendmentCount(programId: string): Promise<{ program_id: string; edition: number; amendment_count: number }> {
+        try {
+            this.ctx = { "X-ALEO-METHOD": "getProgramAmendmentCount" };
+            const raw = await this.fetchRaw("/programs/" + programId + "/amendment_count");
+            return JSON.parse(raw);
+        } catch (error) {
+            throw new Error(`Error fetching amendment count for ${programId}: ${error}`);
+        } finally {
+            this.ctx = {};
+        }
+    }
+
+    /**
      * Returns a program object from a program ID or program source code.
      *
      * @param {string} inputProgram The program ID or program source code of a program deployed to the Aleo Network.

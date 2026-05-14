@@ -34,6 +34,7 @@ export {
     PrivateKey,
     PrivateKeyCiphertext,
     Program,
+    ProgramImports as ProgramImportsBuilder,
     ProgramManager,
     Proof,
     ProvingKey,

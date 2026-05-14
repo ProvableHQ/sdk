@@ -12,6 +12,7 @@ dist
 dist-ssr
 *.local
 .env
+.aleo
 
 # Editor directories and files
 .vscode/*

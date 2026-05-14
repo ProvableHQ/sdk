@@ -9,6 +9,7 @@ import {
     RecordScanner,
     RecordCiphertext,
     OfflineQuery,
+    LocalFileKeyStore,
 } from "@provablehq/sdk/testnet.js";
 import { readFileSync } from "fs";
 import { dirname, join } from "path";
@@ -209,6 +210,7 @@ function logScanResults(recordType: string, count: number): void {
 class LoyaltyProgram {
     private programManager: ProgramManager;
     private keyProvider: AleoKeyProvider;
+    private keyStore: LocalFileKeyStore;
     private networkClient: AleoNetworkClient | null = null;
     private _account: Account;
 
@@ -240,14 +242,26 @@ class LoyaltyProgram {
      */
     constructor(account: Account, config?: ProgramConfig) {
         this._account = account;
+        this.keyProvider = new AleoKeyProvider();
+
+        // Set up a file-based KeyStore for automatic proving/verifying key
+        // caching across executions. The ProgramManager's internal
+        // ProgramImportsBuilder pipeline (buildProgramImports → WASM execution
+        // → persistExtractedKeys) uses this store to persist synthesized keys
+        // and reload them on subsequent runs, avoiding expensive re-synthesis.
+        this.keyStore = new LocalFileKeyStore();
+
         // Always use the standard API endpoint for ProgramManager state queries
         // (edition lookups, inclusion proofs, etc.). The DPS URL is only needed for
         // submitProvingRequest() — passing it here doubles the /testnet/ path segment.
-        this.programManager = new ProgramManager("https://api.provable.com/v2");
+        this.programManager = new ProgramManager(
+            "https://api.provable.com/v2",
+            this.keyProvider,
+            undefined,
+            undefined,
+            this.keyStore,
+        );
         this.programManager.setAccount(account);
-
-        this.keyProvider = new AleoKeyProvider();
-        this.programManager.setKeyProvider(this.keyProvider);
 
         if (config?.dpsUrl) {
             this.networkClient = new AleoNetworkClient(config.dpsUrl);
@@ -1189,6 +1203,66 @@ const functions: Record<string, () => Promise<void>> = {
         for (const voucher of vouchers) {
             console.log(`  ${COLORS.dim}├─${COLORS.reset} Voucher: ${RewardType[voucher.rewardType]}, value: ${voucher.value}`);
         }
+    },
+
+    // Demonstrate ProgramImportsBuilder key caching across executions.
+    // This exercises the full TS → WASM pipeline:
+    //   1. buildProgramImports creates a ProgramImportsBuilder
+    //   2. loadKeysFromStore loads cached keys from LocalFileKeyStore into the builder
+    //   3. WASM executeFunctionOffline receives the builder, synthesizes missing keys
+    //   4. persistExtractedKeys saves newly synthesized keys back to the KeyStore
+    //   5. On repeat execution, keys are loaded from the store (step 2) instead of re-synthesized
+    key_caching: async () => {
+        logHeader("Key Caching Demonstration");
+        console.log(`   ${COLORS.dim}└─ Using LocalFileKeyStore at .aleo/${COLORS.reset}`);
+
+        // First execution: keys are synthesized (slower).
+        console.log("\n1. First mint_card execution (keys will be synthesized)...");
+        const t1 = Date.now();
+        const card1 = await loyalty.mintCard(address, 500);
+        const d1 = Date.now() - t1;
+        console.log(`   ${COLORS.dim}├─${COLORS.reset} Card: ${card1.points} points`);
+        console.log(`   ${COLORS.dim}└─${COLORS.reset} Duration: ${COLORS.bright}${(d1 / 1000).toFixed(1)}s${COLORS.reset} ${COLORS.dim}(keys synthesized and cached to disk)${COLORS.reset}`);
+
+        // Second execution of the same function: keys loaded from KeyStore (faster).
+        console.log("\n2. Second mint_card execution (keys loaded from cache)...");
+        const t2 = Date.now();
+        const card2 = await loyalty.mintCard(address, 750);
+        const d2 = Date.now() - t2;
+        console.log(`   ${COLORS.dim}├─${COLORS.reset} Card: ${card2.points} points`);
+        console.log(`   ${COLORS.dim}└─${COLORS.reset} Duration: ${COLORS.bright}${(d2 / 1000).toFixed(1)}s${COLORS.reset} ${COLORS.dim}(keys loaded from cache)${COLORS.reset}`);
+
+        // Cross-program execution with imports: exercises the import builder pipeline.
+        console.log("\n3. Cross-program redeem (import resolution + key caching)...");
+        const t3 = Date.now();
+        const { card: updatedCard, voucher } = await loyalty.redeemForVoucher(
+            card1,
+            RewardType.Discount,
+            200
+        );
+        const d3 = Date.now() - t3;
+        console.log(`   ${COLORS.dim}├─${COLORS.reset} Card points remaining: ${updatedCard.points}`);
+        console.log(`   ${COLORS.dim}├─${COLORS.reset} Voucher: ${RewardType[voucher.rewardType]}, value: ${voucher.value}`);
+        console.log(`   ${COLORS.dim}└─${COLORS.reset} Duration: ${COLORS.bright}${(d3 / 1000).toFixed(1)}s${COLORS.reset} ${COLORS.dim}(import keys synthesized and cached)${COLORS.reset}`);
+
+        // Second cross-program execution: all keys (top-level + import) loaded from cache.
+        console.log("\n4. Second cross-program redeem (all keys from cache)...");
+        const t4 = Date.now();
+        const result2 = await loyalty.redeemForVoucher(
+            updatedCard,
+            RewardType.Freebie,
+            100
+        );
+        const d4 = Date.now() - t4;
+        console.log(`   ${COLORS.dim}├─${COLORS.reset} Card points remaining: ${result2.card.points}`);
+        console.log(`   ${COLORS.dim}├─${COLORS.reset} Voucher: ${RewardType[result2.voucher.rewardType]}, value: ${result2.voucher.value}`);
+        console.log(`   ${COLORS.dim}└─${COLORS.reset} Duration: ${COLORS.bright}${(d4 / 1000).toFixed(1)}s${COLORS.reset} ${COLORS.dim}(all keys from cache)${COLORS.reset}`);
+
+        // Summary.
+        console.log(`\n${COLORS.cyan}Summary:${COLORS.reset}`);
+        console.log(`  ${COLORS.dim}├─${COLORS.reset} mint_card:  ${(d1 / 1000).toFixed(1)}s → ${(d2 / 1000).toFixed(1)}s ${COLORS.dim}(cached)${COLORS.reset}`);
+        console.log(`  ${COLORS.dim}├─${COLORS.reset} redeem:     ${(d3 / 1000).toFixed(1)}s → ${(d4 / 1000).toFixed(1)}s ${COLORS.dim}(cached)${COLORS.reset}`);
+        console.log(`  ${COLORS.dim}└─${COLORS.reset} Keys stored in ${COLORS.bright}.aleo/${COLORS.reset} directory`);
     },
 
     // =========================================================================

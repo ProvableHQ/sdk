@@ -13,6 +13,11 @@ import {
     AleoKeyProvider,
     AleoKeyProviderParams,
 } from "./keys/provider/memory.js";
+import {
+    KeyStore,
+    provingKeyLocator,
+    verifyingKeyLocator,
+} from "./keys/keystore/interface.js";
 
 import {
     FunctionKeyPair
@@ -28,6 +33,7 @@ import {
     Execution as FunctionExecution,
     Field,
     OfflineQuery,
+    ProgramImportsBuilder,
     RecordPlaintext,
     PrivateKey,
     Program,
@@ -106,7 +112,7 @@ interface ExecuteOptions {
     offlineQuery?: OfflineQuery;
     program?: string | Program;
     imports?: ProgramImports;
-    edition?: number,
+    edition?: number;
 }
 
 /**
@@ -127,7 +133,7 @@ interface AuthorizationOptions {
     programSource?: string | Program;
     privateKey?: PrivateKey;
     programImports?: ProgramImports;
-    edition?: number,
+    edition?: number;
 }
 
 /**
@@ -168,6 +174,7 @@ interface ExecuteAuthorizationOptions {
     offlineQuery?: OfflineQuery;
     program?: string | Program;
     imports?: ProgramImports;
+    edition?: number;
 }
 
 /**
@@ -208,7 +215,7 @@ interface ProvingRequestOptions {
     unchecked?: boolean;
     edition?: number;
     useFeeMaster?: boolean;
-    executionRequest?: ExecutionRequest,
+    executionRequest?: ExecutionRequest;
 }
 
 /**
@@ -226,7 +233,7 @@ interface FeeEstimateOptions {
     functionName?: string;
     program?: string | Program;
     imports?: ProgramImports;
-    edition?: number,
+    edition?: number;
     authorization?: Authorization;
 }
 
@@ -266,6 +273,7 @@ class ProgramManager {
     networkClient: AleoNetworkClient;
     recordProvider: RecordProvider | undefined;
     inclusionKeysLoaded: boolean = false;
+    private _keyStore: KeyStore | undefined;
 
     /** Create a new instance of the ProgramManager
      *
@@ -278,12 +286,14 @@ class ProgramManager {
         keyProvider?: FunctionKeyProvider | undefined,
         recordProvider?: RecordProvider | undefined,
         networkClientOptions?: AleoNetworkClientOptions | undefined,
+        keyStore?: KeyStore | undefined,
     ) {
         this.host = host ? host : "https://api.provable.com/v2";
         this.networkClient = new AleoNetworkClient(this.host, networkClientOptions);
 
         this.keyProvider = keyProvider ? keyProvider : new AleoKeyProvider({ transport: networkClientOptions?.transport });
         this.recordProvider = recordProvider;
+        this._keyStore = keyStore;
     }
 
     /**
@@ -370,6 +380,361 @@ class ProgramManager {
      */
     setRecordProvider(recordProvider: RecordProvider) {
         this.recordProvider = recordProvider;
+    }
+
+    /**
+     * Set the key store for automatic key caching across executions.
+     *
+     * @param {KeyStore} keyStore
+     */
+    setKeyStore(keyStore: KeyStore) {
+        this._keyStore = keyStore;
+    }
+
+    /**
+     * Build a ProgramImportsBuilder from a program and its imports.
+     * Fetches imports from the network if not provided, resolves transitive
+     * dependencies, and optionally pre-loads cached keys from the KeyStore.
+     *
+     * @param loadKeys When true (default), loads cached proving/verifying keys
+     *   from the KeyStore into the builder. Set to false for authorization and
+     *   proving request paths where keys are not synthesized.
+     */
+    private async buildProgramImports(
+        program: string | Program,
+        imports: ProgramImports | undefined,
+        loadKeys: boolean,
+        entryFunction: string,
+    ): Promise<{ builder: ProgramImportsBuilder; importEditions: Map<string, { edition: number; amendment: number }> }> {
+        const builder = new ProgramImportsBuilder();
+        const programSource = typeof program === "string" ? program : program.toString();
+        const programObj = Program.fromString(programSource);
+
+        const importNames = programObj.getImports();
+        if (importNames.length === 0 && (!imports || Object.keys(imports).length === 0)) {
+            return { builder, importEditions: new Map() };
+        }
+
+        let resolvedImports: ProgramImports = {};
+        if (imports) {
+            resolvedImports = { ...imports };
+        }
+        if (importNames.length > 0 && !imports) {
+            try {
+                resolvedImports = await this.networkClient.getProgramImports(programSource);
+            } catch (e) {
+                console.warn(`Failed to resolve program imports from network: ${e}.`);
+            }
+        }
+
+        // Build a map of which functions each import actually calls,
+        // so we only load keys for functions in the call chain.
+        const calledFunctions = ProgramManager.callGraphToMap(
+            programObj.getCallGraph(entryFunction),
+        );
+
+        // Phase 1: Collect all programs via BFS, discovering transitive imports.
+        // The initial getProgramImports call above already resolves the full
+        // transitive closure via recursive DFS.  The BFS loop here only needs
+        // to handle user-provided imports whose transitive deps may not yet be
+        // known.  For each unknown import we issue a single getProgram() call
+        // (not a full recursive getProgramImports) and fetch siblings in
+        // parallel to minimize round-trips.
+        const collected = new Map<string, string>();
+        const collectQueue: [string, string][] = Object.entries(resolvedImports).map(
+            ([name, src]) => [name, typeof src === "string" ? src : src.toString()]
+        );
+
+        while (collectQueue.length > 0) {
+            const [name, source] = collectQueue.shift()!;
+            if (collected.has(name)) continue;
+            collected.set(name, source);
+
+            // Discover transitive imports for collection (call-graph tracing
+            // happens in a separate pass after topological sorting).
+            try {
+                const subImports = ProgramManager.getImportNames(source);
+                if (subImports.length > 0) {
+                    // Fetch only unknown transitive imports — the source for
+                    // programs already in collected/resolvedImports is known, so
+                    // we skip them.  Fetches within a BFS level run in parallel.
+                    const unknownImports = subImports.filter(
+                        (id: string) => !collected.has(id) && !(id in resolvedImports),
+                    );
+                    if (unknownImports.length > 0) {
+                        const fetched = await Promise.all(
+                            unknownImports.map(async (id: string) => {
+                                try {
+                                    const src = await this.networkClient.getProgram(id);
+                                    return [id, src] as [string, string];
+                                } catch {
+                                    return null;
+                                }
+                            }),
+                        );
+                        for (const entry of fetched) {
+                            if (entry && !collected.has(entry[0])) {
+                                collectQueue.push(entry);
+                            }
+                        }
+                    }
+                }
+            } catch (e) {
+                console.warn(`Failed to resolve transitive imports for ${name}: ${e}`);
+            }
+        }
+
+        // Phase 2: Add programs in topological order (leaves first).
+        // A simple DFS post-order ensures dependencies are added before
+        // dependents, regardless of the order collected entries arrived.
+        const sorted: [string, string][] = [];
+        const visited = new Set<string>();
+        const visit = (name: string) => {
+            if (visited.has(name)) return;
+            visited.add(name);
+            const source = collected.get(name);
+            if (!source) return;
+            for (const dep of ProgramManager.getImportNames(source)) {
+                if (collected.has(dep)) visit(dep);
+            }
+            sorted.push([name, source]);
+        };
+        for (const [name] of collected) visit(name);
+
+        // When scoped, trace call graphs in reverse topological order
+        // (dependents before leaves) so parent calls propagate before
+        // children are traced. sorted is leaves-first, so reverse it.
+        if (entryFunction) {
+            for (let i = sorted.length - 1; i >= 0; i--) {
+                const [name, source] = sorted[i];
+                const functionsNeeded = calledFunctions.get(name);
+                if (!functionsNeeded) continue;
+                try {
+                    const importProgram = Program.fromString(source);
+                    for (const fn of functionsNeeded) {
+                        const reachable = ProgramManager.callGraphToMap(importProgram.getCallGraph(fn));
+                        for (const [p, fns] of reachable) {
+                            if (!calledFunctions.has(p)) {
+                                calledFunctions.set(p, new Set(fns));
+                            } else {
+                                for (const f of fns) calledFunctions.get(p)!.add(f);
+                            }
+                        }
+                    }
+                } catch (e) {
+                    console.warn(`Failed to trace call graph for ${name}: ${e}`);
+                }
+            }
+        }
+
+        // Resolve editions for all imports in parallel (each import may have
+        // a different edition than the top-level program).
+        const importEditions = new Map<string, { edition: number; amendment: number }>();
+        await Promise.all(sorted.map(async ([name]) => {
+            importEditions.set(name, await this.resolveEditionAndAmendment(name));
+        }));
+
+        for (const [name, source] of sorted) {
+            if (builder.contains(name)) continue;
+            const { edition: importEdition, amendment: importAmendment } = importEditions.get(name)!;
+            try {
+                builder.addProgram(name, source, importEdition);
+            } catch (e) {
+                console.warn(`Failed to add import ${name} to builder: ${e}`);
+                continue;
+            }
+
+            if (loadKeys) {
+                const calledFns = calledFunctions.get(name);
+                await this.loadKeysFromStore(builder, name, calledFns ? [...calledFns] : [], importEdition, importAmendment);
+            }
+        }
+
+        return { builder, importEditions };
+    }
+
+    /**
+     * Extract `import program_name.aleo;` names from program source via regex.
+     * Avoids a WASM round-trip compared to Program.fromString + getImports.
+     */
+    private static getImportNames(programSource: string): string[] {
+        const result: string[] = [];
+        const importPattern = /^\s*import\s+([a-zA-Z_][a-zA-Z0-9_]*\.aleo)\s*;/gm;
+        let match;
+        while ((match = importPattern.exec(programSource)) !== null) {
+            result.push(match[1]);
+        }
+        return result;
+    }
+
+    /**
+     * Convert the JS object returned by Program.getCallGraph() into a
+     * Map<string, Set<string>> for use in buildProgramImports.
+     */
+    private static callGraphToMap(callGraph: Record<string, string[]>): Map<string, Set<string>> {
+        const result = new Map<string, Set<string>>();
+        for (const [programName, functions] of Object.entries(callGraph)) {
+            result.set(programName, new Set(functions));
+        }
+        return result;
+    }
+
+    /**
+     * Resolve the active KeyStore, preferring the directly-set _keyStore
+     * over the KeyProvider's keyStore().
+     */
+    private async resolveKeyStore(): Promise<KeyStore | undefined> {
+        if (this._keyStore) return this._keyStore;
+        try { return await this.keyProvider?.keyStore?.(); } catch { return undefined; }
+    }
+
+    /**
+     * Resolve the edition and amendment count for a program from the network.
+     * Returns `{ edition, amendment }` or falls back to `{ edition: 1, amendment: 0 }`.
+     */
+    private async resolveEditionAndAmendment(
+        programName: string,
+        fallbackEdition?: number,
+    ): Promise<{ edition: number; amendment: number }> {
+        try {
+            const info = await this.networkClient.getProgramAmendmentCount(programName);
+            return { edition: info.edition, amendment: info.amendment_count };
+        } catch (e: any) {
+            console.warn(`Error finding edition/amendment for ${programName}. Network response: '${e.message}'. Defaulting to edition ${fallbackEdition ?? 1}, amendment 0.`);
+            return { edition: fallbackEdition ?? 1, amendment: 0 };
+        }
+    }
+
+    /**
+     * Load cached proving/verifying keys from the KeyStore into a ProgramImportsBuilder.
+     * Only loads keys for the specified functions — returns immediately if
+     * functionNames is empty or undefined.
+     * Resolves edition and amendment from the network for accurate key locator
+     * construction when not explicitly provided.
+     */
+    private async loadKeysFromStore(
+        builder: ProgramImportsBuilder,
+        programName: string,
+        functionNames?: string[],
+        edition?: number,
+        amendment?: number,
+    ): Promise<void> {
+        if (!functionNames || functionNames.length === 0) return;
+        const keyStore = await this.resolveKeyStore();
+        if (!keyStore) return;
+
+        // Resolve edition and amendment from the network if not fully provided.
+        if (edition === undefined || amendment === undefined) {
+            const resolved = await this.resolveEditionAndAmendment(programName, edition);
+            edition = edition ?? resolved.edition;
+            amendment = amendment ?? resolved.amendment;
+        }
+
+        for (const fnName of functionNames) {
+            const pkLocator = provingKeyLocator(programName, fnName, edition, amendment);
+            const vkLocator = verifyingKeyLocator(programName, fnName, edition, amendment);
+
+            try {
+                const pk = await keyStore.getProvingKey(pkLocator);
+                if (pk) builder.addProvingKey(programName, fnName, pk);
+                const vk = await keyStore.getVerifyingKey(vkLocator);
+                if (vk) builder.addVerifyingKey(programName, fnName, vk);
+            } catch (e) {
+                console.debug(`Failed to load keys for ${programName}/${fnName}: ${e}`);
+            }
+        }
+    }
+
+    /**
+     * Persist newly synthesized keys from the returned ProgramImportsBuilder
+     * into the KeyStore. Only writes keys that are not already in the store,
+     * avoiding unnecessary writes of large proving keys.
+     * Fetches each program's current edition and amendment count from the network
+     * for accurate key locator construction.
+     */
+    private async persistExtractedKeys(
+        builder: ProgramImportsBuilder,
+        importEditions?: Map<string, { edition: number; amendment: number }>,
+    ): Promise<void> {
+        const keyStore = await this.resolveKeyStore();
+        if (!keyStore) return;
+
+        const programNames: string[] = Array.from(builder.programNames());
+
+        // Reuse editions resolved during buildProgramImports when available,
+        // falling back to parallel network resolution for any missing programs.
+        const editionMap = importEditions ?? new Map<string, { edition: number; amendment: number }>();
+        const missing = programNames.filter((name) => !editionMap.has(name));
+        if (missing.length > 0) {
+            await Promise.all(missing.map(async (name) => {
+                editionMap.set(name, await this.resolveEditionAndAmendment(name));
+            }));
+        }
+
+        for (const programName of programNames) {
+            const { edition, amendment } = editionMap.get(programName)!;
+
+            let fns: string[];
+            try {
+                fns = Array.from(builder.functionKeysAvailable(programName));
+            } catch (e) {
+                console.debug(`Failed to query keys for ${programName}: ${e}`);
+                continue;
+            }
+
+            for (const fnName of fns) {
+                try {
+                    const pkLocator = provingKeyLocator(programName, fnName, edition, amendment);
+                    const vkLocator = verifyingKeyLocator(programName, fnName, edition, amendment);
+
+                    // Skip keys already in the store.
+                    if (await keyStore.has(pkLocator) && await keyStore.has(vkLocator)) {
+                        continue;
+                    }
+
+                    const pk = builder.getProvingKey(programName, fnName);
+                    const vk = builder.getVerifyingKey(programName, fnName);
+                    if (pk && vk) {
+                        await keyStore.setKeys(pkLocator, vkLocator, [pk, vk]);
+                    }
+                } catch (e) {
+                    console.debug(`Failed to persist key for ${programName}/${fnName}: ${e}`);
+                }
+            }
+        }
+    }
+
+    /**
+     * Resolve top-level function keys, checking the KeyStore first and
+     * falling back to the KeyProvider.
+     */
+    private async resolveTopLevelKeys(
+        programName: string,
+        functionName: string,
+        keySearchParams?: KeySearchParams,
+        edition?: number,
+        amendment?: number,
+    ): Promise<FunctionKeyPair | undefined> {
+        const keyStore = await this.resolveKeyStore();
+        if (keyStore) {
+            try {
+                const pkLocator = provingKeyLocator(programName, functionName, edition, amendment);
+                const vkLocator = verifyingKeyLocator(programName, functionName, edition, amendment);
+                if (await keyStore.has(pkLocator) && await keyStore.has(vkLocator)) {
+                    const pk = await keyStore.getProvingKey(pkLocator);
+                    const vk = await keyStore.getVerifyingKey(vkLocator);
+                    if (pk && vk) return [pk, vk];
+                }
+            } catch {
+                // Fall through to KeyProvider
+            }
+        }
+
+        try {
+            return <FunctionKeyPair>(await this.keyProvider.functionKeys(keySearchParams));
+        } catch {
+            return undefined;
+        }
     }
 
     /**
@@ -912,14 +1277,9 @@ class ProgramManager {
             programName = programObject.id();
         }
 
-        if (edition == undefined) {
-            try {
-                edition = await this.networkClient.getLatestProgramEdition(programName);
-            } catch (e: any) {
-                logger.warn(`Error finding edition for ${programName}. Network response: '${e.message}'. Assuming edition 0.`);
-                edition = 0;
-            }
-        }
+        const resolved = await this.resolveEditionAndAmendment(programName, edition);
+        edition = edition ?? resolved.edition;
+        const { amendment } = resolved;
 
         // Get the private key from the account if it is not provided in the parameters
         let executionPrivateKey = privateKey;
@@ -947,29 +1307,20 @@ class ProgramManager {
         }
         const [feeProvingKey, feeVerifyingKey] = feeKeys;
 
-        // If the function proving and verifying keys are not provided, attempt to find them using the key provider
-        if (!provingKey || !verifyingKey) {
-            try {
-                [provingKey, verifyingKey] = <FunctionKeyPair>(
-                    await this.keyProvider.functionKeys(keySearchParams)
-                );
-            } catch (e) {
-                logger.log(
-                    `Function keys not found. Key finder response: '${e}'. The function keys will be synthesized`,
-                );
-            }
-        }
+        // Build the ProgramImportsBuilder for import resolution and key caching.
+        const { builder: programImportsBuilder, importEditions } = await this.buildProgramImports(program, imports, true, functionName);
+        // Include the top-level program's already-resolved edition so
+        // persistExtractedKeys doesn't make a redundant network call for it.
+        importEditions.set(programName, { edition: edition!, amendment });
 
-        // Resolve the program imports if they exist
-        const numberOfImports = programObject.getImports().length;
-        if (numberOfImports > 0 && !imports) {
-            try {
-                imports = <ProgramImports>(
-                    await this.networkClient.getProgramImports(programName)
-                );
-            } catch (e: any) {
-                logAndThrow(
-                    `Error finding program imports. Network response: '${e.message}'. Please ensure you're connected to a valid Aleo network and the program is deployed to the network.`,
+        // If the function proving and verifying keys are not provided, attempt to find them
+        if (!provingKey || !verifyingKey) {
+            const keys = await this.resolveTopLevelKeys(programName, functionName, keySearchParams, edition, amendment);
+            if (keys) {
+                [provingKey, verifyingKey] = keys;
+            } else {
+                console.log(
+                    "Function keys not found in KeyStore or KeyProvider. The function keys will be synthesized",
                 );
             }
         }
@@ -1004,9 +1355,6 @@ class ProgramManager {
         // Auto-convert bare string inputs to field elements where the function expects field type.
         const preparedInputs = this.prepareInputs(program, functionName, inputs);
 
-        // Build the query: user-provided OfflineQuery for truly offline execution,
-        // CallbackQuery when a custom transport is configured, or undefined to
-        // let WASM use its internal SnapshotQuery with the default fetch.
         const query = offlineQuery
             ? QueryOption.offlineQuery(offlineQuery)
             : this.networkClient.hasCustomTransport
@@ -1015,8 +1363,7 @@ class ProgramManager {
 
         await this.ensureInclusionKeys(!!offlineQuery);
 
-        // Build an execution transaction
-        return await WasmProgramManager.buildExecutionTransaction(
+        const result = await WasmProgramManager.buildExecutionTransaction(
             executionPrivateKey,
             program,
             functionName,
@@ -1024,14 +1371,25 @@ class ProgramManager {
             priorityFee,
             feeRecord,
             this.host,
-            imports,
+            undefined, // imports (legacy Object path — builder handles resolution)
             provingKey,
             verifyingKey,
             feeProvingKey,
             feeVerifyingKey,
             query,
             edition,
+            programImportsBuilder?.clone(),
         );
+
+        // The clone passed to WASM shares state with the original via
+        // Rc<RefCell<>> — synthesized keys are already visible.
+        try {
+            await this.persistExtractedKeys(programImportsBuilder, importEditions);
+        } catch (e) {
+            console.debug(`Failed to persist extracted keys: ${e}`);
+        }
+
+        return result;
     }
 
     /**
@@ -1116,6 +1474,10 @@ class ProgramManager {
         const feeAuthorization = options.feeAuthorization;
         const keySearchParams = options.keySearchParams;
         const offlineQuery = options.offlineQuery;
+        let edition = options.edition;
+        const resolved = await this.resolveEditionAndAmendment(programName, edition);
+        edition = edition ?? resolved.edition;
+        const { amendment } = resolved;
         let provingKey = options.provingKey;
         let verifyingKey = options.verifyingKey;
         let program = options.program;
@@ -1150,30 +1512,18 @@ class ProgramManager {
         }
         const [feeProvingKey, feeVerifyingKey] = feeKeys;
 
-        // If the function proving and verifying keys are not provided, attempt to find them using the key provider.
-        if (!provingKey || !verifyingKey) {
-            try {
-                [provingKey, verifyingKey] = <FunctionKeyPair>(
-                    await this.keyProvider.functionKeys(keySearchParams)
-                );
-            } catch (e) {
-                logger.log(
-                    `Function keys not found. Key finder response: '${e}'. The function keys will be synthesized`,
-                );
-            }
-        }
+        // Build the ProgramImportsBuilder for import resolution and key caching.
+        const { builder: programImportsBuilder, importEditions } = await this.buildProgramImports(program, imports, true, authorization.functionName());
+        importEditions.set(programName, { edition: edition!, amendment });
 
-        // Resolve the program imports if they exist.
-        logger.log("Resolving program imports");
-        const numberOfImports = Program.fromString(program).getImports().length;
-        if (numberOfImports > 0 && !imports) {
-            try {
-                imports = <ProgramImports>(
-                    await this.networkClient.getProgramImports(programName)
-                );
-            } catch (e: any) {
-                logAndThrow(
-                    `Error finding program imports. Network response: '${e.message}'. Please ensure you're connected to a valid Aleo network and the program is deployed to the network.`,
+        // If the function proving and verifying keys are not provided, attempt to find them.
+        if (!provingKey || !verifyingKey) {
+            const keys = await this.resolveTopLevelKeys(programName, authorization.functionName(), keySearchParams, edition, amendment);
+            if (keys) {
+                [provingKey, verifyingKey] = keys;
+            } else {
+                console.log(
+                    "Function keys not found in KeyStore or KeyProvider. The function keys will be synthesized",
                 );
             }
         }
@@ -1186,9 +1536,10 @@ class ProgramManager {
 
         await this.ensureInclusionKeys(!!offlineQuery);
 
-        // Build an execution transaction from the authorization.
-        logger.log("Executing authorizations")
-        return await WasmProgramManager.executeAuthorization(
+        // Build an execution transaction from the authorization. The
+        // ProgramImportsBuilder is consumed by value (ownership transfers to WASM)
+        // and returned enriched with any keys synthesized during execution.
+        const result = await WasmProgramManager.executeAuthorization(
             authorization,
             feeAuthorization,
             program,
@@ -1196,10 +1547,20 @@ class ProgramManager {
             verifyingKey,
             feeProvingKey,
             feeVerifyingKey,
-            imports,
+            undefined, // imports (legacy Object path — builder handles resolution)
             this.host,
             query,
-        )
+            programImportsBuilder?.clone(),
+            edition,
+        );
+
+        try {
+            await this.persistExtractedKeys(programImportsBuilder, importEditions);
+        } catch (e) {
+            console.debug(`Failed to persist extracted keys: ${e}`);
+        }
+
+        return result;
     }
 
     /**
@@ -1278,41 +1639,29 @@ class ProgramManager {
             throw "No private key provided and no private key set in the ProgramManager";
         }
 
-        if (edition == undefined) {
-            try {
-                edition = await this.networkClient.getLatestProgramEdition(programName);
-            } catch (e: any) {
-                logger.warn(`Error finding edition for ${programName}. Network response: '${e.message}'. Assuming edition 0.`);
-                edition = 0;
-            }
-        }
-
-        // Resolve the program imports if they exist.
-        const numberOfImports = Program.fromString(program).getImports().length;
-        if (numberOfImports > 0 && !imports) {
-            try {
-                imports = <ProgramImports>(
-                    await this.networkClient.getProgramImports(programName)
-                );
-            } catch (e: any) {
-                logAndThrow(
-                    `Error finding program imports. Network response: '${e.message}'. Please ensure you're connected to a valid Aleo network and the program is deployed to the network.`,
-                );
-            }
-        }
+        const resolved = await this.resolveEditionAndAmendment(programName, edition);
+        edition = edition ?? resolved.edition;
 
         // Auto-convert bare string inputs to field elements where the function expects field type.
         const preparedInputs = this.prepareInputs(program, functionName, inputs);
 
+        // Build ProgramImportsBuilder for import resolution (no key loading —
+        // authorizations don't synthesize keys).
+        const { builder } = await this.buildProgramImports(program, imports, false, functionName);
+        const hasImports = !builder.isEmpty();
+
         // Build and return an `Authorization` for the desired function.
-        return await WasmProgramManager.authorize(
+        const authorization = await WasmProgramManager.authorize(
             executionPrivateKey,
             program,
             functionName,
             preparedInputs,
-            imports,
-            edition
+            hasImports ? undefined : imports,
+            edition,
+            hasImports ? builder?.clone() : undefined,
         );
+
+        return authorization;
     }
 
     /**
@@ -1391,41 +1740,29 @@ class ProgramManager {
             throw "No private key provided and no private key set in the ProgramManager";
         }
 
-        // Resolve the program imports if they exist.
-        const numberOfImports = Program.fromString(program).getImports().length;
-        if (numberOfImports > 0 && !imports) {
-            try {
-                imports = <ProgramImports>(
-                    await this.networkClient.getProgramImports(programName)
-                );
-            } catch (e: any) {
-                logAndThrow(
-                    `Error finding program imports. Network response: '${e.message}'. Please ensure you're connected to a valid Aleo network and the program is deployed to the network.`,
-                );
-            }
-        }
-
-        if (edition == undefined) {
-            try {
-                edition = await this.networkClient.getLatestProgramEdition(programName);
-            } catch (e: any) {
-                logger.warn(`Error finding edition for ${programName}. Network response: '${e.message}'. Assuming edition 0.`);
-                edition = 0;
-            }
-        }
+        const resolved = await this.resolveEditionAndAmendment(programName, edition);
+        edition = edition ?? resolved.edition;
 
         // Auto-convert bare string inputs to field elements where the function expects field type.
         const preparedInputs = this.prepareInputs(program, functionName, inputs);
 
+        // Build ProgramImportsBuilder for import resolution (no key loading —
+        // authorizations don't synthesize keys).
+        const { builder } = await this.buildProgramImports(program, imports, false, functionName);
+        const hasImports = !builder.isEmpty();
+
         // Build and return an `Authorization` for the desired function.
-        return await WasmProgramManager.buildAuthorizationUnchecked(
+        const authorization = await WasmProgramManager.buildAuthorizationUnchecked(
             executionPrivateKey,
             program,
             functionName,
             preparedInputs,
-            imports,
-            edition
+            hasImports ? undefined : imports,
+            edition,
+            hasImports ? builder?.clone() : undefined,
         );
+
+        return authorization;
     }
 
     /**
@@ -1506,14 +1843,8 @@ class ProgramManager {
             programName = Program.fromString(program).id();
         }
 
-        if (edition == undefined) {
-            try {
-                edition = await this.networkClient.getLatestProgramEdition(programName);
-            } catch (e: any) {
-                logger.warn(`Error finding edition for ${programName}. Network response: '${e.message}'. Assuming edition 0.`);
-                edition = 0;
-            }
-        }
+        const resolved = await this.resolveEditionAndAmendment(programName, edition);
+        edition = edition ?? resolved.edition;
 
         // Get the private key from the account if it is not provided in the parameters.
         let executionPrivateKey = privateKey;
@@ -1566,6 +1897,28 @@ class ProgramManager {
             );
         }
 
+        // Build ProgramImportsBuilder for import resolution (no key loading —
+        // proving requests don't synthesize keys).
+        // Note: imports is kept for the Rust-side fee estimation fallback
+        // (estimate_fee_for_authorization uses the legacy imports Object to avoid
+        // a RefCell double-borrow — see proving_request.rs).
+        const { builder } = await this.buildProgramImports(program, imports, false, functionName);
+        const hasImports = !builder.isEmpty();
+
+        // Normalize imports to the full merged set from the builder so the
+        // Rust fee estimator sees all transitive imports, not just the
+        // caller's partial set. Use programNames + getProgram to avoid
+        // serializing key bytes (toObject would serialize all proving/
+        // verifying keys, which can be tens of MB).
+        if (hasImports) {
+            const merged: ProgramImports = {};
+            for (const name of Array.from(builder.programNames())) {
+                const src = builder.getProgram(name);
+                if (src) merged[name] = src;
+            }
+            imports = merged;
+        }
+
         if (options.executionRequest instanceof ExecutionRequest) {
             return await WasmProgramManager.buildProvingRequestFromExecutionRequest(
                 options.executionRequest,
@@ -1573,9 +1926,10 @@ class ProgramManager {
                 unchecked,
                 broadcast,
                 edition,
-                imports,
+                imports, // kept for fee estimation in Rust
                 executionPrivateKey,
-            )
+                hasImports ? builder?.clone() : undefined,
+            );
         } else {
             // Ensure the private key exists.
             if (!executionPrivateKey) {
@@ -1599,11 +1953,12 @@ class ProgramManager {
                 baseFee,
                 priorityFee,
                 feeRecord,
-                imports,
+                imports, // kept for fee estimation in Rust
                 broadcast,
                 unchecked,
                 edition,
-                useFeeMaster
+                useFeeMaster,
+                hasImports ? builder?.clone() : undefined,
             );
         }
     }
@@ -1817,8 +2172,13 @@ class ProgramManager {
         verifyingKey?: VerifyingKey,
         privateKey?: PrivateKey,
         offlineQuery?: OfflineQuery,
-        edition?: number
+        edition?: number,
     ): Promise<ExecutionResponse> {
+        const programName = Program.fromString(program).id();
+        const resolved = await this.resolveEditionAndAmendment(programName, edition);
+        edition = edition ?? resolved.edition;
+        const { amendment } = resolved;
+
         // Get the private key from the account if it is not provided in the parameters
         let executionPrivateKey = privateKey;
         if (
@@ -1832,15 +2192,16 @@ class ProgramManager {
             throw "No private key provided and no private key set in the ProgramManager";
         }
 
-        // If the function proving and verifying keys are not provided, attempt to find them using the key provider
+        // Build the ProgramImportsBuilder for import resolution and key caching.
+        const { builder, importEditions } = await this.buildProgramImports(program, imports, true, function_name);
+        importEditions.set(programName, { edition: edition!, amendment });
         if (!provingKey || !verifyingKey) {
-            try {
-                [provingKey, verifyingKey] = <FunctionKeyPair>(
-                    await this.keyProvider.functionKeys(keySearchParams)
-                );
-            } catch (e) {
-                logger.log(
-                    `Function keys not found. Key finder response: '${e}'. The function keys will be synthesized`,
+            const keys = await this.resolveTopLevelKeys(programName, function_name, keySearchParams, edition, amendment);
+            if (keys) {
+                [provingKey, verifyingKey] = keys;
+            } else {
+                console.log(
+                    "Function keys not found in KeyStore or KeyProvider. The function keys will be synthesized",
                 );
             }
         }
@@ -1856,24 +2217,31 @@ class ProgramManager {
 
         await this.ensureInclusionKeys(!!offlineQuery);
 
-        // Run the program offline and return the result
-        logger.log("Running program offline");
-        logger.log("Proving key: ", provingKey);
-        logger.log("Verifying key: ", verifyingKey);
-        return WasmProgramManager.executeFunctionOffline(
+        const result = await WasmProgramManager.executeFunctionOffline(
             executionPrivateKey,
             program,
             function_name,
             preparedInputs,
             proveExecution,
             false,
-            imports,
+            undefined, // imports (legacy Object path — builder handles resolution)
             provingKey,
             verifyingKey,
             this.host,
             query,
             edition,
+            builder?.clone(),
         );
+
+        // The clone passed to WASM shares state with the original via
+        // Rc<RefCell<>> — synthesized keys are already visible.
+        try {
+            await this.persistExtractedKeys(builder, importEditions);
+        } catch (e) {
+            console.debug(`Failed to persist extracted keys: ${e}`);
+        }
+
+        return result;
     }
 
     /**
@@ -3332,12 +3700,8 @@ class ProgramManager {
             throw new Error("Authorization must be provided if estimating fee for Authorization.")
         }
         const programSource = program ? program.toString() : await this.networkClient.getProgram(programName, edition);
-        const programImports = imports ? imports : await this.networkClient.getProgramImports(programSource);
-        logger.log(JSON.stringify(programImports));
-        if (Object.keys(programImports)) {
-            return WasmProgramManager.estimateFeeForAuthorization(authorization, programSource, programImports, edition);
-        }
-        return WasmProgramManager.estimateFeeForAuthorization(authorization, programSource, imports, edition);
+        const programImports = imports ?? await this.networkClient.getProgramImports(programSource);
+        return WasmProgramManager.estimateFeeForAuthorization(authorization, programSource, programImports, edition);
     }
 
     /**
@@ -3381,10 +3745,7 @@ class ProgramManager {
         }
         const programSource = program ? program.toString() : await this.networkClient.getProgram(programName, edition);
         const programImports = imports ? imports : await this.networkClient.getProgramImports(programSource);
-        if (Object.keys(programImports)) {
-            return WasmProgramManager.estimateExecutionFee(programSource, functionName, programImports, edition);
-        }
-        return WasmProgramManager.estimateExecutionFee(programSource, functionName, imports, edition);
+        return WasmProgramManager.estimateExecutionFee(programSource, functionName, programImports, edition);
     }
 
     // Internal utility function for getting a credits.aleo record
@@ -3512,14 +3873,8 @@ class ProgramManager {
             programName = programObject.id();
         }
 
-        if (edition == undefined) {
-            try {
-                edition = await this.networkClient.getLatestProgramEdition(programName);
-            } catch (e: any) {
-                logger.warn(`Error finding edition for ${programName}. Network response: '${e.message}'. Assuming edition 0.`);
-                edition = 0;
-            }
-        }
+        const resolved = await this.resolveEditionAndAmendment(programName, edition);
+        edition = edition ?? resolved.edition;
 
         // Get the private key from the account if it is not provided in the parameters.
         let executionPrivateKey = privateKey;

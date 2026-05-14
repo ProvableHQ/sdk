@@ -18,10 +18,13 @@ use crate::{
     account::Address,
     types::native::{CurrentNetwork, IdentifierNative, ProgramNative},
 };
-use snarkvm_console::program::{EntryType, PlaintextType, ValueType};
-
 use js_sys::{Array, Object, Reflect, Uint8Array};
-use std::{ops::Deref, str::FromStr};
+use snarkvm_console::program::{EntryType, PlaintextType, ValueType};
+use std::{
+    collections::{HashSet, VecDeque},
+    ops::Deref,
+    str::FromStr,
+};
 use wasm_bindgen::{JsValue, prelude::wasm_bindgen};
 
 /// Webassembly Representation of an Aleo program
@@ -494,6 +497,73 @@ impl Program {
             imports.set(index as u32, import.to_string().into());
         }
         imports
+    }
+
+    /// Get the external call graph reachable from a specific entry function.
+    ///
+    /// Starting from `entry_function`, traces all reachable functions and closures
+    /// within this program (via local calls) and collects external calls
+    /// (`call program.aleo/function`). Returns a JS object mapping program names
+    /// to arrays of called function names.
+    ///
+    /// @param {string} entry_function The name of the entry function to trace from
+    /// @returns {object} An object like `{ "program.aleo": ["fn1", "fn2"] }`
+    #[wasm_bindgen(js_name = "getCallGraph")]
+    pub fn get_call_graph(&self, entry_function: &str) -> Result<JsValue, String> {
+        use snarkvm_synthesizer_program::CallOperator;
+        use std::collections::HashMap;
+
+        let entry_id = IdentifierNative::from_str(entry_function).map_err(|e| e.to_string())?;
+
+        // Collect results in a Rust HashMap first, then convert to JS at the end.
+        let mut external_calls: HashMap<String, Vec<String>> = HashMap::new();
+        let mut visited = HashSet::new();
+        let mut queue = VecDeque::new();
+        queue.push_back(entry_id);
+
+        while let Some(fn_id) = queue.pop_front() {
+            if !visited.insert(fn_id.clone()) {
+                continue;
+            }
+
+            // Get instructions from either a function or a closure
+            let instructions: &[_] = if let Some(func) = self.0.functions().get(&fn_id) {
+                func.instructions()
+            } else if let Some(closure) = self.0.closures().get(&fn_id) {
+                closure.instructions()
+            } else {
+                continue;
+            };
+
+            for instruction in instructions {
+                if let Some(call_op) = instruction.call_operator() {
+                    match call_op {
+                        CallOperator::Locator(locator) => {
+                            let prog_name = locator.program_id().to_string();
+                            let fn_name = locator.resource().to_string();
+                            external_calls.entry(prog_name).or_default().push(fn_name);
+                        }
+                        CallOperator::Resource(local_id) => {
+                            if !visited.contains(local_id) {
+                                queue.push_back(local_id.clone());
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        // Convert HashMap to JS object
+        let result = Object::new();
+        for (prog_name, fn_names) in &external_calls {
+            let arr = Array::new_with_length(fn_names.len() as u32);
+            for (i, fn_name) in fn_names.iter().enumerate() {
+                arr.set(i as u32, JsValue::from_str(fn_name));
+            }
+            Reflect::set(&result, &JsValue::from_str(prog_name), &arr).map_err(|_| "Failed to set property")?;
+        }
+
+        Ok(result.into())
     }
 
     /// Get the checksum of the program.

@@ -60,19 +60,18 @@ impl ProgramManager {
         inputs: Array,
         imports: Option<Object>,
         edition: Option<u16>,
+        program_imports: Option<ProgramImports>,
     ) -> Result<Authorization, String> {
-        let mut process_native = ProcessNative::load_web().map_err(|err| err.to_string())?;
-        let process = &mut process_native;
+        let edition = edition.unwrap_or(1);
 
-        log("Check program imports are valid and add them to the process");
-        let program_native = ProgramNative::from_str(program).map_err(|e| e.to_string())?;
-        let program_id = program_native.id().to_string();
-        log(&format!("Creating proving request for {program_id}:{function_name}"));
-        ProgramManager::resolve_imports(process, imports, Some(program_id.as_str()))?;
+        let mut resolved = ResolvedProcess::resolve(&program_imports, program, edition, imports)?;
+        let program_native = resolved.program().clone();
+        let process = resolved.process_mut();
+
+        log(&format!("Creating proving request for {}:{function_name}", program_native.id()));
         let rng = &mut StdRng::from_entropy();
 
         // Authorize the main program.
-        let edition = edition.unwrap_or(1);
         let unchecked = false;
         let authorization = Authorization::from(authorize!(
             process,
@@ -103,20 +102,19 @@ impl ProgramManager {
         inputs: Array,
         imports: Option<Object>,
         edition: Option<u16>,
+        program_imports: Option<ProgramImports>,
     ) -> Result<Authorization, String> {
-        let mut process_native = ProcessNative::load_web().map_err(|err| err.to_string())?;
-        let process = &mut process_native;
+        let edition = edition.unwrap_or(1);
 
-        log("Check program imports are valid and add them to the process");
-        let program_native = ProgramNative::from_str(program).map_err(|e| e.to_string())?;
-        let program_id = program_native.id().to_string();
-        log(&format!("Creating proving request for {program_id}:{function_name}"));
-        ProgramManager::resolve_imports(process, imports, Some(program_id.as_str()))?;
+        let mut resolved = ResolvedProcess::resolve(&program_imports, program, edition, imports)?;
+        let program_native = resolved.program().clone();
+        let process = resolved.process_mut();
+
+        log(&format!("Creating proving request for {}:{function_name}", program_native.id()));
         let rng = &mut StdRng::from_entropy();
 
         // Authorize the main program.
         let unchecked = true;
-        let edition = edition.unwrap_or(1);
         let authorization = Authorization::from(authorize!(
             process,
             process_inputs!(inputs),
@@ -146,19 +144,19 @@ impl ProgramManager {
         edition: Option<u16>,
         imports: Option<Object>,
         private_key: Option<PrivateKey>,
+        program_imports: Option<ProgramImports>,
     ) -> Result<Authorization, String> {
-        // Load the process.
-        let mut process_native = ProcessNative::load_web().map_err(|err| err.to_string())?;
-        let process = &mut process_native;
+        let edition = edition.unwrap_or(1);
+
+        let mut resolved = ResolvedProcess::resolve(&program_imports, program, edition, imports)?;
+        let program_native = resolved.program().clone();
+        let process = resolved.process_mut();
 
         // Get the private key.
         let private_key_native = private_key.map(|pk| PrivateKeyNative::from(pk));
 
         // Get the request from the wasm wrapper.
         let request_native = RequestNative::from(request);
-
-        log("Check program imports are valid and add them to the process");
-        let program_native = ProgramNative::from_str(program).map_err(|e| e.to_string())?;
 
         // Check that the program id matches the program id in the request.
         let request_program_id = request_native.program_id();
@@ -170,18 +168,12 @@ impl ProgramManager {
             ));
         }
 
-        let program_id = program_native.id().to_string();
         log(&format!("Creating proving request for {request_program_id}:{}", request.function_name()));
-        ProgramManager::resolve_imports(process, imports, Some(program_id.as_str()))?;
         let rng = &mut StdRng::from_entropy();
-
-        // Add the program to the process if it is not already there.
-        let edition = edition.unwrap_or(1);
-        if request_program_id.to_string() != "credits.aleo" {
-            if !process.contains_program(request_program_id) {
-                log("Adding program to the process");
-                process.add_program_with_edition(&program_native, edition).map_err(|e| e.to_string())?;
-            }
+        // Add the program to the process (no-op if ensure_program already added it).
+        if request_program_id.to_string() != "credits.aleo" && !process.contains_program(request_program_id) {
+            log("Adding program to the process");
+            process.add_program_with_edition(&program_native, edition).map_err(|e| e.to_string())?;
         }
 
         // If a private key is provided, use it to authorize the request, otherwise use authorize_request method.
@@ -303,7 +295,7 @@ mod tests {
         let program_str = program.to_string();
 
         let authorization =
-            ProgramManager::authorize_request(&request, &program_str, false, Some(1), None, Some(private_key))
+            ProgramManager::authorize_request(&request, &program_str, false, Some(1), None, Some(private_key), None)
                 .await
                 .unwrap();
 
@@ -321,7 +313,7 @@ mod tests {
 
         // Create the puzzle spinner authorization and ensure it has the correct amount of transitions.
         let authorization =
-            ProgramManager::authorize(&private_key, PUZZLE_SPINNER_V002, function_name, inputs, imports, None)
+            ProgramManager::authorize(&private_key, PUZZLE_SPINNER_V002, function_name, inputs, imports, None, None)
                 .await
                 .unwrap();
         console_log!("{authorization:?}");
