@@ -25,9 +25,16 @@ let currentLevel: LogLevel = "info";
  * - "warn"   — errors + warnings
  * - "info"   — errors + warnings + info (default)
  * - "debug"  — everything including debug traces
+ *
+ * This controls both TS-side and WASM-side logging. WASM log calls
+ * (e.g., "Loading program", "Executing program") are silenced when
+ * the level is below "info".
  */
 export function setLogLevel(level: LogLevel): void {
     currentLevel = level;
+    import("../wasm.js")
+        .then(({ setWasmLogLevel }) => setWasmLogLevel(LEVEL_PRIORITY[level]))
+        .catch(() => {}); // WASM not loaded yet — will use default level (info)
 }
 
 /** Returns the current SDK log level. */

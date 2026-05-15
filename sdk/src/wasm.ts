@@ -56,6 +56,7 @@ export {
     ViewKey,
     initThreadPool,
     getOrInitConsensusVersionTestHeights,
+    setWasmLogLevel,
     snarkVerify,
     snarkVerifyBatch,
     verifyFunctionExecution,
