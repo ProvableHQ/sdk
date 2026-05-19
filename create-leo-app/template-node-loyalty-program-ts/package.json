@@ -15,7 +15,7 @@
         "start:caching": "npm run build && node dist/index.js key_caching"
     },
     "dependencies": {
-        "@provablehq/sdk": "^0.10.5",
+        "@provablehq/sdk": "^0.10.6-rc.1",
         "dotenv": "^16.4.5"
     },
     "devDependencies": {
