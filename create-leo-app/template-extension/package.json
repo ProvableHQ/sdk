@@ -8,9 +8,9 @@
   },
   "devDependencies": {
     "@provablehq/sdk": "^0.10.5",
-    "@rollup/plugin-node-resolve": "^16.0.0",
-    "@web/rollup-plugin-import-meta-assets": "^2.2.1",
-    "rimraf": "^6.0.1",
-    "rollup": "^4.59.0"
+    "@rollup/plugin-node-resolve": "^16.0.3",
+    "@web/rollup-plugin-import-meta-assets": "^2.3.3",
+    "rimraf": "^6.1.3",
+    "rollup": "^4.60.3"
   }
 }

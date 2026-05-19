@@ -54,7 +54,7 @@ async function localProgramExecution(program: string, programName: string, aleoF
         programManager.keyProvider.cacheKeys(`${programName}:${aleoFunction}`, keyPair);
 
     } catch (e) {
-        throw new Error(`Failed to synthesize keys: ${e.message}`);
+        throw new Error(`Failed to synthesize keys: ${(e as Error).message}`);
     }
 
     // Specify parameters for the key provider to use search for program keys. In particular specify the cache key

@@ -3,7 +3,7 @@ import { promises as fsPromises, writeFileSync } from "fs";
 import path from "path";
 import { fileURLToPath } from "url";
 
-async function downloadAndSaveKey(keyData, keysDirPath) {
+async function downloadAndSaveKey(keyData: any, keysDirPath: any) {
     const locatorParts = keyData.locator.split('/');
     const fileName = locatorParts.pop();
     const dirPath = path.join(keysDirPath, ...locatorParts);
@@ -23,7 +23,7 @@ async function downloadAndSaveKey(keyData, keysDirPath) {
 }
 
 async function preDownloadTransferKeys() {
-    const keyPaths = {};
+    const keyPaths: any = {};
     const __dirname = path.dirname(fileURLToPath(import.meta.url));
     const keysDirPath = path.join(__dirname, "keys");
     await fsPromises.mkdir(keysDirPath, { recursive: true });
@@ -40,7 +40,7 @@ async function preDownloadTransferKeys() {
 }
 
 async function preDownloadBondingKeys() {
-    const keyPaths = {};
+    const keyPaths: any = {};
     const __dirname = path.dirname(fileURLToPath(import.meta.url));
     const keysDirPath = path.join(__dirname, "keys");
     await fsPromises.mkdir(keysDirPath, { recursive: true });

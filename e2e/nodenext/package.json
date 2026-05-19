@@ -3,7 +3,7 @@
     "type": "module",
     "dependencies": {
         "@provablehq/sdk": "^0.10.5",
-        "typescript": "^5.7.3"
+        "typescript": "^6.0.3"
     },
     "scripts": {
         "start": "tsc"

@@ -34,7 +34,7 @@ async function buildWasm(network) {
                     rustc: [
                         "-C", "link-arg=--max-memory=4294967296",
                     ],
-                    wasmOpt: ["-O", "--enable-threads", "--enable-bulk-memory", "--enable-bulk-memory-opt", "--enable-nontrapping-float-to-int"],
+                    wasmOpt: ["-O", "--enable-threads", "--enable-bulk-memory", "--enable-nontrapping-float-to-int"],
                 },
                 optimize: isDebugBuild ? { release: false, wasmOpt: false, rustc: false } : undefined,
 
@@ -113,10 +113,10 @@ module.exports = exports;`;
     await buildRollup({
         input: { "index": "entry" },
         plugins: [virtual({ "entry": js })],
+        external: ["node:fs", "node:url"],
     }, {
         dir: `dist/${network}`,
         format: "cjs",
-        external: ["node:fs", "node:url"],
         entryFileNames: "[name].cjs",
         chunkFileNames: "[name].cjs",
         sourcemap: true,
