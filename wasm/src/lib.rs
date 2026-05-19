@@ -209,16 +209,45 @@ mod thread_pool {
 
 use wasm_bindgen::prelude::*;
 
-use std::str::FromStr;
+use std::{
+    str::FromStr,
+    sync::atomic::{AtomicU8, Ordering},
+};
 
 use types::native::RecordPlaintextNative;
 
-// Facilities for cross-platform logging in both web browsers and nodeJS
+// Facilities for cross-platform logging in both web browsers and nodeJS.
+// The raw FFI binding is private; the public `log` wrapper respects the
+// configurable log level set via `setWasmLogLevel`.
 #[wasm_bindgen]
 extern "C" {
-    // Log a &str the console in the browser or console.log in nodejs
-    #[wasm_bindgen(js_namespace = console)]
-    pub fn log(s: &str);
+    #[wasm_bindgen(js_namespace = console, js_name = "log")]
+    fn console_log(s: &str);
+}
+
+/// Log levels mirror the TS-side `LogLevel` enum:
+/// 0=silent, 1=error, 2=warn, 3=info (default), 4=debug.
+const LOG_LEVEL_INFO: u8 = 3;
+const LOG_LEVEL_DEBUG: u8 = 4;
+
+static LOG_LEVEL: AtomicU8 = AtomicU8::new(LOG_LEVEL_INFO);
+
+/// Log a message to the console, respecting the current WASM log level.
+/// All existing `log()` call sites continue to work unchanged — they emit
+/// at the "info" level and are silenced when the level is below info.
+pub fn log(s: &str) {
+    if LOG_LEVEL.load(Ordering::Relaxed) >= LOG_LEVEL_INFO {
+        console_log(s);
+    }
+}
+
+/// Set the WASM log level from JS. Called automatically by the SDK's
+/// `setLogLevel(level)` to keep TS and WASM logging in sync.
+/// Levels: 0=silent, 1=error, 2=warn, 3=info (default), 4=debug.
+/// Values above 4 are clamped to debug.
+#[wasm_bindgen(js_name = "setWasmLogLevel")]
+pub fn set_wasm_log_level(level: u8) {
+    LOG_LEVEL.store(level.min(LOG_LEVEL_DEBUG), Ordering::Relaxed);
 }
 
 #[macro_export]
@@ -282,4 +311,29 @@ pub async fn init_thread_pool(url: web_sys::Url, num_threads: usize) -> Result<(
     thread_pool::ThreadPool::builder().url(url).num_threads(num_threads).build_global().await?;
 
     Ok(())
+}
+
+#[cfg(test)]
+mod log_level_tests {
+    use super::*;
+
+    // Combined into a single test because LOG_LEVEL is process-wide static.
+    // Splitting into multiple #[test] functions would race under Rust's
+    // default parallel test runner.
+    #[test]
+    fn log_level_state() {
+        // Default level is info (3).
+        assert_eq!(LOG_LEVEL.load(Ordering::Relaxed), LOG_LEVEL_INFO);
+
+        // set_wasm_log_level stores the value.
+        set_wasm_log_level(0);
+        assert_eq!(LOG_LEVEL.load(Ordering::Relaxed), 0);
+        set_wasm_log_level(4);
+        assert_eq!(LOG_LEVEL.load(Ordering::Relaxed), 4);
+
+        // set_wasm_log_level clamps values above debug.
+        set_wasm_log_level(255);
+        assert_eq!(LOG_LEVEL.load(Ordering::Relaxed), LOG_LEVEL_DEBUG);
+        set_wasm_log_level(LOG_LEVEL_INFO);
+    }
 }
