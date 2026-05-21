@@ -3,6 +3,13 @@ description: Sets up Yarn
 runs:
   using: "composite"
   steps:
+    # Enable Corepack before setup-node so the `packageManager` field in
+    # package.json pins Yarn (Berry 4.x) and `cache: 'yarn'` resolves the
+    # correct Berry cache folder.
+    - name: Enable Corepack
+      shell: bash
+      run: corepack enable
+
     - uses: actions/setup-node@v4
       with:
         cache: 'yarn'
