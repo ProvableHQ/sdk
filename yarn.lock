@@ -12589,8 +12589,16 @@ __metadata:
     prettier: "npm:3.4.2"
     wasm-pack: "npm:^0.13.1"
   dependenciesMeta:
+    "@swc/core":
+      built: true
+    esbuild:
+      built: true
     glob:
       optional: true
+    sharp:
+      built: true
+    wasm-pack:
+      built: true
   languageName: unknown
   linkType: soft
 
