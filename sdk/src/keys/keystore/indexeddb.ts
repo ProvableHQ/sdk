@@ -22,6 +22,17 @@ interface StoredKey {
  * It persists proving and verifying keys across page reloads and browser sessions using the
  * IndexedDB API available in all modern browsers and Web Workers.
  *
+ * **Environment**: Browser / Web Worker only. Instantiating this class is safe in any
+ * environment, but the first IndexedDB operation will reject with a clear error when
+ * `globalThis.indexedDB` is not available (e.g., Node.js, SSR contexts). Guard your
+ * imports accordingly if you bundle for server-side rendering.
+ *
+ * **Security**: Keys are stored as plaintext `Uint8Array` in IndexedDB. Any script
+ * running on the same origin — including scripts injected via XSS — can read the stored
+ * proving and verifying keys. Do **not** use this keystore for data that must remain
+ * confidential under an XSS-capable adversary; encrypt sensitive material at the
+ * application layer before persisting, or use an in-memory store.
+ *
  * @example
  * ```ts
  * import { IndexedDBKeyStore, ProgramManager } from "@provablehq/sdk";
@@ -54,6 +65,16 @@ export class IndexedDBKeyStore implements KeyStore {
     private openDB(): Promise<IDBDatabase> {
         if (this.dbPromise) return this.dbPromise;
         this.dbPromise = new Promise<IDBDatabase>((resolve, reject) => {
+            if (typeof indexedDB === "undefined") {
+                reject(
+                    new Error(
+                        "IndexedDBKeyStore requires a browser or Web Worker environment: " +
+                            "`indexedDB` is not defined. If you are in Node.js or an SSR " +
+                            "context, use LocalFileKeyStore or an in-memory key provider instead.",
+                    ),
+                );
+                return;
+            }
             const request = indexedDB.open(this.dbName, 1);
             request.onupgradeneeded = () => {
                 const db = request.result;
