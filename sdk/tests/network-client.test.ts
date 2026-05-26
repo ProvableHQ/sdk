@@ -1,5 +1,7 @@
 import sinon from "sinon";
 import { expect } from "chai";
+import { cryptoBoxKeyPair } from "@serenity-kit/noble-sodium";
+import { base64 } from "@scure/base";
 import {
     Account,
     BlockJSON,
@@ -16,6 +18,9 @@ import {
     PlaintextObject,
     Transition,
     TransitionObject,
+    ExecutionRequest,
+    PrivateKey,
+    ProvingRequest,
 } from "@provablehq/sdk/%%NETWORK%%.js";
 import { beaconPrivateKeyString } from "./data/account-data.js";
 import { retryWithBackoff } from "../src/utils/utils.js";
@@ -813,5 +818,98 @@ describe("AleoNetworkClient JWT refresh URL", () => {
             const firstCallUrl = fetchStub.firstCall.args[0]?.toString() ?? fetchStub.firstCall.args[0]?.url;
             expect(firstCallUrl).to.equal(`${expectedOrigin}/jwts/test-consumer-id`);
         });
+    });
+});
+
+describe("submitProvingRequestSafe variant routing", () => {
+    let fetchStub: sinon.SinonStub;
+
+    // Construct a single-public-Request-variant ProvingRequest for routing
+    // tests. The signed Request payload itself is not validated by the test —
+    // we only assert which endpoint the SDK hits.
+    function buildRequestVariant(): ProvingRequest {
+        const privateKey = PrivateKey.from_string(beaconPrivateKeyString);
+        const inputs = ["aleo1rhgdu77hgyqd3xjj8ucu3jj9r2krwz6mnzyd80gncr5fxcwlh5rsvzp9px", "100u64"];
+        const inputTypes = ["address.public", "u64.public"];
+        const executionRequest = ExecutionRequest.sign(
+            privateKey,
+            "credits.aleo",
+            "transfer_public",
+            inputs,
+            inputTypes,
+            undefined,
+            undefined,
+            true,
+            false,
+        );
+        return ProvingRequest.fromRequest(executionRequest, undefined, false);
+    }
+
+    beforeEach(() => {
+        fetchStub = sinon.stub(globalThis, 'fetch');
+    });
+
+    afterEach(() => {
+        sinon.restore();
+    });
+
+    // Build a stub /pubkey response containing a real ephemeral X25519 public
+    // key so `encryptProvingRequest` (which wraps `@serenity-kit/noble-sodium`'s
+    // `cryptoBoxSeal` — the same primitive `security.ts` uses) succeeds and
+    // the SDK actually reaches the prove POST. The test only asserts which
+    // URL is hit, not the ciphertext.
+    function pubKeyResponseBody(): string {
+        const { publicKey } = cryptoBoxKeyPair();
+        return JSON.stringify({ key_id: "test-key", public_key: base64.encode(publicKey) });
+    }
+
+    it("Request variant routes to /prove/request (encrypted-only) regardless of dpsPrivacy", async () => {
+        const client = new AleoNetworkClient("https://prover.example.com");
+
+        // First call is /pubkey (returns ephemeral key); second is the prove POST.
+        fetchStub.onFirstCall().resolves(new Response(
+            pubKeyResponseBody(),
+            { status: 200, headers: { "content-type": "application/json" } },
+        ));
+        fetchStub.onSecondCall().resolves(new Response(
+            JSON.stringify({ transaction: "stub", broadcast: null }),
+            { status: 200, headers: { "content-type": "application/json" } },
+        ));
+
+        const provingRequest = buildRequestVariant();
+        // dpsPrivacy explicitly false to verify it's ignored for Request variant.
+        await client.submitProvingRequestSafe({ provingRequest, dpsPrivacy: false });
+
+        const pubkeyCall = fetchStub.getCall(0).args[0]?.toString() ?? fetchStub.getCall(0).args[0]?.url;
+        const proveCall = fetchStub.getCall(1).args[0]?.toString() ?? fetchStub.getCall(1).args[0]?.url;
+        expect(pubkeyCall).to.equal("https://prover.example.com/testnet/pubkey");
+        expect(proveCall).to.equal("https://prover.example.com/testnet/prove/request");
+    });
+
+    it("Request variant routing takes precedence over dpsPrivacy=true", async () => {
+        const client = new AleoNetworkClient("https://prover.example.com");
+
+        fetchStub.onFirstCall().resolves(new Response(
+            pubKeyResponseBody(),
+            { status: 200, headers: { "content-type": "application/json" } },
+        ));
+        fetchStub.onSecondCall().resolves(new Response(
+            JSON.stringify({ transaction: "stub", broadcast: null }),
+            { status: 200, headers: { "content-type": "application/json" } },
+        ));
+
+        const provingRequest = buildRequestVariant();
+        // Even with dpsPrivacy=true (Authorization-variant encrypted path),
+        // a Request-variant ProvingRequest must still hit /prove/request,
+        // since that endpoint is the only one that accepts the Request layout.
+        await client.submitProvingRequestSafe({ provingRequest, dpsPrivacy: true });
+
+        const proveCall = fetchStub.getCall(1).args[0]?.toString() ?? fetchStub.getCall(1).args[0]?.url;
+        expect(proveCall).to.equal("https://prover.example.com/testnet/prove/request");
+    });
+
+    it("ProvingRequest.kind() returns 'request' for Request-variant constructions", () => {
+        const provingRequest = buildRequestVariant();
+        expect(provingRequest.kind()).to.equal("request");
     });
 });

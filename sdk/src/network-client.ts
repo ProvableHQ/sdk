@@ -1869,6 +1869,14 @@ class AleoNetworkClient {
             ? options.provingRequest.toString()
             : options.provingRequest;
 
+        // Determine the variant for endpoint routing. Only inspect `kind()`
+        // when the caller passed a `ProvingRequest` object — string inputs
+        // are deferred to the encrypted path's parse (preserves prior
+        // behavior for callers that pass opaque strings like JWT-refresh
+        // unit tests, which rely on the JWT fetch firing first).
+        const isRequestVariant = options.provingRequest instanceof ProvingRequest
+            && options.provingRequest.kind() === "request";
+
         // Try to get JWT data to access the Provable API.
         const apiKey = options.apiKey ?? this.apiKey;
         const consumerId = options.consumerId ?? this.consumerId;
@@ -1896,47 +1904,63 @@ class AleoNetworkClient {
             headers["Authorization"] = jwtData.jwt;
         }
 
+        // Send the proving request encrypted (libsodium sealed box). Used by
+        // both the /prove/encrypted (Authorization variant, opt-in) and
+        // /prove/request (Request variant, mandatory) paths.
+        const sendEncrypted = async (endpoint: string): Promise<ProvingResult> => {
+            // Get an ephemeral public key from the DPS.
+            const pubKeyResponse = await get(proverUri + "/pubkey", {
+                headers,
+                credentials: "include",
+            }, this.transport);
+
+            // Encrypt the provingRequest. Parse lazily — only the encrypted
+            // paths need a real `ProvingRequest` object; the plaintext path
+            // forwards the string verbatim.
+            const pubkey: CryptoBoxPubKey = parseJSON(
+                await pubKeyResponse.text(),
+            );
+            const provingRequestObj = options.provingRequest instanceof ProvingRequest
+                ? options.provingRequest
+                : ProvingRequest.fromString(provingRequestString);
+            const ciphertext = encryptProvingRequest(
+                pubkey.public_key,
+                provingRequestObj,
+            );
+
+            const payload: EncryptedProvingRequest = {
+                key_id: pubkey.key_id,
+                ciphertext: ciphertext,
+            };
+
+            // We're in node, attempt to set the cookie manually.
+            const cookie = isNode() ? pubKeyResponse.headers.get("set-cookie"): undefined;
+
+            const res = await this.transport(`${proverUri}${endpoint}`, {
+                method: "POST",
+                body: JSON.stringify(payload),
+                headers: {
+                    ...headers,
+                    ...(cookie ? { Cookie: cookie } : {})
+                },
+                credentials: "include",
+            });
+
+            return this.handleProvingResponse(res);
+        };
+
         // Encapsulate the requests in a locally scoped function that can be run with a retry closure.
         const runRequest = async (): Promise<ProvingResult> => {
-            // If DPS privacy is set, call invoke the encrypted flow.
+            // Request variant is encrypted-only and always routes to /prove/request.
+            // The DPS reads bytes via `read_request_le` on this route; `dpsPrivacy`
+            // is implicit because the route doesn't accept plaintext.
+            if (isRequestVariant) {
+                return sendEncrypted("/prove/request");
+            }
+
+            // Authorization variant: opt-in encrypted via /prove/encrypted.
             if (options.dpsPrivacy) {
-                // Get an ephemeral public key from a DPS service.
-                const pubKeyResponse = await get(proverUri + "/pubkey", {
-                    headers,
-                    credentials: "include",
-                }, this.transport);
-
-                // Encrypt the provingRequest.
-                const pubkey: CryptoBoxPubKey = parseJSON(
-                    await pubKeyResponse.text(),
-                );
-                const ciphertext = encryptProvingRequest(
-                    pubkey.public_key,
-                    ProvingRequest.fromString(provingRequestString),
-                );
-
-                // Form the expected query a DPS service expects (including the key_id).
-                const payload: EncryptedProvingRequest = {
-                    key_id: pubkey.key_id,
-                    ciphertext: ciphertext,
-                };
-
-                // We're in node, attempt to set the cookie manually.
-                const cookie = isNode() ? pubKeyResponse.headers.get("set-cookie"): undefined;
-
-                // Send the encrypted proving request to the DPS service.
-                const res = await this.transport(`${proverUri}/prove/encrypted`, {
-                    method: "POST",
-                    body: JSON.stringify(payload),
-                    headers: {
-                        ...headers,
-                        ...(cookie ? { Cookie: cookie } : {})
-                    },
-                    credentials: "include",
-                });
-
-                // Properly handle the proving response.
-                return this.handleProvingResponse(res);
+                return sendEncrypted("/prove/encrypted");
             }
 
             // If encrypted usage is not specified use the unencrypted endpoint.
