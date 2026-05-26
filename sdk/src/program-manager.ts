@@ -423,7 +423,7 @@ class ProgramManager {
             try {
                 resolvedImports = await this.networkClient.getProgramImports(programSource);
             } catch (e) {
-                console.warn(`Failed to resolve program imports from network: ${e}.`);
+                logger.warn(`Failed to resolve program imports from network: ${e}.`);
             }
         }
 
@@ -480,7 +480,7 @@ class ProgramManager {
                     }
                 }
             } catch (e) {
-                console.warn(`Failed to resolve transitive imports for ${name}: ${e}`);
+                logger.warn(`Failed to resolve transitive imports for ${name}: ${e}`);
             }
         }
 
@@ -522,7 +522,7 @@ class ProgramManager {
                         }
                     }
                 } catch (e) {
-                    console.warn(`Failed to trace call graph for ${name}: ${e}`);
+                    logger.warn(`Failed to trace call graph for ${name}: ${e}`);
                 }
             }
         }
@@ -540,7 +540,7 @@ class ProgramManager {
             try {
                 builder.addProgram(name, source, importEdition);
             } catch (e) {
-                console.warn(`Failed to add import ${name} to builder: ${e}`);
+                logger.warn(`Failed to add import ${name} to builder: ${e}`);
                 continue;
             }
 
@@ -600,7 +600,7 @@ class ProgramManager {
             const info = await this.networkClient.getProgramAmendmentCount(programName);
             return { edition: info.edition, amendment: info.amendment_count };
         } catch (e: any) {
-            console.warn(`Error finding edition/amendment for ${programName}. Network response: '${e.message}'. Defaulting to edition ${fallbackEdition ?? 1}, amendment 0.`);
+            logger.warn(`Error finding edition/amendment for ${programName}. Network response: '${e.message}'. Defaulting to edition ${fallbackEdition ?? 1}, amendment 0.`);
             return { edition: fallbackEdition ?? 1, amendment: 0 };
         }
     }
@@ -640,7 +640,7 @@ class ProgramManager {
                 const vk = await keyStore.getVerifyingKey(vkLocator);
                 if (vk) builder.addVerifyingKey(programName, fnName, vk);
             } catch (e) {
-                console.debug(`Failed to load keys for ${programName}/${fnName}: ${e}`);
+                logger.debug(`Failed to load keys for ${programName}/${fnName}: ${e}`);
             }
         }
     }
@@ -678,7 +678,7 @@ class ProgramManager {
             try {
                 fns = Array.from(builder.functionKeysAvailable(programName));
             } catch (e) {
-                console.debug(`Failed to query keys for ${programName}: ${e}`);
+                logger.debug(`Failed to query keys for ${programName}: ${e}`);
                 continue;
             }
 
@@ -698,7 +698,7 @@ class ProgramManager {
                         await keyStore.setKeys(pkLocator, vkLocator, [pk, vk]);
                     }
                 } catch (e) {
-                    console.debug(`Failed to persist key for ${programName}/${fnName}: ${e}`);
+                    logger.debug(`Failed to persist key for ${programName}/${fnName}: ${e}`);
                 }
             }
         }
@@ -1319,7 +1319,7 @@ class ProgramManager {
             if (keys) {
                 [provingKey, verifyingKey] = keys;
             } else {
-                console.log(
+                logger.log(
                     "Function keys not found in KeyStore or KeyProvider. The function keys will be synthesized",
                 );
             }
@@ -1386,7 +1386,7 @@ class ProgramManager {
         try {
             await this.persistExtractedKeys(programImportsBuilder, importEditions);
         } catch (e) {
-            console.debug(`Failed to persist extracted keys: ${e}`);
+            logger.debug(`Failed to persist extracted keys: ${e}`);
         }
 
         return result;
@@ -1522,7 +1522,7 @@ class ProgramManager {
             if (keys) {
                 [provingKey, verifyingKey] = keys;
             } else {
-                console.log(
+                logger.log(
                     "Function keys not found in KeyStore or KeyProvider. The function keys will be synthesized",
                 );
             }
@@ -1557,7 +1557,7 @@ class ProgramManager {
         try {
             await this.persistExtractedKeys(programImportsBuilder, importEditions);
         } catch (e) {
-            console.debug(`Failed to persist extracted keys: ${e}`);
+            logger.debug(`Failed to persist extracted keys: ${e}`);
         }
 
         return result;
@@ -2200,7 +2200,7 @@ class ProgramManager {
             if (keys) {
                 [provingKey, verifyingKey] = keys;
             } else {
-                console.log(
+                logger.log(
                     "Function keys not found in KeyStore or KeyProvider. The function keys will be synthesized",
                 );
             }
@@ -2238,7 +2238,7 @@ class ProgramManager {
         try {
             await this.persistExtractedKeys(builder, importEditions);
         } catch (e) {
-            console.debug(`Failed to persist extracted keys: ${e}`);
+            logger.debug(`Failed to persist extracted keys: ${e}`);
         }
 
         return result;

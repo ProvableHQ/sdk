@@ -365,6 +365,20 @@ class RecordScanner implements RecordProvider {
     }
 
     /**
+     * Registers the account with the record scanning service using the encrypted flow.
+     * Alias of {@link registerEncrypted} — preserved so existing callers using the
+     * previous unencrypted `register(viewKey, startBlock)` API continue to work
+     * unchanged while transparently using the encrypted endpoint.
+     *
+     * @param {ViewKey} viewKey The view key to register.
+     * @param {number} startBlock The block height to start scanning from.
+     * @returns {Promise<RegisterResult>} `{ ok: true, data }` on success, or `{ ok: false, status, error }` on failure.
+     */
+    async register(viewKey: ViewKey, startBlock: number): Promise<RegisterResult> {
+        return this.registerEncrypted(viewKey, startBlock);
+    }
+
+    /**
      * Registers the account with the record scanning service using the encrypted flow: 1. fetches an ephemeral public key from /pubkey - 2. encrypts the registration request (view key + start block) - 3. POSTs to /register/encrypted. Does not HTTP error on a proper error response from the record scanner; returns a result object instead.
      *
      * @param {ViewKey} viewKey The view key to register.
