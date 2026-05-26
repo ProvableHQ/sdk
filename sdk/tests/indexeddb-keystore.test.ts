@@ -63,6 +63,47 @@ describe("IndexedDBKeyStore", () => {
                 if (had) g.indexedDB = prior;
             }
         });
+
+        it("does not poison the cache: retries env check after indexedDB becomes defined", async () => {
+            const g = globalThis as any;
+            const had = "indexedDB" in g;
+            const prior = g.indexedDB;
+            if (had) delete g.indexedDB;
+            try {
+                const store = new IndexedDBKeyStore("late-polyfill-test");
+
+                // First call: indexedDB undefined → should reject.
+                let err1: Error | undefined;
+                try {
+                    await store.has(locator());
+                } catch (e) { err1 = e as Error; }
+                expect(err1, "first call should reject").to.exist;
+                expect(err1!.message).to.match(/indexedDB/i);
+
+                // Simulate a polyfill loading after the first failed call.
+                let openCallCount = 0;
+                g.indexedDB = {
+                    open(_name: string, _version: number) {
+                        openCallCount += 1;
+                        const req: any = { onerror: null, onsuccess: null, onupgradeneeded: null, onblocked: null };
+                        setTimeout(() => req.onblocked && req.onblocked(), 0);
+                        return req;
+                    },
+                };
+
+                // Second call: indexedDB now defined → should reach indexedDB.open
+                // rather than re-using the cached rejection.
+                try {
+                    await store.has(locator());
+                } catch {
+                    // expected — blocked stub fires AbortError
+                }
+                expect(openCallCount, "openDB should retry after env check now passes").to.equal(1);
+            } finally {
+                if (had) g.indexedDB = prior;
+                else delete g.indexedDB;
+            }
+        });
     });
 
     describe("locator validation (pre-IndexedDB)", () => {

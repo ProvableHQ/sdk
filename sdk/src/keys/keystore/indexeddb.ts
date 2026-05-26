@@ -64,17 +64,18 @@ export class IndexedDBKeyStore implements KeyStore {
     /** Opens (or creates) the database, returning a cached promise. */
     private openDB(): Promise<IDBDatabase> {
         if (this.dbPromise) return this.dbPromise;
+        // Env check sits outside the Promise constructor so a failure doesn't
+        // poison the cache; a later call (e.g. after a polyfill loads) can retry.
+        if (typeof indexedDB === "undefined") {
+            return Promise.reject(
+                new Error(
+                    "IndexedDBKeyStore requires a browser or Web Worker environment: " +
+                        "`indexedDB` is not defined. If you are in Node.js or an SSR " +
+                        "context, use LocalFileKeyStore or an in-memory key provider instead.",
+                ),
+            );
+        }
         this.dbPromise = new Promise<IDBDatabase>((resolve, reject) => {
-            if (typeof indexedDB === "undefined") {
-                reject(
-                    new Error(
-                        "IndexedDBKeyStore requires a browser or Web Worker environment: " +
-                            "`indexedDB` is not defined. If you are in Node.js or an SSR " +
-                            "context, use LocalFileKeyStore or an in-memory key provider instead.",
-                    ),
-                );
-                return;
-            }
             const request = indexedDB.open(this.dbName, 1);
             request.onupgradeneeded = () => {
                 const db = request.result;
