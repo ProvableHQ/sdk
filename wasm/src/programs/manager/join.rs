@@ -25,6 +25,7 @@ use crate::{
     calculate_minimum_fee,
     execute_fee,
     execute_program,
+    execution_stacks_for_execution,
     latest_block_height,
     log,
     process_inputs,
@@ -47,7 +48,6 @@ use snarkvm_synthesizer::prelude::{InclusionVersion, execution_cost};
 use snarkvm_synthesizer_program::StackTrait;
 
 use js_sys::Array;
-use rand::{SeedableRng, rngs::StdRng};
 use std::str::FromStr;
 
 #[wasm_bindgen]
@@ -82,7 +82,7 @@ impl ProgramManager {
         query: Option<QueryOption>,
     ) -> Result<Transaction, String> {
         log("Executing join program");
-        let rng = &mut StdRng::from_entropy();
+        let rng = &mut rand::rng();
 
         log("Setup program and inputs");
         let node_url = url.as_deref().unwrap_or(DEFAULT_URL);
@@ -153,8 +153,14 @@ impl ProgramManager {
             <CurrentNetwork as Network>::INCLUSION_UPGRADE_HEIGHT().map_err(|err| err.to_string())?;
         let inclusion_version =
             if latest_height >= inclusion_upgrade_height { InclusionVersion::V1 } else { InclusionVersion::V0 };
-        process
-            .verify_execution(consensus_version, VarunaVersion::V2, inclusion_version, &execution)
+        let execution_stacks = execution_stacks_for_execution(process, &execution)?;
+        ProcessNative::verify_execution(
+            consensus_version,
+            VarunaVersion::V2,
+            inclusion_version,
+            &execution,
+            &execution_stacks,
+        )
             .map_err(|err| err.to_string())?;
 
         // Calculate the minimum execution fee.

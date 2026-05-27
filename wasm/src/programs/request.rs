@@ -46,7 +46,6 @@ use snarkvm_wasm::utilities::{FromBytes, ToBytes};
 
 use crate::types::native::GroupNative;
 use js_sys::{Array, Object, Reflect, Uint8Array};
-use rand::{SeedableRng, rngs::StdRng};
 use std::{ops::Deref, str::FromStr};
 use wasm_bindgen::{convert::TryFromJsValue, prelude::*};
 
@@ -272,7 +271,7 @@ impl ExecutionRequest {
         let program_checksum = program_checksum.map(FieldNative::from);
 
         // Generate an RNG for the function from system entropy.
-        let mut rng = StdRng::from_entropy();
+        let mut rng = rand::rng();
 
         // Generate the signature over the (program_id, function, input, and private_key) tuple.
         let request = RequestNative::sign(

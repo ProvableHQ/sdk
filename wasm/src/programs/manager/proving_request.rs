@@ -29,7 +29,6 @@ use crate::{
 };
 
 use js_sys::{Array, Object};
-use rand::{SeedableRng, rngs::StdRng};
 use std::str::FromStr;
 
 #[wasm_bindgen]
@@ -73,7 +72,7 @@ impl ProgramManager {
         let program_native = resolved.program().clone();
         let process = resolved.process_mut();
 
-        let rng = &mut StdRng::from_entropy();
+        let rng = &mut rand::rng();
 
         // Convert the fee to microcredits.
         let _base_fee_microcredits = (base_fee_credits * 1_000_000.0) as u64;

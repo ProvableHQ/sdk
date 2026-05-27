@@ -170,7 +170,7 @@ impl ProgramManager {
                         log(&format!("Adding {program_id} to the process"));
                         // Edition 1 is required: since ConsensusVersion::V8, Authorization::check_valid_edition
                         // rejects edition 0 for non-constructor programs.
-                        process.add_program_with_edition(&import, 1).map_err(|err| err.to_string())?;
+                        process.lock().add_program_with_edition(&import, 1).map_err(|err| err.to_string())?;
                     }
                 }
             }
@@ -207,7 +207,7 @@ impl ProgramManager {
                 log(&format!("Adding {import_id_str} to the process"));
                 // Edition 1 is required: since ConsensusVersion::V8, Authorization::check_valid_edition
                 // rejects edition 0 for non-constructor programs.
-                process.add_program_with_edition(&import, 1).map_err(|err| err.to_string())?;
+                process.lock().add_program_with_edition(&import, 1).map_err(|err| err.to_string())?;
             }
             Ok::<(), String>(())
         })

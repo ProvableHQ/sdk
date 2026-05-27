@@ -121,7 +121,7 @@ impl Scalar {
 
     /// Generate a random scalar element.
     pub fn random() -> Scalar {
-        let rng = &mut rand::thread_rng();
+        let rng = &mut rand::rng();
         Scalar(ScalarNative::rand(rng))
     }
 
