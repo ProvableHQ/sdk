@@ -1870,23 +1870,13 @@ class AleoNetworkClient {
         // Attempt to get the Prover URI first from the options, then from any configured globally, or third try the main configured host.
         const proverUri = (options.url ?? this.proverUri) ?? this.host;
 
-        // Parse the proving request once, up front, so the variant the SDK
-        // routes on matches the bytes it will eventually send. Doing this
-        // lazily inside the encrypted path would let a Request-variant
-        // passed as a string be sent to `/prove/authorization` (the bytes
-        // are the Request layout — server-side `read_authorization_le`
-        // would reject them).
-        const provingRequestObj = options.provingRequest instanceof ProvingRequest
-            ? options.provingRequest
-            : ProvingRequest.fromString(options.provingRequest);
-        const isRequestVariant = provingRequestObj.kind() === "request";
-
         // Try to get JWT data to access the Provable API.
         const apiKey = options.apiKey ?? this.apiKey;
         const consumerId = options.consumerId ?? this.consumerId;
         let jwtData = options.jwtData ?? this.jwtData;
 
-        // Check to see if the JWT needs refreshing.
+        // Check to see if the JWT needs refreshing. Runs before parsing the
+        // proving request so JWT refresh errors propagate as they always have.
         const isExpired = jwtData && Date.now() >= jwtData.expiration - FIVE_MINUTES;
         if (!jwtData || isExpired) {
             if (apiKey && consumerId) {
@@ -1912,7 +1902,7 @@ class AleoNetworkClient {
         // Used by both `/prove/authorization` (Authorization variant) and
         // `/prove/request` (Request variant). The legacy plaintext `/prove`
         // route is no longer used.
-        const sendEncrypted = async (endpoint: string): Promise<ProvingResult> => {
+        const sendEncrypted = async (endpoint: string, provingRequestObj: ProvingRequest): Promise<ProvingResult> => {
             // Get an ephemeral public key from the DPS.
             const pubKeyResponse = await get(proverUri + "/pubkey", {
                 headers,
@@ -1949,13 +1939,25 @@ class AleoNetworkClient {
             return this.handleProvingResponse(res);
         };
 
-        // The legacy plaintext `/prove` route is deprecated and no longer dispatched
-        // to; every proving request is encrypted. `options.dpsPrivacy` is ignored.
-        const endpoint = isRequestVariant ? "/prove/request" : "/prove/authorization";
+        // Parse the proving request once, up front, so the variant the SDK
+        // routes on matches the bytes it will eventually send (a Request-
+        // variant string must hit /prove/request, not /prove/authorization).
+        // A malformed input string throws synchronously — the safe-API
+        // contract only promises to return `{ ok: false, ... }` for HTTP
+        // failures (400/500/503); a parse error is a caller-side bug and
+        // surfacing it as a fake 500 would mislead callers debugging it.
+        // `options.dpsPrivacy` is ignored; the legacy plaintext `/prove`
+        // route is deprecated.
+        const provingRequestObj = options.provingRequest instanceof ProvingRequest
+            ? options.provingRequest
+            : ProvingRequest.fromString(options.provingRequest);
+        const endpoint = provingRequestObj.kind() === "request"
+            ? "/prove/request"
+            : "/prove/authorization";
 
         try {
             return await retryWithBackoff(async () => {
-                const result = await sendEncrypted(endpoint);
+                const result = await sendEncrypted(endpoint, provingRequestObj);
                 if (result.ok) {
                     return result;
                 }
@@ -1969,7 +1971,7 @@ class AleoNetworkClient {
                 return result;
             });
         } catch (err) {
-            // If an error is returned, provide usable information to the caller.
+            // HTTP failure inside the retry loop — convert to a result object.
             const e = err as ProvingRequestError;
             return {
                 ok: false,
