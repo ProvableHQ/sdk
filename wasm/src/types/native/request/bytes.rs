@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU General Public License
 // along with the Provable SDK library. If not, see <https://www.gnu.org/licenses/>.
 
-use crate::types::native::{AuthorizationNative, ProvingRequestNative};
+use crate::types::native::{AuthorizationNative, ProvingRequestNative, RequestNative};
 use snarkvm_wasm::utilities::{FromBytes, ToBytes};
 
 use std::{
@@ -23,43 +23,76 @@ use std::{
 };
 
 impl ToBytes for ProvingRequestNative {
+    /// Variant-aware byte serialization matching the DPS layout exactly.
+    /// No discriminator byte is written — the reader must know the variant
+    /// out-of-band (route context on the server; explicit method on clients).
     fn write_le<W: Write>(&self, mut writer: W) -> io::Result<()> {
-        // Write required authorization.
-        self.authorization.write_le(&mut writer)?;
-
-        // Write the optional fee_authorization.
-        match &self.fee_authorization {
-            Some(auth) => {
-                true.write_le(&mut writer)?; // flag for Some
-                auth.write_le(&mut writer)?;
+        match self {
+            Self::Authorization { authorization, fee_authorization, broadcast } => {
+                authorization.write_le(&mut writer)?;
+                match fee_authorization {
+                    Some(auth) => {
+                        true.write_le(&mut writer)?;
+                        auth.write_le(&mut writer)?;
+                    }
+                    None => {
+                        false.write_le(&mut writer)?;
+                    }
+                }
+                broadcast.write_le(&mut writer)?;
             }
-            None => {
-                false.write_le(&mut writer)?; // flag for None
+            Self::Request { request, fee_request, broadcast } => {
+                request.write_le(&mut writer)?;
+                match fee_request {
+                    Some(req) => {
+                        true.write_le(&mut writer)?;
+                        req.write_le(&mut writer)?;
+                    }
+                    None => {
+                        false.write_le(&mut writer)?;
+                    }
+                }
+                broadcast.write_le(&mut writer)?;
             }
         }
-
-        // Write broadcast flag.
-        self.broadcast.write_le(&mut writer)?;
-
         Ok(())
     }
 }
 
 impl FromBytes for ProvingRequestNative {
-    fn read_le<R: Read>(mut reader: R) -> io::Result<Self> {
-        // Read required authorization.
-        let authorization = AuthorizationNative::read_le(&mut reader)?;
+    /// Reads bytes as the Authorization variant for back-compat — historically
+    /// the only variant that existed. To read the Request variant, callers
+    /// must use [`ProvingRequestNative::read_request_le`] explicitly because
+    /// the byte layout carries no discriminator.
+    fn read_le<R: Read>(reader: R) -> io::Result<Self> {
+        Self::read_authorization_le(reader)
+    }
+}
 
-        // Read the option flag and then the fee_authorization if present.
+impl ProvingRequestNative {
+    /// Reads bytes as the Authorization variant.
+    /// Layout: `authorization | bool | maybe(fee_authorization) | bool(broadcast)`.
+    pub fn read_authorization_le<R: Read>(mut reader: R) -> io::Result<Self> {
+        let authorization = AuthorizationNative::read_le(&mut reader)?;
         let has_fee_auth = bool::read_le(&mut reader)?;
         let fee_authorization = match has_fee_auth {
             false => None,
             true => Some(AuthorizationNative::read_le(&mut reader)?),
         };
-
-        // Read broadcast flag.
         let broadcast = bool::read_le(&mut reader)?;
+        Ok(Self::Authorization { authorization, fee_authorization, broadcast })
+    }
 
-        Ok(Self { authorization, fee_authorization, broadcast })
+    /// Reads bytes as the Request variant.
+    /// Layout: `request | bool | maybe(fee_request) | bool(broadcast)`.
+    pub fn read_request_le<R: Read>(mut reader: R) -> io::Result<Self> {
+        let request = RequestNative::read_le(&mut reader)?;
+        let has_fee_request = bool::read_le(&mut reader)?;
+        let fee_request = match has_fee_request {
+            false => None,
+            true => Some(RequestNative::read_le(&mut reader)?),
+        };
+        let broadcast = bool::read_le(&mut reader)?;
+        Ok(Self::Request { request, fee_request, broadcast })
     }
 }

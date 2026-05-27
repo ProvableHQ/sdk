@@ -21,48 +21,112 @@ use super::*;
 
 use serde::{Deserialize, Serialize};
 
+/// A proving request submitted to the Delegated Proving Service.
+///
+/// Mirrors the variant layout used by the DPS in `utils::types::ProvingRequest`:
+/// `Authorization` carries a fully-constructed `Authorization` (and optional fee
+/// `Authorization`); `Request` carries a single signed `Request` (and optional
+/// fee `Request`) that the server turns into an `Authorization` via
+/// `Process::authorize_request`. JSON is serialized untagged — the field shape
+/// (`authorization`/`fee_authorization` vs. `request`/`fee_request`) determines
+/// the variant. Bytes carry no discriminator; the reader must know the variant
+/// out-of-band (see `bytes.rs`).
 #[derive(Clone, Eq, PartialEq, Serialize, Deserialize)]
-pub struct ProvingRequestNative {
-    pub authorization: AuthorizationNative,
-    pub fee_authorization: Option<AuthorizationNative>,
-    pub broadcast: bool,
+#[serde(untagged)]
+pub enum ProvingRequestNative {
+    Authorization {
+        authorization: AuthorizationNative,
+        fee_authorization: Option<AuthorizationNative>,
+        broadcast: bool,
+    },
+    Request {
+        request: RequestNative,
+        fee_request: Option<RequestNative>,
+        broadcast: bool,
+    },
 }
 
 impl ProvingRequestNative {
-    /// Creates a new `ProvingRequestNative` from the given authorization and fee authorization.
+    /// Creates a new Authorization-variant `ProvingRequestNative` from the
+    /// given authorization and optional fee authorization.
     pub fn new(
         authorization: crate::Authorization,
         fee_authorization: Option<crate::Authorization>,
         broadcast: bool,
     ) -> Self {
-        Self {
+        Self::Authorization {
             authorization: AuthorizationNative::from(authorization),
             fee_authorization: fee_authorization.map(AuthorizationNative::from),
             broadcast,
         }
     }
 
-    /// Creates a new `ProvingRequest` from native authorization types.
+    /// Creates a new Authorization-variant `ProvingRequestNative` from native
+    /// `AuthorizationNative` values.
     pub fn new_from_native(
         authorization: AuthorizationNative,
         fee_authorization: Option<AuthorizationNative>,
         broadcast: bool,
     ) -> Self {
-        Self { authorization, fee_authorization, broadcast }
+        Self::Authorization { authorization, fee_authorization, broadcast }
     }
 
-    /// Gets the authorization of the function the `signer` is attempting to call.
-    pub fn authorization(&self) -> &AuthorizationNative {
-        &self.authorization
+    /// Creates a new Request-variant `ProvingRequestNative` from a single
+    /// signed `Request` and optional fee `Request`.
+    pub fn new_request(request: RequestNative, fee_request: Option<RequestNative>, broadcast: bool) -> Self {
+        Self::Request { request, fee_request, broadcast }
     }
 
-    /// Gets the fee authorization of the proving request.
+    /// Returns the Authorization variant's inner authorization, or `None` if
+    /// this is a Request variant.
+    pub fn authorization(&self) -> Option<&AuthorizationNative> {
+        match self {
+            Self::Authorization { authorization, .. } => Some(authorization),
+            Self::Request { .. } => None,
+        }
+    }
+
+    /// Returns the Authorization variant's fee authorization, or `None` if this
+    /// is a Request variant or no fee authorization is set.
     pub fn fee_authorization(&self) -> Option<&AuthorizationNative> {
-        self.fee_authorization.as_ref()
+        match self {
+            Self::Authorization { fee_authorization, .. } => fee_authorization.as_ref(),
+            Self::Request { .. } => None,
+        }
     }
 
-    /// Returns the broadcast flag.
+    /// Returns the Request variant's inner request, or `None` if this is an
+    /// Authorization variant.
+    pub fn request(&self) -> Option<&RequestNative> {
+        match self {
+            Self::Request { request, .. } => Some(request),
+            Self::Authorization { .. } => None,
+        }
+    }
+
+    /// Returns the Request variant's fee request, or `None` if this is an
+    /// Authorization variant or no fee request is set.
+    pub fn fee_request(&self) -> Option<&RequestNative> {
+        match self {
+            Self::Request { fee_request, .. } => fee_request.as_ref(),
+            Self::Authorization { .. } => None,
+        }
+    }
+
+    /// Returns the broadcast flag regardless of variant.
     pub fn broadcast(&self) -> bool {
-        self.broadcast
+        match self {
+            Self::Authorization { broadcast, .. } | Self::Request { broadcast, .. } => *broadcast,
+        }
+    }
+
+    /// Returns `true` if this is the Authorization variant.
+    pub fn is_authorization(&self) -> bool {
+        matches!(self, Self::Authorization { .. })
+    }
+
+    /// Returns `true` if this is the Request variant.
+    pub fn is_request(&self) -> bool {
+        matches!(self, Self::Request { .. })
     }
 }

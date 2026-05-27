@@ -62,6 +62,10 @@ interface DelegatedProvingParams {
   apiKey?: string;
   consumerId?: string;
   jwtData?: JWTData;
+  /**
+   * @deprecated All proving requests are now encrypted. This flag is ignored
+   * and will be removed in a future release.
+   */
   dpsPrivacy?: boolean;
 }
 
@@ -1800,7 +1804,7 @@ class AleoNetworkClient {
 
 
     /**
-     * Parses a /prove or /prove/encrypted response. Returns a result object (never throws for 200/400/500/503).
+     * Parses a /prove/authorization or /prove/request response. Returns a result object (never throws for 200/400/500/503).
      */
     private async handleProvingResponse(response: Response): Promise<ProvingResult> {
         // Get the proving response text.
@@ -1865,16 +1869,14 @@ class AleoNetworkClient {
     async submitProvingRequestSafe(options: DelegatedProvingParams): Promise<ProvingResult> {
         // Attempt to get the Prover URI first from the options, then from any configured globally, or third try the main configured host.
         const proverUri = (options.url ?? this.proverUri) ?? this.host;
-        const provingRequestString = options.provingRequest instanceof ProvingRequest
-            ? options.provingRequest.toString()
-            : options.provingRequest;
 
         // Try to get JWT data to access the Provable API.
         const apiKey = options.apiKey ?? this.apiKey;
         const consumerId = options.consumerId ?? this.consumerId;
         let jwtData = options.jwtData ?? this.jwtData;
 
-        // Check to see if the JWT needs refreshing.
+        // Check to see if the JWT needs refreshing. Runs before parsing the
+        // proving request so JWT refresh errors propagate as they always have.
         const isExpired = jwtData && Date.now() >= jwtData.expiration - FIVE_MINUTES;
         if (!jwtData || isExpired) {
             if (apiKey && consumerId) {
@@ -1896,73 +1898,71 @@ class AleoNetworkClient {
             headers["Authorization"] = jwtData.jwt;
         }
 
-        // Encapsulate the requests in a locally scoped function that can be run with a retry closure.
-        const runRequest = async (): Promise<ProvingResult> => {
-            // If DPS privacy is set, call invoke the encrypted flow.
-            if (options.dpsPrivacy) {
-                // Get an ephemeral public key from a DPS service.
-                const pubKeyResponse = await get(proverUri + "/pubkey", {
-                    headers,
-                    credentials: "include",
-                }, this.transport);
-
-                // Encrypt the provingRequest.
-                const pubkey: CryptoBoxPubKey = parseJSON(
-                    await pubKeyResponse.text(),
-                );
-                const ciphertext = encryptProvingRequest(
-                    pubkey.public_key,
-                    ProvingRequest.fromString(provingRequestString),
-                );
-
-                // Form the expected query a DPS service expects (including the key_id).
-                const payload: EncryptedProvingRequest = {
-                    key_id: pubkey.key_id,
-                    ciphertext: ciphertext,
-                };
-
-                // We're in node, attempt to set the cookie manually.
-                const cookie = isNode() ? pubKeyResponse.headers.get("set-cookie"): undefined;
-
-                // Send the encrypted proving request to the DPS service.
-                const res = await this.transport(`${proverUri}/prove/encrypted`, {
-                    method: "POST",
-                    body: JSON.stringify(payload),
-                    headers: {
-                        ...headers,
-                        ...(cookie ? { Cookie: cookie } : {})
-                    },
-                    credentials: "include",
-                });
-
-                // Properly handle the proving response.
-                return this.handleProvingResponse(res);
-            }
-
-            // If encrypted usage is not specified use the unencrypted endpoint.
-            const proveEndpoint = (<string>proverUri).endsWith("/prove")
-                ? proverUri
-                : proverUri + "/prove";
-            const res = await this.transport(proveEndpoint, {
-                method: "POST",
-                body: provingRequestString,
+        // Send the proving request encrypted (libsodium-compatible sealed box).
+        // Used by both `/prove/authorization` (Authorization variant) and
+        // `/prove/request` (Request variant). The legacy plaintext `/prove`
+        // route is no longer used.
+        const sendEncrypted = async (endpoint: string, provingRequestObj: ProvingRequest): Promise<ProvingResult> => {
+            // Get an ephemeral public key from the DPS.
+            const pubKeyResponse = await get(proverUri + "/pubkey", {
                 headers,
+                credentials: "include",
+            }, this.transport);
+
+            // Encrypt the provingRequest using the ephemeral pubkey.
+            const pubkey: CryptoBoxPubKey = parseJSON(
+                await pubKeyResponse.text(),
+            );
+            const ciphertext = encryptProvingRequest(
+                pubkey.public_key,
+                provingRequestObj,
+            );
+
+            const payload: EncryptedProvingRequest = {
+                key_id: pubkey.key_id,
+                ciphertext: ciphertext,
+            };
+
+            // We're in node, attempt to set the cookie manually.
+            const cookie = isNode() ? pubKeyResponse.headers.get("set-cookie"): undefined;
+
+            const res = await this.transport(`${proverUri}${endpoint}`, {
+                method: "POST",
+                body: JSON.stringify(payload),
+                headers: {
+                    ...headers,
+                    ...(cookie ? { Cookie: cookie } : {})
+                },
+                credentials: "include",
             });
 
-            // Properly handle the proving response.
             return this.handleProvingResponse(res);
         };
 
+        // Parse the proving request once, up front, so the variant the SDK
+        // routes on matches the bytes it will eventually send (a Request-
+        // variant string must hit /prove/request, not /prove/authorization).
+        // A malformed input string throws synchronously — the safe-API
+        // contract only promises to return `{ ok: false, ... }` for HTTP
+        // failures (400/500/503); a parse error is a caller-side bug and
+        // surfacing it as a fake 500 would mislead callers debugging it.
+        // `options.dpsPrivacy` is ignored; the legacy plaintext `/prove`
+        // route is deprecated.
+        const provingRequestObj = options.provingRequest instanceof ProvingRequest
+            ? options.provingRequest
+            : ProvingRequest.fromString(options.provingRequest);
+        const endpoint = provingRequestObj.kind() === "request"
+            ? "/prove/request"
+            : "/prove/authorization";
+
         try {
-            // Run the request with retries.
             return await retryWithBackoff(async () => {
-                // Run the encrypted or non-encrypted flow as specified by the flags.
-                const result = await runRequest();
+                const result = await sendEncrypted(endpoint, provingRequestObj);
                 if (result.ok) {
                     return result;
                 }
 
-                // If 500s are hit responses are returned, attempt retries.
+                // Retry on 500/503; surface 400 verbatim.
                 if (result.status === 500 || result.status === 503) {
                     const err = new Error(result.error.message) as ProvingRequestError;
                     err.status = result.status;
@@ -1971,7 +1971,7 @@ class AleoNetworkClient {
                 return result;
             });
         } catch (err) {
-            // If an error is returned, provide usable information to the caller.
+            // HTTP failure inside the retry loop — convert to a result object.
             const e = err as ProvingRequestError;
             return {
                 ok: false,

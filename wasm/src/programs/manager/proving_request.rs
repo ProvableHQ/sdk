@@ -214,7 +214,7 @@ mod tests {
         .await
         .unwrap();
 
-        let authorization = proving_request.authorization();
+        let authorization = proving_request.authorization().unwrap();
         assert_eq!(authorization.len(), 1, "transfer_public should have 1 request");
         assert_eq!(authorization.transitions().length(), 1, "transfer_public should have 1 transition");
         // No fee authorization when built from ExecutionRequest (fee is paid by fee master or handled separately).
@@ -255,7 +255,7 @@ mod tests {
         assert!(request_from_string.equals(&proving_request) && request_from_bytes.equals(&proving_request));
 
         // Get the main authorization from the proving request.
-        let authorization = proving_request.authorization();
+        let authorization = proving_request.authorization().unwrap();
 
         // Assert the number of requests is correct.
         assert_eq!(authorization.len(), 3);
@@ -308,7 +308,7 @@ mod tests {
         );
 
         // Main authorization is still present.
-        let authorization = proving_request.authorization();
+        let authorization = proving_request.authorization().unwrap();
         assert_eq!(authorization.len(), 3);
         assert_eq!(authorization.transitions().length(), 3);
     }
