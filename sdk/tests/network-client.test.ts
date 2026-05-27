@@ -882,8 +882,8 @@ describe("submitProvingRequestSafe variant routing", () => {
 
         const pubkeyCall = fetchStub.getCall(0).args[0]?.toString() ?? fetchStub.getCall(0).args[0]?.url;
         const proveCall = fetchStub.getCall(1).args[0]?.toString() ?? fetchStub.getCall(1).args[0]?.url;
-        expect(pubkeyCall).to.equal("https://prover.example.com/testnet/pubkey");
-        expect(proveCall).to.equal("https://prover.example.com/testnet/prove/request");
+        expect(pubkeyCall).to.equal("https://prover.example.com/%%NETWORK%%/pubkey");
+        expect(proveCall).to.equal("https://prover.example.com/%%NETWORK%%/prove/request");
     });
 
     it("Request variant routing takes precedence over dpsPrivacy=true", async () => {
@@ -905,7 +905,7 @@ describe("submitProvingRequestSafe variant routing", () => {
         await client.submitProvingRequestSafe({ provingRequest, dpsPrivacy: true });
 
         const proveCall = fetchStub.getCall(1).args[0]?.toString() ?? fetchStub.getCall(1).args[0]?.url;
-        expect(proveCall).to.equal("https://prover.example.com/testnet/prove/request");
+        expect(proveCall).to.equal("https://prover.example.com/%%NETWORK%%/prove/request");
     });
 
     it("ProvingRequest.kind() returns 'request' for Request-variant constructions", () => {
@@ -934,6 +934,6 @@ describe("submitProvingRequestSafe variant routing", () => {
         await client.submitProvingRequestSafe({ provingRequest: provingRequestString });
 
         const proveCall = fetchStub.getCall(1).args[0]?.toString() ?? fetchStub.getCall(1).args[0]?.url;
-        expect(proveCall).to.equal("https://prover.example.com/testnet/prove/request");
+        expect(proveCall).to.equal("https://prover.example.com/%%NETWORK%%/prove/request");
     });
 });
