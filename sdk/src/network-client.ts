@@ -62,6 +62,10 @@ interface DelegatedProvingParams {
   apiKey?: string;
   consumerId?: string;
   jwtData?: JWTData;
+  /**
+   * @deprecated All proving requests are now encrypted. This flag is ignored
+   * and will be removed in a future release.
+   */
   dpsPrivacy?: boolean;
 }
 
@@ -1800,7 +1804,7 @@ class AleoNetworkClient {
 
 
     /**
-     * Parses a /prove or /prove/encrypted response. Returns a result object (never throws for 200/400/500/503).
+     * Parses a /prove/authorization or /prove/request response. Returns a result object (never throws for 200/400/500/503).
      */
     private async handleProvingResponse(response: Response): Promise<ProvingResult> {
         // Get the proving response text.
@@ -1904,9 +1908,10 @@ class AleoNetworkClient {
             headers["Authorization"] = jwtData.jwt;
         }
 
-        // Send the proving request encrypted (libsodium sealed box). Used by
-        // both the /prove/encrypted (Authorization variant, opt-in) and
-        // /prove/request (Request variant, mandatory) paths.
+        // Send the proving request encrypted (libsodium-compatible sealed box).
+        // Used by both `/prove/authorization` (Authorization variant) and
+        // `/prove/request` (Request variant). The legacy plaintext `/prove`
+        // route is no longer used.
         const sendEncrypted = async (endpoint: string): Promise<ProvingResult> => {
             // Get an ephemeral public key from the DPS.
             const pubKeyResponse = await get(proverUri + "/pubkey", {
@@ -1949,44 +1954,18 @@ class AleoNetworkClient {
             return this.handleProvingResponse(res);
         };
 
-        // Encapsulate the requests in a locally scoped function that can be run with a retry closure.
-        const runRequest = async (): Promise<ProvingResult> => {
-            // Request variant is encrypted-only and always routes to /prove/request.
-            // The DPS reads bytes via `read_request_le` on this route; `dpsPrivacy`
-            // is implicit because the route doesn't accept plaintext.
-            if (isRequestVariant) {
-                return sendEncrypted("/prove/request");
-            }
-
-            // Authorization variant: opt-in encrypted via /prove/encrypted.
-            if (options.dpsPrivacy) {
-                return sendEncrypted("/prove/encrypted");
-            }
-
-            // If encrypted usage is not specified use the unencrypted endpoint.
-            const proveEndpoint = (<string>proverUri).endsWith("/prove")
-                ? proverUri
-                : proverUri + "/prove";
-            const res = await this.transport(proveEndpoint, {
-                method: "POST",
-                body: provingRequestString,
-                headers,
-            });
-
-            // Properly handle the proving response.
-            return this.handleProvingResponse(res);
-        };
+        // The legacy plaintext `/prove` route is deprecated and no longer dispatched
+        // to; every proving request is encrypted. `options.dpsPrivacy` is ignored.
+        const endpoint = isRequestVariant ? "/prove/request" : "/prove/authorization";
 
         try {
-            // Run the request with retries.
             return await retryWithBackoff(async () => {
-                // Run the encrypted or non-encrypted flow as specified by the flags.
-                const result = await runRequest();
+                const result = await sendEncrypted(endpoint);
                 if (result.ok) {
                     return result;
                 }
 
-                // If 500s are hit responses are returned, attempt retries.
+                // Retry on 500/503; surface 400 verbatim.
                 if (result.status === 500 || result.status === 503) {
                     const err = new Error(result.error.message) as ProvingRequestError;
                     err.status = result.status;
