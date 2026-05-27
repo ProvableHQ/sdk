@@ -33,7 +33,7 @@ use wasm_bindgen::prelude::*;
 ///
 /// Carries one of two variants:
 /// - `Authorization` — a fully-constructed snarkVM `Authorization` (plus optional
-///   fee authorization). Submitted to `/prove` or `/prove/encrypted`.
+///   fee authorization). Submitted to `/prove/authorization` (encrypted-only).
 /// - `Request` — a single signed snarkVM `Request` (plus optional fee `Request`)
 ///   that the prover authorizes server-side. Submitted to `/prove/request`
 ///   (encrypted-only).

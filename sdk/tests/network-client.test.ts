@@ -912,4 +912,28 @@ describe("submitProvingRequestSafe variant routing", () => {
         const provingRequest = buildRequestVariant();
         expect(provingRequest.kind()).to.equal("request");
     });
+
+    // Regression for the routing bug flagged by Cursor Bugbot / Copilot on PR
+    // #1329: a Request-variant ProvingRequest passed as a serialized string
+    // (e.g. `provingRequest.toString()`) must still route to /prove/request,
+    // not /prove/authorization. Variant detection has to look at the parsed
+    // ProvingRequest, not the input type.
+    it("Request variant passed as a serialized string still routes to /prove/request", async () => {
+        const client = new AleoNetworkClient("https://prover.example.com");
+
+        fetchStub.onFirstCall().resolves(new Response(
+            pubKeyResponseBody(),
+            { status: 200, headers: { "content-type": "application/json" } },
+        ));
+        fetchStub.onSecondCall().resolves(new Response(
+            JSON.stringify({ transaction: "stub", broadcast: null }),
+            { status: 200, headers: { "content-type": "application/json" } },
+        ));
+
+        const provingRequestString = buildRequestVariant().toString();
+        await client.submitProvingRequestSafe({ provingRequest: provingRequestString });
+
+        const proveCall = fetchStub.getCall(1).args[0]?.toString() ?? fetchStub.getCall(1).args[0]?.url;
+        expect(proveCall).to.equal("https://prover.example.com/testnet/prove/request");
+    });
 });

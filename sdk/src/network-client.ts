@@ -1869,17 +1869,17 @@ class AleoNetworkClient {
     async submitProvingRequestSafe(options: DelegatedProvingParams): Promise<ProvingResult> {
         // Attempt to get the Prover URI first from the options, then from any configured globally, or third try the main configured host.
         const proverUri = (options.url ?? this.proverUri) ?? this.host;
-        const provingRequestString = options.provingRequest instanceof ProvingRequest
-            ? options.provingRequest.toString()
-            : options.provingRequest;
 
-        // Determine the variant for endpoint routing. Only inspect `kind()`
-        // when the caller passed a `ProvingRequest` object — string inputs
-        // are deferred to the encrypted path's parse (preserves prior
-        // behavior for callers that pass opaque strings like JWT-refresh
-        // unit tests, which rely on the JWT fetch firing first).
-        const isRequestVariant = options.provingRequest instanceof ProvingRequest
-            && options.provingRequest.kind() === "request";
+        // Parse the proving request once, up front, so the variant the SDK
+        // routes on matches the bytes it will eventually send. Doing this
+        // lazily inside the encrypted path would let a Request-variant
+        // passed as a string be sent to `/prove/authorization` (the bytes
+        // are the Request layout — server-side `read_authorization_le`
+        // would reject them).
+        const provingRequestObj = options.provingRequest instanceof ProvingRequest
+            ? options.provingRequest
+            : ProvingRequest.fromString(options.provingRequest);
+        const isRequestVariant = provingRequestObj.kind() === "request";
 
         // Try to get JWT data to access the Provable API.
         const apiKey = options.apiKey ?? this.apiKey;
@@ -1919,15 +1919,10 @@ class AleoNetworkClient {
                 credentials: "include",
             }, this.transport);
 
-            // Encrypt the provingRequest. Parse lazily — only the encrypted
-            // paths need a real `ProvingRequest` object; the plaintext path
-            // forwards the string verbatim.
+            // Encrypt the provingRequest using the ephemeral pubkey.
             const pubkey: CryptoBoxPubKey = parseJSON(
                 await pubKeyResponse.text(),
             );
-            const provingRequestObj = options.provingRequest instanceof ProvingRequest
-                ? options.provingRequest
-                : ProvingRequest.fromString(provingRequestString);
             const ciphertext = encryptProvingRequest(
                 pubkey.public_key,
                 provingRequestObj,
