@@ -71,11 +71,7 @@ impl ProvingRequest {
     /// @param {ExecutionRequest} fee_request Optional signed request for the fee function. When omitted, the prover generates and pays the fee.
     /// @param {boolean} broadcast Flag that indicates whether the remote proving service should attempt to submit the transaction on the caller's behalf.
     #[wasm_bindgen(js_name = "fromRequest")]
-    pub fn from_request(
-        request: ExecutionRequest,
-        fee_request: Option<ExecutionRequest>,
-        broadcast: bool,
-    ) -> Self {
+    pub fn from_request(request: ExecutionRequest, fee_request: Option<ExecutionRequest>, broadcast: bool) -> Self {
         let request_native: RequestNative = request.into();
         let fee_request_native: Option<RequestNative> = fee_request.map(Into::into);
         ProvingRequest(ProvingRequestNative::new_request(request_native, fee_request_native, broadcast))
@@ -149,10 +145,9 @@ impl ProvingRequest {
     /// @throws If this `ProvingRequest` is a Request variant. Check
     /// {@link ProvingRequest#kind} or use {@link ProvingRequest#request} instead.
     pub fn authorization(&self) -> Result<Authorization, String> {
-        self.0
-            .authorization()
-            .map(Authorization::from)
-            .ok_or_else(|| "ProvingRequest is a Request variant; call `request()` instead of `authorization()`".to_string())
+        self.0.authorization().map(Authorization::from).ok_or_else(|| {
+            "ProvingRequest is a Request variant; call `request()` instead of `authorization()`".to_string()
+        })
     }
 
     /// Returns the fee Authorization in the ProvingRequest, or `undefined`
@@ -168,10 +163,9 @@ impl ProvingRequest {
     /// {@link ProvingRequest#kind} or use {@link ProvingRequest#authorization}
     /// instead.
     pub fn request(&self) -> Result<ExecutionRequest, String> {
-        self.0
-            .request()
-            .map(ExecutionRequest::from)
-            .ok_or_else(|| "ProvingRequest is an Authorization variant; call `authorization()` instead of `request()`".to_string())
+        self.0.request().map(ExecutionRequest::from).ok_or_else(|| {
+            "ProvingRequest is an Authorization variant; call `authorization()` instead of `request()`".to_string()
+        })
     }
 
     /// Returns the signed fee `ExecutionRequest` in the Request variant, or
@@ -292,7 +286,7 @@ mod tests {
             let authorization = Authorization::from_string(PUZZLE_SPINNER_V002_AUTHORIZATION.to_string()).unwrap();
             assert!(proving_request.authorization().unwrap().equals(&authorization));
             assert!(proving_request.fee_authorization().unwrap().is_fee_public());
-            assert_eq!(proving_request.broadcast, false);
+            assert_eq!(proving_request.broadcast(), false);
             assert_eq!(proving_request.kind(), "authorization");
         }
     }
@@ -304,7 +298,8 @@ mod tests {
 
     fn sample_execution_request() -> ExecutionRequest {
         let private_key = PrivateKey::from_string(BEACON_PRIVATE_KEY_STR).unwrap();
-        let inputs = array!["aleo1rhgdu77hgyqd3xjj8ucu3jj9r2krwz6mnzyd80gncr5fxcwlh5rsvzp9px".to_string(), "100u64".to_string()];
+        let inputs =
+            array!["aleo1rhgdu77hgyqd3xjj8ucu3jj9r2krwz6mnzyd80gncr5fxcwlh5rsvzp9px".to_string(), "100u64".to_string()];
         let input_types = array!["address.public".to_string(), "u64.public".to_string()];
         ExecutionRequest::sign(
             private_key,
@@ -343,8 +338,7 @@ mod tests {
         // which is the intended behavior — the byte layout carries no
         // discriminator.
         let bytes = proving_request.to_bytes_le().expect("toBytesLe should succeed");
-        let roundtripped =
-            ProvingRequest::from_bytes_le_request(bytes).expect("fromBytesLeRequest should succeed");
+        let roundtripped = ProvingRequest::from_bytes_le_request(bytes).expect("fromBytesLeRequest should succeed");
 
         assert!(proving_request.equals(&roundtripped));
         assert_eq!(roundtripped.kind(), "request");
@@ -383,7 +377,9 @@ mod tests {
     fn test_authorization_variant_throws_on_request_accessor() {
         if CurrentNetwork::ID == 0 {
             let proving_request = ProvingRequest::from_string(PUZZLE_SPINNER_V002_PROVING_REQUEST.to_string()).unwrap();
-            let err = proving_request.request().expect_err("expected request() to error");
+            // `expect_err` requires `T: Debug`; `ExecutionRequest` doesn't impl
+            // it, so use `.err().expect(...)` to extract the error message.
+            let err = proving_request.request().err().expect("expected request() to error");
             assert!(err.contains("Authorization variant"), "error should mention Authorization variant: {err}");
             assert!(proving_request.fee_request().is_none());
         }
