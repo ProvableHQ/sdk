@@ -152,7 +152,7 @@ impl Group {
 
     /// Generate a random group element.
     pub fn random() -> Group {
-        let rng = &mut rand::thread_rng();
+        let rng = &mut rand::rng();
         Group(GroupNative::rand(rng))
     }
 

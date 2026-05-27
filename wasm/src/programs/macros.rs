@@ -54,7 +54,7 @@ macro_rules! authorize {
         if program_id != "credits.aleo" {
             if !$process.contains_program(program.id()) {
                 log("Adding program to the process");
-                $process.add_program_with_edition(&program, $edition).map_err(|e| e.to_string())?;
+                $process.lock().add_program_with_edition(&program, $edition).map_err(|e| e.to_string())?;
             }
         }
 
@@ -138,7 +138,7 @@ macro_rules! execute_program {
         if program_id != "credits.aleo" {
             if !$process.contains_program(program.id()) {
                 log("Adding program to the process");
-                $process.add_program_with_edition(&program, $edition).map_err(|e| e.to_string())?;
+                $process.lock().add_program_with_edition(&program, $edition).map_err(|e| e.to_string())?;
             }
         }
 
@@ -284,7 +284,7 @@ macro_rules! execute_fee {
         };
 
         log("Proving fee execution");
-        let fee = trace.prove_fee::<CurrentAleo, _>(::snarkvm_algorithms::snark::varuna::VarunaVersion::V2, &mut StdRng::from_entropy()).map_err(|e|e.to_string())?;
+        let fee = trace.prove_fee::<CurrentAleo, _>(::snarkvm_algorithms::snark::varuna::VarunaVersion::V2, &mut rand::rng()).map_err(|e|e.to_string())?;
 
         log("Verifying fee execution");
         $process.verify_fee(consensus_version, ::snarkvm_algorithms::snark::varuna::VarunaVersion::V2, inclusion_version, &fee, $deployment_or_execution_id).map_err(|e| e.to_string())?;

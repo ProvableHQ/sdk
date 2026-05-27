@@ -118,7 +118,7 @@ impl Field {
 
     /// Generate a random field element.
     pub fn random() -> Field {
-        let rng = &mut rand::thread_rng();
+        let rng = &mut rand::rng();
         Field(FieldNative::rand(rng))
     }
 

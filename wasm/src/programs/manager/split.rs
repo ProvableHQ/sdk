@@ -23,6 +23,7 @@ use crate::{
     SnapshotQuery,
     Transaction,
     execute_program,
+    execution_stacks_for_execution,
     log,
     process_inputs,
     types::native::{
@@ -37,7 +38,6 @@ use crate::{
     },
 };
 use js_sys::Array;
-use rand::{SeedableRng, rngs::StdRng};
 use snarkvm_algorithms::snark::varuna::VarunaVersion;
 use snarkvm_console::network::Network;
 use snarkvm_ledger_query::QueryTrait;
@@ -82,7 +82,7 @@ impl ProgramManager {
 
         let mut process_native = ProcessNative::load_web().map_err(|err| err.to_string())?;
         let process = &mut process_native;
-        let rng = &mut StdRng::from_entropy();
+        let rng = &mut rand::rng();
 
         log("Executing the split function");
         let (_, mut trace) = execute_program!(
@@ -126,8 +126,14 @@ impl ProgramManager {
         let inclusion_version =
             if latest_height >= inclusion_upgrade_height { InclusionVersion::V1 } else { InclusionVersion::V0 };
 
-        process
-            .verify_execution(consensus_version, VarunaVersion::V2, inclusion_version, &execution)
+        let execution_stacks = execution_stacks_for_execution(process, &execution)?;
+        ProcessNative::verify_execution(
+            consensus_version,
+            VarunaVersion::V2,
+            inclusion_version,
+            &execution,
+            &execution_stacks,
+        )
             .map_err(|err| err.to_string())?;
 
         log("Creating execution transaction for split");

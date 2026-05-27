@@ -30,7 +30,6 @@ use snarkvm_console::prelude::{FromBits, FromBytes, ToBits, ToBytes, ToFields};
 
 use core::{fmt, ops::Deref, str::FromStr};
 use js_sys::{Array, Uint8Array};
-use rand::{SeedableRng, rngs::StdRng};
 use wasm_bindgen::prelude::*;
 
 /// Cryptographic signature of a message signed by an Aleo account
@@ -45,7 +44,7 @@ impl Signature {
     /// @param {Uint8Array} message Byte representation of the message to sign
     /// @returns {Signature} Signature of the message
     pub fn sign(private_key: &PrivateKey, message: &[u8]) -> Self {
-        Self(SignatureNative::sign_bytes(private_key, message, &mut StdRng::from_entropy()).unwrap())
+        Self(SignatureNative::sign_bytes(private_key, message, &mut rand::rng()).unwrap())
     }
 
     /// Sign an instance of a valid Aleo data type or record.
@@ -58,7 +57,7 @@ impl Signature {
         let fields =
             ValueNative::from_str(message).map_err(|e| e.to_string())?.to_fields().map_err(|e| e.to_string())?;
 
-        Ok(Self(SignatureNative::sign(private_key, &fields, &mut StdRng::from_entropy()).map_err(|e| e.to_string())?))
+        Ok(Self(SignatureNative::sign(private_key, &fields, &mut rand::rng()).map_err(|e| e.to_string())?))
     }
 
     /// Get an address from a signature.

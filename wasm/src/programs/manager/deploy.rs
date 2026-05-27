@@ -47,7 +47,6 @@ use crate::{
 use snarkvm_console::prelude::{ConsensusVersion, Network};
 
 use js_sys::Object;
-use rand::{SeedableRng, rngs::StdRng};
 use std::str::FromStr;
 
 #[wasm_bindgen]
@@ -91,7 +90,7 @@ impl ProgramManager {
         let mut resolved = ResolvedProcess::resolve_with_program(&program_imports, &program, imports)?;
         let process = resolved.process_mut();
 
-        let rng = &mut StdRng::from_entropy();
+        let rng = &mut rand::rng();
 
         log("Creating deployment");
         let node_url = url.as_deref().unwrap_or(DEFAULT_URL);
@@ -182,7 +181,7 @@ impl ProgramManager {
 
         log("Create sample deployment");
         let mut deployment =
-            process.deploy::<CurrentAleo, _>(&program, &mut StdRng::from_entropy()).map_err(|err| err.to_string())?;
+            process.deploy::<CurrentAleo, _>(&program, &mut rand::rng()).map_err(|err| err.to_string())?;
         if deployment.program().functions().is_empty() {
             return Err("Attempted to create an empty transaction deployment".to_string());
         }
@@ -274,10 +273,10 @@ impl ProgramManager {
         if !process.contains_program(deployed_program.id()) {
             log("Adding deployed program to the process");
             process
-                .add_program_with_edition(&deployed_program, deployed_program_edition)
+                .lock().add_program_with_edition(&deployed_program, deployed_program_edition)
                 .map_err(|err| err.to_string())?;
         }
-        let rng = &mut StdRng::from_entropy();
+        let rng = &mut rand::rng();
 
         log("Creating deployment");
         let mut deployment = process.deploy::<CurrentAleo, _>(&program, rng).map_err(|err| err.to_string())?;
@@ -374,7 +373,7 @@ impl ProgramManager {
         let mut resolved = ResolvedProcess::resolve_with_program(&program_imports, &program, imports)?;
         let process = resolved.process_mut();
 
-        let rng = &mut StdRng::from_entropy();
+        let rng = &mut rand::rng();
 
         log("Creating deployment");
         let node_url = url.as_deref().unwrap_or(LOCAL_URL);
@@ -510,7 +509,7 @@ impl ProgramManager {
         let mut resolved = ResolvedProcess::resolve_with_program(&program_imports, &program, imports)?;
         let process = resolved.process_mut();
 
-        let rng = &mut StdRng::from_entropy();
+        let rng = &mut rand::rng();
 
         log("Creating deployment");
         let node_url = url.as_deref().unwrap_or(LOCAL_URL);
@@ -527,7 +526,7 @@ impl ProgramManager {
         if !process.contains_program(deployed_program.id()) {
             log("Adding deployed program to the process");
             process
-                .add_program_with_edition(&deployed_program, deployed_program_edition)
+                .lock().add_program_with_edition(&deployed_program, deployed_program_edition)
                 .map_err(|err| err.to_string())?;
         }
 
