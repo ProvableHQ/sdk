@@ -53,7 +53,7 @@ use snarkvm_console::{
     program::{Value, ValueType},
 };
 use snarkvm_ledger_query::QueryTrait;
-use snarkvm_synthesizer::prelude::{InclusionVersion, execution_cost, execution_cost_for_authorization};
+use snarkvm_synthesizer::prelude::{InclusionVersion, execution_cost, execution_cost_for_authorization, execution_cost_for_call};
 
 use crate::types::native::{PrivateKeyNative, ViewKeyNative};
 use core::ops::Add;

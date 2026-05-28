@@ -139,6 +139,19 @@ impl Authorization {
         self.0.insert_transition(transition).map_err(|e| e.to_string())
     }
 
+    /// Returns all `ExecutionRequest`s in the Authorization as a JS array.
+    ///
+    /// The requests are returned in order (index 0 is always the root request).
+    ///
+    /// @returns {Array<ExecutionRequest>}
+    pub fn requests(&self) -> Array {
+        self.0
+            .to_vec_deque()
+            .into_iter()
+            .map(|request| JsValue::from(ExecutionRequest::from(request)))
+            .collect::<Array>()
+    }
+
     /// Get the transitions in an Authorization.
     ///
     /// @returns {Array<Transition>} Array of transition objects

@@ -302,11 +302,12 @@ impl ExecutionRequest {
     /// @param {string[]} inputs The inputs to the function.
     /// @param {string[]} input_types The input types of the function.
     /// @param {Signature} signature The externally-computed signature.
-    /// @param {Field} tvk The transition view key.
+    /// @param {Field} tvk The transition's own view key.
     /// @param {Address} signer The signer address.
     /// @param {Field} sk_tag The tag secret key.
     /// @param {Field[] | undefined} record_view_keys Pre-computed record view keys (required when there are record inputs).
     /// @param {Group[] | undefined} gammas An array of gammas (required when there are record inputs).
+    /// @param {Field | undefined} root_tvk The tvk of the root (top-level) transition. Pass `undefined` for root requests; required for child (non-root) requests to correctly compute scm.
     #[wasm_bindgen(js_name = "fromExternallySignedData")]
     #[allow(clippy::too_many_arguments)]
     pub fn from_externally_signed_data(
@@ -320,9 +321,10 @@ impl ExecutionRequest {
         sk_tag: Field,
         record_view_keys: Option<Array>,
         gammas: Option<Array>,
+        root_tvk: Option<Field>,
     ) -> Result<ExecutionRequest, String> {
         let (program_id, function_name, inputs_native, input_types_native, scm, tcm, network_id, function_id) =
-            Self::parse_common_args(&program_id, &function_name, &inputs, &input_types, &signer, &tvk)?;
+            Self::parse_common_args(&program_id, &function_name, &inputs, &input_types, &signer, &tvk, root_tvk.as_ref())?;
 
         let mut record_view_keys_native =
             native_type_from_wasm_object_array!(record_view_keys.unwrap_or(Array::new()), Field, FieldNative)?;
@@ -365,11 +367,12 @@ impl ExecutionRequest {
     /// @param {string[]} inputs The inputs to the function.
     /// @param {string[]} input_types The input types of the function.
     /// @param {Signature} signature The externally-computed signature.
-    /// @param {Field} tvk The transition view key.
+    /// @param {Field} tvk The transition's own view key.
     /// @param {Address} signer The signer address.
     /// @param {Field} sk_tag The tag secret key.
     /// @param {ViewKey} view_key The view key of the signer.
     /// @param {Group[] | undefined} gammas An array of gammas (required when there are record inputs).
+    /// @param {Field | undefined} root_tvk The tvk of the root (top-level) transition. Pass `undefined` for root requests; required for child (non-root) requests to correctly compute scm.
     #[wasm_bindgen(js_name = "fromExternallySignedDataWithViewKey")]
     #[allow(clippy::too_many_arguments)]
     pub fn from_externally_signed_data_with_view_key(
@@ -383,9 +386,10 @@ impl ExecutionRequest {
         sk_tag: Field,
         view_key: ViewKey,
         gammas: Option<Array>,
+        root_tvk: Option<Field>,
     ) -> Result<ExecutionRequest, String> {
         let (program_id, function_name, inputs_native, input_types_native, scm, tcm, network_id, function_id) =
-            Self::parse_common_args(&program_id, &function_name, &inputs, &input_types, &signer, &tvk)?;
+            Self::parse_common_args(&program_id, &function_name, &inputs, &input_types, &signer, &tvk, root_tvk.as_ref())?;
 
         // Derive record_view_keys from the view key for each record input.
         let mut record_view_keys_native = Vec::new();
@@ -441,10 +445,11 @@ impl ExecutionRequest {
     /// @param {string[]} inputs The inputs to the function.
     /// @param {string[]} input_types The input types of the function.
     /// @param {Signature} signature The externally-computed signature.
-    /// @param {Field} tvk The transition view key.
+    /// @param {Field} tvk The transition's own view key.
     /// @param {Address} signer The signer address.
     /// @param {Field} sk_tag The tag secret key.
     /// @param {(Field | [Field, Group, Field, Field, Field])[]} input_ids Pre-computed input IDs.
+    /// @param {Field | undefined} root_tvk The tvk of the root (top-level) transition. Pass `undefined` for root requests; required for child (non-root) requests to correctly compute scm.
     #[wasm_bindgen(js_name = "fromExternallySignedDataWithInputIds")]
     #[allow(clippy::too_many_arguments)]
     pub fn from_externally_signed_data_with_input_ids(
@@ -457,9 +462,10 @@ impl ExecutionRequest {
         signer: Address,
         sk_tag: Field,
         input_ids: Array,
+        root_tvk: Option<Field>,
     ) -> Result<ExecutionRequest, String> {
         let (program_id, function_name, inputs_native, input_types_native, scm, tcm, network_id, _function_id) =
-            Self::parse_common_args(&program_id, &function_name, &inputs, &input_types, &signer, &tvk)?;
+            Self::parse_common_args(&program_id, &function_name, &inputs, &input_types, &signer, &tvk, root_tvk.as_ref())?;
 
         if input_ids.length() as usize != inputs_native.len() {
             return Err(format!(
@@ -779,6 +785,13 @@ impl ExecutionRequest {
 /// Private helper methods shared by the three `fromExternallySignedData*` methods.
 impl ExecutionRequest {
     /// Parses and validates the common arguments shared by all three externally-signed methods.
+    ///
+    /// `root_tvk` controls the `scm` computation.  In snarkVM, `Request::sign` always computes:
+    ///   - `tcm = hash_psd2([own_tvk])`          — uses the transition's *own* tvk
+    ///   - `scm = hash_psd2([signer_x, root_tvk])` — uses the root tvk (= own tvk for root requests)
+    ///
+    /// When `root_tvk` is `None` it defaults to `tvk`, which is correct for root requests.
+    /// For child (non-root) requests, pass the parent's tvk as `root_tvk`.
     fn parse_common_args(
         program_id: &str,
         function_name: &str,
@@ -786,6 +799,7 @@ impl ExecutionRequest {
         input_types: &Array,
         signer: &Address,
         tvk: &Field,
+        root_tvk: Option<&Field>,
     ) -> Result<
         (
             ProgramIDNative,
@@ -825,8 +839,10 @@ impl ExecutionRequest {
             input_types_native.push(input_type);
         }
 
-        let scm =
-            CurrentNetwork::hash_psd2(&[*signer.to_group().to_x_coordinate(), **tvk]).map_err(|e| e.to_string())?;
+        // tcm uses the transition's own tvk; scm uses root_tvk (defaults to own tvk for root requests).
+        let root_tvk_for_scm = root_tvk.unwrap_or(tvk);
+        let scm = CurrentNetwork::hash_psd2(&[*signer.to_group().to_x_coordinate(), **root_tvk_for_scm])
+            .map_err(|e| e.to_string())?;
         let tcm = CurrentNetwork::hash_psd2(&[**tvk]).map_err(|e| e.to_string())?;
 
         let network_id = U16Native::new(CurrentNetwork::ID);

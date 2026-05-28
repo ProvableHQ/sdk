@@ -17,6 +17,7 @@
 use super::*;
 
 use crate::{
+    Address,
     Authorization,
     ExecutionRequest,
     PrivateKey,
@@ -26,6 +27,7 @@ use crate::{
     log,
     process_inputs,
     types::native::{
+        AddressNative,
         AuthorizationNative,
         CallStackNative,
         CurrentAleo,
@@ -204,6 +206,71 @@ impl ProgramManager {
             }
             None => process.authorize_request::<CurrentAleo, _>(request_native, rng).map_err(|e| e.to_string())?,
         };
+
+        Ok(Authorization::from(authorization))
+    }
+
+    /// Produce a mocked `Authorization` for a program function call without needing a private key.
+    ///
+    /// The resulting Authorization has the same structure as a real one — the call graph is fully
+    /// traversed and a request is created for every transition (root + all nested calls). The
+    /// individual input IDs may be incorrect (they are sampled, not signed), but the authorization
+    /// is sufficient for computing execution cost or testing nested call structures.
+    ///
+    /// @param {Address} address The address used as the signer in the mocked requests.
+    /// @param {string} program The program source code containing the entry function.
+    /// @param {string} function_name The entry function to authorize.
+    /// @param {Array} inputs A javascript array of inputs to the function.
+    /// @param {Object | undefined} imports The imports to the program in `{"name.aleo":"source"}` format.
+    /// @param {number | undefined} edition The program edition (defaults to 1).
+    /// @param {ProgramImports | undefined} program_imports Pre-loaded imports builder.
+    #[wasm_bindgen(js_name = sampleAuthorization)]
+    pub async fn sample_authorization(
+        address: &Address,
+        program: &str,
+        function_name: &str,
+        inputs: Array,
+        imports: Option<Object>,
+        edition: Option<u16>,
+        program_imports: Option<ProgramImports>,
+    ) -> Result<Authorization, String> {
+        let edition = edition.unwrap_or(1);
+
+        let mut resolved = ResolvedProcess::resolve(&program_imports, program, edition, imports)?;
+        let program_native = resolved.program().clone();
+        let process = resolved.process_mut();
+
+        let rng = &mut rand::rng();
+
+        // Parse inputs as strings (same pattern as the authorize! macro).
+        let inputs_native = process_inputs!(inputs);
+
+        // Parse the function name.
+        let function_name_native = IdentifierNative::from_str(function_name)
+            .map_err(|_| "The function name provided was invalid".to_string())?;
+
+        // Ensure the top-level program is in the process.
+        if program_native.id().to_string() != "credits.aleo" && !process.contains_program(program_native.id()) {
+            log("Adding program to the process");
+            process.lock().add_program_with_edition(&program_native, edition).map_err(|e| e.to_string())?;
+        }
+
+        // Get the stack for the top-level program.
+        let stack = process.get_stack(program_native.id()).map_err(|e| e.to_string())?;
+
+        let address_native = AddressNative::from(address);
+        let program_id = *program_native.id();
+
+        // Traverse the call graph and produce one mocked request per transition.
+        let authorization = stack
+            .sample_authorization::<CurrentAleo, _>(
+                address_native,
+                program_id,
+                function_name_native,
+                inputs_native.into_iter(),
+                rng,
+            )
+            .map_err(|e| e.to_string())?;
 
         Ok(Authorization::from(authorization))
     }

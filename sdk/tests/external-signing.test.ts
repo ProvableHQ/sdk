@@ -1,11 +1,15 @@
 import { expect } from "chai";
 import {
     Address,
+    Authorization,
     ExecutionRequest,
     Field,
     Group,
     Plaintext,
     PrivateKey,
+    Program,
+    ProgramImportsBuilder,
+    ProgramManagerBase,
     RecordPlaintext,
     Signature,
     ViewKey,
@@ -34,6 +38,7 @@ import {
     addressString,
     beaconPrivateKeyString,
 } from "./data/account-data.js";
+import { MULTIPLY_PROGRAM, DOUBLE_PROGRAM } from "./data/test-programs.js";
 
 const message = Uint8Array.from([104, 101, 108, 108, 111, 32, 119, 111, 114, 108, 100]);
 
@@ -553,6 +558,123 @@ describe('External Signing ExecutionRequest integration', () => {
             signedRequest.input_ids(),
         );
         expect(externallySignedFromInputIds.toString()).to.equal(signedRequest.toString());
+    });
+
+    it('Should match ExecutionRequest.sign for nested transfer', async () => {
+        // Deploy scenario: double_test.aleo (parent) calls multiply_test.aleo/multiply (child).
+
+        const privateKey = PrivateKey.from_string(privateKeyStr);
+        const viewKey = ViewKey.from_private_key(privateKey);
+        const address = Address.from_private_key(privateKey);
+
+        // --- Part 1: mocked nested authorization via sampleAuthorization ---
+        const ChildProgramName = "multiply_test.aleo";
+        const ParentProgramName = "double_test.aleo";
+        const imports = new ProgramImportsBuilder();
+        imports.addProgram(ChildProgramName, MULTIPLY_PROGRAM);
+        imports.addProgram(ParentProgramName, DOUBLE_PROGRAM);
+
+        const parentInputs = ["5u32"];
+        const parentInputTypes = ["u32.private"];
+        const parentFunctionName = "double_it";
+
+        // sampleAuthorization traverses the call graph without a private key and produces one
+        // mocked request per transition: double_it (root) + multiply (child) = 2 requests.
+        const authorization = await ProgramManagerBase.sampleAuthorization(
+            address,
+            DOUBLE_PROGRAM,
+            parentFunctionName,
+            parentInputs,
+            undefined,  // legacy imports object (unused when program_imports is provided)
+            undefined,  // edition (defaults to 1)
+            imports,
+        );
+
+        // The authorization must contain exactly two requests: one for each transition.
+        expect(authorization.len()).to.equal(2);
+        expect(authorization.isEmpty()).to.equal(false);
+        expect(authorization.functionName()).to.equal(parentFunctionName);
+
+        // Round-trip through string serialization.
+        const roundTripped = Authorization.fromString(authorization.toString());
+        expect(roundTripped.len()).to.equal(2);
+        expect(roundTripped.equals(authorization)).to.equal(true);
+
+        // --- Part 2: verify the external-signing pipeline ---
+
+        // computeExternalSigningInputs returns the per-input data an external signer needs
+        // to construct a matching request without running the full WASM stack locally.
+        const externalInputs = await computeExternalSigningInputs({
+            programName: ParentProgramName,
+            functionName: parentFunctionName,
+            inputs: parentInputs,
+            inputTypes: parentInputTypes,
+            isRoot: true,
+            checksum: null,
+        });
+        expect(externalInputs.isRoot).to.equal(true);
+        let signedParentRequest = authorization.requests()[0];
+        let signedParentRequest_2 = authorization.requests()[1];
+        expect(externalInputs.requestInputs.length).to.equal(signedParentRequest.inputs().length);
+
+        // fromExternallySignedDataWithViewKey reconstructs the full request from the
+        // signature + tvk + view key and must produce a request identical to the original.
+        const externallySignedParentRequest = ExecutionRequest.fromExternallySignedDataWithViewKey(
+            ParentProgramName,
+            parentFunctionName,
+            parentInputs,
+            parentInputTypes,
+            signedParentRequest.signature(),
+            signedParentRequest.tvk(),
+            signedParentRequest.signer(),
+            signedParentRequest.sk_tag(),
+            viewKey,
+        );
+    
+        // NOTE: the input_ids, tcm and scm will be different from the
+        // signedParentRequest because stack.sample_authorization sampled a
+        // random view_key.
+        expect(externallySignedParentRequest.signer().toString()).to.equal(signedParentRequest.signer().toString());
+        expect(externallySignedParentRequest.signature().toString()).to.equal(signedParentRequest.signature().toString());
+        expect(externallySignedParentRequest.tvk().toString()).to.equal(signedParentRequest.tvk().toString());
+        expect(externallySignedParentRequest.sk_tag().toString()).to.equal(signedParentRequest.sk_tag().toString());
+        expect(externallySignedParentRequest.inputs().length).to.equal(signedParentRequest.inputs().length);
+
+        // --- Part 3: reconstruct the child request (multiply_test.aleo/multiply) ---
+        // Resolve child inputs directly from the mocked request — Request::sample preserves
+        // the actual computed values passed by the parent call instruction.
+        const childInputs = Array.from(signedParentRequest_2.inputs() as ArrayLike<any>)
+            .map((v: any) => v.toString());
+
+        // Derive input types from the child program's function definition so the test
+        // stays correct even if the program signature changes.
+        const childProgram = Program.fromString(MULTIPLY_PROGRAM);
+        const childFunctionInputDefs = Array.from(childProgram.getFunctionInputs("multiply")) as any[];
+        const childInputTypes = childFunctionInputDefs.map((def: any) => `${def.type}.${def.visibility}`);
+
+        // ViewKey is taken by value (consumed) in Part 2; create a fresh instance for Part 3.
+        const viewKeyForChild = ViewKey.from_private_key(privateKey);
+
+        const externallySignedChildRequest = ExecutionRequest.fromExternallySignedDataWithViewKey(
+            ChildProgramName,
+            "multiply",
+            childInputs,
+            childInputTypes,
+            signedParentRequest_2.signature(),
+            signedParentRequest_2.tvk(),      // child's own tvk
+            signedParentRequest_2.signer(),
+            signedParentRequest_2.sk_tag(),
+            viewKeyForChild,
+            undefined,                        // no record inputs → no gammas
+            signedParentRequest.tvk(),        // root_tvk = parent's tvk
+        );
+
+        // Signer, tvk, sk_tag, and signature come directly from the mocked request and
+        // must be reproduced verbatim by the reconstruction.
+        expect(externallySignedChildRequest.signer().toString()).to.equal(signedParentRequest_2.signer().toString());
+        expect(externallySignedChildRequest.tvk().toString()).to.equal(signedParentRequest_2.tvk().toString());
+        expect(externallySignedChildRequest.sk_tag().toString()).to.equal(signedParentRequest_2.sk_tag().toString());
+        expect(externallySignedChildRequest.signature().toString()).to.equal(signedParentRequest_2.signature().toString());
     });
 
     it('Should match ExecutionRequest.sign for transfer_private', async () => {
