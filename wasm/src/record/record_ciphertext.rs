@@ -44,7 +44,18 @@ impl RecordCiphertext {
     /// @returns {RecordCiphertext} Record ciphertext
     #[wasm_bindgen(js_name = fromString)]
     pub fn from_string(record: &str) -> Result<RecordCiphertext, String> {
-        Self::from_str(record).map_err(|_| "The record ciphertext string provided was invalid".to_string())
+        // Self::from_str(record).map_err(|_| format!("The record ciphertext string provided was invalid: {}, backtrace: {}", record, std::backtrace::Backtrace::force_capture()))
+        // Bech32 is case-insensitive in the sense that mixed-case is rejected, but the canonical
+        // form is all-lowercase. Some upstream sources hand us all-uppercase strings, which the
+        // strict parser rejects, so we normalize to lowercase here before parsing.
+        let normalized = if record.chars().any(|c| c.is_ascii_uppercase()) && !record.chars().any(|c| c.is_ascii_lowercase()) {
+            record.to_ascii_lowercase()
+        } else {
+            record.to_string()
+        };
+        Self::from_str(&normalized).map_err(|_| {
+            format!("The record ciphertext string provided was invalid: {record}")
+        })
     }
 
     /// Return the string representation of the record ciphertext
