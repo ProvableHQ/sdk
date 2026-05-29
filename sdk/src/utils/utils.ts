@@ -178,13 +178,21 @@ function storeSetCookies(origin: string | null, cookies: string[]) {
     }
 }
 
+/*
+ * Returns a fresh HeadersInit with `cookie` attached when the input doesn't
+ * already carry one. NEVER mutates the caller's input — a caller reusing the
+ * same Headers/init across calls to different origins must not see origin A's
+ * jar cookie persist into the call for origin B.
+ */
 function attachCookie(
     headersInit: HeadersInit | undefined,
     cookie: string,
 ): HeadersInit {
     if (isHeadersLike(headersInit)) {
-        if (!headersInit.has("cookie")) headersInit.set("cookie", cookie);
-        return headersInit;
+        if (headersInit.has("cookie")) return headersInit;
+        const cloned = new Headers(headersInit);
+        cloned.set("cookie", cookie);
+        return cloned;
     }
     if (Array.isArray(headersInit)) {
         const hasCookie = headersInit.some(
@@ -222,23 +230,32 @@ export const defaultTransport: TransportFunction = async (input, init) => {
     const origin = originOf(input as URL | string | Request);
     const cookie = cookieHeaderFor(origin);
     if (cookie) {
-        // Per the Fetch spec, an explicit `init.headers` REPLACES the
-        // Request input's headers when fetch builds the actual request.
-        // So if init.headers is provided, that's the only place worth
-        // attaching the cookie — attaching to input.headers would be
-        // silently discarded.
+        // Always operate on shallow clones so callers reusing the same
+        // `init` / `Headers` / `Request` across origins don't end up with
+        // origin A's jar cookie persisting into the object and blocking
+        // origin B's correct cookie.
         if (init?.headers !== undefined && init.headers !== null) {
-            init.headers = attachCookie(init.headers, cookie);
+            // init.headers, when explicitly set, REPLACES the Request's
+            // headers per the Fetch spec — attach there.
+            init = { ...init, headers: attachCookie(init.headers, cookie) };
         } else if (isRequestLike(input)) {
+            // Merge the Request's existing headers with the cookie and
+            // pass them via `init.headers` instead of mutating the
+            // Request itself. (Fetch spec: an explicit `init.headers`
+            // replaces Request.headers entirely, so we copy the
+            // originals into the merged set first.)
             try {
-                if (!input.headers.has("cookie"))
-                    input.headers.set("cookie", cookie);
+                const merged = new Headers(input.headers);
+                if (!merged.has("cookie")) {
+                    merged.set("cookie", cookie);
+                    init = { ...(init ?? {}), headers: merged };
+                }
             } catch {
-                // Some runtimes treat Request.headers as immutable; skip
-                // rather than failing the request.
+                // Some runtimes restrict Headers construction from a
+                // Request; skip rather than failing the request.
             }
         } else if (init) {
-            init.headers = attachCookie(undefined, cookie);
+            init = { ...init, headers: attachCookie(undefined, cookie) };
         } else {
             init = { headers: attachCookie(undefined, cookie) };
         }
