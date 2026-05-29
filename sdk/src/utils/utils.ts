@@ -149,7 +149,12 @@ function readSetCookies(response: unknown): string[] {
     } catch {
         return [];
     }
-    return raw ? [raw] : [];
+    if (!raw) return [];
+    // Some older runtimes comma-join multiple Set-Cookie headers into a
+    // single string. Split only when the comma is followed by a likely
+    // new cookie name (`alpha[\w-]*=`), which excludes commas inside
+    // `Expires=Wed, 21 Oct 2015 …` date attributes.
+    return raw.split(/, (?=[A-Za-z][\w-]*=)/);
 }
 
 function storeSetCookies(origin: string | null, cookies: string[]) {
