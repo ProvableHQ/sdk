@@ -24,7 +24,7 @@
         "@uiw/codemirror-theme-okaidia": "^4.23.7",
         "@uiw/react-codemirror": "^4.23.7",
         "antd": "^5.23.2",
-        "axios": "1.15.2",
+        "axios": "1.16.0",
         "babel-loader": "^9.2.1",
         "copy-to-clipboard": "^3.3.3",
         "gh-pages": "^6.3.0",
