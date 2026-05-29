@@ -271,4 +271,90 @@ describe("defaultTransport cookie jar", () => {
         );
         expect(cookie).to.equal("caller=wins-via-tuple");
     });
+
+    it("attaches the cookie to init.headers (not input.headers) when both a Request and init.headers are provided", async () => {
+        // Fetch spec: init.headers fully overrides Request.headers when
+        // both are present. If we attach to input.headers here, fetch
+        // silently discards our cookie.
+        const origin = "https://request-plus-init-headers.example.test";
+        fetchStub.onCall(0).resolves(makeResponse("route=upstream-11"));
+        fetchStub.onCall(1).resolves(makeResponse());
+
+        await defaultTransport(`${origin}/seed`);
+
+        const req = new Request(`${origin}/next`);
+        await defaultTransport(req, {
+            headers: { "X-Trace-Id": "abc" },
+        });
+
+        // Both `args[0]` (the Request) and `args[1]` (the init) are
+        // forwarded — fetch will use init.headers, so that's where the
+        // jar cookie must end up.
+        const initOnCall = fetchStub.secondCall.args[1] as
+            | RequestInit
+            | undefined;
+        expect(getCookieHeader(initOnCall)).to.equal(
+            "route=upstream-11",
+            "init.headers wins per fetch spec; cookie must be attached there",
+        );
+    });
+
+    it("parses multiple cookies from a comma-joined Set-Cookie fallback string", async () => {
+        // Older runtimes that don't implement getSetCookie() comma-join
+        // multiple Set-Cookie headers into a single string via
+        // headers.get('set-cookie'). With the whitelisted cookie not in
+        // the first position, the naive split(';')[0] approach would
+        // drop `route` entirely.
+        const origin = "https://comma-joined.example.test";
+        const headers = {
+            // No getSetCookie() — forces the fallback path.
+            get: (name: string) =>
+                name.toLowerCase() === "set-cookie"
+                    ? "first=val1; Path=/, route=upstream-42; Path=/; HttpOnly"
+                    : null,
+        };
+        fetchStub.onCall(0).resolves({
+            ok: true,
+            status: 200,
+            headers,
+            text: () => Promise.resolve("{}"),
+        } as unknown as Response);
+        fetchStub.onCall(1).resolves(makeResponse());
+
+        await defaultTransport(`${origin}/first`);
+        await defaultTransport(`${origin}/second`);
+
+        const cookie = getCookieHeader(
+            fetchStub.secondCall.args[1] as RequestInit | undefined,
+        );
+        expect(cookie).to.equal("route=upstream-42");
+    });
+
+    it("does not split on commas inside Expires=... date attributes (fallback path)", async () => {
+        const origin = "https://date-comma.example.test";
+        const headers = {
+            // Expires has a comma inside its date format. A naive split
+            // on `, ` would slice through it. Our split-on-comma-before-
+            // -cookie-name regex must skip it.
+            get: (name: string) =>
+                name.toLowerCase() === "set-cookie"
+                    ? "route=upstream-99; Expires=Wed, 21 Oct 2099 07:28:00 GMT; Path=/"
+                    : null,
+        };
+        fetchStub.onCall(0).resolves({
+            ok: true,
+            status: 200,
+            headers,
+            text: () => Promise.resolve("{}"),
+        } as unknown as Response);
+        fetchStub.onCall(1).resolves(makeResponse());
+
+        await defaultTransport(`${origin}/first`);
+        await defaultTransport(`${origin}/second`);
+
+        const cookie = getCookieHeader(
+            fetchStub.secondCall.args[1] as RequestInit | undefined,
+        );
+        expect(cookie).to.equal("route=upstream-99");
+    });
 });
