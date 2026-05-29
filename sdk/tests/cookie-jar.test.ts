@@ -214,7 +214,7 @@ describe("defaultTransport cookie jar", () => {
         );
     });
 
-    it("attaches the jar cookie when the input is a Request object", async () => {
+    it("attaches the jar cookie when the input is a Request object (via init.headers, not by mutating the Request)", async () => {
         const origin = "https://request-input.example.test";
         // Seed the jar.
         fetchStub.onCall(0).resolves(makeResponse("route=upstream-3"));
@@ -226,16 +226,17 @@ describe("defaultTransport cookie jar", () => {
         const req = new Request(`${origin}/next`);
         await defaultTransport(req);
 
-        // After the call, the Request's headers should carry the cookie.
-        // (Some runtimes treat Request headers as guarded; the transport
-        // catches that and skips silently — we only assert here when the
-        // header was settable.)
-        const forwarded = fetchStub.secondCall.args[0] as Request;
-        expect(forwarded).to.be.instanceof(Request);
-        const cookieOnReq = forwarded.headers.get("cookie");
-        if (cookieOnReq !== null) {
-            expect(cookieOnReq).to.equal("route=upstream-3");
-        }
+        // The cookie must reach fetch on init.headers (Fetch spec:
+        // init.headers replaces Request.headers). The original Request
+        // object must NOT have been mutated.
+        expect(req.headers.get("cookie")).to.equal(
+            null,
+            "caller's Request object must not be mutated",
+        );
+        const cookieOnInit = getCookieHeader(
+            fetchStub.secondCall.args[1] as RequestInit | undefined,
+        );
+        expect(cookieOnInit).to.equal("route=upstream-3");
     });
 
     it("preserves a caller Cookie passed via a Headers instance", async () => {
@@ -328,6 +329,76 @@ describe("defaultTransport cookie jar", () => {
             fetchStub.secondCall.args[1] as RequestInit | undefined,
         );
         expect(cookie).to.equal("route=upstream-42");
+    });
+
+    it("does not mutate a caller-supplied Headers instance, and does not leak cookies across origins when reused", async () => {
+        const originA = "https://reuse-leak-a.example.test";
+        const originB = "https://reuse-leak-b.example.test";
+
+        // Seed each origin with its own routing cookie.
+        fetchStub.onCall(0).resolves(makeResponse("route=upstream-A"));
+        fetchStub.onCall(1).resolves(makeResponse("route=upstream-B"));
+        // Inspection targets — the two subsequent calls share the same
+        // Headers/init object across origins.
+        fetchStub.onCall(2).resolves(makeResponse());
+        fetchStub.onCall(3).resolves(makeResponse());
+
+        await defaultTransport(`${originA}/seed`);
+        await defaultTransport(`${originB}/seed`);
+
+        const sharedHeaders = new Headers({ "X-Trace-Id": "trace-1" });
+        const sharedInit: RequestInit = { headers: sharedHeaders };
+
+        await defaultTransport(`${originA}/req-A`, sharedInit);
+
+        // After the A call, the caller's shared Headers must NOT carry
+        // a Cookie, and the init object must still hold the original
+        // sharedHeaders reference (no replacement of the field on the
+        // caller's object).
+        expect(sharedHeaders.get("cookie")).to.equal(
+            null,
+            "caller's Headers must not be mutated",
+        );
+        expect(sharedInit.headers).to.equal(
+            sharedHeaders,
+            "caller's init.headers reference must not be replaced",
+        );
+
+        await defaultTransport(`${originB}/req-B`, sharedInit);
+
+        // Caller's Headers still untouched after the B call.
+        expect(sharedHeaders.get("cookie")).to.equal(null);
+        // And — critically — request B must carry origin B's cookie,
+        // not origin A's leftover from the first call.
+        const cookieOnB = getCookieHeader(
+            fetchStub.lastCall.args[1] as RequestInit | undefined,
+        );
+        expect(cookieOnB).to.equal(
+            "route=upstream-B",
+            "origin B must NOT inherit origin A's cookie via shared init",
+        );
+    });
+
+    it("does not add new properties to a caller-supplied init object", async () => {
+        const origin = "https://no-init-key-pollution.example.test";
+        fetchStub.onCall(0).resolves(makeResponse("route=upstream-z"));
+        fetchStub.onCall(1).resolves(makeResponse());
+
+        await defaultTransport(`${origin}/seed`);
+
+        // Caller passes init without a headers field.
+        const callerInit: RequestInit = { method: "GET" };
+        const originalKeys = Object.keys(callerInit).sort();
+
+        await defaultTransport(`${origin}/next`, callerInit);
+
+        // Transport must not have mutated callerInit by adding a
+        // `headers` field (or anything else).
+        expect(Object.keys(callerInit).sort()).to.deep.equal(originalKeys);
+        expect("headers" in callerInit).to.equal(
+            false,
+            "caller's init must not gain a headers field",
+        );
     });
 
     it("does not split on commas inside Expires=... date attributes (fallback path)", async () => {
