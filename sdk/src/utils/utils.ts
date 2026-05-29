@@ -217,7 +217,14 @@ export const defaultTransport: TransportFunction = async (input, init) => {
     const origin = originOf(input as URL | string | Request);
     const cookie = cookieHeaderFor(origin);
     if (cookie) {
-        if (isRequestLike(input)) {
+        // Per the Fetch spec, an explicit `init.headers` REPLACES the
+        // Request input's headers when fetch builds the actual request.
+        // So if init.headers is provided, that's the only place worth
+        // attaching the cookie — attaching to input.headers would be
+        // silently discarded.
+        if (init?.headers !== undefined && init.headers !== null) {
+            init.headers = attachCookie(init.headers, cookie);
+        } else if (isRequestLike(input)) {
             try {
                 if (!input.headers.has("cookie"))
                     input.headers.set("cookie", cookie);
@@ -226,7 +233,7 @@ export const defaultTransport: TransportFunction = async (input, init) => {
                 // rather than failing the request.
             }
         } else if (init) {
-            init.headers = attachCookie(init.headers, cookie);
+            init.headers = attachCookie(undefined, cookie);
         } else {
             init = { headers: attachCookie(undefined, cookie) };
         }
