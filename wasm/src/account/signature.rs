@@ -353,7 +353,7 @@ mod tests {
             assert!(signature.verify_value(&private_key.to_address(), &message).unwrap());
 
             // Sample a different message.
-            let rand_u16_new: u16 = rand::random();
+            let rand_u16_new: u16 = rand_u16.wrapping_add(1);
             let bad_message = format!("{rand_u16_new}u16");
             // Check the signature is invalid.
             assert!(!signature.verify_value(&private_key.to_address(), &bad_message).unwrap());
@@ -458,7 +458,7 @@ mod tests {
             assert!(signature.verify_value(&private_key.to_address(), &message).unwrap());
 
             // Sample a different message.
-            let rand_i16_new: i16 = rand::random();
+            let rand_i16_new: i16 = rand_i16.wrapping_add(1);
             let bad_message = format!("{rand_i16_new}i16");
             // Check the signature is invalid.
             assert!(!signature.verify_value(&private_key.to_address(), &bad_message).unwrap());
@@ -479,7 +479,7 @@ mod tests {
             assert!(signature.verify_value(&private_key.to_address(), &message).unwrap());
 
             // Sample a different message.
-            let rand_i32_new: i32 = rand::random();
+            let rand_i32_new: i32 = rand_i32.wrapping_add(1);
             let bad_message = format!("{rand_i32_new}i32");
             // Check the signature is invalid.
             assert!(!signature.verify_value(&private_key.to_address(), &bad_message).unwrap());
@@ -500,7 +500,7 @@ mod tests {
             assert!(signature.verify_value(&private_key.to_address(), &message).unwrap());
 
             // Sample a different message.
-            let rand_i64_new: i64 = rand::random();
+            let rand_i64_new: i64 = rand_i64.wrapping_add(1);
             let bad_message = format!("{rand_i64_new}i64");
             // Check the signature is invalid.
             assert!(!signature.verify_value(&private_key.to_address(), &bad_message).unwrap());
@@ -521,7 +521,7 @@ mod tests {
             assert!(signature.verify_value(&private_key.to_address(), &message).unwrap());
 
             // Sample a different message.
-            let rand_i128_new: i128 = rand::random();
+            let rand_i128_new: i128 = rand_i128.wrapping_add(1);
             let bad_message = format!("{rand_i128_new}i128");
             // Check the signature is invalid.
             assert!(!signature.verify_value(&private_key.to_address(), &bad_message).unwrap());
