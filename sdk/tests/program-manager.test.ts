@@ -343,13 +343,12 @@ describe('Program Manager', async () => {
                 priorityFee: 0,
                 privateFee: false,
                 broadcast: false,
-                executionRequest,
+                executionRequests: [executionRequest],
             });
 
-            const authorization = provingRequest.authorization();
-            expect(authorization.len()).equal(1);
-            expect(authorization.transitions().length).equal(1);
-            expect(provingRequest.feeAuthorization()).equal(undefined);
+            expect(provingRequest.kind()).equal("request");
+            expect(provingRequest.requests().length).equal(1);
+            expect(provingRequest.feeRequest()).equal(undefined);
         });
 
         it('Should build correct authorizations', async () => {

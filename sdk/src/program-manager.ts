@@ -215,7 +215,7 @@ interface ProvingRequestOptions {
     unchecked?: boolean;
     edition?: number;
     useFeeMaster?: boolean;
-    executionRequest?: ExecutionRequest;
+    executionRequests?: ExecutionRequest[];
 }
 
 /**
@@ -1819,7 +1819,7 @@ class ProgramManager {
         let imports = options.programImports;
         let edition = options.edition;
 
-        if (!inputs && !options.executionRequest) {
+        if (!inputs && (!options.executionRequests || options.executionRequests.length === 0)) {
             throw new Error("Either function inputs or an execution request must be provided to form a proving request");
         }
 
@@ -1851,7 +1851,7 @@ class ProgramManager {
         if (
             typeof privateKey === "undefined" &&
             typeof this.account !== "undefined" &&
-            typeof options.executionRequest === "undefined"
+            (!options.executionRequests || options.executionRequests.length === 0)
         ) {
             executionPrivateKey = this.account.privateKey();
         }
@@ -1872,7 +1872,7 @@ class ProgramManager {
 
         // Get the fee record from the account if it is not provided in the parameters
         try {
-            if (privateFee && !useFeeMaster && !options.executionRequest) {
+            if (privateFee && !useFeeMaster && (!options.executionRequests || options.executionRequests.length === 0)) {
                 let fee = priorityFee;
                 // If a fee record wasn't provided, estimate the fee that needs to be paid.
                 if (!feeRecord) {
@@ -1919,16 +1919,11 @@ class ProgramManager {
             imports = merged;
         }
 
-        if (options.executionRequest instanceof ExecutionRequest) {
-            return await WasmProgramManager.buildProvingRequestFromExecutionRequest(
-                options.executionRequest,
-                program,
-                unchecked,
+        if (options.executionRequests && options.executionRequests.length > 0) {
+            return WasmProgramManager.buildProvingRequestFromExecutionRequest(
+                options.executionRequests,
+                undefined,  // fee_request — handled separately if needed
                 broadcast,
-                edition,
-                imports, // kept for fee estimation in Rust
-                executionPrivateKey,
-                hasImports ? builder?.clone() : undefined,
             );
         } else {
             // Ensure the private key exists.

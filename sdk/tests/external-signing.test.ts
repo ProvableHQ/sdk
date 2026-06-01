@@ -10,6 +10,7 @@ import {
     Program,
     ProgramImportsBuilder,
     ProgramManagerBase,
+    ProvingRequest,
     RecordPlaintext,
     Signature,
     ViewKey,
@@ -614,7 +615,7 @@ describe('External Signing ExecutionRequest integration', () => {
         });
         expect(externalInputs.isRoot).to.equal(true);
         let signedParentRequest = authorization.requests()[0];
-        let signedParentRequest_2 = authorization.requests()[1];
+        let signedChildRequest = authorization.requests()[1];
         expect(externalInputs.requestInputs.length).to.equal(signedParentRequest.inputs().length);
 
         // fromExternallySignedDataWithViewKey reconstructs the full request from the
@@ -643,7 +644,7 @@ describe('External Signing ExecutionRequest integration', () => {
         // --- Part 3: reconstruct the child request (multiply_test.aleo/multiply) ---
         // Resolve child inputs directly from the mocked request — Request::sample preserves
         // the actual computed values passed by the parent call instruction.
-        const childInputs = Array.from(signedParentRequest_2.inputs() as ArrayLike<any>)
+        const childInputs = Array.from(signedChildRequest.inputs() as ArrayLike<any>)
             .map((v: any) => v.toString());
 
         // Derive input types from the child program's function definition so the test
@@ -660,21 +661,49 @@ describe('External Signing ExecutionRequest integration', () => {
             "multiply",
             childInputs,
             childInputTypes,
-            signedParentRequest_2.signature(),
-            signedParentRequest_2.tvk(),      // child's own tvk
-            signedParentRequest_2.signer(),
-            signedParentRequest_2.sk_tag(),
+            signedChildRequest.signature(),
+            signedChildRequest.tvk(),      // child's own tvk
+            signedChildRequest.signer(),
+            signedChildRequest.sk_tag(),
             viewKeyForChild,
             undefined,                        // no record inputs → no gammas
             signedParentRequest.tvk(),        // root_tvk = parent's tvk
         );
 
-        // Signer, tvk, sk_tag, and signature come directly from the mocked request and
-        // must be reproduced verbatim by the reconstruction.
-        expect(externallySignedChildRequest.signer().toString()).to.equal(signedParentRequest_2.signer().toString());
-        expect(externallySignedChildRequest.tvk().toString()).to.equal(signedParentRequest_2.tvk().toString());
-        expect(externallySignedChildRequest.sk_tag().toString()).to.equal(signedParentRequest_2.sk_tag().toString());
-        expect(externallySignedChildRequest.signature().toString()).to.equal(signedParentRequest_2.signature().toString());
+        // Signer, tvk, sk_tag, and signature come directly from the passed parameters and
+        // must be reproduced verbatim by the reconstruction regardless of tcm/scm.
+        //
+        // NOTE: sampleAuthorization uses Request::sample which randomises tcm and scm
+        // independently of tvk, so tcm/scm equality cannot be asserted here.  The
+        // root_tvk parameter is needed for REAL child requests (signed via
+        // ExecutionRequest.sign with is_root:false) where scm = hash(signer, root_tvk).
+        expect(externallySignedChildRequest.signer().toString()).to.equal(signedChildRequest.signer().toString());
+        expect(externallySignedChildRequest.tvk().toString()).to.equal(signedChildRequest.tvk().toString());
+        expect(externallySignedChildRequest.sk_tag().toString()).to.equal(signedChildRequest.sk_tag().toString());
+        expect(externallySignedChildRequest.signature().toString()).to.equal(signedChildRequest.signature().toString());
+
+        // --- Part 4: bundle both signed requests into a ProvingRequest (Request variant) ---
+        //
+        // The root (double_it) and child (multiply) requests are passed together so the DPS
+        // server can authorize the full nested call graph in one shot.
+        const provingRequest = ProgramManagerBase.buildProvingRequestFromExecutionRequest(
+            [signedParentRequest, signedChildRequest],
+            undefined,  // no fee request
+            false,      // don't broadcast
+        );
+
+        expect(provingRequest.kind()).to.equal("request");
+        const prRequests = provingRequest.requests();
+        expect(prRequests.length).to.equal(2);
+
+        // Requests are returned in the same order they were passed in.
+        expect(Array.from(prRequests as ArrayLike<any>)[0].program_id()).to.equal(ParentProgramName);
+        expect(Array.from(prRequests as ArrayLike<any>)[1].program_id()).to.equal(ChildProgramName);
+
+        // Serialization round-trip preserves both requests.
+        const roundTrippedPR = ProvingRequest.fromString(provingRequest.toString());
+        expect(roundTrippedPR.kind()).to.equal("request");
+        expect(roundTrippedPR.requests().length).to.equal(2);
     });
 
     it('Should match ExecutionRequest.sign for transfer_private', async () => {

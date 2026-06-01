@@ -122,40 +122,24 @@ impl ProgramManager {
         Ok(ProvingRequest::from((authorization, fee_authorization, broadcast)))
     }
 
-    /// Build a proving request from a `Request` object. By default this method currently uses the feemaster.
+    /// Build a `ProvingRequest` (Request variant) directly from one or more signed
+    /// `ExecutionRequest` objects without performing local authorization.
     ///
-    /// @param {ExecutionRequest} request The execution request to build the authorization from.
-    /// @param {string} program The program source code containing the function to authorize.
-    /// @param {boolean} unchecked Whether or not to generate an unchecked authorization.
-    /// @param {boolean} broadcast Whether or not to broadcast the transaction.
-    /// @param {number | undefined} edition The edition of the program.
-    /// @param {object | undefined} imports The imports to the program in the format {"programname.aleo":"aleo instructions source code"}.
-    /// @param {PrivateKey | undefined} [private_key] Optional private key of the signer. If not provided, functions which call other programs may not succeed.
+    /// The resulting `ProvingRequest` is in the `Request` variant — the DPS server
+    /// will call `Process::authorize_request` server-side before proving.  Pass all
+    /// requests for a call graph in order (root first, then children) to support
+    /// nested calls.
+    ///
+    /// @param {ExecutionRequest[]} requests JS array of signed requests (root first).
+    /// @param {ExecutionRequest | undefined} fee_request Optional signed fee request.
+    /// @param {boolean} broadcast Whether to broadcast the transaction after proving.
     #[wasm_bindgen(js_name = buildProvingRequestFromExecutionRequest)]
-    pub async fn proving_request_from_execution_request(
-        request: &ExecutionRequest,
-        program: &str,
-        unchecked: bool,
+    pub fn proving_request_from_execution_request(
+        requests: Array,
+        fee_request: Option<ExecutionRequest>,
         broadcast: bool,
-        edition: Option<u16>,
-        imports: Option<Object>,
-        private_key: Option<PrivateKey>,
-        program_imports: Option<ProgramImports>,
     ) -> Result<ProvingRequest, String> {
-        let authorization = ProgramManager::authorize_request(
-            request,
-            program,
-            unchecked,
-            edition,
-            imports,
-            private_key,
-            program_imports,
-        )
-        .await
-        .map_err(|e| e.to_string())?;
-
-        // Return the proving request.
-        Ok(ProvingRequest::from((AuthorizationNative::from(authorization), None, broadcast)))
+        ProvingRequest::from_requests(requests, fee_request, broadcast)
     }
 }
 
@@ -193,31 +177,19 @@ mod tests {
     }
 
     #[wasm_bindgen_test]
-    async fn test_proving_request_from_execution_request() {
+    fn test_proving_request_from_execution_request() {
         let request = transfer_public_execution_request();
-        let private_key =
-            PrivateKey::from_string("APrivateKey1zkp7Vc4xJt8HqW9U7VhY6h32d8Z9Xi5C6ZZX3gtXxbBSJmj").unwrap();
-        let program = Program::get_credits_program();
-        let program_str = program.to_string();
+        let requests = array![request];
 
-        let proving_request = ProgramManager::proving_request_from_execution_request(
-            &request,
-            &program_str,
-            false,
-            false,
-            Some(1),
-            None,
-            Some(private_key),
-            None,
-        )
-        .await
-        .unwrap();
+        let proving_request =
+            ProgramManager::proving_request_from_execution_request(requests, None, false).unwrap();
 
-        let authorization = proving_request.authorization().unwrap();
-        assert_eq!(authorization.len(), 1, "transfer_public should have 1 request");
-        assert_eq!(authorization.transitions().length(), 1, "transfer_public should have 1 transition");
-        // No fee authorization when built from ExecutionRequest (fee is paid by fee master or handled separately).
-        assert!(proving_request.fee_authorization().is_none());
+        assert_eq!(proving_request.kind(), "request");
+        let reqs = proving_request.requests().unwrap();
+        assert_eq!(reqs.length(), 1, "should wrap exactly one request");
+        // No fee request when none is provided.
+        assert!(proving_request.fee_request().is_none());
+        assert_eq!(proving_request.broadcast(), false);
     }
 
     #[wasm_bindgen_test]

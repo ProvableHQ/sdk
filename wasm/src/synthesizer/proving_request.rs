@@ -21,7 +21,8 @@ use crate::{
 };
 use snarkvm_wasm::utilities::ToBytes;
 
-use js_sys::Uint8Array;
+use js_sys::{Array, Uint8Array};
+use wasm_bindgen::{JsValue, convert::TryFromJsValue};
 use std::{
     fmt::{Debug, Display},
     ops::Deref,
@@ -56,25 +57,31 @@ impl ProvingRequest {
         ProvingRequest(ProvingRequestNative::new(authorization, fee_authorization, broadcast))
     }
 
-    /// Creates a new Request-variant `ProvingRequest` from a single signed
-    /// `ExecutionRequest` and an optional signed fee `ExecutionRequest`.
+    /// Creates a new Request-variant `ProvingRequest` from a JS array of signed
+    /// `ExecutionRequest`s and an optional signed fee `ExecutionRequest`.
     ///
     /// The Request variant is processed by the DPS at the `/prove/request`
     /// endpoint, which is encrypted-only. The server runs
-    /// `Process::authorize_request` to turn each `Request` into an
-    /// `Authorization` before proving.
+    /// `Process::authorize_request` to turn the requests into an `Authorization`
+    /// before proving. Supports nested calls by bundling all signed requests
+    /// (root + children) into a single `ProvingRequest`.
     ///
-    /// Only valid for single-public-request executions. Layered / nested
-    /// calls are not supported by `/prove/request` at this time.
-    ///
-    /// @param {ExecutionRequest} request The signed request for the function.
+    /// @param {ExecutionRequest[]} requests JS array of signed requests (root first, then children in call-graph order).
     /// @param {ExecutionRequest} fee_request Optional signed request for the fee function. When omitted, the prover generates and pays the fee.
     /// @param {boolean} broadcast Flag that indicates whether the remote proving service should attempt to submit the transaction on the caller's behalf.
-    #[wasm_bindgen(js_name = "fromRequest")]
-    pub fn from_request(request: ExecutionRequest, fee_request: Option<ExecutionRequest>, broadcast: bool) -> Self {
-        let request_native: RequestNative = request.into();
+    #[wasm_bindgen(js_name = "fromRequests")]
+    pub fn from_requests(requests: Array, fee_request: Option<ExecutionRequest>, broadcast: bool) -> Result<Self, String> {
+        let requests_native: Vec<RequestNative> = requests
+            .iter()
+            .enumerate()
+            .map(|(i, v)| {
+                ExecutionRequest::try_from_js_value(v)
+                    .map(RequestNative::from)
+                    .map_err(|_| format!("requests[{i}] is not a valid ExecutionRequest"))
+            })
+            .collect::<Result<Vec<_>, String>>()?;
         let fee_request_native: Option<RequestNative> = fee_request.map(Into::into);
-        ProvingRequest(ProvingRequestNative::new_request(request_native, fee_request_native, broadcast))
+        Ok(ProvingRequest(ProvingRequestNative::new_requests(requests_native, fee_request_native, broadcast)))
     }
 
     /// Returns the variant of this `ProvingRequest`: `"authorization"` or
@@ -157,15 +164,19 @@ impl ProvingRequest {
         self.0.fee_authorization().map(Authorization::from)
     }
 
-    /// Returns the signed `ExecutionRequest` carried by the Request variant.
+    /// Returns the signed `ExecutionRequest`s carried by the Request variant as
+    /// a JS array.
     ///
     /// @throws If this `ProvingRequest` is an Authorization variant. Check
     /// {@link ProvingRequest#kind} or use {@link ProvingRequest#authorization}
     /// instead.
-    pub fn request(&self) -> Result<ExecutionRequest, String> {
-        self.0.request().map(ExecutionRequest::from).ok_or_else(|| {
-            "ProvingRequest is an Authorization variant; call `authorization()` instead of `request()`".to_string()
-        })
+    pub fn requests(&self) -> Result<Array, String> {
+        self.0
+            .requests()
+            .map(|reqs| reqs.iter().map(|r| JsValue::from(ExecutionRequest::from(r))).collect::<Array>())
+            .ok_or_else(|| {
+                "ProvingRequest is an Authorization variant; call `authorization()` instead of `requests()`".to_string()
+            })
     }
 
     /// Returns the signed fee `ExecutionRequest` in the Request variant, or
@@ -318,12 +329,14 @@ mod tests {
     #[wasm_bindgen_test]
     fn test_request_variant_construction_and_kind() {
         let request = sample_execution_request();
-        let proving_request = ProvingRequest::from_request(request, None, false);
+        let requests = array![request];
+        let proving_request = ProvingRequest::from_requests(requests, None, false).unwrap();
 
         assert_eq!(proving_request.kind(), "request");
         assert!(proving_request.0.is_request());
         assert!(!proving_request.0.is_authorization());
-        assert!(proving_request.request().is_ok());
+        let reqs = proving_request.requests().unwrap();
+        assert_eq!(reqs.length(), 1);
         assert!(proving_request.fee_request().is_none());
         assert_eq!(proving_request.broadcast(), false);
     }
@@ -331,7 +344,8 @@ mod tests {
     #[wasm_bindgen_test]
     fn test_request_variant_byte_roundtrip() {
         let request = sample_execution_request();
-        let proving_request = ProvingRequest::from_request(request, None, true);
+        let requests = array![request];
+        let proving_request = ProvingRequest::from_requests(requests, None, true).unwrap();
 
         // Roundtrip via the explicit Request reader. Using `fromBytesLe`
         // (Authorization reader) on these bytes would fail or produce garbage,
@@ -348,7 +362,8 @@ mod tests {
     #[wasm_bindgen_test]
     fn test_request_variant_string_roundtrip_autodetects() {
         let request = sample_execution_request();
-        let proving_request = ProvingRequest::from_request(request, None, false);
+        let requests = array![request];
+        let proving_request = ProvingRequest::from_requests(requests, None, false).unwrap();
 
         // JSON shape carries the variant — fromString picks the right one via
         // serde's untagged dispatch on disjoint field names.
@@ -362,7 +377,8 @@ mod tests {
     #[wasm_bindgen_test]
     fn test_request_variant_accessors_throw_on_authorization_methods() {
         let request = sample_execution_request();
-        let proving_request = ProvingRequest::from_request(request, None, false);
+        let requests = array![request];
+        let proving_request = ProvingRequest::from_requests(requests, None, false).unwrap();
 
         // `authorization()` on a Request variant should be a clear error.
         let err = proving_request.authorization().expect_err("expected authorization() to error");
@@ -379,7 +395,7 @@ mod tests {
             let proving_request = ProvingRequest::from_string(PUZZLE_SPINNER_V002_PROVING_REQUEST.to_string()).unwrap();
             // `expect_err` requires `T: Debug`; `ExecutionRequest` doesn't impl
             // it, so use `.err().expect(...)` to extract the error message.
-            let err = proving_request.request().err().expect("expected request() to error");
+            let err = proving_request.requests().err().expect("expected requests() to error");
             assert!(err.contains("Authorization variant"), "error should mention Authorization variant: {err}");
             assert!(proving_request.fee_request().is_none());
         }

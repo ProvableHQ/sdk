@@ -40,7 +40,7 @@ pub enum ProvingRequestNative {
         broadcast: bool,
     },
     Request {
-        request: RequestNative,
+        requests: Vec<RequestNative>,
         fee_request: Option<RequestNative>,
         broadcast: bool,
     },
@@ -71,10 +71,10 @@ impl ProvingRequestNative {
         Self::Authorization { authorization, fee_authorization, broadcast }
     }
 
-    /// Creates a new Request-variant `ProvingRequestNative` from a single
-    /// signed `Request` and optional fee `Request`.
-    pub fn new_request(request: RequestNative, fee_request: Option<RequestNative>, broadcast: bool) -> Self {
-        Self::Request { request, fee_request, broadcast }
+    /// Creates a new Request-variant `ProvingRequestNative` from a vector of
+    /// signed `Request`s and an optional fee `Request`.
+    pub fn new_requests(requests: Vec<RequestNative>, fee_request: Option<RequestNative>, broadcast: bool) -> Self {
+        Self::Request { requests, fee_request, broadcast }
     }
 
     /// Returns the Authorization variant's inner authorization, or `None` if
@@ -95,11 +95,11 @@ impl ProvingRequestNative {
         }
     }
 
-    /// Returns the Request variant's inner request, or `None` if this is an
+    /// Returns the Request variant's requests slice, or `None` if this is an
     /// Authorization variant.
-    pub fn request(&self) -> Option<&RequestNative> {
+    pub fn requests(&self) -> Option<&[RequestNative]> {
         match self {
-            Self::Request { request, .. } => Some(request),
+            Self::Request { requests, .. } => Some(requests),
             Self::Authorization { .. } => None,
         }
     }
@@ -118,6 +118,12 @@ impl ProvingRequestNative {
         match self {
             Self::Authorization { broadcast, .. } | Self::Request { broadcast, .. } => *broadcast,
         }
+    }
+
+    /// Returns the first request in the Request variant, or `None`. Convenience
+    /// accessor for the single-request case (e.g. simple public transfers).
+    pub fn first_request(&self) -> Option<&RequestNative> {
+        self.requests()?.first()
     }
 
     /// Returns `true` if this is the Authorization variant.

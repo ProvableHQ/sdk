@@ -842,7 +842,7 @@ describe("submitProvingRequestSafe variant routing", () => {
             true,
             false,
         );
-        return ProvingRequest.fromRequest(executionRequest, undefined, false);
+        return ProvingRequest.fromRequests([executionRequest], undefined, false);
     }
 
     beforeEach(() => {

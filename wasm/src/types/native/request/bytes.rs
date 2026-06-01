@@ -41,8 +41,11 @@ impl ToBytes for ProvingRequestNative {
                 }
                 broadcast.write_le(&mut writer)?;
             }
-            Self::Request { request, fee_request, broadcast } => {
-                request.write_le(&mut writer)?;
+            Self::Request { requests, fee_request, broadcast } => {
+                (requests.len() as u32).write_le(&mut writer)?;
+                for request in requests {
+                    request.write_le(&mut writer)?;
+                }
                 match fee_request {
                     Some(req) => {
                         true.write_le(&mut writer)?;
@@ -84,15 +87,19 @@ impl ProvingRequestNative {
     }
 
     /// Reads bytes as the Request variant.
-    /// Layout: `request | bool | maybe(fee_request) | bool(broadcast)`.
+    /// Layout: `u32(len) | len*request | bool | maybe(fee_request) | bool(broadcast)`.
     pub fn read_request_le<R: Read>(mut reader: R) -> io::Result<Self> {
-        let request = RequestNative::read_le(&mut reader)?;
+        let len = u32::read_le(&mut reader)?;
+        let mut requests = Vec::with_capacity(len as usize);
+        for _ in 0..len {
+            requests.push(RequestNative::read_le(&mut reader)?);
+        }
         let has_fee_request = bool::read_le(&mut reader)?;
         let fee_request = match has_fee_request {
             false => None,
             true => Some(RequestNative::read_le(&mut reader)?),
         };
         let broadcast = bool::read_le(&mut reader)?;
-        Ok(Self::Request { request, fee_request, broadcast })
+        Ok(Self::Request { requests, fee_request, broadcast })
     }
 }
