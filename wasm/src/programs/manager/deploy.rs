@@ -273,7 +273,8 @@ impl ProgramManager {
         if !process.contains_program(deployed_program.id()) {
             log("Adding deployed program to the process");
             process
-                .lock().add_program_with_edition(&deployed_program, deployed_program_edition)
+                .lock()
+                .add_program_with_edition(&deployed_program, deployed_program_edition)
                 .map_err(|err| err.to_string())?;
         }
         let rng = &mut rand::rng();
@@ -526,7 +527,8 @@ impl ProgramManager {
         if !process.contains_program(deployed_program.id()) {
             log("Adding deployed program to the process");
             process
-                .lock().add_program_with_edition(&deployed_program, deployed_program_edition)
+                .lock()
+                .add_program_with_edition(&deployed_program, deployed_program_edition)
                 .map_err(|err| err.to_string())?;
         }
 

@@ -742,7 +742,7 @@ impl ProgramManager {
             &execution,
             &execution_stacks,
         )
-            .map_err(|err| err.to_string())?;
+        .map_err(|err| err.to_string())?;
 
         log("Creating execution transaction");
         let transaction = TransactionNative::from_execution(execution, fee).map_err(|err| err.to_string())?;
