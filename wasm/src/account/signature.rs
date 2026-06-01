@@ -374,7 +374,7 @@ mod tests {
             assert!(signature.verify_value(&private_key.to_address(), &message).unwrap());
 
             // Sample a different message.
-            let rand_u32: u32 = rand::random();
+            let rand_u32: u32 = rand_u32.wrapping_add(1);
             let bad_message = format!("{rand_u32}u32");
             // Check the signature is invalid.
             assert!(!signature.verify_value(&private_key.to_address(), &bad_message).unwrap());
@@ -395,7 +395,7 @@ mod tests {
             assert!(signature.verify_value(&private_key.to_address(), &message).unwrap());
 
             // Sample a different message.
-            let rand_u64: u64 = rand::random();
+            let rand_u64: u64 = rand_u64.wrapping_add(1);
             let bad_message = format!("{rand_u64}u64");
             // Check the signature is invalid.
             assert!(!signature.verify_value(&private_key.to_address(), &bad_message).unwrap());
@@ -416,7 +416,7 @@ mod tests {
             assert!(signature.verify_value(&private_key.to_address(), &message).unwrap());
 
             // Sample a different message.
-            let rand_u128: u128 = rand::random();
+            let rand_u128: u128 = rand_u128.wrapping_add(1);
             let bad_message = format!("{rand_u128}u128");
             // Check the signature is invalid.
             assert!(!signature.verify_value(&private_key.to_address(), &bad_message).unwrap());
