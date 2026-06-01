@@ -110,7 +110,7 @@ async function initializeWasm() {
 
 export { ProgramManager, ProvingRequestOptions, ExecuteOptions, FeeAuthorizationOptions, AuthorizationOptions, VerificationOptions, BatchVerificationOptions, inputsToFields, verifyProof, verifyBatchProof, programChecksum } from "./program-manager.js";
 
-export { logAndThrow, TransportFunction } from "./utils/utils.js";
+export { logAndThrow, TransportFunction, defaultTransport, cookieAffinityTransport } from "./utils/utils.js";
 
 export { setLogLevel, getLogLevel } from "./utils/logger.js";
 export type { LogLevel } from "./utils/logger.js";

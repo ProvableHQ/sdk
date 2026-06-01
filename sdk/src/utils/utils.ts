@@ -55,7 +55,7 @@ export function logAndThrow(message: string): never {
 export type TransportFunction = typeof fetch;
 
 /*
- * Per-origin cookie jar used by `defaultTransport`.
+ * Per-origin cookie jar used by `cookieAffinityTransport`.
  *
  * Some Aleo backends sit behind a gateway (e.g. Kong) that uses cookie-based
  * session affinity: the server sets a routing cookie on the first response and
@@ -109,6 +109,21 @@ function originOf(urlOrReq: URL | string | Request): string | null {
     } catch {
         return null;
     }
+}
+
+/*
+ * Derives the origin a response's `Set-Cookie` belongs to. `fetch` may follow
+ * redirects across origins (or http→https), in which case the final response
+ * headers belong to `response.url`'s origin, not the request input's. Returns
+ * null when the response has no usable `url` (e.g. the minimal response-like
+ * objects existing SDK tests stub fetch with), so callers can fall back to the
+ * request-derived origin.
+ */
+function responseOriginOf(response: unknown): string | null {
+    if (!response || typeof response !== "object") return null;
+    const url = (response as { url?: unknown }).url;
+    if (typeof url !== "string" || url.length === 0) return null;
+    return originOf(url);
 }
 
 function cookieHeaderFor(origin: string | null): string | null {
@@ -212,8 +227,17 @@ function attachCookie(
     return { cookie };
 }
 
+/** Default transport — wraps global fetch to avoid illegal-invocation errors in browsers. */
+export const defaultTransport: TransportFunction = (...args) => fetch(...args);
+
 /**
- * Default transport used by SDK HTTP helpers.
+ * Opt-in transport that layers a per-origin cookie jar on top of `fetch`.
+ *
+ * Not wired in by default — pass it explicitly as the `transport` option to
+ * `AleoNetworkClient`, `RecordScanner`, `AleoKeyProvider`, etc. (or to the
+ * `get`/`post` helpers) when talking to a backend that uses cookie-based
+ * session affinity. Browsers and iOS NSURLSession persist cookies on their own,
+ * so this is targeted at Node and bare React Native consumers.
  *
  * Wraps the global `fetch` (avoiding illegal-invocation errors in browsers when
  * `fetch` is passed around as a bare reference) and layers a per-origin cookie
@@ -226,7 +250,10 @@ function attachCookie(
  * forwards the pubkey-response cookie manually onto delegated-prove requests
  * for Node compatibility, and that path takes precedence over the jar.
  */
-export const defaultTransport: TransportFunction = async (input, init) => {
+export const cookieAffinityTransport: TransportFunction = async (
+    input,
+    init,
+) => {
     const origin = originOf(input as URL | string | Request);
     const cookie = cookieHeaderFor(origin);
     if (cookie) {
@@ -261,7 +288,12 @@ export const defaultTransport: TransportFunction = async (input, init) => {
         }
     }
     const response = await fetch(input as RequestInfo, init);
-    storeSetCookies(origin, readSetCookies(response));
+    // A response's `Set-Cookie` belongs to the final response URL's origin,
+    // which can differ from the request input's when fetch follows redirects
+    // (cross-origin or http→https). Prefer `response.url`; fall back to the
+    // request origin for minimal mocked responses that don't expose a `url`.
+    const responseOrigin = responseOriginOf(response) ?? origin;
+    storeSetCookies(responseOrigin, readSetCookies(response));
     return response;
 };
 

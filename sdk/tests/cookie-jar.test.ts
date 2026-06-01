@@ -1,9 +1,9 @@
 import sinon from "sinon";
 import { expect } from "chai";
-import { defaultTransport } from "../src/utils/utils.js";
+import { cookieAffinityTransport } from "../src/utils/utils.js";
 
 /**
- * Tests for the per-origin cookie jar inside `defaultTransport`.
+ * Tests for the per-origin cookie jar inside `cookieAffinityTransport`.
  *
  * The transport captures `Set-Cookie` headers from responses and replays them
  * as `Cookie` on later requests to the same origin, so SDK consumers running
@@ -13,7 +13,7 @@ import { defaultTransport } from "../src/utils/utils.js";
  * The cookie jar is module-scoped, so each test below uses a fresh, unique
  * origin to avoid pollution between tests.
  *
- * Imports `defaultTransport` directly from `src/utils/utils.js` so the test
+ * Imports `cookieAffinityTransport` directly from `src/utils/utils.js` so the test
  * bundle doesn't pull in the WASM module — these are pure transport assertions.
  */
 
@@ -58,7 +58,7 @@ function getCookieHeader(init: RequestInit | undefined): string | null {
     return null;
 }
 
-describe("defaultTransport cookie jar", () => {
+describe("cookieAffinityTransport cookie jar", () => {
     let fetchStub: FetchStub;
 
     beforeEach(() => {
@@ -80,7 +80,7 @@ describe("defaultTransport cookie jar", () => {
         fetchStub.onSecondCall().resolves(makeResponse());
 
         // First request — no Cookie expected yet (jar is empty for this origin).
-        await defaultTransport(`${origin}/first`);
+        await cookieAffinityTransport(`${origin}/first`);
         expect(
             getCookieHeader(
                 fetchStub.firstCall.args[1] as RequestInit | undefined,
@@ -91,7 +91,7 @@ describe("defaultTransport cookie jar", () => {
         );
 
         // Second request — jar should attach `route=upstream-7`.
-        await defaultTransport(`${origin}/second`);
+        await cookieAffinityTransport(`${origin}/second`);
         const secondCookie = getCookieHeader(
             fetchStub.secondCall.args[1] as RequestInit | undefined,
         );
@@ -107,8 +107,8 @@ describe("defaultTransport cookie jar", () => {
         // Second call (origin B): the assertion target.
         fetchStub.onCall(1).resolves(makeResponse());
 
-        await defaultTransport(`${originA}/path`);
-        await defaultTransport(`${originB}/path`);
+        await cookieAffinityTransport(`${originA}/path`);
+        await cookieAffinityTransport(`${originB}/path`);
 
         const cookieOnB = getCookieHeader(
             fetchStub.secondCall.args[1] as RequestInit | undefined,
@@ -116,6 +116,55 @@ describe("defaultTransport cookie jar", () => {
         expect(cookieOnB).to.equal(
             null,
             "origin B must NOT inherit origin A's cookie",
+        );
+    });
+
+    it("scopes the cookie to the response origin (response.url), not the request input origin, after a cross-origin redirect", async () => {
+        const requestOrigin = "https://redirect-from.example.test";
+        const responseOrigin = "https://redirect-to.example.test";
+
+        // fetch follows a redirect: the request targets `requestOrigin` but
+        // the final response (carrying the Set-Cookie) is served from
+        // `responseOrigin`, surfaced via `response.url`.
+        const redirected = {
+            ok: true,
+            status: 200,
+            url: `${responseOrigin}/end`,
+            headers: {
+                get: (name: string) =>
+                    name.toLowerCase() === "set-cookie"
+                        ? "route=on-final-origin; Path=/; HttpOnly"
+                        : null,
+            },
+            text: () => Promise.resolve("{}"),
+        };
+        fetchStub.onCall(0).resolves(redirected as unknown as Response);
+        fetchStub.onCall(1).resolves(makeResponse());
+        fetchStub.onCall(2).resolves(makeResponse());
+
+        await cookieAffinityTransport(`${requestOrigin}/start`);
+
+        // A later request to the response origin must replay the cookie.
+        await cookieAffinityTransport(`${responseOrigin}/again`);
+        expect(
+            getCookieHeader(
+                fetchStub.secondCall.args[1] as RequestInit | undefined,
+            ),
+        ).to.equal(
+            "route=on-final-origin",
+            "cookie must be keyed under the response origin so it replays there",
+        );
+
+        // A later request to the original request input origin must NOT carry
+        // the cookie — it was never that origin's cookie.
+        await cookieAffinityTransport(`${requestOrigin}/again`);
+        expect(
+            getCookieHeader(
+                fetchStub.thirdCall.args[1] as RequestInit | undefined,
+            ),
+        ).to.equal(
+            null,
+            "cookie must be scoped to the response origin, not the request input origin",
         );
     });
 
@@ -127,8 +176,8 @@ describe("defaultTransport cookie jar", () => {
         // Second call: caller passes their own Cookie header — should win.
         fetchStub.onCall(1).resolves(makeResponse());
 
-        await defaultTransport(`${origin}/seed`);
-        await defaultTransport(`${origin}/with-caller-cookie`, {
+        await cookieAffinityTransport(`${origin}/seed`);
+        await cookieAffinityTransport(`${origin}/with-caller-cookie`, {
             headers: { Cookie: "caller=wins" },
         });
 
@@ -151,8 +200,8 @@ describe("defaultTransport cookie jar", () => {
         fetchStub.onCall(0).resolves(minimal as unknown as Response);
         fetchStub.onCall(1).resolves(makeResponse());
 
-        await defaultTransport(`${origin}/first`);
-        await defaultTransport(`${origin}/second`);
+        await cookieAffinityTransport(`${origin}/first`);
+        await cookieAffinityTransport(`${origin}/second`);
 
         // Nothing should have been captured from the headerless mock.
         const cookie = getCookieHeader(
@@ -184,8 +233,8 @@ describe("defaultTransport cookie jar", () => {
         } as unknown as Response);
         fetchStub.onCall(1).resolves(makeResponse());
 
-        await defaultTransport(`${origin}/first`);
-        await defaultTransport(`${origin}/second`);
+        await cookieAffinityTransport(`${origin}/first`);
+        await cookieAffinityTransport(`${origin}/second`);
 
         const cookie = getCookieHeader(
             fetchStub.secondCall.args[1] as RequestInit | undefined,
@@ -202,8 +251,8 @@ describe("defaultTransport cookie jar", () => {
             .resolves(makeResponse("auth=secret-token; Path=/; HttpOnly"));
         fetchStub.onCall(1).resolves(makeResponse());
 
-        await defaultTransport(`${origin}/seed`);
-        await defaultTransport(`${origin}/check`);
+        await cookieAffinityTransport(`${origin}/seed`);
+        await cookieAffinityTransport(`${origin}/check`);
 
         const cookie = getCookieHeader(
             fetchStub.secondCall.args[1] as RequestInit | undefined,
@@ -218,13 +267,13 @@ describe("defaultTransport cookie jar", () => {
         const origin = "https://request-input.example.test";
         // Seed the jar.
         fetchStub.onCall(0).resolves(makeResponse("route=upstream-3"));
-        // Inspect what defaultTransport forwards to fetch.
+        // Inspect what cookieAffinityTransport forwards to fetch.
         fetchStub.onCall(1).resolves(makeResponse());
 
-        await defaultTransport(`${origin}/seed`);
+        await cookieAffinityTransport(`${origin}/seed`);
 
         const req = new Request(`${origin}/next`);
-        await defaultTransport(req);
+        await cookieAffinityTransport(req);
 
         // The cookie must reach fetch on init.headers (Fetch spec:
         // init.headers replaces Request.headers). The original Request
@@ -244,12 +293,14 @@ describe("defaultTransport cookie jar", () => {
         fetchStub.onCall(0).resolves(makeResponse("route=fromserver"));
         fetchStub.onCall(1).resolves(makeResponse());
 
-        await defaultTransport(`${origin}/seed`);
+        await cookieAffinityTransport(`${origin}/seed`);
 
         const callerHeaders = new Headers({
             Cookie: "caller=wins-via-headers",
         });
-        await defaultTransport(`${origin}/next`, { headers: callerHeaders });
+        await cookieAffinityTransport(`${origin}/next`, {
+            headers: callerHeaders,
+        });
 
         const cookie = getCookieHeader(
             fetchStub.secondCall.args[1] as RequestInit | undefined,
@@ -262,8 +313,8 @@ describe("defaultTransport cookie jar", () => {
         fetchStub.onCall(0).resolves(makeResponse("route=fromserver"));
         fetchStub.onCall(1).resolves(makeResponse());
 
-        await defaultTransport(`${origin}/seed`);
-        await defaultTransport(`${origin}/next`, {
+        await cookieAffinityTransport(`${origin}/seed`);
+        await cookieAffinityTransport(`${origin}/next`, {
             headers: [["Cookie", "caller=wins-via-tuple"]],
         });
 
@@ -281,10 +332,10 @@ describe("defaultTransport cookie jar", () => {
         fetchStub.onCall(0).resolves(makeResponse("route=upstream-11"));
         fetchStub.onCall(1).resolves(makeResponse());
 
-        await defaultTransport(`${origin}/seed`);
+        await cookieAffinityTransport(`${origin}/seed`);
 
         const req = new Request(`${origin}/next`);
-        await defaultTransport(req, {
+        await cookieAffinityTransport(req, {
             headers: { "X-Trace-Id": "abc" },
         });
 
@@ -322,8 +373,8 @@ describe("defaultTransport cookie jar", () => {
         } as unknown as Response);
         fetchStub.onCall(1).resolves(makeResponse());
 
-        await defaultTransport(`${origin}/first`);
-        await defaultTransport(`${origin}/second`);
+        await cookieAffinityTransport(`${origin}/first`);
+        await cookieAffinityTransport(`${origin}/second`);
 
         const cookie = getCookieHeader(
             fetchStub.secondCall.args[1] as RequestInit | undefined,
@@ -343,13 +394,13 @@ describe("defaultTransport cookie jar", () => {
         fetchStub.onCall(2).resolves(makeResponse());
         fetchStub.onCall(3).resolves(makeResponse());
 
-        await defaultTransport(`${originA}/seed`);
-        await defaultTransport(`${originB}/seed`);
+        await cookieAffinityTransport(`${originA}/seed`);
+        await cookieAffinityTransport(`${originB}/seed`);
 
         const sharedHeaders = new Headers({ "X-Trace-Id": "trace-1" });
         const sharedInit: RequestInit = { headers: sharedHeaders };
 
-        await defaultTransport(`${originA}/req-A`, sharedInit);
+        await cookieAffinityTransport(`${originA}/req-A`, sharedInit);
 
         // After the A call, the caller's shared Headers must NOT carry
         // a Cookie, and the init object must still hold the original
@@ -364,7 +415,7 @@ describe("defaultTransport cookie jar", () => {
             "caller's init.headers reference must not be replaced",
         );
 
-        await defaultTransport(`${originB}/req-B`, sharedInit);
+        await cookieAffinityTransport(`${originB}/req-B`, sharedInit);
 
         // Caller's Headers still untouched after the B call.
         expect(sharedHeaders.get("cookie")).to.equal(null);
@@ -384,13 +435,13 @@ describe("defaultTransport cookie jar", () => {
         fetchStub.onCall(0).resolves(makeResponse("route=upstream-z"));
         fetchStub.onCall(1).resolves(makeResponse());
 
-        await defaultTransport(`${origin}/seed`);
+        await cookieAffinityTransport(`${origin}/seed`);
 
         // Caller passes init without a headers field.
         const callerInit: RequestInit = { method: "GET" };
         const originalKeys = Object.keys(callerInit).sort();
 
-        await defaultTransport(`${origin}/next`, callerInit);
+        await cookieAffinityTransport(`${origin}/next`, callerInit);
 
         // Transport must not have mutated callerInit by adding a
         // `headers` field (or anything else).
@@ -420,8 +471,8 @@ describe("defaultTransport cookie jar", () => {
         } as unknown as Response);
         fetchStub.onCall(1).resolves(makeResponse());
 
-        await defaultTransport(`${origin}/first`);
-        await defaultTransport(`${origin}/second`);
+        await cookieAffinityTransport(`${origin}/first`);
+        await cookieAffinityTransport(`${origin}/second`);
 
         const cookie = getCookieHeader(
             fetchStub.secondCall.args[1] as RequestInit | undefined,
