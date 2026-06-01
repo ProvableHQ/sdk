@@ -2872,21 +2872,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@provablehq/sdk@npm:^0.10.0":
-  version: 0.10.5
-  resolution: "@provablehq/sdk@npm:0.10.5"
-  dependencies:
-    "@provablehq/wasm": "npm:^0.10.5"
-    "@scure/base": "npm:^2.0.0"
-    "@serenity-kit/noble-sodium": "npm:0.2.3"
-    comlink: "npm:^4.4.2"
-    core-js: "npm:^3.40.0"
-    mime: "npm:^4.0.6"
-    xmlhttprequest-ssl: "npm:^4.0.0"
-  checksum: 10c0/1b72f0650ba4e571616527bd47eaf2a886db8a12a2d87e8d656e5d5dcf58b10e60d0ab6c1efa1b5b03cf952f60b6483ed1a6b383a0478906eb63eea753181d77
-  languageName: node
-  linkType: hard
-
 "@provablehq/sdk@npm:^0.11.0, @provablehq/sdk@workspace:sdk":
   version: 0.0.0-use.local
   resolution: "@provablehq/sdk@workspace:sdk"
@@ -2925,13 +2910,6 @@ __metadata:
     xmlhttprequest-ssl: "npm:^4.0.0"
   languageName: unknown
   linkType: soft
-
-"@provablehq/wasm@npm:^0.10.5":
-  version: 0.10.5
-  resolution: "@provablehq/wasm@npm:0.10.5"
-  checksum: 10c0/97e4c3e28a1cfcb76af9d35f6d48e44650cf43bc70e683011067515e65b707f16c53bdba476b24604b19f5f962819b6d128870c74e603d06ee86bcf53c58acaf
-  languageName: node
-  linkType: hard
 
 "@provablehq/wasm@npm:^0.11.0, @provablehq/wasm@workspace:wasm":
   version: 0.0.0-use.local
@@ -13715,7 +13693,7 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "template-node-dynamic-dispatch-ts@workspace:create-leo-app/template-node-dynamic-dispatch-ts"
   dependencies:
-    "@provablehq/sdk": "npm:^0.10.0"
+    "@provablehq/sdk": "npm:^0.11.0"
     rimraf: "npm:^6.0.1"
     rollup: "npm:^4.59.0"
     rollup-plugin-typescript2: "npm:^0.36.0"
