@@ -217,7 +217,7 @@ impl ProgramManager {
             &execution,
             &execution_stacks,
         )
-            .map_err(|err| err.to_string())?;
+        .map_err(|err| err.to_string())?;
 
         // Calculate the minimum execution fee.
         log("Calculating the minimum execution fee");

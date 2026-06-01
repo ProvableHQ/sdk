@@ -134,7 +134,7 @@ impl ProgramManager {
             &execution,
             &execution_stacks,
         )
-            .map_err(|err| err.to_string())?;
+        .map_err(|err| err.to_string())?;
 
         log("Creating execution transaction for split");
         let transaction = TransactionNative::from_execution(execution, None).map_err(|err| err.to_string())?;

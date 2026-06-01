@@ -209,8 +209,14 @@ pub fn verify_function_execution(
             InclusionVersion::V0
         };
     let execution_stacks = execution_stacks_for_execution(process, execution)?;
-    ProcessNative::verify_execution(consensus_version, VarunaVersion::V2, inclusion_version, execution, &execution_stacks)
-        .map_or(Ok(false), |_| Ok(true))
+    ProcessNative::verify_execution(
+        consensus_version,
+        VarunaVersion::V2,
+        inclusion_version,
+        execution,
+        &execution_stacks,
+    )
+    .map_or(Ok(false), |_| Ok(true))
 }
 
 /// Verify a SNARK proof against a verifying key and public inputs.
