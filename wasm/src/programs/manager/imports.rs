@@ -173,7 +173,7 @@ impl ProgramImports {
             // Resolve static imports depth-first before adding this program.
             Self::resolve_program_imports_inner(&mut inner, &program)?;
             log(&format!("Adding {program_id} to the process"));
-            inner.process.add_program_with_edition(&program, edition).map_err(|e| e.to_string())?;
+            inner.process.lock().add_program_with_edition(&program, edition).map_err(|e| e.to_string())?;
         }
 
         inner.sources.insert(program_id.clone(), source.to_string());
@@ -609,7 +609,7 @@ impl ProgramImports {
         let program_native = ProgramNative::from_str(program).map_err(|e| e.to_string())?;
         let program_id = program_native.id();
         if program_id.to_string() != "credits.aleo" && !inner.process.contains_program(program_id) {
-            inner.process.add_program_with_edition(&program_native, edition).map_err(|e| e.to_string())?;
+            inner.process.lock().add_program_with_edition(&program_native, edition).map_err(|e| e.to_string())?;
         }
         inner.sources.entry(program_id.clone()).or_insert_with(|| program.to_string());
         inner.editions.entry(program_id.clone()).or_insert(edition);
@@ -636,7 +636,7 @@ impl ProgramImports {
             Self::resolve_program_imports_inner(inner, &import_program)?;
             let edition = inner.editions.get(&import_id).copied().unwrap_or(1);
             log(&format!("Adding {import_id} to the process"));
-            inner.process.add_program_with_edition(&import_program, edition).map_err(|e| e.to_string())?;
+            inner.process.lock().add_program_with_edition(&import_program, edition).map_err(|e| e.to_string())?;
         }
         Ok(())
     }

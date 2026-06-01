@@ -56,7 +56,7 @@ impl Encryptor {
         let secret = FieldNative::new_domain_separator(secret);
 
         // Generate a nonce
-        let mut rng = rand::thread_rng();
+        let mut rng = rand::rng();
         let nonce = Uniform::rand(&mut rng);
 
         // Derive a blinding factor and create an encryption target

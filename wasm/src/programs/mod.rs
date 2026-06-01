@@ -60,3 +60,23 @@ pub use snapshot_query::*;
 
 pub mod verifying_key;
 pub use verifying_key::*;
+
+use crate::types::native::{CurrentNetwork, ExecutionNative, ProcessNative, ProgramIDNative};
+use indexmap::IndexMap;
+use snarkvm_synthesizer::Stack;
+use std::sync::Arc;
+
+pub(crate) fn execution_stacks_for_execution(
+    process: &ProcessNative,
+    execution: &ExecutionNative,
+) -> Result<IndexMap<ProgramIDNative, Arc<Stack<CurrentNetwork>>>, String> {
+    execution
+        .transitions()
+        .map(|transition| {
+            process
+                .get_stack(transition.program_id())
+                .map(|stack| (*transition.program_id(), stack))
+                .map_err(|e| e.to_string())
+        })
+        .collect()
+}

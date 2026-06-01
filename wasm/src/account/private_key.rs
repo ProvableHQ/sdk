@@ -29,7 +29,6 @@ use snarkvm_wasm::{
 };
 
 use core::{convert::TryInto, fmt, ops::Deref, str::FromStr};
-use rand::{SeedableRng, rngs::StdRng};
 use wasm_bindgen::prelude::*;
 use zeroize::Zeroize;
 
@@ -46,7 +45,7 @@ impl PrivateKey {
     #[wasm_bindgen(constructor)]
     #[allow(clippy::new_without_default)]
     pub fn new() -> Self {
-        Self(PrivateKeyNative::new(&mut StdRng::from_entropy()).unwrap())
+        Self(PrivateKeyNative::new(&mut rand::rng()).unwrap())
     }
 
     /// Get a private key from a series of unchecked bytes
@@ -230,7 +229,6 @@ impl FromStr for PrivateKey {
 mod tests {
     use super::*;
 
-    use rand::Rng;
     use wasm_bindgen_test::*;
 
     const ITERATIONS: u64 = 1_000;
@@ -268,7 +266,7 @@ mod tests {
     pub fn test_from_seed_unchecked() {
         for _ in 0..ITERATIONS {
             // Sample a random seed.
-            let seed: [u8; 32] = StdRng::from_entropy().gen();
+            let seed: [u8; 32] = rand::random();
 
             // Ensure the private key is deterministically recoverable.
             let expected = PrivateKey::from_seed_unchecked(&seed);
@@ -294,7 +292,7 @@ mod tests {
         for _ in 0..ITERATIONS {
             // Sample a new private key and message.
             let private_key = PrivateKey::new();
-            let message: [u8; 32] = StdRng::from_entropy().gen();
+            let message: [u8; 32] = rand::random();
 
             // Sign the message.
             let signature = private_key.sign(&message);
@@ -341,7 +339,7 @@ mod tests {
         for _ in 0..ITERATIONS {
             // Sample a new private key and message.
             let private_key = PrivateKey::new();
-            let rand_val: u64 = StdRng::from_entropy().gen();
+            let rand_val: u64 = rand::random();
             let message = format!("{rand_val}field");
 
             // Sign the message.

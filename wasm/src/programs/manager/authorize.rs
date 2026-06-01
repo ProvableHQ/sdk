@@ -40,7 +40,6 @@ use crate::{
 };
 
 use js_sys::{Array, Object};
-use rand::{SeedableRng, rngs::StdRng};
 use std::str::FromStr;
 
 #[wasm_bindgen]
@@ -69,7 +68,7 @@ impl ProgramManager {
         let process = resolved.process_mut();
 
         log(&format!("Creating proving request for {}:{function_name}", program_native.id()));
-        let rng = &mut StdRng::from_entropy();
+        let rng = &mut rand::rng();
 
         // Authorize the main program.
         let unchecked = false;
@@ -111,7 +110,7 @@ impl ProgramManager {
         let process = resolved.process_mut();
 
         log(&format!("Creating proving request for {}:{function_name}", program_native.id()));
-        let rng = &mut StdRng::from_entropy();
+        let rng = &mut rand::rng();
 
         // Authorize the main program.
         let unchecked = true;
@@ -169,11 +168,11 @@ impl ProgramManager {
         }
 
         log(&format!("Creating proving request for {request_program_id}:{}", request.function_name()));
-        let rng = &mut StdRng::from_entropy();
+        let rng = &mut rand::rng();
         // Add the program to the process (no-op if ensure_program already added it).
         if request_program_id.to_string() != "credits.aleo" && !process.contains_program(request_program_id) {
             log("Adding program to the process");
-            process.add_program_with_edition(&program_native, edition).map_err(|e| e.to_string())?;
+            process.lock().add_program_with_edition(&program_native, edition).map_err(|e| e.to_string())?;
         }
 
         // If a private key is provided, use it to authorize the request, otherwise use authorize_request method.
@@ -231,7 +230,7 @@ impl ProgramManager {
         let process = &mut process_native;
 
         log("Check program imports are valid and add them to the process");
-        let rng = &mut StdRng::from_entropy();
+        let rng = &mut rand::rng();
 
         let base_fee_microcredits = (base_fee_credits * 1_000_000.0) as u64;
         let priority_fee_microcredits = (priority_fee_credits * 1_000_000.0) as u64;

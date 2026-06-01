@@ -25,6 +25,7 @@ use crate::{
     calculate_minimum_fee,
     execute_fee,
     execute_program,
+    execution_stacks_for_execution,
     latest_block_height,
     log,
     process_inputs,
@@ -45,7 +46,6 @@ use snarkvm_synthesizer::prelude::{InclusionVersion, execution_cost};
 use snarkvm_synthesizer_program::StackTrait;
 
 use crate::types::native::{PrivateKeyNative, ViewKeyNative};
-use rand::{SeedableRng, rngs::StdRng};
 use std::{ops::Add, str::FromStr};
 use wasm_bindgen::JsValue;
 
@@ -95,7 +95,7 @@ impl ProgramManager {
         log("Setup the program and inputs");
         let node_url = url.as_deref().unwrap_or(DEFAULT_URL);
         let program = ProgramNative::credits().unwrap().to_string();
-        let rng = &mut StdRng::from_entropy();
+        let rng = &mut rand::rng();
 
         log("Transfer Type is:");
         log(transfer_type);
@@ -209,9 +209,15 @@ impl ProgramManager {
             <CurrentNetwork as Network>::INCLUSION_UPGRADE_HEIGHT().map_err(|err| err.to_string())?;
         let inclusion_version =
             if latest_height >= inclusion_upgrade_height { InclusionVersion::V1 } else { InclusionVersion::V0 };
-        process
-            .verify_execution(consensus_version, VarunaVersion::V2, inclusion_version, &execution)
-            .map_err(|err| err.to_string())?;
+        let execution_stacks = execution_stacks_for_execution(process, &execution)?;
+        ProcessNative::verify_execution(
+            consensus_version,
+            VarunaVersion::V2,
+            inclusion_version,
+            &execution,
+            &execution_stacks,
+        )
+        .map_err(|err| err.to_string())?;
 
         // Calculate the minimum execution fee.
         log("Calculating the minimum execution fee");

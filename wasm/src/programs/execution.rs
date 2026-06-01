@@ -193,7 +193,7 @@ pub fn verify_function_execution(
     // If the program is not credits.aleo, add the program and its verifying key to the process.
     if &program.id() != "credits.aleo" {
         if !process.contains_program(program_native.id()) {
-            process.add_program(&program_native).map_err(|e| e.to_string())?;
+            process.lock().add_program(&program_native).map_err(|e| e.to_string())?;
         }
         process
             .insert_verifying_key(program_native.id(), &function, VerifyingKeyNative::from(verifying_key))
@@ -208,9 +208,15 @@ pub fn verify_function_execution(
         } else {
             InclusionVersion::V0
         };
-    process
-        .verify_execution(consensus_version, VarunaVersion::V2, inclusion_version, execution)
-        .map_or(Ok(false), |_| Ok(true))
+    let execution_stacks = execution_stacks_for_execution(process, execution)?;
+    ProcessNative::verify_execution(
+        consensus_version,
+        VarunaVersion::V2,
+        inclusion_version,
+        execution,
+        &execution_stacks,
+    )
+    .map_or(Ok(false), |_| Ok(true))
 }
 
 /// Verify a SNARK proof against a verifying key and public inputs.

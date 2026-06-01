@@ -127,7 +127,7 @@ impl Boolean {
 
     /// Generate a random boolean element.
     pub fn random() -> Boolean {
-        let rng = &mut rand::thread_rng();
+        let rng = &mut rand::rng();
         Boolean(BooleanNative::rand(rng))
     }
 

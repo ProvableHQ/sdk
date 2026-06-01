@@ -28,6 +28,7 @@ use crate::{
     calculate_minimum_fee,
     execute_fee,
     execute_program,
+    execution_stacks_for_execution,
     latest_block_height,
     latest_stateroot,
     log,
@@ -57,7 +58,6 @@ use snarkvm_synthesizer::prelude::{InclusionVersion, execution_cost, execution_c
 use crate::types::native::{PrivateKeyNative, ViewKeyNative};
 use core::ops::Add;
 use js_sys::{Array, Object, Reflect};
-use rand::{SeedableRng, rngs::StdRng};
 use snarkvm_console::network::ConsensusVersion;
 use std::str::FromStr;
 use wasm_bindgen::JsValue;
@@ -170,7 +170,7 @@ impl ProgramManager {
     ) -> Result<ExecutionResponse, String> {
         let node_url = url.as_deref().unwrap_or(DEFAULT_URL);
         let inputs = inputs.to_vec();
-        let rng = &mut StdRng::from_entropy();
+        let rng = &mut rand::rng();
         let edition = edition.unwrap_or(1);
 
         let mut resolved = ResolvedProcess::resolve(&program_imports, program, edition, imports)?;
@@ -402,14 +402,14 @@ impl ProgramManager {
         let process = resolved.process_mut();
 
         // Initialize the rng.
-        let rng = &mut StdRng::from_entropy();
+        let rng = &mut rand::rng();
         let program_id = program_native.id().to_string();
         let inputs = process_inputs!(inputs);
 
         // Add the program to the process (no-op if ensure_program already added it).
         if program_id != "credits.aleo" && !process.contains_program(program_native.id()) {
             log("Adding program to the process");
-            process.add_program_with_edition(&program_native, edition).map_err(|e| e.to_string())?;
+            process.lock().add_program_with_edition(&program_native, edition).map_err(|e| e.to_string())?;
         }
 
         // Generate the authorization.
@@ -506,7 +506,7 @@ impl ProgramManager {
         let program_native = resolved.program().clone();
         let process = resolved.process_mut();
 
-        let rng = &mut StdRng::from_entropy();
+        let rng = &mut rand::rng();
         // Initialize a burner private key.
         let burner_private_key = PrivateKey::new();
         // Compute the burner address.
@@ -521,7 +521,7 @@ impl ProgramManager {
         let program_id = program_native.id();
         if program_id.to_string() != "credits.aleo" && !process.contains_program(program_id) {
             log("Adding program to the process");
-            process.add_program_with_edition(&program_native, edition).map_err(|e| e.to_string())?;
+            process.lock().add_program_with_edition(&program_native, edition).map_err(|e| e.to_string())?;
         }
 
         // Create sample inputs.
@@ -546,7 +546,7 @@ impl ProgramManager {
 
         // Create the authorization.
         let authorization = process
-            .authorize::<CurrentAleo, StdRng>(&burner_private_key, program_id, function, inputs.iter(), rng)
+            .authorize::<CurrentAleo, _>(&burner_private_key, program_id, function, inputs.iter(), rng)
             .map_err(|e| e.to_string())?;
 
         // Get the ConsensusVersion.
@@ -589,7 +589,7 @@ impl ProgramManager {
         let program_id = program_native.id();
         if program_id.to_string() != "credits.aleo" && !process.contains_program(program_id) {
             log(&format!("Adding program {program_id} to the process"));
-            process.add_program_with_edition(&program_native, edition).map_err(|e| e.to_string())?;
+            process.lock().add_program_with_edition(&program_native, edition).map_err(|e| e.to_string())?;
         }
 
         // Get the ConsensusVersion.
@@ -655,7 +655,7 @@ impl ProgramManager {
     ) -> Result<Transaction, String> {
         let node_url = url.as_deref().unwrap_or(DEFAULT_URL);
         let program_id = program_native.id().to_string();
-        let rng = &mut StdRng::from_entropy();
+        let rng = &mut rand::rng();
 
         log(&format!("Executing function: {program_id}/{function} on-chain"));
         let (_, mut trace) = execute_program!(
@@ -689,7 +689,7 @@ impl ProgramManager {
         log("Proving execution");
         let locator = program_native.id().to_string().add("/").add(function);
         let execution = trace
-            .prove_execution::<CurrentAleo, _>(&locator, VarunaVersion::V2, &mut StdRng::from_entropy())
+            .prove_execution::<CurrentAleo, _>(&locator, VarunaVersion::V2, &mut rand::rng())
             .map_err(|e| e.to_string())?;
 
         // If the function is anything other than credits.aleo/split or credits.aleo/upgrade, execute a fee.
@@ -734,9 +734,15 @@ impl ProgramManager {
             <CurrentNetwork as Network>::INCLUSION_UPGRADE_HEIGHT().map_err(|err| err.to_string())?;
         let inclusion_version =
             if latest_height >= inclusion_upgrade_height { InclusionVersion::V1 } else { InclusionVersion::V0 };
-        process
-            .verify_execution(consensus_version, VarunaVersion::V2, inclusion_version, &execution)
-            .map_err(|err| err.to_string())?;
+        let execution_stacks = execution_stacks_for_execution(process, &execution)?;
+        ProcessNative::verify_execution(
+            consensus_version,
+            VarunaVersion::V2,
+            inclusion_version,
+            &execution,
+            &execution_stacks,
+        )
+        .map_err(|err| err.to_string())?;
 
         log("Creating execution transaction");
         let transaction = TransactionNative::from_execution(execution, fee).map_err(|err| err.to_string())?;
@@ -778,7 +784,7 @@ impl ProgramManager {
 
         // Add the top-level program if not already present.
         if program_id != "credits.aleo" && !process.contains_program(program_native.id()) {
-            process.add_program_with_edition(&program_native, edition).map_err(|e| e.to_string())?;
+            process.lock().add_program_with_edition(&program_native, edition).map_err(|e| e.to_string())?;
         }
 
         // Insert the proving key if provided.
@@ -835,7 +841,7 @@ impl ProgramManager {
             };
         }
 
-        let rng = &mut StdRng::from_entropy();
+        let rng = &mut rand::rng();
         let authorization = AuthorizationNative::from(authorization);
 
         // Construct the locator of the main function.
@@ -866,7 +872,7 @@ impl ProgramManager {
 
         log("Proving execution");
         let execution = trace
-            .prove_execution::<CurrentAleo, _>(&locator, varuna_version, &mut StdRng::from_entropy())
+            .prove_execution::<CurrentAleo, _>(&locator, varuna_version, &mut rand::rng())
             .map_err(|e| e.to_string())?;
 
         let fee = if let Some(fee_authorization) = fee_authorization {

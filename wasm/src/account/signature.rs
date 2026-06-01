@@ -30,7 +30,6 @@ use snarkvm_console::prelude::{FromBits, FromBytes, ToBits, ToBytes, ToFields};
 
 use core::{fmt, ops::Deref, str::FromStr};
 use js_sys::{Array, Uint8Array};
-use rand::{SeedableRng, rngs::StdRng};
 use wasm_bindgen::prelude::*;
 
 /// Cryptographic signature of a message signed by an Aleo account
@@ -45,7 +44,7 @@ impl Signature {
     /// @param {Uint8Array} message Byte representation of the message to sign
     /// @returns {Signature} Signature of the message
     pub fn sign(private_key: &PrivateKey, message: &[u8]) -> Self {
-        Self(SignatureNative::sign_bytes(private_key, message, &mut StdRng::from_entropy()).unwrap())
+        Self(SignatureNative::sign_bytes(private_key, message, &mut rand::rng()).unwrap())
     }
 
     /// Sign an instance of a valid Aleo data type or record.
@@ -58,7 +57,7 @@ impl Signature {
         let fields =
             ValueNative::from_str(message).map_err(|e| e.to_string())?.to_fields().map_err(|e| e.to_string())?;
 
-        Ok(Self(SignatureNative::sign(private_key, &fields, &mut StdRng::from_entropy()).map_err(|e| e.to_string())?))
+        Ok(Self(SignatureNative::sign(private_key, &fields, &mut rand::rng()).map_err(|e| e.to_string())?))
     }
 
     /// Get an address from a signature.
@@ -233,7 +232,6 @@ mod tests {
             records::{INVALID_CREDITS_RECORD, VALID_CREDITS_RECORD},
         },
     };
-    use rand::{Rng, SeedableRng, rngs::StdRng};
     use wasm_bindgen_test::*;
 
     const ITERATIONS: u64 = 1_000;
@@ -243,7 +241,7 @@ mod tests {
         for _ in 0..ITERATIONS {
             // Sample a new private key and message.
             let private_key = PrivateKey::new();
-            let message: [u8; 32] = StdRng::from_entropy().gen();
+            let message: [u8; 32] = rand::random();
 
             // Sign the message.
             let signature = Signature::sign(&private_key, &message);
@@ -251,7 +249,7 @@ mod tests {
             assert!(signature.verify(&private_key.to_address(), &message));
 
             // Sample a different message.
-            let bad_message: [u8; 32] = StdRng::from_entropy().gen();
+            let bad_message: [u8; 32] = rand::random();
             // Check the signature is invalid.
             assert!(!signature.verify(&private_key.to_address(), &bad_message));
         }
@@ -262,7 +260,7 @@ mod tests {
         for _ in 0..ITERATIONS {
             // Sample a new private key and message.
             let private_key = PrivateKey::new();
-            let rand_val: u64 = StdRng::from_entropy().gen();
+            let rand_val: u64 = rand::random();
             let message = format!("{rand_val}field");
 
             // Sign the message.
@@ -271,7 +269,7 @@ mod tests {
             assert!(signature.verify_value(&private_key.to_address(), &message).unwrap());
 
             // Sample a different message.
-            let rand_val: u64 = StdRng::from_entropy().gen();
+            let rand_val: u64 = rand::random();
             let bad_message = format!("{rand_val}field");
             // Check the signature is invalid.
             assert!(!signature.verify_value(&private_key.to_address(), &bad_message).unwrap());
@@ -325,7 +323,7 @@ mod tests {
         for _ in 0..ITERATIONS {
             // Sample a new private key and message.
             let private_key = PrivateKey::new();
-            let rand_u8: u8 = StdRng::from_entropy().gen();
+            let rand_u8: u8 = rand::random();
             let message = format!("{rand_u8}u8");
 
             // Sign the message.
@@ -346,7 +344,7 @@ mod tests {
         for _ in 0..ITERATIONS {
             // Sample a new private key and message.
             let private_key = PrivateKey::new();
-            let rand_u16: u16 = StdRng::from_entropy().gen();
+            let rand_u16: u16 = rand::random();
             let message = format!("{rand_u16}u16");
 
             // Sign the message.
@@ -355,7 +353,7 @@ mod tests {
             assert!(signature.verify_value(&private_key.to_address(), &message).unwrap());
 
             // Sample a different message.
-            let rand_u16_new: u16 = StdRng::from_entropy().gen();
+            let rand_u16_new: u16 = rand_u16.wrapping_add(1);
             let bad_message = format!("{rand_u16_new}u16");
             // Check the signature is invalid.
             assert!(!signature.verify_value(&private_key.to_address(), &bad_message).unwrap());
@@ -367,7 +365,7 @@ mod tests {
         for _ in 0..ITERATIONS {
             // Sample a new private key and message.
             let private_key = PrivateKey::new();
-            let rand_u32: u32 = StdRng::from_entropy().gen();
+            let rand_u32: u32 = rand::random();
             let message = format!("{rand_u32}u32");
 
             // Sign the message.
@@ -376,7 +374,7 @@ mod tests {
             assert!(signature.verify_value(&private_key.to_address(), &message).unwrap());
 
             // Sample a different message.
-            let rand_u32: u32 = StdRng::from_entropy().gen();
+            let rand_u32: u32 = rand_u32.wrapping_add(1);
             let bad_message = format!("{rand_u32}u32");
             // Check the signature is invalid.
             assert!(!signature.verify_value(&private_key.to_address(), &bad_message).unwrap());
@@ -388,7 +386,7 @@ mod tests {
         for _ in 0..ITERATIONS {
             // Sample a new private key and message.
             let private_key = PrivateKey::new();
-            let rand_u64: u64 = StdRng::from_entropy().gen();
+            let rand_u64: u64 = rand::random();
             let message = format!("{rand_u64}u64");
 
             // Sign the message.
@@ -397,7 +395,7 @@ mod tests {
             assert!(signature.verify_value(&private_key.to_address(), &message).unwrap());
 
             // Sample a different message.
-            let rand_u64: u64 = StdRng::from_entropy().gen();
+            let rand_u64: u64 = rand_u64.wrapping_add(1);
             let bad_message = format!("{rand_u64}u64");
             // Check the signature is invalid.
             assert!(!signature.verify_value(&private_key.to_address(), &bad_message).unwrap());
@@ -409,7 +407,7 @@ mod tests {
         for _ in 0..ITERATIONS {
             // Sample a new private key and message.
             let private_key = PrivateKey::new();
-            let rand_u128: u128 = StdRng::from_entropy().gen();
+            let rand_u128: u128 = rand::random();
             let message = format!("{rand_u128}u128");
 
             // Sign the message.
@@ -418,7 +416,7 @@ mod tests {
             assert!(signature.verify_value(&private_key.to_address(), &message).unwrap());
 
             // Sample a different message.
-            let rand_u128: u128 = StdRng::from_entropy().gen();
+            let rand_u128: u128 = rand_u128.wrapping_add(1);
             let bad_message = format!("{rand_u128}u128");
             // Check the signature is invalid.
             assert!(!signature.verify_value(&private_key.to_address(), &bad_message).unwrap());
@@ -430,7 +428,7 @@ mod tests {
         for _ in 0..ITERATIONS {
             // Sample a new private key and message.
             let private_key = PrivateKey::new();
-            let rand_i8: i8 = StdRng::from_entropy().gen();
+            let rand_i8: i8 = rand::random();
             let message = format!("{rand_i8}i8");
 
             // Sign the message.
@@ -451,7 +449,7 @@ mod tests {
         for _ in 0..ITERATIONS {
             // Sample a new private key and message.
             let private_key = PrivateKey::new();
-            let rand_i16: i16 = StdRng::from_entropy().gen();
+            let rand_i16: i16 = rand::random();
             let message = format!("{rand_i16}i16");
 
             // Sign the message.
@@ -460,7 +458,7 @@ mod tests {
             assert!(signature.verify_value(&private_key.to_address(), &message).unwrap());
 
             // Sample a different message.
-            let rand_i16_new: i16 = StdRng::from_entropy().gen();
+            let rand_i16_new: i16 = rand_i16.wrapping_add(1);
             let bad_message = format!("{rand_i16_new}i16");
             // Check the signature is invalid.
             assert!(!signature.verify_value(&private_key.to_address(), &bad_message).unwrap());
@@ -472,7 +470,7 @@ mod tests {
         for _ in 0..ITERATIONS {
             // Sample a new private key and message.
             let private_key = PrivateKey::new();
-            let rand_i32: i32 = StdRng::from_entropy().gen();
+            let rand_i32: i32 = rand::random();
             let message = format!("{rand_i32}i32");
 
             // Sign the message.
@@ -481,7 +479,7 @@ mod tests {
             assert!(signature.verify_value(&private_key.to_address(), &message).unwrap());
 
             // Sample a different message.
-            let rand_i32_new: i32 = StdRng::from_entropy().gen();
+            let rand_i32_new: i32 = rand_i32.wrapping_add(1);
             let bad_message = format!("{rand_i32_new}i32");
             // Check the signature is invalid.
             assert!(!signature.verify_value(&private_key.to_address(), &bad_message).unwrap());
@@ -493,7 +491,7 @@ mod tests {
         for _ in 0..ITERATIONS {
             // Sample a new private key and message.
             let private_key = PrivateKey::new();
-            let rand_i64: i64 = StdRng::from_entropy().gen();
+            let rand_i64: i64 = rand::random();
             let message = format!("{rand_i64}i64");
 
             // Sign the message.
@@ -502,7 +500,7 @@ mod tests {
             assert!(signature.verify_value(&private_key.to_address(), &message).unwrap());
 
             // Sample a different message.
-            let rand_i64_new: i64 = StdRng::from_entropy().gen();
+            let rand_i64_new: i64 = rand_i64.wrapping_add(1);
             let bad_message = format!("{rand_i64_new}i64");
             // Check the signature is invalid.
             assert!(!signature.verify_value(&private_key.to_address(), &bad_message).unwrap());
@@ -514,7 +512,7 @@ mod tests {
         for _ in 0..ITERATIONS {
             // Sample a new private key and message.
             let private_key = PrivateKey::new();
-            let rand_i128: i128 = StdRng::from_entropy().gen();
+            let rand_i128: i128 = rand::random();
             let message = format!("{rand_i128}i128");
 
             // Sign the message.
@@ -523,7 +521,7 @@ mod tests {
             assert!(signature.verify_value(&private_key.to_address(), &message).unwrap());
 
             // Sample a different message.
-            let rand_i128_new: i128 = StdRng::from_entropy().gen();
+            let rand_i128_new: i128 = rand_i128.wrapping_add(1);
             let bad_message = format!("{rand_i128_new}i128");
             // Check the signature is invalid.
             assert!(!signature.verify_value(&private_key.to_address(), &bad_message).unwrap());

@@ -22,14 +22,14 @@ crate-type = [ "cdylib", "rlib" ]
 doctest = false
 
 [dependencies.snarkvm-algorithms]
-version = "4.6.4"
+version = "4.7.1"
 
 [dependencies.snarkvm-circuit-network]
-version = "4.6.4"
+version = "4.7.1"
 features = ["wasm"]
 
 [dependencies.snarkvm-console]
-version = "4.6.4"
+version = "4.7.1"
 default-features = false
 features = [
     "account",
@@ -42,31 +42,31 @@ features = [
 ]
 
 [dependencies.snarkvm-ledger-block]
-version = "4.6.4"
+version = "4.7.1"
 features = ["wasm"]
 
 [dependencies.snarkvm-ledger-query]
-version = "4.6.4"
+version = "4.7.1"
 features = ["async", "wasm"]
 
 [dependencies.snarkvm-ledger-store]
-version = "4.6.4"
+version = "4.7.1"
 
 [dependencies.snarkvm-parameters]
-version = "4.6.4"
+version = "4.7.1"
 default-features = false
 features = ["wasm"]
 
 [dependencies.snarkvm-synthesizer-program]
-version = "4.6.4"
+version = "4.7.1"
 features = ["wasm"]
 
 [dependencies.snarkvm-synthesizer]
-version = "4.6.4"
+version = "4.7.1"
 features = ["async", "wasm"]
 
 [dependencies.snarkvm-wasm]
-version = "4.6.4"
+version = "4.7.1"
 features = ["fields", "utilities"]
 
 [dependencies.anyhow]
@@ -94,7 +94,7 @@ version = "0.4.3"
 version = "0.3"
 
 [dependencies.rand]
-version = "0.8"
+version = "0.10"
 
 [dependencies.rayon]
 version = "1.8"
