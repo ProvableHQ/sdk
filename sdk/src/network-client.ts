@@ -1,5 +1,5 @@
 import { logger } from "./utils/logger.js";
-import { get, post, parseJSON, logAndThrow, retryWithBackoff, environment, isNode, TransportFunction, defaultTransport } from "./utils/utils.js";
+import { get, post, parseJSON, logAndThrow, retryWithBackoff, environment, isNode, TransportFunction, defaultTransport, cookieFromSetCookies } from "./utils/utils.js";
 import { Account } from "./account.js";
 import { BlockJSON } from "./models/blockJSON.js";
 import { TransactionJSON } from "./models/transaction/transactionJSON.js";
@@ -1923,8 +1923,11 @@ class AleoNetworkClient {
                 ciphertext: ciphertext,
             };
 
-            // We're in node, attempt to set the cookie manually.
-            const cookie = isNode() ? pubKeyResponse.headers.get("set-cookie"): undefined;
+            // We're in node, attempt to set the cookie manually. Use the helper so
+            // multi-Set-Cookie responses (e.g. Kong's `route` plus the app's `pubkey`)
+            // become an RFC 6265-compliant `; `-joined Cookie header instead of the
+            // comma-joined string Headers.get("set-cookie") would produce.
+            const cookie = isNode() ? cookieFromSetCookies(pubKeyResponse.headers) : undefined;
 
             const res = await this.transport(`${proverUri}${endpoint}`, {
                 method: "POST",

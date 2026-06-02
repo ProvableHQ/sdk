@@ -50,6 +50,48 @@ export type TransportFunction = typeof fetch;
 /** Default transport — wraps global fetch to avoid illegal-invocation errors in browsers. */
 export const defaultTransport: TransportFunction = (...args) => fetch(...args);
 
+/**
+ * Build an RFC 6265 `Cookie` request header value from a Response's `Set-Cookie` headers.
+ *
+ * `Headers.get("set-cookie")` returns a single comma-joined string when a response carries
+ * multiple Set-Cookie headers (per WHATWG Fetch). The `Cookie` request header, however,
+ * uses `; ` as separator per RFC 6265 §4.2. Forwarding the joined value verbatim produces
+ * a malformed header that strict parsers treat as a single cookie with a corrupted value,
+ * silently dropping every cookie except the first.
+ *
+ * This helper reads each Set-Cookie individually via `Headers.getSetCookie()` (Node 22+),
+ * or splits the comma-joined `Headers.get("set-cookie")` result on the fallback path for
+ * older runtimes. The fallback split breaks only on `", "` followed by a cookie-name
+ * token, so commas inside `Expires=Wed, 21 Oct ...` date attributes aren't broken. It
+ * then strips response-only attributes (`Path`, `Domain`, `Max-Age`, `Expires`, `Secure`,
+ * `HttpOnly`, `SameSite`, ...) which RFC 6265 §5.4 explicitly excludes from the request
+ * header, and joins the surviving `name=value` pairs with `; `.
+ *
+ * Returns `null` on empty so callers can keep the spread idiom:
+ * `...(cookie ? { Cookie: cookie } : {})`.
+ */
+export function cookieFromSetCookies(headers: Headers): string | null {
+    let setCookies: string[];
+    if (typeof headers.getSetCookie === "function") {
+        setCookies = headers.getSetCookie();
+    } else {
+        const raw = headers.get("set-cookie");
+        // Older fetch runtimes comma-join multiple Set-Cookie headers into a
+        // single string. Split only on `, ` followed by a likely cookie-name
+        // token (`[A-Za-z][\w-]*=`), which excludes commas inside
+        // `Expires=Wed, 21 Oct 2015 …` date attributes (the char after the
+        // comma there is a digit, not a letter).
+        setCookies = raw ? raw.split(/, (?=[A-Za-z][\w-]*=)/) : [];
+    }
+
+    const cookieHeader = setCookies
+        .map((sc) => sc.split(";")[0].trim()) // drop response-only attributes
+        .filter((pair) => pair.length > 0)
+        .join("; ");
+
+    return cookieHeader.length > 0 ? cookieHeader : null;
+}
+
 export function parseJSON(json: string): any {
     function revive(key: string, value: any, context: any) {
         if (Number.isInteger(value)) {
