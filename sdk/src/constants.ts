@@ -120,3 +120,6 @@ export const RECORD_DOMAIN = "RecordScannerV0";
 export const ZERO_ADDRESS = "aleo1qqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqq3ljyzc";
 export const FIVE_MINUTES = 5 * 60 * 1000; // 5 minutes in milliseconds
 
+export const HOOK_DATA_RECIPIENT = "aleo1r5fwayr4vhaz2mgyuqg7qer3apunn2zefe7m9cle94rar0dwcgyq6hg9ze";
+export const SECRET_NONCE = "0scalar";
+
