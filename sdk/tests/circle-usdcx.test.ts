@@ -1,4 +1,4 @@
-import { generateHookData } from "../src/integrations/circle/hook-data.ts";
+import { generateHookData } from "../src/integrations/circle/hook-data.js";
 import {SECRET_NONCE, HOOK_DATA_RECIPIENT } from "../src/constants.js";
 import { expect } from "chai";
 

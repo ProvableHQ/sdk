@@ -1,7 +1,7 @@
 import { BHP256, Plaintext, Scalar } from "../../wasm.js";
 
 // This method generates the hook data for the Circle USDCx shielded mint flow.  
-function generateHookData(recipientAddress: String, secretNonce: String): Uint8Array {
+function generateHookData(recipientAddress: string, secretNonce: string): Uint8Array {
   // Leo's BHP256::commit_to_field uses the typed plaintext bits, not raw address bits.
   const recipientBits = Plaintext.fromString(recipientAddress).toBitsLe();
   const secret = Scalar.fromString(secretNonce);
