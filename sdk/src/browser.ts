@@ -102,6 +102,7 @@ import {
 } from "./record-provider.js";
 import { RecordScanner, RecordScannerJWTData, RecordScannerOptions } from "./record-scanner.js";
 import { SealanceMerkleTree } from "./integrations/sealance/merkle-tree.js";
+import { generateHookData } from "./integrations/circle/hook-data.js";
 
 // @TODO: This function is no longer needed, remove it.
 async function initializeWasm() {
@@ -223,6 +224,7 @@ export {
     FunctionObject,
     FunctionKeyPair,
     FunctionKeyProvider,
+    generateHookData,
     Header,
     isProvingResponse,
     isProveApiErrorBody,
