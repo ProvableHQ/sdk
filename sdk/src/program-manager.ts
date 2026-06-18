@@ -215,7 +215,7 @@ interface ProvingRequestOptions {
     unchecked?: boolean;
     edition?: number;
     useFeeMaster?: boolean;
-    executionRequests?: ExecutionRequest[];
+    executionRequest?: ExecutionRequest | ExecutionRequest[];
 }
 
 /**
@@ -1819,7 +1819,14 @@ class ProgramManager {
         let imports = options.programImports;
         let edition = options.edition;
 
-        if (!inputs && (!options.executionRequests || options.executionRequests.length === 0)) {
+        // Accept either a single execution request or an array; normalize to an array.
+        const executionRequests = options.executionRequest === undefined
+            ? []
+            : Array.isArray(options.executionRequest)
+                ? options.executionRequest
+                : [options.executionRequest];
+
+        if (!inputs && executionRequests.length === 0) {
             throw new Error("Either function inputs or an execution request must be provided to form a proving request");
         }
 
@@ -1851,7 +1858,7 @@ class ProgramManager {
         if (
             typeof privateKey === "undefined" &&
             typeof this.account !== "undefined" &&
-            (!options.executionRequests || options.executionRequests.length === 0)
+            executionRequests.length === 0
         ) {
             executionPrivateKey = this.account.privateKey();
         }
@@ -1872,7 +1879,7 @@ class ProgramManager {
 
         // Get the fee record from the account if it is not provided in the parameters
         try {
-            if (privateFee && !useFeeMaster && (!options.executionRequests || options.executionRequests.length === 0)) {
+            if (privateFee && !useFeeMaster && executionRequests.length === 0) {
                 let fee = priorityFee;
                 // If a fee record wasn't provided, estimate the fee that needs to be paid.
                 if (!feeRecord) {
@@ -1919,9 +1926,9 @@ class ProgramManager {
             imports = merged;
         }
 
-        if (options.executionRequests && options.executionRequests.length > 0) {
+        if (executionRequests.length > 0) {
             return WasmProgramManager.buildProvingRequestFromExecutionRequest(
-                options.executionRequests,
+                executionRequests,
                 undefined,  // fee_request — handled separately if needed
                 broadcast,
             );

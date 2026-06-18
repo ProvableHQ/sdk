@@ -343,7 +343,7 @@ describe('Program Manager', async () => {
                 priorityFee: 0,
                 privateFee: false,
                 broadcast: false,
-                executionRequests: [executionRequest],
+                executionRequest: executionRequest,
             });
 
             expect(provingRequest.kind()).equal("request");
