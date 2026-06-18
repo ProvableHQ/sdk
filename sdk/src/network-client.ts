@@ -69,6 +69,12 @@ interface DelegatedProvingParams {
   dpsPrivacy?: boolean;
 }
 
+const HEADERS = new Set([
+    "x-aleo-sdk-version",
+    "x-aleo-environment",
+    "x-aleo-method",
+]);
+
 /**
  * Client library that encapsulates REST calls to publicly exposed endpoints of Aleo nodes. The methods provided in this
  * allow users to query public information from the Aleo blockchain and submit transactions to the network.
@@ -259,6 +265,23 @@ class AleoNetworkClient {
         delete this.headers[headerName];
     }
 
+    private userHeaders(): { [key: string]: string } {
+        const result: { [key: string]: string } = {};
+        for (const [key, value] of Object.entries(this.headers)) {
+            if (!HEADERS.has(key.toLowerCase())) {
+                result[key] = value;
+            }
+        }
+        return result;
+    }
+
+    private method(method: string): { [key: string]: string } {
+        if (this.hasCustomTransport) {
+            return this.userHeaders();
+        }
+        return { ...this.headers, "X-ALEO-METHOD": method };
+    }
+
     /**
      * Fetches data from the Aleo network and returns it as a JSON object.
      *
@@ -286,10 +309,9 @@ class AleoNetworkClient {
             const ctx = {...this.ctx};
             return await retryWithBackoff(async () => {
                 const response = await get(this.host + url, {
-                    headers: {
-                        ...this.headers,
-                        ...ctx,
-                    },
+                    headers: this.hasCustomTransport
+                        ? this.userHeaders()
+                        : { ...this.headers, ...ctx },
                 }, this.transport);
                 return await response.text();
             });
@@ -1717,7 +1739,7 @@ class AleoNetworkClient {
             const response = await retryWithBackoff(() =>
                 this._sendPost(`${this.host}/${endpoint}`, {
                     body: transactionString,
-                    headers: Object.assign({}, {...this.headers, "X-ALEO-METHOD" : "submitTransaction"}, {
+                    headers: Object.assign({}, this.method("submitTransaction"), {
                         "Content-Type": "application/json",
                     }),
                 }),
@@ -1749,7 +1771,7 @@ class AleoNetworkClient {
             const response = await retryWithBackoff(() =>
                 post(this.host + "/solution/broadcast", {
                     body: solution,
-                    headers: Object.assign({}, {...this.headers, "X-ALEO-METHOD": "submitSolution"}, {
+                    headers: Object.assign({}, this.method("submitSolution"), {
                         "Content-Type": "application/json",
                     }),
                 }, this.transport),
@@ -1785,7 +1807,8 @@ class AleoNetworkClient {
             `${this.baseUrl}/jwts/${consumerId}`,
             {
                 headers: {
-                    'X-Provable-API-Key': apiKey
+                    ...this.method("refreshJwt"),
+                    'X-Provable-API-Key': apiKey,
                 }
             },
             this.transport,
@@ -1890,8 +1913,7 @@ class AleoNetworkClient {
 
         // Create the necessary headers to hit the provable api.
         const headers: Record<string, string> = {
-            ...this.headers,
-            "X-ALEO-METHOD": "submitProvingRequest",
+            ...this.method("submitProvingRequest"),
             "Content-Type": "application/json",
         };
         if (jwtData?.jwt) {
@@ -2032,10 +2054,7 @@ class AleoNetworkClient {
                     const res = await this.transport(
                         `${this.host}/transaction/confirmed/${transactionId}`,
                         {
-                            headers: {
-                                ...this.headers,
-                                "X-ALEO-METHOD" : "waitForTransactionConfirmation",
-                            },
+                            headers: this.method("waitForTransactionConfirmation"),
                         },
                     );
                     if (!res.ok) {
