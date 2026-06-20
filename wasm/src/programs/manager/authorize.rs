@@ -43,6 +43,7 @@ use crate::{
 
 use js_sys::{Array, Object};
 use std::str::FromStr;
+use wasm_bindgen::JsValue;
 
 #[wasm_bindgen]
 impl ProgramManager {
@@ -273,6 +274,129 @@ impl ProgramManager {
             .map_err(|e| e.to_string())?;
 
         Ok(Authorization::from(authorization))
+    }
+
+    /// Produce a mocked `Authorization` for a program function call without needing a private key,
+    /// alongside the auxiliary information gathered while traversing the call graph.
+    ///
+    /// This behaves like {@link sampleAuthorization} but calls the underlying
+    /// `Stack::sample_authorization_extended`, which additionally surfaces record-tracking,
+    /// record-name, and program-checksum information needed to populate the mocked `Request`s.
+    /// The returned object has the following shape:
+    ///
+    /// ```text
+    /// {
+    ///   authorization: Authorization,
+    ///   // Each entry indicates that the `minterRequestIndex`-th request output a static record at
+    ///   // register `outputIndex` which was (possibly after conversion to an external or dynamic
+    ///   // record) passed as the `inputIndex`-th input to each listed `consumerRequestIndex`.
+    ///   recordTracking: { minterRequestIndex, outputIndex, consumers: { consumerRequestIndex, inputIndex }[] }[],
+    ///   // The m-th input of the n-th request is a static record named `recordName`.
+    ///   recordNames: { requestIndex, inputIndex, recordName }[],
+    ///   // The n-th request corresponds to a program with the given checksum.
+    ///   programChecksums: { requestIndex, checksum }[],
+    /// }
+    /// ```
+    ///
+    /// @param {Address} address The address used as the signer in the mocked requests.
+    /// @param {string} program The program source code containing the entry function.
+    /// @param {string} function_name The entry function to authorize.
+    /// @param {Array} inputs A javascript array of inputs to the function.
+    /// @param {Object | undefined} imports The imports to the program in `{"name.aleo":"source"}` format.
+    /// @param {number | undefined} edition The program edition (defaults to 1).
+    /// @param {ProgramImports | undefined} program_imports Pre-loaded imports builder.
+    #[wasm_bindgen(js_name = sampleAuthorizationExtended)]
+    pub async fn sample_authorization_extended(
+        address: &Address,
+        program: &str,
+        function_name: &str,
+        inputs: Array,
+        imports: Option<Object>,
+        edition: Option<u16>,
+        program_imports: Option<ProgramImports>,
+    ) -> Result<Object, String> {
+        let edition = edition.unwrap_or(1);
+
+        let mut resolved = ResolvedProcess::resolve(&program_imports, program, edition, imports)?;
+        let program_native = resolved.program().clone();
+        let process = resolved.process_mut();
+
+        let rng = &mut rand::rng();
+
+        // Parse inputs as strings (same pattern as the authorize! macro).
+        let inputs_native = process_inputs!(inputs);
+
+        // Parse the function name.
+        let function_name_native = IdentifierNative::from_str(function_name)
+            .map_err(|_| "The function name provided was invalid".to_string())?;
+
+        // Ensure the top-level program is in the process.
+        if program_native.id().to_string() != "credits.aleo" && !process.contains_program(program_native.id()) {
+            log("Adding program to the process");
+            process.lock().add_program_with_edition(&program_native, edition).map_err(|e| e.to_string())?;
+        }
+
+        // Get the stack for the top-level program.
+        let stack = process.get_stack(program_native.id()).map_err(|e| e.to_string())?;
+
+        let address_native = AddressNative::from(address);
+        let program_id = *program_native.id();
+
+        // Produce the mock authorization with additional request-population information
+        let (authorization, record_tracking, record_names, program_checksums) = stack
+            .sample_authorization_extended::<CurrentAleo, _>(
+                address_native,
+                program_id,
+                function_name_native,
+                inputs_native.into_iter(),
+                rng,
+            )
+            .map_err(|e| e.to_string())?;
+        
+        // Record-tracking: (minter_request, output_register) -> [(consumer_request, input_index), ...].
+        // We flatten the tuple key into individual values (since JS maps cannot key on tuples) and
+        // keep the consumers as a nested array.
+        let record_tracking_js = Array::new();
+        for ((minter_request_index, output_index), consumers) in record_tracking {
+            let consumers_js = Array::new();
+            for (consumer_request_index, input_index) in consumers {
+                consumers_js.push(&JsValue::from(crate::object! {
+                    "consumerRequestIndex": consumer_request_index as u32,
+                    "inputIndex": input_index as u32,
+                }));
+            }
+            record_tracking_js.push(&JsValue::from(crate::object! {
+                "minterRequestIndex": minter_request_index as u32,
+                "outputIndex": output_index as f64,
+                "consumers": consumers_js,
+            }));
+        }
+
+        // Record-names: (request_index, input_index) -> record_name (for all input static records).
+        let record_names_js = Array::new();
+        for ((request_index, input_index), record_name) in record_names {
+            record_names_js.push(&JsValue::from(crate::object! {
+                "requestIndex": request_index as u32,
+                "inputIndex": input_index as u32,
+                "recordName": record_name.to_string(),
+            }));
+        }
+
+        // Program-checksums: request_index -> checksum (programs with no checksum: no entry).
+        let program_checksums_js = Array::new();
+        for (request_index, checksum) in program_checksums {
+            program_checksums_js.push(&JsValue::from(crate::object! {
+                "requestIndex": request_index as u32,
+                "checksum": checksum.to_string(),
+            }));
+        }
+
+        Ok(crate::object! {
+            "authorization": Authorization::from(authorization),
+            "recordTracking": record_tracking_js,
+            "recordNames": record_names_js,
+            "programChecksums": program_checksums_js,
+        })
     }
 
     /// Create an `Authorization` for `credits.aleo/fee_public` or `credits.aleo/fee_private`.

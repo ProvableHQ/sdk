@@ -6,6 +6,9 @@ import {
     Field,
     Group,
     Plaintext,
+    Poseidon2,
+    Poseidon4,
+    Poseidon8,
     PrivateKey,
     Program,
     ProgramImportsBuilder,
@@ -27,6 +30,7 @@ import type {
     SignatureLike,
     AddressLike,
     InputStrategy,
+    ExternalSigningInput,
 } from "../src/node.js";
 import {
     isViewKeyStrategy,
@@ -39,10 +43,159 @@ import {
     addressString,
     beaconPrivateKeyString,
 } from "./data/account-data.js";
-import { MULTIPLY_PROGRAM, DOUBLE_PROGRAM } from "./data/test-programs.js";
+import { MULTIPLY_PROGRAM, DOUBLE_PROGRAM, LDGBATCHER_P28_PROGRAM } from "./data/test-programs.js";
 
 const message = Uint8Array.from([104, 101, 108, 108, 111, 32, 119, 111, 114, 108, 100]);
 
+/**
+ * Output of the signer-side {@link fromPreprocessedInputs}: the freshly-sampled transition view key,
+ * the derived transition commitment, the request signature, and the gammas of the static-record
+ * inputs (one per record input, in input order).
+ */
+interface PreprocessedSigningResult {
+    tvk: Field;
+    tcm: Field;
+    signature: Signature;
+    gammas: Group[];
+}
+
+/**
+ * Produces a request signature from preprocessed inputs, mirroring the standard request
+ * signing algorithm. The signer holds the private key; the preprocessed inputs (produced by the
+ * authorizer via {@link computeExternalSigningInputs}) contain the to-fields representation of each
+ * input except for static records, where they contain the (`H`, `tag`) tuple.
+ *
+ * The function:
+ *   1. Samples a fresh transition view key `tvk` and derives `tcm = Hash(tvk)`.
+ *   2. Builds the message payload corresponding to each non-static-record input.
+ *   3. Calls `ExecutionRequest.signRequestFromPreprocessedInputs`, which samples the
+ *      transition secret `r`, computes `r * H` and `gamma = sk_sig * H` for every record, assembles
+ *      the message, and signs it.
+ *
+ * @returns The sampled `tvk`, the `tcm`, the `signature`, and the per-record `gammas`.
+ */
+function fromPreprocessedInputs(
+    privateKey: PrivateKey,
+    programName: string,
+    functionName: string,
+    authExternalInputs: ExternalSigningInput<"string">,
+): PreprocessedSigningResult {
+
+    // Initialize the hashers.
+    const poseidon4 = new Poseidon4();
+    const poseidon8 = new Poseidon8();
+
+    // The WASM bindings take `Field` arguments by value and consume (move) them: a `Field` instance
+    // cannot be reused across two WASM calls. We therefore keep the reused values as strings and mint
+    // a fresh `Field` for each use via `f(...)`.
+    const str_to_f = (s: string): Field => Field.fromString(s);
+
+    // Sample the transition view key and derive the transition commitment `tcm = Hash(tvk)`.
+    const tvkStr = Field.random().toString();
+    const tcmStr = new Poseidon2().hash([str_to_f(tvkStr)]).toString();
+    const functionIdStr = authExternalInputs.functionId;
+
+    // Build the per-input signing material. Records are passed as `[H, tag]` (the signer derives
+    // `r * H` and `gamma`); every other input is passed as its precomputed input ID field, which is
+    // derived from the freshly-sampled `tvk` exactly as the standard signing algorithm does.
+    const inputIds = authExternalInputs.requestInputs.map((input): Field | [Field, Field] => {
+        const index = input.index;
+        const data = (): Field[] => input.data.map(str_to_f);
+        switch (input.signingInputType) {
+            case "record":
+                return [str_to_f(input.h!), str_to_f(input.tag!)];
+            case "constant":
+            case "public":
+                // `Hash(function_id || data || tcm || index)`.
+                return poseidon8.hash([str_to_f(functionIdStr), ...data(), str_to_f(tcmStr), str_to_f(index)]);
+            case "private": {
+                // Encrypt with input view key `Hash(function_id || tvk || index)`, hash the ciphertext.
+                const inputViewKey = poseidon4.hash([str_to_f(functionIdStr), str_to_f(tvkStr), str_to_f(index)]);
+                const ciphertext = Plaintext.fromFields(data()).encryptSymmetric(inputViewKey);
+                return poseidon8.hash(Array.from(ciphertext.toFields() as ArrayLike<Field>));
+            }
+            case "external_record":
+            case "dynamic_record":
+                // `Hash(function_id || data || tvk || index)`.
+                return poseidon8.hash([str_to_f(functionIdStr), ...data(), str_to_f(tvkStr), str_to_f(index)]);
+            default:
+                throw new Error(`Unsupported signing input type: ${input.signingInputType}`);
+        }
+    });
+
+    const checksum = authExternalInputs.checksum != null ? str_to_f(authExternalInputs.checksum) : undefined;
+
+    const signed: any = (ExecutionRequest as any).signRequestFromPreprocessedInputs(
+        privateKey,
+        programName,
+        functionName,
+        str_to_f(tvkStr),
+        authExternalInputs.isRoot,
+        checksum,
+        inputIds,
+    );
+
+    return {
+        tvk: signed.tvk as Field,
+        tcm: signed.tcm as Field,
+        signature: signed.signature as Signature,
+        gammas: Array.from(signed.gammas as ArrayLike<Group>),
+    };
+}
+
+/**
+ * Computes the nonce of a static output record minted at `outputIndex` by a request whose transition
+ * view key is `tvk`, exactly as the `cast` instruction does on-chain:
+ *   `nonce = g * HashToScalar([tvk, output_index])`.
+ */
+function computeMintedNonce(tvk: Field, outputIndex: number): Group {
+    const index = Field.fromString(`${outputIndex}field`);
+    const randomizer = new Poseidon2().hashToScalar([tvk, index]);
+    return Group.generator().scalarMultiply(randomizer);
+}
+
+/**
+ * Writes a freshly-minted record nonce into the consumer input that receives it: replaces the
+ * `_nonce` of the record at `inputsByRequest[consumerRequestIndex][inputIndex]`.
+ */
+function applyMintedNonce(
+    inputsByRequest: string[][],
+    consumerRequestIndex: number,
+    inputIndex: number,
+    nonce: Group,
+): void {
+    const inputs = inputsByRequest[consumerRequestIndex];
+    inputs[inputIndex] = inputs[inputIndex].replace(/_nonce:\s*\d+group/, `_nonce: ${nonce.toString()}`);
+}
+
+/**
+ * Maps a function-input definition returned by {@link Program.getFunctionInputs} to its snarkVM
+ * value-type string (the format consumed by `computeExternalSigningInputs`, the
+ * `fromExternallySignedData*` methods and `verify`). The shape returned by `getFunctionInputs`
+ * differs per input kind, so a plain `${type}.${visibility}` is only correct for literals.
+ */
+function valueTypeFromInputDef(def: any): string {
+    switch (def.type) {
+        case "record":
+            // Internal record: `<record_name>.record`.
+            return `${def.record}.record`;
+        case "external_record":
+            // External record: `<program_id>/<record_name>.record`.
+            return `${def.locator}.record`;
+        case "future":
+            return `${def.locator}.future`;
+        case "struct":
+            return `${def.struct_id}.${def.visibility}`;
+        case "dynamic.record":
+        case "dynamic.future":
+            return def.type;
+        default:
+            // Literal plaintext (address, u64, field, ...): `<type>.<visibility>`.
+            return `${def.type}.${def.visibility}`;
+    }
+}
+
+// TODO (Antonio) duplicated from external-signing.test.ts
 describe('External Signing Utilities', () => {
     const privateKey = PrivateKey.from_string(privateKeyString);
     const viewKey = privateKey.to_view_key();
@@ -706,67 +859,6 @@ describe('External Signing ExecutionRequest integration', () => {
         expect(roundTrippedPR.requests().length).to.equal(2);
     });
 
-    it('Should match ExecutionRequest.sign for transfer_private', async () => {
-        // Use beacon private key - record is owned by beacon address
-        const privateKey = PrivateKey.from_string(beaconPrivateKeyString);
-        const beaconRecord = RecordPlaintext.fromString(recordBeaconOwned);
-        const gamma = beaconRecord.gamma("credits.aleo", "credits", privateKey);
-        const beaconViewKey = ViewKey.from_private_key(PrivateKey.from_string(beaconPrivateKeyString));
-        const externalSigningInputs = await computeExternalSigningInputs({
-            programName: "credits.aleo",
-            functionName: "transfer_private",
-            inputs: transferPrivateInputs,
-            inputTypes: transferPrivateInputTypes,
-            isRoot: true,
-            checksum: null,
-            viewKey: beaconViewKey,
-        });
-        expect(externalSigningInputs.signer).to.be.a("string");
-        expect(externalSigningInputs.skTag).to.be.a("string");
-
-        // Verify per-input recordViewKey is set on the record input
-        expect(externalSigningInputs.requestInputs[0].recordViewKey).to.be.a("string");
-        expect(externalSigningInputs.requestInputs[0].recordViewKey).to.match(/field$/);
-
-        // Verify non-record inputs don't have recordViewKey
-        expect(externalSigningInputs.requestInputs[1].recordViewKey).to.be.undefined;
-        expect(externalSigningInputs.requestInputs[2].recordViewKey).to.be.undefined;
-        const signedRequest = ExecutionRequest.sign(
-            privateKey,
-            "credits.aleo",
-            "transfer_private",
-            transferPrivateInputs,
-            transferPrivateInputTypes,
-            undefined,
-            undefined,
-            true,
-        );
-        expect(signedRequest.program_id()).to.equal("credits.aleo");
-        expect(signedRequest.function_name()).to.equal("transfer_private");
-        expect(signedRequest.inputs().length).to.equal(3);
-        expect(externalSigningInputs.requestInputs.length).to.equal(signedRequest.inputs().length);
-
-        const sig = signedRequest.signature();
-        const tvk = signedRequest.tvk();
-        // Use pre-computed input_ids via buildExecutionRequestFromExternallySignedDataWithInputIds
-        const externallySignedRequest = ExecutionRequest.fromExternallySignedDataWithInputIds(
-            "credits.aleo",
-            "transfer_private",
-            transferPrivateInputs,
-            transferPrivateInputTypes,
-            sig,
-            tvk,
-            signedRequest.signer(),
-            signedRequest.sk_tag(),
-            signedRequest.input_ids(),
-        );
-        expect(externallySignedRequest.program_id()).to.equal(signedRequest.program_id());
-        expect(externallySignedRequest.function_name()).to.equal(signedRequest.function_name());
-        expect(externallySignedRequest.inputs().length).to.equal(signedRequest.inputs().length);
-        expect(externallySignedRequest.input_ids().length).to.equal(signedRequest.input_ids().length);
-        expect(externallySignedRequest.toString()).to.equal(signedRequest.toString());
-    });
-
     it('Should not include recordViewKey on inputs when no viewKey is provided', async () => {
         const externalSigningInputs = await computeExternalSigningInputs({
             programName: "credits.aleo",
@@ -905,5 +997,269 @@ describe('External Signing ExecutionRequest integration', () => {
         };
         assertFieldsRoundTripThroughPlaintext(secondInput.data, transferPrivateInputs[1]);
         assertFieldsRoundTripThroughPlaintext(thirdInput.data, transferPrivateInputs[2]);
+    });
+
+
+    it('Should match ExecutionRequest.sign for arbitrary flow with multiple requests', async () => {
+        // Deploy scenario: ldgbatcher_p28.aleo batches three minted credits.aleo records into a
+        // single private transfer via transfer_private_3
+        // Nonetheless, the authorization/signing procedure below is general and should work for
+        // any flow of calls and records in a valid transaction.
+
+        // Below, we prefix the names of some authorizer-side variables with "auth" and signer-side
+        // ones with "sig"
+        const sigPrivateKeyStr = privateKeyStr;
+        const sigPrivateKey = PrivateKey.from_string(sigPrivateKeyStr);
+
+        const authViewKeyStr = ViewKey.from_private_key(sigPrivateKey).to_string();
+
+        const addressStr = Address.from_private_key(sigPrivateKey).to_string();
+         
+
+        // -----------------------------------------------------------------------------------------
+        // Setup: deploy ldgbatcher_p28.aleo and mint three credits.aleo records
+
+        //   1. "Deploy" ldgbatcher_p28.aleo (which imports credits.aleo) by registering its
+        //      source in the imports builder. credits.aleo is always available in the process,
+        //      so addProgram does not need to be called for it.
+        //   2. Produce three private credits.aleo records. Since the SDK test has no local
+        //      ledger, instead of executing transfer_public_to_private three times we use
+        //      pre-generated credits.aleo/credits record plaintexts owned by the caller.
+        const ProgramName = "ldgbatcher_p28.aleo";
+        const imports = new ProgramImportsBuilder();
+        imports.addProgram(ProgramName, LDGBATCHER_P28_PROGRAM);
+
+        // Each record contains 1_000_000 microcredits owned by the caller. The nonces are
+        // distinct, valid group elements so each record is a distinct, parseable credits record.
+        const shieldAmount = "1000000u64";
+        const recordNonces = [
+            "3634848344765318974603121890869676775499130077229666060613233255327643175219group",
+            "3077450429259593211617823051143573281856129402760267155982965992208217472983group",
+            "8327477210335641151082470829879168522735279120730137538049818239556464339772group",
+        ];
+        const records = recordNonces.map((nonce) =>
+            RecordPlaintext.fromString(
+                `{ owner: ${addressStr}.private, microcredits: ${shieldAmount}.private, _nonce: ${nonce}.public, _version: 1u8.public }`,
+            ),
+        );
+        expect(records.length).to.equal(3);
+
+        // Auxiliary function to resolve the program given its name: imported programs (e.g. the
+        // root ldgbatcher_p28.aleo) live in the imports builder, whereas credits.aleo is built into
+        // the process and not registered as an import. This is only used for resolving input types
+        // and can be done in different ways (for instance, sample_authorization_extended could
+        // return this information directly instead).
+        const programForRequest = (programName: string): Program => {
+            const source = imports.getProgram(programName);
+            if (source != null) {
+                return Program.fromString(source);
+            }
+            if (programName === "credits.aleo") {
+                return Program.getCreditsProgram();
+            }
+            throw new Error(`No program source available for ${programName}`);
+        };
+
+        // -----------------------------------------------------------------------------------------
+        // Part 1 [Authorizer]: Call sampleAuthorizationExtended to produce the mock authorization
+        //                      and auxiliary data
+
+        // Prepare the root-call target and inputs
+        const recipientPrivateKey = new PrivateKey();
+        const recipientAddress = Address.from_private_key(recipientPrivateKey);
+        const transferAmount = "2000000u64";
+        const functionName = "transfer_private_3";
+        const inputs = [
+            records[0].toString(),
+            records[1].toString(),
+            records[2].toString(),
+            recipientAddress.to_string(),
+            transferAmount,
+        ];
+
+        // ldgbatcher_p28.aleo declares `constructor: assert.eq edition 0u16;`.
+        const EDITION = 0;
+        
+        const extended: any = await (ProgramManagerBase as any).sampleAuthorizationExtended(
+            Address.from_string(addressStr),
+            LDGBATCHER_P28_PROGRAM,
+            functionName,
+            inputs,
+            undefined,  // legacy imports object
+            EDITION,
+            imports.clone(),  // clone: the builder is consumed (moved) by value
+        );
+
+        // Convert the returned object into the expected shapes
+        const authMockAuthorization = extended.authorization;
+        
+        const authRecordTracking = extended.recordTracking as Array<{
+            minterRequestIndex: number;
+            outputIndex: number;
+            consumers: Array<{ consumerRequestIndex: number; inputIndex: number }>;
+        }>;
+
+        const authProgramChecksums = extended.programChecksums as Array<{ requestIndex: number; checksum: string }>;
+
+        // Note that extended.recordNames is not needed in this flow.
+
+        // The authorization should contain exactly four requests:
+        // 0. ldgbatcher_p28.aleo/transfer_private_3
+        //    1. credits.aleo/join
+        //    2. credits.aleo/join
+        //    3. credits.aleo/transfer_private
+        // This is verified at the end, alongside various other assertions.
+
+        // -----------------------------------------------------------------------------------------
+        // Part 2: Populate the requests, updating future tvk-dependent inputs eagerly
+        //         Each request requires a round of authorizer-signer communication
+
+        const authSignedRequests = Array.from(authMockAuthorization.requests() as ArrayLike<any>);
+
+        // Mutable per-request inputs. As the signer progressively samples request tvks, if one of
+        // them mints a static record which is passed to a subsequent request (possibly after
+        // conversion to a external or dynamic record), the authorizer patches the corresponding
+        // inputs of the receiving requests with record nonces computed from the actual tvk of the
+        // minter.
+        const authInputsByRequest: string[][] = authSignedRequests.map((request: any) =>
+            Array.from(request.inputs() as ArrayLike<any>).map((v: any) => v.toString()),
+        );
+
+        // The root request's tvk (index 0), kept as a string. Every child request needs it to
+        // compute its scm. It is set on the first loop iteration and read by every subsequent one.
+        // (WASM `Field`s are consumed when passed by value, so we store the string and mint fresh
+        // `Field` instances at each use site.)
+        let rootTvkStr!: string;
+
+        // This list will accumulate the finalised, correct requests produced by the authorizer
+        // after receiving the signatures and other related data.
+        const authPopulatedRequests: ExecutionRequest[] = [];
+
+        // Traversal order is fundamental: the order in the requests of the mock authorization
+        // guarantees subsequent-request inputs will have the nonces of the relevant inputs
+        // populated in time.
+        for (const [requestIndex, signedRequest] of authSignedRequests.entries()) {
+
+            // [Authorizer]
+            // The authorizer pre-processes inputs, preparing "H" and "tag" in the case of records.
+            // Note that, crucially, the tvk-dependent nonces of static, external and dynamic records
+            // has been patched correctly by previous iterations of the loop.
+            const isRoot = requestIndex === 0;
+            const programName: string = signedRequest.program_id();
+            const requestFunctionName: string = signedRequest.function_name();
+
+            // Read the (nonce-patched, if relevant) inputs for this request.
+            const requestInputs = authInputsByRequest[requestIndex];
+
+            // Resolve the input types from the program's function definition.
+            const program = programForRequest(programName);
+            const inputDefs = Array.from(program.getFunctionInputs(requestFunctionName)) as any[];
+            const inputTypes = inputDefs.map(valueTypeFromInputDef);
+
+            const checksum = authProgramChecksums.find((c) => c.requestIndex === requestIndex)?.checksum ?? null;
+
+            // [Authorizer]
+            // Preprocess the inputs. Passing the view key computes "H", "tag", and the record view
+            // key for static-record inputs (whose tvk-dependent nonces have already been patched in by
+            // previous iterations), along with the signer and sk_tag.
+            const authExternalInputs = await computeExternalSigningInputs({
+                programName,
+                functionName: requestFunctionName,
+                inputs: requestInputs,
+                inputTypes,
+                isRoot,
+                checksum,
+                viewKey: authViewKeyStr,
+            });
+
+            // [Authorizer] sends [Signer] the target program and function
+
+            // [Signer]
+            // Produce the signature from the preprocessed inputs: this samples the tvk and r,
+            // derives `r * H` and gamma for the record inputs, constructs the message payload and
+            // signs it. A fresh private key is used because the WASM consumes (moves) the private
+            // key passed by value.
+            const signed = fromPreprocessedInputs(
+                PrivateKey.from_string(sigPrivateKeyStr),
+                programName,
+                requestFunctionName,
+                authExternalInputs,
+            );
+
+            const tvkStr = (signed.tvk as Field).toString();
+
+            if (isRoot) {
+                rootTvkStr = tvkStr;
+            }
+
+            // [Signer] sends [Authorizer] the tvk, signature and record-input gammas.
+
+            // [Authorizer]
+            // Reconstruct the full request from the signed data and the learnt tvk.
+            const rebuilt = ExecutionRequest.fromExternallySignedDataWithViewKey(
+                programName,
+                requestFunctionName,
+                requestInputs,
+                inputTypes,
+                signed.signature,
+                Field.fromString(tvkStr),
+                Address.from_string(addressStr),
+                Field.fromString(authExternalInputs.skTag!),
+                ViewKey.from_string(authViewKeyStr),
+                signed.gammas,
+                Field.fromString(rootTvkStr),
+            );
+
+            authPopulatedRequests.push(rebuilt);
+
+            // [Authorizer]
+            // Patch the nonces of static/external/dynamic records input to subsequent requests and
+            // coming from static records minted by this request. The nonce needs to be recomputed
+            // using the actual tvk returned by the signer. The record-tracking information returned
+            // by sampleAuthorizationExtended indicates which request inputs must be updated.
+            for (const entry of authRecordTracking) {
+                if (entry.minterRequestIndex === requestIndex) {
+                    const nonce = computeMintedNonce(Field.fromString(tvkStr), entry.outputIndex);
+                    for (const consumer of entry.consumers) {
+                        applyMintedNonce(authInputsByRequest, consumer.consumerRequestIndex, consumer.inputIndex, nonce);
+                    }
+                }
+            }
+        }
+
+        // -----------------------------------------------------------------------------------------
+        // Checks
+        //  The flow is now complete. We verify each reconstructed request.
+
+        // Every request in the authorization was reconstructed.
+        expect(authPopulatedRequests.length).to.equal(authSignedRequests.length);
+
+        // The authorization must contain exactly four requests with the expected program/function
+        // targets, in call order.
+        const expectedTargets = [
+            { programId: "ldgbatcher_p28.aleo", functionName: "transfer_private_3" },
+            { programId: "credits.aleo", functionName: "join" },
+            { programId: "credits.aleo", functionName: "join" },
+            { programId: "credits.aleo", functionName: "transfer_private" },
+        ];
+        expect(authPopulatedRequests.length).to.equal(expectedTargets.length);
+        for (const [requestIndex, rebuilt] of authPopulatedRequests.entries()) {
+            expect(rebuilt.program_id()).to.equal(expectedTargets[requestIndex].programId);
+            expect(rebuilt.function_name()).to.equal(expectedTargets[requestIndex].functionName);
+        }
+
+        // Each reconstructed request must pass verification: this recomputes the input IDs from the
+        // inputs and tvk and checks the signature against the signer.
+        for (const [requestIndex, rebuilt] of authPopulatedRequests.entries()) {
+            const isRoot = requestIndex === 0;
+            const program = programForRequest(rebuilt.program_id());
+            const inputDefs = Array.from(program.getFunctionInputs(rebuilt.function_name())) as any[];
+            const inputTypes = inputDefs.map(valueTypeFromInputDef);
+            const checksum = authProgramChecksums.find((c) => c.requestIndex === requestIndex)?.checksum ?? null;
+
+            expect(
+                rebuilt.verify(inputTypes, isRoot, checksum != null ? Field.fromString(checksum) : undefined),
+            ).to.equal(true);
+        }
     });
 });

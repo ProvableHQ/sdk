@@ -25,6 +25,8 @@ use crate::{
     native_type_from_wasm_object_array,
     object,
     types::native::{
+        AddressNative,
+        ComputeKeyNative,
         CurrentNetwork,
         FieldNative,
         IdentifierNative,
@@ -32,6 +34,7 @@ use crate::{
         ProgramIDNative,
         RecordPlaintextNative,
         RequestNative,
+        SignatureNative,
         U16Native,
         ValueNative,
         ValueTypeNative,
@@ -39,7 +42,7 @@ use crate::{
 };
 use snarkvm_console::{
     network::Network,
-    prelude::{One, ToFields, Zero},
+    prelude::{One, ToField, ToFields, Uniform, Zero},
     program::compute_function_id,
 };
 use snarkvm_wasm::utilities::{FromBytes, ToBytes};
@@ -290,6 +293,150 @@ impl ExecutionRequest {
 
         // Return the execution request.
         Ok(ExecutionRequest(request))
+    }
+
+    /// Produces a request signature from preprocessed (externally-computed) inputs.
+    ///
+    /// This mirrors `Request::sign`, with two differences:
+    ///   - The input IDs are supplied by the caller rather than recomputed. Each element of
+    ///     `input_ids` is either:
+    ///       * a `Field` — the precomputed input ID of a constant/public/private/external-record/
+    ///         dynamic-record input, contributed to the signature message verbatim; or
+    ///       * a 2-element `Array` `[H, tag]` for a (static) record input, where `H` is the
+    ///         x-coordinate of `HashToGroup(serial_number_domain || commitment)` and `tag` is the
+    ///         record tag. For these, the secret-dependent pieces `gamma = sk_sig * H` and
+    ///         `h_r = r * H` are computed here (as in `Request::sign`) and the record contributes
+    ///         `(H, h_r, gamma)` x-coordinates followed by `tag` to the message.
+    ///   - The transition view key `tvk` is supplied by the caller (and echoed back) rather than
+    ///     derived. The transition secret `r` is sampled internally (from a random nonce, as in
+    ///     `Request::sign`) and used for `g_r` and the per-record `h_r`; it is independent of the
+    ///     supplied `tvk`, mirroring how the mock-authorization flow establishes `tvk` separately.
+    ///
+    /// @param {PrivateKey} private_key The signer's private key.
+    /// @param {string} program_id The id of the program.
+    /// @param {string} function_name The function name.
+    /// @param {Field} tvk The transition view key.
+    /// @param {boolean} is_root Flag to indicate if this is the top level function in the call graph.
+    /// @param {Field | undefined} program_checksum The program checksum (required if the program has a constructor).
+    /// @param {(Field | [Field, Field])[]} input_ids Per-input data: a Field input ID, or `[H, tag]` for a record.
+    /// @returns {{ tvk: Field, tcm: Field, signature: Signature, gammas: Group[] }}
+    #[wasm_bindgen(js_name = "signRequestFromPreprocessedInputs")]
+    #[allow(clippy::too_many_arguments)]
+    pub fn sign_request_from_preprocessed_inputs(
+        private_key: PrivateKey,
+        program_id: String,
+        function_name: String,
+        tvk: Field,
+        is_root: bool,
+        program_checksum: Option<Field>,
+        input_ids: Array,
+    ) -> Result<Object, String> {
+        // Parse the program ID and function name.
+        let program_id = ProgramIDNative::from_str(&program_id).map_err(|e| e.to_string())?;
+        let function_name = IdentifierNative::from_str(&function_name).map_err(|e| e.to_string())?;
+
+        // Derive the signing key material from the private key.
+        let private_key_native = *private_key;
+        let sk_sig = private_key_native.sk_sig();
+        let compute_key = ComputeKeyNative::try_from(&private_key_native).map_err(|e| e.to_string())?;
+        let pk_sig = compute_key.pk_sig();
+        let pr_sig = compute_key.pr_sig();
+        let signer = AddressNative::try_from(compute_key).map_err(|e| e.to_string())?;
+
+        // Derive the transition secret `r` and `g_r = r * G`, exactly as `Request::sign`.
+        let tvk_native = *tvk;
+        // Sample a random nonce from system entropy.
+        let mut rng = rand::rng();
+
+        // Important note: this should be sampled in a cryptographically secure random fashion in
+        // production environments.
+        // Additional note: instead of sampling the nonce and computing r from it, r can be
+        // sampled directly: the nonce is not used anywhere else and the derivation mechanism for r
+        // below is not enforced at any point. It is merely an extra layer of protection against
+        // faulty rngs.
+        let nonce = FieldNative::rand(&mut rng);
+        let r = CurrentNetwork::hash_to_scalar_psd4(&[
+            CurrentNetwork::serial_number_domain(),
+            sk_sig.to_field().map_err(|e| e.to_string())?,
+            nonce,
+        ])
+        .map_err(|e| e.to_string())?;
+        let g_r = CurrentNetwork::g_scalar_multiply(&r);
+
+        // Compute the transition commitment `tcm = Hash(tvk)`.
+        let tcm = CurrentNetwork::hash_psd2(&[tvk_native]).map_err(|e| e.to_string())?;
+
+        // Compute `is_root` as a field element.
+        let is_root_field = if is_root { FieldNative::one() } else { FieldNative::zero() };
+
+        // Compute the function ID.
+        let network_id = U16Native::new(CurrentNetwork::ID);
+        let function_id =
+            compute_function_id(&network_id, &program_id, &function_name).map_err(|e| e.to_string())?;
+        let program_checksum = program_checksum.map(|checksum| *checksum);
+
+        // Construct the message as
+        // `(g_r, pk_sig, pr_sig, signer, [tvk, tcm, function ID, is_root, program checksum?, input IDs])`.
+        let mut message = Vec::with_capacity(9 + 2 * input_ids.length() as usize);
+        message.extend([g_r, pk_sig, pr_sig, *signer].map(|point| point.to_x_coordinate()));
+        message.extend([tvk_native, tcm, function_id, is_root_field]);
+        // Add the program checksum to the message if it was provided.
+        if let Some(program_checksum) = program_checksum {
+            message.push(program_checksum);
+        }
+
+        // Append each input's contribution and collect the gammas of the record inputs.
+        let gammas = Array::new();
+        for (i, id_js) in input_ids.iter().enumerate() {
+            if Array::is_array(&id_js) {
+                // Record input: `[H, tag]` (the x-coordinate of `H`, then the tag).
+                let id_array = Array::from(&id_js);
+                if id_array.length() != 2 {
+                    return Err(format!(
+                        "input_ids[{i}] is an array but has length {} (expected 2 for a record: [H, tag])",
+                        id_array.length()
+                    ));
+                }
+                let h_x = FieldNative::from(
+                    Field::try_from_js_value(id_array.get(0))
+                        .map_err(|_| format!("input_ids[{i}][0] (H) must be a Field"))?,
+                );
+                let tag = FieldNative::from(
+                    Field::try_from_js_value(id_array.get(1))
+                        .map_err(|_| format!("input_ids[{i}][1] (tag) must be a Field"))?,
+                );
+                // Recover the full point `H` from its x-coordinate (lossless for subgroup elements).
+                let h = GroupNative::from_x_coordinate(h_x).map_err(|e| e.to_string())?;
+                // Compute `gamma = sk_sig * H` and `h_r = r * H`.
+                let gamma = h * sk_sig;
+                let h_r = h * r;
+                // The record contributes `(H, h_r, gamma)` x-coordinates followed by the tag.
+                message.extend([h, h_r, gamma].iter().map(|point| point.to_x_coordinate()));
+                message.push(tag);
+                gammas.push(&JsValue::from(Group::from(gamma)));
+            } else {
+                // Non-record input: a single precomputed input ID field.
+                let input_id = FieldNative::from(
+                    Field::try_from_js_value(id_js)
+                        .map_err(|_| format!("input_ids[{i}] must be a Field or an Array"))?,
+                );
+                message.push(input_id);
+            }
+        }
+
+        // Compute `challenge` as `HashToScalar(message)` and `response` as `r - challenge * sk_sig`.
+        let challenge = CurrentNetwork::hash_to_scalar_psd8(&message).map_err(|e| e.to_string())?;
+        let response = r - challenge * sk_sig;
+        let signature = SignatureNative::from((challenge, response, compute_key));
+
+        // Assemble the result object.
+        let result = object! {
+            "tvk": JsValue::from(Field::from(tvk_native)),
+            "tcm": JsValue::from(Field::from(tcm)),
+            "signature": JsValue::from(Signature::from(signature)),
+            "gammas": JsValue::from(gammas),
+        };
+        Ok(result)
     }
 
     /// Builds a request from externally-signed data using externally-supplied record view keys.

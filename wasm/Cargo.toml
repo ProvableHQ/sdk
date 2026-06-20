@@ -161,6 +161,19 @@ browser = [ ]
 testnet = [ ]
 mainnet = [ ]
 
+# TODO (Antonio) remove
+[patch."https://github.com/ProvableHQ/snarkVM.git"]
+snarkvm-algorithms = { path = "../../snarkVM/algorithms" }
+snarkvm-circuit-network = { path = "../../snarkVM/circuit/network" }
+snarkvm-console = { path = "../../snarkVM/console" }
+snarkvm-ledger-block = { path = "../../snarkVM/ledger/block" }
+snarkvm-ledger-query = { path = "../../snarkVM/ledger/query" }
+snarkvm-ledger-store = { path = "../../snarkVM/ledger/store" }
+snarkvm-parameters = { path = "../../snarkVM/parameters" }
+snarkvm-synthesizer-program = { path = "../../snarkVM/synthesizer/program" }
+snarkvm-synthesizer = { path = "../../snarkVM/synthesizer" }
+snarkvm-wasm = { path = "../../snarkVM/wasm" }
+
 ## Profiles
 [profile.release]
 opt-level = 3
