@@ -5,7 +5,6 @@ import $package from "./package.json" with { type: "json" };
 
 const networks = [
     "testnet",
-    "mainnet",
 ];
 
 function inputs() {

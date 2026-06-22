@@ -241,7 +241,6 @@ console.time("Building wasm");
 
 const networks = [
     "testnet",
-    "mainnet",
 ];
 
 await Promise.all(networks.map(build));

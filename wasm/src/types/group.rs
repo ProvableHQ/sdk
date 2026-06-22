@@ -27,6 +27,7 @@ use crate::{
         Boolean,
         integer::{I8, I16, I32, I64, I128, U8, U16, U32, U64, U128},
         native::{
+            CurrentNetwork,
             GroupNative,
             I8Native,
             I16Native,
@@ -44,6 +45,7 @@ use crate::{
         },
     },
 };
+use snarkvm_console::network::Network;
 use snarkvm_console::prelude::{
     Double,
     FromBits,
@@ -196,6 +198,15 @@ impl Group {
     /// Get the generator of the group.
     pub fn generator() -> Group {
         Group::from(GroupNative::generator())
+    }
+
+    /// Returns `scalar * G`, where `G` is the Aleo account/signature generator used by the network
+    /// (`Network::g_scalar_multiply`). This is the generator used to derive record nonces and the
+    /// signature nonce `g_r`, and differs from {@link generator}, which returns the curve's
+    /// prime-subgroup generator.
+    #[wasm_bindgen(js_name = gScalarMultiply)]
+    pub fn g_scalar_multiply(scalar: &Scalar) -> Group {
+        Group::from(CurrentNetwork::g_scalar_multiply(&**scalar))
     }
 
     // ── cast conversions ───────────────────────────────────────────────

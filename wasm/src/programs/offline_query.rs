@@ -14,13 +14,30 @@
 // You should have received a copy of the GNU General Public License
 // along with the Provable SDK library. If not, see <https://www.gnu.org/licenses/>.
 
-use crate::types::native::{CurrentNetwork, FieldNative, StatePathNative};
-use snarkvm_console::network::Network;
+use crate::types::native::{CurrentNetwork, FieldNative, StatePathNative, U64Native};
+use snarkvm_console::{
+    network::{
+        Network,
+        prelude::{ToBits, Uniform, Zero},
+    },
+    program::{
+        BLOCKS_DEPTH,
+        BlockPath,
+        HeaderLeaf,
+        HeaderTree,
+        TransactionLeaf,
+        TransactionTree,
+        TransactionsTree,
+        TransitionLeaf,
+        TransitionTree,
+    },
+};
 use snarkvm_ledger_query::QueryTrait;
 
 use anyhow::{Result, anyhow, ensure};
 use async_trait::async_trait;
 use indexmap::IndexMap;
+use js_sys::Array;
 use serde::{Deserialize, Serialize};
 use wasm_bindgen::prelude::wasm_bindgen;
 
@@ -68,6 +85,37 @@ impl OfflineQuery {
         let state_path = StatePathNative::from_str(state_path).map_err(|e| e.to_string())?;
         self.state_paths.insert(commitment, state_path);
         Ok(())
+    }
+
+    /// Build an `OfflineQuery` whose state paths place all the given record `commitments` under a
+    /// single, self-consistent global state root.
+    ///
+    /// This fabricates a minimal block / transaction / transition Merkle structure that contains the
+    /// commitments and returns a query pre-populated with the resulting (shared) global state root
+    /// and one state path per commitment. It is intended only for OFFLINE testing of inclusion
+    /// proofs: the returned root does not correspond to any real ledger state, but it is internally
+    /// consistent, so a proof produced against it will also verify against it.
+    ///
+    /// @param {number} block_height The block height to report.
+    /// @param {string[]} commitments The record commitments (as strings) to include.
+    /// @returns {OfflineQuery} A query containing a state path for every commitment.
+    #[wasm_bindgen(js_name = "sampleStatePaths")]
+    pub fn sample_state_paths(block_height: u32, commitments: Array) -> Result<OfflineQuery, String> {
+        let commitments = commitments
+            .iter()
+            .map(|commitment| {
+                let commitment = commitment.as_string().ok_or_else(|| "Commitments must be strings".to_string())?;
+                FieldNative::from_str(&commitment).map_err(|e| e.to_string())
+            })
+            .collect::<Result<Vec<FieldNative>, String>>()?;
+
+        let (state_root, paths) = sample_global_state_paths(&commitments).map_err(|e| e.to_string())?;
+
+        let mut state_paths = IndexMap::new();
+        for (commitment, path) in commitments.into_iter().zip(paths) {
+            state_paths.insert(commitment, path);
+        }
+        Ok(Self { block_height, state_paths, state_root })
     }
 
     /// Get a json string representation of the offline query object.
@@ -129,6 +177,110 @@ impl QueryTrait<CurrentNetwork> for OfflineQuery {
     async fn current_block_height_async(&self) -> Result<u32> {
         Ok(self.block_height)
     }
+}
+
+/// Fabricates a self-consistent global state path for every supplied commitment, all sharing a
+/// single global state root. The commitments are placed as leaves (variant 3 = Record) in one
+/// transition tree; the transaction, transactions, header and block layers above are shared, so
+/// every returned state path resolves to the same global state root.
+///
+/// This mirrors `snarkvm_console::program::state_path::test_helpers::sample_global_state_path`, but
+/// supports multiple commitments under one root (required because an execution's inclusion proof
+/// must reference a single global state root across all of its input records).
+fn sample_global_state_paths(
+    commitments: &[FieldNative],
+) -> Result<(<CurrentNetwork as Network>::StateRoot, Vec<StatePathNative>)> {
+    type N = CurrentNetwork;
+    let rng = &mut rand::rng();
+
+    // A single transition commitment shared by all leaves.
+    let tcm = FieldNative::rand(rng);
+
+    // Build a single transition tree whose leaves are the record commitments.
+    let transition_leaves = commitments
+        .iter()
+        .enumerate()
+        .map(|(index, commitment)| {
+            // The number of record commitments in a single execution is far below `u8::MAX`.
+            let index = u8::try_from(index).map_err(|_| anyhow!("Too many commitments for a single transition"))?;
+            Ok(TransitionLeaf::new(index, 3, *commitment))
+        })
+        .collect::<Result<Vec<_>>>()?;
+    let transition_tree: TransitionTree<N> =
+        N::merkle_tree_bhp(&transition_leaves.iter().map(|leaf| leaf.to_bits_le()).collect::<Vec<_>>())?;
+    let transition_root = *transition_tree.root();
+    let transition_id = N::hash_bhp512(&(transition_root, tcm).to_bits_le())?;
+
+    // The transaction, transactions, header and block layers are shared across all commitments.
+    let transaction_leaf = TransactionLeaf::new_execution(0, transition_id);
+    let transaction_tree: TransactionTree<N> = N::merkle_tree_bhp(&[transaction_leaf.to_bits_le()])?;
+    let transaction_id = *transaction_tree.root();
+    let transaction_path = transaction_tree.prove(0, &transaction_leaf.to_bits_le())?;
+
+    let transactions_tree: TransactionsTree<N> = N::merkle_tree_bhp(&[transaction_id.to_bits_le()])?;
+    let transactions_root = transactions_tree.root();
+    let transactions_path = transactions_tree.prove(0, &transaction_id.to_bits_le())?;
+
+    let header_leaf = HeaderLeaf::<N>::new(1, *transactions_root);
+    let header_tree: HeaderTree<N> =
+        N::merkle_tree_bhp(&[FieldNative::zero().to_bits_le(), header_leaf.to_bits_le()])?;
+    let header_root = header_tree.root();
+    let header_path = header_tree.prove(1, &header_leaf.to_bits_le())?;
+
+    let previous_block_hash: <N as Network>::BlockHash = FieldNative::rand(rng).into();
+    let preimage = (*previous_block_hash).to_bits_le().into_iter().chain(header_root.to_bits_le());
+    let block_hash = N::hash_bhp1024(&preimage.collect::<Vec<_>>())?;
+
+    // The inclusion (V1) circuit requires that records consumed by `credits.aleo` were created at a
+    // block height at or after `INCLUSION_UPGRADE_HEIGHT + 1`. Rather than build a full block tree
+    // (2^BLOCKS_DEPTH leaves), we construct the block Merkle path directly at that leaf index with
+    // zero siblings, then derive the resulting global state root by folding the block-hash leaf up
+    // the path exactly as `MerklePath::verify` does (BHP leaf/path hashing).
+    let block_index = u64::from(N::INCLUSION_UPGRADE_HEIGHT()?.saturating_add(1));
+    let block_siblings = vec![FieldNative::zero(); BLOCKS_DEPTH as usize];
+
+    // Leaf hash: BHP1024 over `false || block_hash_bits`.
+    let mut current = {
+        let mut leaf_preimage = vec![false];
+        block_hash.write_bits_le(&mut leaf_preimage);
+        N::hash_bhp1024(&leaf_preimage)?
+    };
+    // Path hash: BHP512 over `true || left_bits || right_bits`, ordered by the leaf-index bits.
+    for (level, sibling) in block_siblings.iter().enumerate() {
+        let current_is_left = ((block_index >> level) & 1) == 0;
+        let (left, right) = if current_is_left { (current, *sibling) } else { (*sibling, current) };
+        let mut node_preimage = vec![true];
+        left.write_bits_le(&mut node_preimage);
+        right.write_bits_le(&mut node_preimage);
+        current = N::hash_bhp512(&node_preimage)?;
+    }
+    let global_state_root = current;
+    let block_path = BlockPath::<N>::try_from((U64Native::new(block_index), block_siblings))?;
+
+    // Build one state path per commitment, sharing every layer except the transition leaf/path.
+    let mut state_paths = Vec::with_capacity(commitments.len());
+    for (index, transition_leaf) in transition_leaves.iter().enumerate() {
+        let transition_path = transition_tree.prove(index, &transition_leaf.to_bits_le())?;
+        state_paths.push(StatePathNative::from(
+            global_state_root.into(),
+            block_path.clone(),
+            block_hash.into(),
+            previous_block_hash,
+            *header_root,
+            header_path.clone(),
+            header_leaf,
+            transactions_path.clone(),
+            transaction_id.into(),
+            transaction_path.clone(),
+            transaction_leaf,
+            transition_root,
+            tcm,
+            transition_path,
+            *transition_leaf,
+        ));
+    }
+
+    Ok((global_state_root.into(), state_paths))
 }
 
 #[cfg(test)]
