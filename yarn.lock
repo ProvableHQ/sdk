@@ -4649,7 +4649,7 @@ __metadata:
     react-dom: "npm:^19.0.0"
     style-loader: "npm:^4.0.0"
     svg-url-loader: "npm:^8.0.0"
-    vite: "npm:^6.4.2"
+    vite: "npm:^6.4.3"
     webpack: "npm:^5.104.1"
     webpack-cli: "npm:^6.0.1"
     webpack-dev-server: "npm:^5.2.4"
@@ -4680,7 +4680,7 @@ __metadata:
     react-dom: "npm:^19.0.0"
     style-loader: "npm:^4.0.0"
     svg-url-loader: "npm:^8.0.0"
-    vite: "npm:^6.4.2"
+    vite: "npm:^6.4.3"
     webpack: "npm:^5.104.1"
     webpack-cli: "npm:^6.0.1"
     webpack-dev-server: "npm:^5.2.4"
@@ -4718,7 +4718,7 @@ __metadata:
     svg-url-loader: "npm:^8.0.0"
     ts-node: "npm:^10.9.2"
     typescript: "npm:^5.7.3"
-    vite: "npm:^6.4.2"
+    vite: "npm:^6.4.3"
     webpack: "npm:^5.104.1"
     webpack-cli: "npm:^6.0.1"
     webpack-dev-server: "npm:^5.2.4"
@@ -4731,7 +4731,7 @@ __metadata:
   dependencies:
     "@provablehq/sdk": "npm:^0.11.2"
     tslib: "npm:^2.8.1"
-    vite: "npm:^6.4.2"
+    vite: "npm:^6.4.3"
   languageName: unknown
   linkType: soft
 
@@ -4773,7 +4773,7 @@ __metadata:
     react-dom: "npm:^19.0.0"
     react-router-dom: "npm:^7.1.3"
     style-loader: "npm:^4.0.0"
-    vite: "npm:^6.4.2"
+    vite: "npm:^6.4.3"
     web-vitals: "npm:^4.2.4"
     webpack: "npm:^5.104.1"
     webpack-cli: "npm:^6.0.1"
@@ -13745,7 +13745,7 @@ __metadata:
     svg-url-loader: "npm:^8.0.0"
     ts-node: "npm:^10.9.2"
     typescript: "npm:^5.7.3"
-    vite: "npm:^6.4.2"
+    vite: "npm:^6.4.3"
     webpack: "npm:^5.104.1"
     webpack-cli: "npm:^6.0.1"
     webpack-dev-server: "npm:^5.2.4"
@@ -13783,7 +13783,7 @@ __metadata:
     svg-url-loader: "npm:^8.0.0"
     ts-node: "npm:^10.9.2"
     typescript: "npm:^5.7.3"
-    vite: "npm:^6.4.2"
+    vite: "npm:^6.4.3"
     webpack: "npm:^5.104.1"
     webpack-cli: "npm:^6.0.1"
     webpack-dev-server: "npm:^5.2.4"
@@ -14491,9 +14491,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"vite@npm:^6.4.2":
-  version: 6.4.2
-  resolution: "vite@npm:6.4.2"
+"vite@npm:^6.4.3":
+  version: 6.4.3
+  resolution: "vite@npm:6.4.3"
   dependencies:
     esbuild: "npm:^0.25.0"
     fdir: "npm:^6.4.4"
@@ -14542,7 +14542,7 @@ __metadata:
       optional: true
   bin:
     vite: bin/vite.js
-  checksum: 10c0/9a62bb4259b4b11b9084c8dc5c25a21c9340d87d83de163d3643f15629d8ac3c2a3a4cda565f1a61e98afc9d78e9cb78eb25d1ae3c302e95d42d13ab61537267
+  checksum: 10c0/23ce22e50d5c7a87321f04b155c5bc3cf915e34e6c40918975741ed5e8b0c257039a643f1bc1cd829ee814ad92a138704e82084b7ebe40b399a62d8effea630c
   languageName: node
   linkType: hard
 
