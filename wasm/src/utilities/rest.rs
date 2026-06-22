@@ -88,6 +88,8 @@ pub async fn get_program_from_network(base_url: &str, program_id: &str) -> Resul
     get(&format!("{base_url}/{}/program/{}", get_network(), program_id)).await
 }
 
+const SDK_VERSION: &str = concat!(env!("CARGO_PKG_VERSION"), " (wasm)");
+
 /// Make a GET request to the service.
 pub async fn get<T>(url: &str) -> Result<T>
 where
@@ -95,7 +97,7 @@ where
 {
     let client = reqwest::Client::new();
     for i in 0..DEFAULT_RETRIES {
-        let request = client.get(url).send().await;
+        let request = client.get(url).header("X-Aleo-SDK-Version", SDK_VERSION).send().await;
         match request {
             Ok(res) => {
                 let status = res.status();

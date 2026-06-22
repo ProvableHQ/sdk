@@ -67,6 +67,50 @@ describe("Configurable Transport", () => {
             expect(callOptions.headers["X-Custom"]).to.equal("test-value");
         });
 
+        it("suppresses SDK identifying headers when a custom transport is used", async () => {
+            const transport = createMockTransport('"ok"');
+            const client = new AleoNetworkClient("https://example.com", { transport });
+
+            await client.fetchRaw("/test");
+
+            const callOptions = transport.firstCall.args[1];
+            // With a custom transport and no user-supplied headers, none of our SDK
+            // headers (version/environment + method tag) should be attached.
+            const headers = callOptions.headers ?? {};
+            expect(headers["X-Aleo-SDK-Version"]).to.be.undefined;
+            expect(headers["X-Aleo-environment"]).to.be.undefined;
+            expect(headers["X-ALEO-METHOD"]).to.be.undefined;
+        });
+
+        it("forwards headers set via setHeader even with a custom transport", async () => {
+            const transport = createMockTransport('"ok"');
+            const client = new AleoNetworkClient("https://example.com", { transport });
+
+            // Header added after construction (no options.headers supplied).
+            client.setHeader("X-Custom", "later-value");
+            await client.fetchRaw("/test");
+
+            const callOptions = transport.firstCall.args[1];
+            expect(callOptions.headers["X-Custom"]).to.equal("later-value");
+            // The caller's header flows through, but our SDK defaults must not leak.
+            expect(callOptions.headers["X-Aleo-SDK-Version"]).to.be.undefined;
+            expect(callOptions.headers["X-Aleo-environment"]).to.be.undefined;
+        });
+
+        it("attaches SDK identifying headers when using the default transport", async () => {
+            const transport = createMockTransport('"ok"');
+            // Default transport, but route the underlying request through our stub
+            // so we can inspect the headers the SDK attaches.
+            const client = new AleoNetworkClient("https://example.com");
+            client.transport = transport;
+
+            await client.getLatestHeight();
+
+            const callOptions = transport.firstCall.args[1];
+            expect(callOptions.headers["X-Aleo-SDK-Version"]).to.be.a("string");
+            expect(callOptions.headers["X-ALEO-METHOD"]).to.equal("getLatestHeight");
+        });
+
         it("retry logic works with custom transport", async () => {
             let attemptCount = 0;
             const transport: sinon.SinonStub = sinon.stub().callsFake(async () => {
