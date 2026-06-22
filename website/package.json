@@ -34,7 +34,7 @@
         "web-vitals": "^4.2.4"
     },
     "devDependencies": {
-        "@babel/core": "^7.26.7",
+        "@babel/core": "^7.29.6",
         "@babel/preset-env": "^7.26.7",
         "@babel/preset-react": "^7.26.3",
         "@types/react": "^19.0.8",
@@ -51,10 +51,10 @@
         "mini-css-extract-plugin": "^2.9.2",
         "prettier": "^3.4.2",
         "style-loader": "^4.0.0",
-        "vite": "^6.4.2",
+        "vite": "^6.4.3",
         "webpack": "^5.104.1",
         "webpack-cli": "^6.0.1",
-        "webpack-dev-server": "^5.2.4"
+        "webpack-dev-server": "^5.2.5"
     },
     "homepage": "https://provable.tools"
 }
