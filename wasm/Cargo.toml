@@ -1,6 +1,6 @@
 [package]
 name = "aleo-wasm"
-version = "0.11.1"
+version = "0.11.2"
 authors = [ "The Provable Team" ]
 description = "WebAssembly based toolkit for developing zero-knowledge applications with Aleo"
 homepage = "https://provable.com"
