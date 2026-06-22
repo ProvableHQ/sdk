@@ -82,19 +82,19 @@ describe('Hash Function Export Tests', () => {
             expect(Poseidon2Hasher.hash(deepCopyFieldArray(fieldArray)).toString()).equals(algebraicData.expectedPoseidon2Hash);
             expect(Poseidon2Hasher.hashToScalar(deepCopyFieldArray(fieldArray)).toString()).equals(algebraicData.expectedPoseidon2HashToScalar);
             expect(Poseidon2Hasher.hashToGroup(deepCopyFieldArray(fieldArray)).toString()).equals(algebraicData.expectedPoseidon2HashToGroup);
-            expect(Poseidon2Hasher.hashMany(deepCopyFieldArray(fieldArray), 2).map(field => field.toString())).deep.equals(algebraicData.expectedPoseidon2HashMany);
+            expect(Poseidon2Hasher.hashMany(deepCopyFieldArray(fieldArray), 2).map((field: Field) => field.toString())).deep.equals(algebraicData.expectedPoseidon2HashMany);
 
             // Run all possible operations for Poseidon4.
             expect(Poseidon4Hasher.hash(deepCopyFieldArray(fieldArray)).toString()).equals(algebraicData.expectedPoseidon4Hash);
             expect(Poseidon4Hasher.hashToScalar(deepCopyFieldArray(fieldArray)).toString()).equals(algebraicData.expectedPoseidon4HashToScalar);
             expect(Poseidon4Hasher.hashToGroup(deepCopyFieldArray(fieldArray)).toString()).equals(algebraicData.expectedPoseidon4HashToGroup);
-            expect(Poseidon4Hasher.hashMany(deepCopyFieldArray(fieldArray), 2).map(field => field.toString())).deep.equals(algebraicData.expectedPoseidon4HashMany);
+            expect(Poseidon4Hasher.hashMany(deepCopyFieldArray(fieldArray), 2).map((field: Field) => field.toString())).deep.equals(algebraicData.expectedPoseidon4HashMany);
 
             // Run all possible operations for Poseidon8.
             expect(Poseidon8Hasher.hash(deepCopyFieldArray(fieldArray)).toString()).equals(algebraicData.expectedPoseidon8Hash);
             expect(Poseidon8Hasher.hashToScalar(deepCopyFieldArray(fieldArray)).toString()).equals(algebraicData.expectedPoseidon8HashToScalar);
             expect(Poseidon8Hasher.hashToGroup(deepCopyFieldArray(fieldArray)).toString()).equals(algebraicData.expectedPoseidon8HashToGroup);
-            expect(Poseidon8Hasher.hashMany(deepCopyFieldArray(fieldArray), 2).map(field => field.toString())).deep.equals(algebraicData.expectedPoseidon8HashMany);
+            expect(Poseidon8Hasher.hashMany(deepCopyFieldArray(fieldArray), 2).map((field: Field) => field.toString())).deep.equals(algebraicData.expectedPoseidon8HashMany);
         });
     });
 });

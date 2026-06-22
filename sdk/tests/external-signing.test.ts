@@ -146,12 +146,12 @@ function fromPreprocessedInputs(
 /**
  * Computes the nonce of a static output record minted at `outputIndex` by a request whose transition
  * view key is `tvk`, exactly as the `cast` instruction does on-chain:
- *   `nonce = g * HashToScalar([tvk, output_index])`.
+ *   `nonce = HashToScalar([tvk, output_index]) * G`.
  */
 function computeMintedNonce(tvk: Field, outputIndex: number): Group {
     const index = Field.fromString(`${outputIndex}field`);
     const randomizer = new Poseidon2().hashToScalar([tvk, index]);
-    return Group.generator().scalarMultiply(randomizer);
+    return Group.gScalarMultiply(randomizer);
 }
 
 /**
@@ -1018,7 +1018,7 @@ describe('External Signing ExecutionRequest integration', () => {
 
         // -----------------------------------------------------------------------------------------
         // Setup: deploy ldgbatcher_p28.aleo and mint three credits.aleo records
-
+        // 
         //   1. "Deploy" ldgbatcher_p28.aleo (which imports credits.aleo) by registering its
         //      source in the imports builder. credits.aleo is always available in the process,
         //      so addProgram does not need to be called for it.
@@ -1228,8 +1228,7 @@ describe('External Signing ExecutionRequest integration', () => {
         }
 
         // -----------------------------------------------------------------------------------------
-        // Checks
-        //  The flow is now complete. We verify each reconstructed request.
+        // Checks: The flow is now complete. We perform some simple sanity checks.
 
         // Every request in the authorization was reconstructed.
         expect(authPopulatedRequests.length).to.equal(authSignedRequests.length);
@@ -1261,5 +1260,22 @@ describe('External Signing ExecutionRequest integration', () => {
                 rebuilt.verify(inputTypes, isRoot, checksum != null ? Field.fromString(checksum) : undefined),
             ).to.equal(true);
         }
+
+        // Build the on-chain Authorization from the externally-signed requests. In some settings,
+        // this will be done by the recipient before proving and is therefore not necessary here.
+        const authorization = await (ProgramManagerBase as any).buildAuthorizationFromExecutionRequests(
+            authPopulatedRequests,
+            LDGBATCHER_P28_PROGRAM,
+            EDITION,
+            undefined,  // legacy imports object
+            imports.clone(),  // clone: the builder is consumed (moved) by value
+        );
+
+        // The authorization has one transition per request, targets the root function, and yields a
+        // derivable execution id.
+        expect(authorization.len()).to.equal(expectedTargets.length);
+        expect(Array.from(authorization.transitions() as ArrayLike<unknown>).length).to.equal(expectedTargets.length);
+        expect(authorization.functionName()).to.equal(functionName);
+        expect(authorization.toExecutionId().toString().length).to.be.greaterThan(0);
     });
 });
