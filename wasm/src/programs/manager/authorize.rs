@@ -43,7 +43,7 @@ use crate::{
 
 use js_sys::{Array, Object};
 use std::str::FromStr;
-use wasm_bindgen::{JsValue, convert::TryFromJsValue};
+use wasm_bindgen::JsValue;
 
 #[wasm_bindgen]
 impl ProgramManager {
@@ -207,60 +207,6 @@ impl ProgramManager {
             }
             None => process.authorize_request::<CurrentAleo, _>(request_native, rng).map_err(|e| e.to_string())?,
         };
-
-        Ok(Authorization::from(authorization))
-    }
-
-    /// Build an `Authorization` from a full set of already-signed `Request`s.
-    ///
-    /// This wraps snarkVM's `Stack::authorize_requests`: it re-traverses the call graph of the root
-    /// function, consuming the supplied requests (one per transition, in call order) to populate the
-    /// authorization. The first request must target `program`. Unlike
-    /// {@link buildAuthorizationFromExecutionRequest}, no private key is needed because the requests
-    /// are already signed.
-    ///
-    /// @param {ExecutionRequest[]} requests The signed requests, in call order (root first).
-    /// @param {string} program The program source code containing the root function.
-    /// @param {number | undefined} edition The edition of the program.
-    /// @param {object | undefined} imports The imports to the program in the format {"programname.aleo":"aleo instructions source code"}.
-    /// @param {ProgramImports | undefined} program_imports Pre-loaded imports builder.
-    /// @returns {Authorization}
-    #[wasm_bindgen(js_name = buildAuthorizationFromExecutionRequests)]
-    pub async fn authorize_requests(
-        requests: Array,
-        program: &str,
-        edition: Option<u16>,
-        imports: Option<Object>,
-        program_imports: Option<ProgramImports>,
-    ) -> Result<Authorization, String> {
-        let edition = edition.unwrap_or(1);
-
-        let mut resolved = ResolvedProcess::resolve(&program_imports, program, edition, imports)?;
-        let program_native = resolved.program().clone();
-        let process = resolved.process_mut();
-
-        // Convert the JS array of `ExecutionRequest`s into native requests, in order.
-        let mut requests_native = Vec::with_capacity(requests.length() as usize);
-        for value in requests.iter() {
-            let request = ExecutionRequest::try_from_js_value(value)
-                .map_err(|_| "`requests` must be an array of ExecutionRequest".to_string())?;
-            requests_native.push(RequestNative::from(&request));
-        }
-        if requests_native.is_empty() {
-            return Err("`requests` must contain at least one request".to_string());
-        }
-
-        // Add the top-level program to the process (no-op if it is already present).
-        if program_native.id().to_string() != "credits.aleo" && !process.contains_program(program_native.id()) {
-            log("Adding program to the process");
-            process.lock().add_program_with_edition(&program_native, edition).map_err(|e| e.to_string())?;
-        }
-
-        // Get the stack for the top-level program and build the authorization.
-        let stack = process.get_stack(program_native.id()).map_err(|e| e.to_string())?;
-        let rng = &mut rand::rng();
-        let authorization =
-            stack.authorize_requests::<CurrentAleo, _>(requests_native, rng).map_err(|e| e.to_string())?;
 
         Ok(Authorization::from(authorization))
     }

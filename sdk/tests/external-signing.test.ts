@@ -5,7 +5,6 @@ import {
     ExecutionRequest,
     Field,
     Group,
-    OfflineQuery,
     Plaintext,
     Poseidon2,
     Poseidon4,
@@ -15,7 +14,6 @@ import {
     ProgramImportsBuilder,
     ProgramManagerBase,
     ProvingRequest,
-    QueryOption,
     RecordPlaintext,
     Signature,
     ViewKey,
@@ -153,9 +151,7 @@ function fromPreprocessedInputs(
 function computeMintedNonce(tvk: Field, outputIndex: number): Group {
     const index = Field.fromString(`${outputIndex}field`);
     const randomizer = new Poseidon2().hashToScalar([tvk, index]);
-    // The nonce uses the Aleo account/signature generator `G` (Network::g_scalar_multiply), not the
-    // curve's prime-subgroup generator returned by `Group.generator()`.
-    return Group.gScalarMultiply(randomizer);
+    return Group.generator().scalarMultiply(randomizer);
 }
 
 /**
@@ -1265,59 +1261,5 @@ describe('External Signing ExecutionRequest integration', () => {
                 rebuilt.verify(inputTypes, isRoot, checksum != null ? Field.fromString(checksum) : undefined),
             ).to.equal(true);
         }
-
-        // -----------------------------------------------------------------------------------------
-        // Build the on-chain Authorization from the reconstructed requests via snarkVM's
-        // `authorize_requests`. This re-traverses the call graph of the root function, consuming the
-        // supplied requests to populate the authorization, so a successful build already proves the
-        // reconstructed requests are mutually consistent (correct input IDs, signatures, tvks, scms).
-        //
-        // NOTE: `buildAuthorizationFromExecutionRequests` consumes (moves) each ExecutionRequest, so
-        // `authPopulatedRequests` must not be used after this call.
-        const authorization = await (ProgramManagerBase as any).buildAuthorizationFromExecutionRequests(
-            authPopulatedRequests,
-            LDGBATCHER_P28_PROGRAM,
-            EDITION,
-            undefined,  // legacy imports object
-            imports.clone(),
-        );
-
-        // The authorization has one transition per request, targets the root function, and yields a
-        // derivable execution id.
-        expect(authorization.len()).to.equal(expectedTargets.length);
-        expect(Array.from(authorization.transitions() as ArrayLike<any>).length).to.equal(expectedTargets.length);
-        expect(authorization.functionName()).to.equal(functionName);
-        expect(authorization.toExecutionId().toString().length).to.be.greaterThan(0);
-
-        // -----------------------------------------------------------------------------------------
-        // Prove the authorization and verify the resulting execution proof, fully offline.
-        //
-        // The three original credits.aleo records are consumed (as serial numbers) by the nested
-        // credits.aleo/join and transfer_private calls, so the execution needs an inclusion proof
-        // for each of their commitments. Since the SDK test has no ledger, we fabricate a single
-        // self-consistent global state root that contains all three commitments and serve the
-        // corresponding state paths via an OfflineQuery. The intermediate (joined) records are
-        // created and consumed within the same execution, so they use local inclusion and need no
-        // state path.
-        const recordCommitments = records.map((record) => {
-            const recordViewKey = record.recordViewKey(ViewKey.from_string(authViewKeyStr));
-            return record.commitment("credits.aleo", "credits", recordViewKey.toString()).toString();
-        });
-
-        // V16 is active at u32::MAX on the (non-test) testnet consensus schedule; this matches the
-        // height the mock authorization and records were generated for.
-        const V16_BLOCK_HEIGHT = 4294967295;
-        const offlineQuery = OfflineQuery.sampleStatePaths(V16_BLOCK_HEIGHT, recordCommitments);
-
-        // proveAndVerifyAuthorization consumes (moves) the authorization, so it must come last.
-        const proofVerified = await (ProgramManagerBase as any).proveAndVerifyAuthorization(
-            authorization,
-            LDGBATCHER_P28_PROGRAM,
-            QueryOption.offlineQuery(offlineQuery),
-            EDITION,
-            undefined,  // legacy imports object
-            imports.clone(),
-        );
-        expect(proofVerified).to.equal(true);
     });
 });
