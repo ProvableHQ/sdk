@@ -6,9 +6,6 @@ import {
     Field,
     Group,
     Plaintext,
-    Poseidon2,
-    Poseidon4,
-    Poseidon8,
     PrivateKey,
     Program,
     ProgramImportsBuilder,
@@ -24,13 +21,13 @@ import {
     toSignature,
     toAddress,
     buildExecutionRequestFromExternallySignedData,
+    computeMintedNonce,
 } from "../src/node.js";
 import type {
     FieldLike,
     SignatureLike,
     AddressLike,
     InputStrategy,
-    ExternalSigningInput,
 } from "../src/node.js";
 import {
     isViewKeyStrategy,
@@ -46,113 +43,6 @@ import {
 import { MULTIPLY_PROGRAM, DOUBLE_PROGRAM, LDGBATCHER_P28_PROGRAM } from "./data/test-programs.js";
 
 const message = Uint8Array.from([104, 101, 108, 108, 111, 32, 119, 111, 114, 108, 100]);
-
-/**
- * Output of the signer-side {@link fromPreprocessedInputs}: the freshly-sampled transition view key,
- * the derived transition commitment, the request signature, and the gammas of the static-record
- * inputs (one per record input, in input order).
- */
-interface PreprocessedSigningResult {
-    tvk: Field;
-    tcm: Field;
-    signature: Signature;
-    gammas: Group[];
-}
-
-/**
- * Produces a request signature from preprocessed inputs, mirroring the standard request
- * signing algorithm. The signer holds the private key; the preprocessed inputs (produced by the
- * authorizer via {@link computeExternalSigningInputs}) contain the to-fields representation of each
- * input except for static records, where they contain the (`H`, `tag`) tuple.
- *
- * The function:
- *   1. Samples a fresh transition view key `tvk` and derives `tcm = Hash(tvk)`.
- *   2. Builds the message payload corresponding to each non-static-record input.
- *   3. Calls `ExecutionRequest.signRequestFromPreprocessedInputs`, which samples the
- *      transition secret `r`, computes `r * H` and `gamma = sk_sig * H` for every record, assembles
- *      the message, and signs it.
- *
- * @returns The sampled `tvk`, the `tcm`, the `signature`, and the per-record `gammas`.
- */
-function fromPreprocessedInputs(
-    privateKey: PrivateKey,
-    programName: string,
-    functionName: string,
-    authExternalInputs: ExternalSigningInput<"string">,
-): PreprocessedSigningResult {
-
-    // Initialize the hashers.
-    const poseidon4 = new Poseidon4();
-    const poseidon8 = new Poseidon8();
-
-    // The WASM bindings take `Field` arguments by value and consume (move) them: a `Field` instance
-    // cannot be reused across two WASM calls. We therefore keep the reused values as strings and mint
-    // a fresh `Field` for each use via `f(...)`.
-    const str_to_f = (s: string): Field => Field.fromString(s);
-
-    // Sample the transition view key and derive the transition commitment `tcm = Hash(tvk)`.
-    const tvkStr = Field.random().toString();
-    const tcmStr = new Poseidon2().hash([str_to_f(tvkStr)]).toString();
-    const functionIdStr = authExternalInputs.functionId;
-
-    // Build the per-input signing material. Records are passed as `[H, tag]` (the signer derives
-    // `r * H` and `gamma`); every other input is passed as its precomputed input ID field, which is
-    // derived from the freshly-sampled `tvk` exactly as the standard signing algorithm does.
-    const inputIds = authExternalInputs.requestInputs.map((input): Field | [Field, Field] => {
-        const index = input.index;
-        const data = (): Field[] => input.data.map(str_to_f);
-        switch (input.signingInputType) {
-            case "record":
-                return [str_to_f(input.h!), str_to_f(input.tag!)];
-            case "constant":
-            case "public":
-                // `Hash(function_id || data || tcm || index)`.
-                return poseidon8.hash([str_to_f(functionIdStr), ...data(), str_to_f(tcmStr), str_to_f(index)]);
-            case "private": {
-                // Encrypt with input view key `Hash(function_id || tvk || index)`, hash the ciphertext.
-                const inputViewKey = poseidon4.hash([str_to_f(functionIdStr), str_to_f(tvkStr), str_to_f(index)]);
-                const ciphertext = Plaintext.fromFields(data()).encryptSymmetric(inputViewKey);
-                return poseidon8.hash(Array.from(ciphertext.toFields() as ArrayLike<Field>));
-            }
-            case "external_record":
-            case "dynamic_record":
-                // `Hash(function_id || data || tvk || index)`.
-                return poseidon8.hash([str_to_f(functionIdStr), ...data(), str_to_f(tvkStr), str_to_f(index)]);
-            default:
-                throw new Error(`Unsupported signing input type: ${input.signingInputType}`);
-        }
-    });
-
-    const checksum = authExternalInputs.checksum != null ? str_to_f(authExternalInputs.checksum) : undefined;
-
-    const signed: any = (ExecutionRequest as any).signRequestFromPreprocessedInputs(
-        privateKey,
-        programName,
-        functionName,
-        str_to_f(tvkStr),
-        authExternalInputs.isRoot,
-        checksum,
-        inputIds,
-    );
-
-    return {
-        tvk: signed.tvk as Field,
-        tcm: signed.tcm as Field,
-        signature: signed.signature as Signature,
-        gammas: Array.from(signed.gammas as ArrayLike<Group>),
-    };
-}
-
-/**
- * Computes the nonce of a static output record minted at `outputIndex` by a request whose transition
- * view key is `tvk`, exactly as the `cast` instruction does on-chain:
- *   `nonce = HashToScalar([tvk, output_index]) * G`.
- */
-function computeMintedNonce(tvk: Field, outputIndex: number): Group {
-    const index = Field.fromString(`${outputIndex}field`);
-    const randomizer = new Poseidon2().hashToScalar([tvk, index]);
-    return Group.gScalarMultiply(randomizer);
-}
 
 /**
  * Writes a freshly-minted record nonce into the consumer input that receives it: replaces the
@@ -195,7 +85,6 @@ function valueTypeFromInputDef(def: any): string {
     }
 }
 
-// TODO (Antonio) duplicated from external-signing.test.ts
 describe('External Signing Utilities', () => {
     const privateKey = PrivateKey.from_string(privateKeyString);
     const viewKey = privateKey.to_view_key();
@@ -859,6 +748,67 @@ describe('External Signing ExecutionRequest integration', () => {
         expect(roundTrippedPR.requests().length).to.equal(2);
     });
 
+    it('Should match ExecutionRequest.sign for transfer_private', async () => {
+        // Use beacon private key - record is owned by beacon address
+        const privateKey = PrivateKey.from_string(beaconPrivateKeyString);
+        const beaconRecord = RecordPlaintext.fromString(recordBeaconOwned);
+        const gamma = beaconRecord.gamma("credits.aleo", "credits", privateKey);
+        const beaconViewKey = ViewKey.from_private_key(PrivateKey.from_string(beaconPrivateKeyString));
+        const externalSigningInputs = await computeExternalSigningInputs({
+            programName: "credits.aleo",
+            functionName: "transfer_private",
+            inputs: transferPrivateInputs,
+            inputTypes: transferPrivateInputTypes,
+            isRoot: true,
+            checksum: null,
+            viewKey: beaconViewKey,
+        });
+        expect(externalSigningInputs.signer).to.be.a("string");
+        expect(externalSigningInputs.skTag).to.be.a("string");
+
+        // Verify per-input recordViewKey is set on the record input
+        expect(externalSigningInputs.requestInputs[0].recordViewKey).to.be.a("string");
+        expect(externalSigningInputs.requestInputs[0].recordViewKey).to.match(/field$/);
+
+        // Verify non-record inputs don't have recordViewKey
+        expect(externalSigningInputs.requestInputs[1].recordViewKey).to.be.undefined;
+        expect(externalSigningInputs.requestInputs[2].recordViewKey).to.be.undefined;
+        const signedRequest = ExecutionRequest.sign(
+            privateKey,
+            "credits.aleo",
+            "transfer_private",
+            transferPrivateInputs,
+            transferPrivateInputTypes,
+            undefined,
+            undefined,
+            true,
+        );
+        expect(signedRequest.program_id()).to.equal("credits.aleo");
+        expect(signedRequest.function_name()).to.equal("transfer_private");
+        expect(signedRequest.inputs().length).to.equal(3);
+        expect(externalSigningInputs.requestInputs.length).to.equal(signedRequest.inputs().length);
+
+        const sig = signedRequest.signature();
+        const tvk = signedRequest.tvk();
+        // Use pre-computed input_ids via buildExecutionRequestFromExternallySignedDataWithInputIds
+        const externallySignedRequest = ExecutionRequest.fromExternallySignedDataWithInputIds(
+            "credits.aleo",
+            "transfer_private",
+            transferPrivateInputs,
+            transferPrivateInputTypes,
+            sig,
+            tvk,
+            signedRequest.signer(),
+            signedRequest.sk_tag(),
+            signedRequest.input_ids(),
+        );
+        expect(externallySignedRequest.program_id()).to.equal(signedRequest.program_id());
+        expect(externallySignedRequest.function_name()).to.equal(signedRequest.function_name());
+        expect(externallySignedRequest.inputs().length).to.equal(signedRequest.inputs().length);
+        expect(externallySignedRequest.input_ids().length).to.equal(signedRequest.input_ids().length);
+        expect(externallySignedRequest.toString()).to.equal(signedRequest.toString());
+    });
+
     it('Should not include recordViewKey on inputs when no viewKey is provided', async () => {
         const externalSigningInputs = await computeExternalSigningInputs({
             programName: "credits.aleo",
@@ -998,7 +948,6 @@ describe('External Signing ExecutionRequest integration', () => {
         assertFieldsRoundTripThroughPlaintext(secondInput.data, transferPrivateInputs[1]);
         assertFieldsRoundTripThroughPlaintext(thirdInput.data, transferPrivateInputs[2]);
     });
-
 
     it('Should match ExecutionRequest.sign for arbitrary flow with multiple requests', async () => {
         // Deploy scenario: ldgbatcher_p28.aleo batches three minted credits.aleo records into a
@@ -1179,7 +1128,7 @@ describe('External Signing ExecutionRequest integration', () => {
             // derives `r * H` and gamma for the record inputs, constructs the message payload and
             // signs it. A fresh private key is used because the WASM consumes (moves) the private
             // key passed by value.
-            const signed = fromPreprocessedInputs(
+            const signed: any = (ExecutionRequest as any).fromPreprocessedInputs(
                 PrivateKey.from_string(sigPrivateKeyStr),
                 programName,
                 requestFunctionName,
@@ -1187,6 +1136,7 @@ describe('External Signing ExecutionRequest integration', () => {
             );
 
             const tvkStr = (signed.tvk as Field).toString();
+            const gammas = Array.from(signed.gammas as ArrayLike<Group>);
 
             if (isRoot) {
                 rootTvkStr = tvkStr;
@@ -1206,7 +1156,7 @@ describe('External Signing ExecutionRequest integration', () => {
                 Address.from_string(addressStr),
                 Field.fromString(authExternalInputs.skTag!),
                 ViewKey.from_string(authViewKeyStr),
-                signed.gammas,
+                gammas,
                 Field.fromString(rootTvkStr),
             );
 
@@ -1263,12 +1213,12 @@ describe('External Signing ExecutionRequest integration', () => {
 
         // Build the on-chain Authorization from the externally-signed requests. In some settings,
         // this will be done by the recipient before proving and is therefore not necessary here.
-        const authorization = await (ProgramManagerBase as any).buildAuthorizationFromExecutionRequests(
+        const authorization = await (ProgramManagerBase as any).authorizeRequests(
             authPopulatedRequests,
             LDGBATCHER_P28_PROGRAM,
             EDITION,
-            undefined,  // legacy imports object
-            imports.clone(),  // clone: the builder is consumed (moved) by value
+            undefined,  
+            imports.clone(),  // the builder is consumed
         );
 
         // The authorization has one transition per request, targets the root function, and yields a

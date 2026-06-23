@@ -225,7 +225,7 @@ impl ProgramManager {
     /// @param {object | undefined} imports The imports to the program in the format {"programname.aleo":"aleo instructions source code"}.
     /// @param {ProgramImports | undefined} program_imports Pre-loaded imports builder.
     /// @returns {Authorization}
-    #[wasm_bindgen(js_name = buildAuthorizationFromExecutionRequests)]
+    #[wasm_bindgen(js_name = authorizeRequests)]
     pub async fn authorize_requests(
         requests: Array,
         program: &str,

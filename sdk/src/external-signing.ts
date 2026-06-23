@@ -3,6 +3,7 @@ import {
     ExecutionRequest,
     Field,
     Group,
+    Poseidon2,
 } from "./wasm.js";
 import { logAndThrow } from "./utils/utils.js";
 import {
@@ -19,6 +20,7 @@ import type {
     ExternalSigningInput,
     ExternalSigningOptions,
     ExecutionRequestParams,
+    FieldLike,
     InputStrategy,
     OutputFormat,
     RequestSignInput,
@@ -196,6 +198,29 @@ export async function computeExternalSigningInputs(
         const msg = e instanceof Error ? e.message : String(e);
         logAndThrow(`Error computing public message payload: ${msg}`);
     }
+}
+
+// ---------------------------------------------------------------------------
+// computeMintedNonce
+// ---------------------------------------------------------------------------
+
+/**
+ * Computes the nonce of a static output record minted at `outputIndex` by a request whose transition
+ * view key is `tvk`, exactly as the `cast` instruction does on-chain:
+ *   `nonce = HashToScalar([tvk, output_index]) * G`.
+ *
+ * This is useful when building multi-request flows where a record minted by one request is consumed
+ * by a later request: the consumer must reference the minted record's nonce, which is derived from
+ * the producing request's transition view key and the record's output index.
+ *
+ * @param {FieldLike} tvk - The transition view key of the request that mints the record.
+ * @param {number} outputIndex - The output index at which the record is minted.
+ * @returns {Group} The minted record nonce.
+ */
+export function computeMintedNonce(tvk: FieldLike, outputIndex: number): Group {
+    const index = Field.fromString(`${outputIndex}field`);
+    const randomizer = new Poseidon2().hashToScalar([toField(tvk), index]);
+    return Group.gScalarMultiply(randomizer);
 }
 
 // ---------------------------------------------------------------------------

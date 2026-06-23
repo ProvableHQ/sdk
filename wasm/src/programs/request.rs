@@ -31,6 +31,7 @@ use crate::{
         FieldNative,
         IdentifierNative,
         InputIDNative,
+        PlaintextNative,
         ProgramIDNative,
         RecordPlaintextNative,
         RequestNative,
@@ -42,7 +43,7 @@ use crate::{
 };
 use snarkvm_console::{
     network::Network,
-    prelude::{One, ToField, ToFields, Uniform, Zero},
+    prelude::{FromFields, One, ToField, ToFields, Uniform, Zero},
     program::compute_function_id,
 };
 use snarkvm_wasm::utilities::{FromBytes, ToBytes};
@@ -437,6 +438,143 @@ impl ExecutionRequest {
             "gammas": JsValue::from(gammas),
         };
         Ok(result)
+    }
+
+    /// Produces a request signature directly from the preprocessed inputs produced by
+    /// {@link computeExternalSigningInputs}.
+    ///
+    /// This is the one-call equivalent of: sampling a fresh transition view key `tvk`, deriving
+    /// `tcm = Hash(tvk)`, building each input's signing material exactly as the standard signing
+    /// algorithm does, and invoking {@link signRequestFromPreprocessedInputs}. Records are kept as
+    /// their `[H, tag]` pair so the secret-dependent pieces (`gamma`, `h_r`) are computed during
+    /// signing; every other input is reduced to its precomputed input ID field:
+    ///   - constant / public: `Hash(function_id || data || tcm || index)`
+    ///   - private: encrypt `data` with input view key `Hash(function_id || tvk || index)` and hash
+    ///     the ciphertext fields
+    ///   - external_record / dynamic_record: `Hash(function_id || data || tvk || index)`
+    ///
+    /// @param {PrivateKey} private_key The signer's private key.
+    /// @param {string} program_id The id of the program.
+    /// @param {string} function_name The function name.
+    /// @param {ExternalSigningInput} external_inputs The preprocessed inputs from `computeExternalSigningInputs`.
+    /// @returns {{ tvk: Field, tcm: Field, signature: Signature, gammas: Group[] }}
+    #[wasm_bindgen(js_name = "fromPreprocessedInputs")]
+    pub fn from_preprocessed_inputs(
+        private_key: PrivateKey,
+        program_id: String,
+        function_name: String,
+        external_inputs: Object,
+    ) -> Result<Object, String> {
+        // Read the top-level fields of the preprocessed-inputs object.
+        let get_field = |target: &JsValue, key: &str| -> Result<JsValue, String> {
+            Reflect::get(target, &JsValue::from_str(key)).map_err(|_| format!("external_inputs.{key} is missing"))
+        };
+        let function_id_str = get_field(&external_inputs, "functionId")?
+            .as_string()
+            .ok_or_else(|| "external_inputs.functionId must be a string".to_string())?;
+        let function_id = FieldNative::from_str(&function_id_str).map_err(|e| e.to_string())?;
+        let is_root = get_field(&external_inputs, "isRoot")?
+            .as_bool()
+            .ok_or_else(|| "external_inputs.isRoot must be a boolean".to_string())?;
+        let checksum = match get_field(&external_inputs, "checksum")? {
+            value if value.is_undefined() || value.is_null() => None,
+            value => {
+                let s = value.as_string().ok_or_else(|| "external_inputs.checksum must be a string".to_string())?;
+                Some(Field::from(FieldNative::from_str(&s).map_err(|e| e.to_string())?))
+            }
+        };
+        let request_inputs = Array::from(&get_field(&external_inputs, "requestInputs")?);
+
+        // Sample the transition view key and derive the transition commitment `tcm = Hash(tvk)`.
+        let mut rng = rand::rng();
+        let tvk = FieldNative::rand(&mut rng);
+        let tcm = CurrentNetwork::hash_psd2(&[tvk]).map_err(|e| e.to_string())?;
+
+        // Build the per-input signing material in input order.
+        let input_ids = Array::new();
+        for (i, input_js) in request_inputs.iter().enumerate() {
+            let signing_type = Reflect::get(&input_js, &JsValue::from_str("signingInputType"))
+                .ok()
+                .and_then(|v| v.as_string())
+                .ok_or_else(|| format!("requestInputs[{i}].signingInputType must be a string"))?;
+            let index_str = Reflect::get(&input_js, &JsValue::from_str("index"))
+                .ok()
+                .and_then(|v| v.as_string())
+                .ok_or_else(|| format!("requestInputs[{i}].index must be a string"))?;
+            let index = FieldNative::from_str(&index_str).map_err(|e| e.to_string())?;
+
+            // Parse the `data` field array (strings -> Field), used by every non-record input.
+            let parse_data = || -> Result<Vec<FieldNative>, String> {
+                let data = Array::from(
+                    &Reflect::get(&input_js, &JsValue::from_str("data"))
+                        .map_err(|_| format!("requestInputs[{i}].data is missing"))?,
+                );
+                data.iter()
+                    .enumerate()
+                    .map(|(j, d)| {
+                        let s = d.as_string().ok_or_else(|| format!("requestInputs[{i}].data[{j}] must be a string"))?;
+                        FieldNative::from_str(&s).map_err(|e| e.to_string())
+                    })
+                    .collect()
+            };
+
+            // Reads a required string property of the current input.
+            let get_str = |key: &str| -> Result<FieldNative, String> {
+                let s = Reflect::get(&input_js, &JsValue::from_str(key))
+                    .ok()
+                    .and_then(|v| v.as_string())
+                    .ok_or_else(|| format!("requestInputs[{i}].{key} must be a string for a record input"))?;
+                FieldNative::from_str(&s).map_err(|e| e.to_string())
+            };
+
+            match signing_type.as_str() {
+                "record" => {
+                    // Pass `[H, tag]`; the signer computes `gamma` and `h_r` from its secret key.
+                    let pair = Array::new();
+                    pair.push(&JsValue::from(Field::from(get_str("h")?)));
+                    pair.push(&JsValue::from(Field::from(get_str("tag")?)));
+                    input_ids.push(&pair);
+                }
+                "constant" | "public" => {
+                    // `Hash(function_id || data || tcm || index)`.
+                    let mut preimage = vec![function_id];
+                    preimage.extend(parse_data()?);
+                    preimage.extend([tcm, index]);
+                    let id = CurrentNetwork::hash_psd8(&preimage).map_err(|e| e.to_string())?;
+                    input_ids.push(&JsValue::from(Field::from(id)));
+                }
+                "private" => {
+                    // Encrypt with input view key `Hash(function_id || tvk || index)`, hash the ciphertext.
+                    let input_view_key =
+                        CurrentNetwork::hash_psd4(&[function_id, tvk, index]).map_err(|e| e.to_string())?;
+                    let plaintext = PlaintextNative::from_fields(&parse_data()?).map_err(|e| e.to_string())?;
+                    let ciphertext = plaintext.encrypt_symmetric(input_view_key).map_err(|e| e.to_string())?;
+                    let id = CurrentNetwork::hash_psd8(&ciphertext.to_fields().map_err(|e| e.to_string())?)
+                        .map_err(|e| e.to_string())?;
+                    input_ids.push(&JsValue::from(Field::from(id)));
+                }
+                "external_record" | "dynamic_record" => {
+                    // `Hash(function_id || data || tvk || index)`.
+                    let mut preimage = vec![function_id];
+                    preimage.extend(parse_data()?);
+                    preimage.extend([tvk, index]);
+                    let id = CurrentNetwork::hash_psd8(&preimage).map_err(|e| e.to_string())?;
+                    input_ids.push(&JsValue::from(Field::from(id)));
+                }
+                other => return Err(format!("Unsupported signing input type: {other}")),
+            }
+        }
+
+        // Delegate to the signing routine, which samples `r`, finalizes records, and signs.
+        Self::sign_request_from_preprocessed_inputs(
+            private_key,
+            program_id,
+            function_name,
+            Field::from(tvk),
+            is_root,
+            checksum,
+            input_ids,
+        )
     }
 
     /// Builds a request from externally-signed data using externally-supplied record view keys.

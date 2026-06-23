@@ -335,6 +335,7 @@ export {
     // Builder
     buildExecutionRequestFromExternallySignedData,
     computeExternalSigningInputs,
+    computeMintedNonce,
 } from "./external-signing.js";
 export type {
     FieldLike,
