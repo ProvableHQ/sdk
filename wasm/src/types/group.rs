@@ -201,8 +201,8 @@ impl Group {
     }
 
     /// Returns `scalar * G`, where `G` is the distinguished point on the Aleo protocol curve used
-    /// for account derivation, i. This corresponds to `Network::g_scalar_multiply`. Note `G` is
-    /// different from {@link generator}, which returns the a different generator.
+    /// for account derivation. This corresponds to `Network::g_scalar_multiply`.
+    /// Note: `G` is different from {@link generator}, which returns a different generator.
     #[wasm_bindgen(js_name = gScalarMultiply)]
     pub fn g_scalar_multiply(scalar: &Scalar) -> Group {
         Group::from(CurrentNetwork::g_scalar_multiply(&**scalar))
