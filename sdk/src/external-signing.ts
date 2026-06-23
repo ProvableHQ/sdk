@@ -218,6 +218,9 @@ export async function computeExternalSigningInputs(
  * @returns {Group} The minted record nonce.
  */
 export function computeMintedNonce(tvk: FieldLike, outputIndex: number): Group {
+    if (!Number.isSafeInteger(outputIndex) || outputIndex < 0) {
+        throw new Error(`computeMintedNonce: outputIndex must be a non-negative safe integer. Received: ${outputIndex}`);
+    }
     const index = Field.fromString(`${outputIndex}field`);
     const randomizer = new Poseidon2().hashToScalar([toField(tvk), index]);
     return Group.gScalarMultiply(randomizer);
