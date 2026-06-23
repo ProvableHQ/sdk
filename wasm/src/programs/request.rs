@@ -473,9 +473,14 @@ impl ExecutionRequest {
             .as_string()
             .ok_or_else(|| "external_inputs.functionId must be a string".to_string())?;
         let function_id = FieldNative::from_str(&function_id_str).map_err(|e| e.to_string())?;
-        let is_root = get_field(&external_inputs, "isRoot")?
-            .as_bool()
-            .ok_or_else(|| "external_inputs.isRoot must be a boolean".to_string())?;
+        let is_root_value = get_field(&external_inputs, "isRoot")?;
+        let is_root = if let Some(b) = is_root_value.as_bool() {
+            b
+        } else if let Some(s) = is_root_value.as_string() {
+            FieldNative::from_str(&s).map_err(|e| e.to_string())? != FieldNative::zero()
+        } else {
+            return Err("external_inputs.isRoot must be a boolean or field string ('0field'/'1field')".to_string());
+        };
         let checksum = match get_field(&external_inputs, "checksum")? {
             value if value.is_undefined() || value.is_null() => None,
             value => {
