@@ -996,8 +996,8 @@ describe('External Signing ExecutionRequest integration', () => {
         // Auxiliary function to resolve the program given its name: imported programs (e.g. the
         // root ldgbatcher_p28.aleo) live in the imports builder, whereas credits.aleo is built into
         // the process and not registered as an import. This is only used for resolving input types
-        // and can be done in different ways (for instance, sample_authorization_extended could
-        // return this information directly instead).
+        // and can be done in different ways (for instance,
+        // sample_authorization_with_record_tracking could return this information directly instead).
         const programForRequest = (programName: string): Program => {
             const source = imports.getProgram(programName);
             if (source != null) {
@@ -1010,8 +1010,8 @@ describe('External Signing ExecutionRequest integration', () => {
         };
 
         // -----------------------------------------------------------------------------------------
-        // Part 1 [Authorizer]: Call sampleAuthorizationExtended to produce the mock authorization
-        //                      and auxiliary data
+        // Part 1 [Authorizer]: Call sampleAuthorizationWithRecordTracking to produce the mock
+        //                      authorization and auxiliary data
 
         // Prepare the root-call target and inputs
         const recipientPrivateKey = new PrivateKey();
@@ -1029,7 +1029,7 @@ describe('External Signing ExecutionRequest integration', () => {
         // ldgbatcher_p28.aleo declares `constructor: assert.eq edition 0u16;`.
         const EDITION = 0;
         
-        const extended: any = await (ProgramManagerBase as any).sampleAuthorizationExtended(
+        const extended: any = await (ProgramManagerBase as any).sampleAuthorizationWithRecordTracking(
             Address.from_string(addressStr),
             LDGBATCHER_P28_PROGRAM,
             functionName,
@@ -1166,7 +1166,8 @@ describe('External Signing ExecutionRequest integration', () => {
             // Patch the nonces of static/external/dynamic records input to subsequent requests and
             // coming from static records minted by this request. The nonce needs to be recomputed
             // using the actual tvk returned by the signer. The record-tracking information returned
-            // by sampleAuthorizationExtended indicates which request inputs must be updated.
+            // by sampleAuthorizationWithRecordTracking indicates which request inputs must be
+            // updated.
             for (const entry of authRecordTracking) {
                 if (entry.minterRequestIndex === requestIndex) {
                     const nonce = computeMintedNonce(Field.fromString(tvkStr), entry.outputIndex);

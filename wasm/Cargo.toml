@@ -23,16 +23,16 @@ doctest = false
 
 [dependencies.snarkvm-algorithms]
 git = "https://github.com/ProvableHQ/snarkVM.git"
-rev = "357899f8e85d6340bda5db8373b1cdffdf88a6d7"
+rev = "8e2397ee719636d660ec39cf7789af38b33f6645"
 
 [dependencies.snarkvm-circuit-network]
 git = "https://github.com/ProvableHQ/snarkVM.git"
-rev = "357899f8e85d6340bda5db8373b1cdffdf88a6d7"
+rev = "8e2397ee719636d660ec39cf7789af38b33f6645"
 features = ["wasm"]
 
 [dependencies.snarkvm-console]
 git = "https://github.com/ProvableHQ/snarkVM.git"
-rev = "357899f8e85d6340bda5db8373b1cdffdf88a6d7"
+rev = "8e2397ee719636d660ec39cf7789af38b33f6645"
 default-features = false
 features = [
     "account",
@@ -46,37 +46,37 @@ features = [
 
 [dependencies.snarkvm-ledger-block]
 git = "https://github.com/ProvableHQ/snarkVM.git"
-rev = "357899f8e85d6340bda5db8373b1cdffdf88a6d7"
+rev = "8e2397ee719636d660ec39cf7789af38b33f6645"
 features = ["wasm"]
 
 [dependencies.snarkvm-ledger-query]
 git = "https://github.com/ProvableHQ/snarkVM.git"
-rev = "357899f8e85d6340bda5db8373b1cdffdf88a6d7"
+rev = "8e2397ee719636d660ec39cf7789af38b33f6645"
 features = ["async", "wasm"]
 
 [dependencies.snarkvm-ledger-store]
 git = "https://github.com/ProvableHQ/snarkVM.git"
-rev = "357899f8e85d6340bda5db8373b1cdffdf88a6d7"
+rev = "8e2397ee719636d660ec39cf7789af38b33f6645"
 
 [dependencies.snarkvm-parameters]
 git = "https://github.com/ProvableHQ/snarkVM.git"
-rev = "357899f8e85d6340bda5db8373b1cdffdf88a6d7"
+rev = "8e2397ee719636d660ec39cf7789af38b33f6645"
 default-features = false
 features = ["wasm"]
 
 [dependencies.snarkvm-synthesizer-program]
 git = "https://github.com/ProvableHQ/snarkVM.git"
-rev = "357899f8e85d6340bda5db8373b1cdffdf88a6d7"
+rev = "8e2397ee719636d660ec39cf7789af38b33f6645"
 features = ["wasm"]
 
 [dependencies.snarkvm-synthesizer]
 git = "https://github.com/ProvableHQ/snarkVM.git"
-rev = "357899f8e85d6340bda5db8373b1cdffdf88a6d7"
+rev = "8e2397ee719636d660ec39cf7789af38b33f6645"
 features = ["async", "wasm"]
 
 [dependencies.snarkvm-wasm]
 git = "https://github.com/ProvableHQ/snarkVM.git"
-rev = "357899f8e85d6340bda5db8373b1cdffdf88a6d7"
+rev = "8e2397ee719636d660ec39cf7789af38b33f6645"
 features = ["fields", "utilities"]
 
 [dependencies.anyhow]
@@ -160,19 +160,6 @@ serial = [ "snarkvm-console/serial", "snarkvm-synthesizer/serial", "snarkvm-ledg
 browser = [ ]
 testnet = [ ]
 mainnet = [ ]
-
-# TODO (Antonio) remove
-[patch."https://github.com/ProvableHQ/snarkVM.git"]
-snarkvm-algorithms = { path = "../../snarkVM/algorithms" }
-snarkvm-circuit-network = { path = "../../snarkVM/circuit/network" }
-snarkvm-console = { path = "../../snarkVM/console" }
-snarkvm-ledger-block = { path = "../../snarkVM/ledger/block" }
-snarkvm-ledger-query = { path = "../../snarkVM/ledger/query" }
-snarkvm-ledger-store = { path = "../../snarkVM/ledger/store" }
-snarkvm-parameters = { path = "../../snarkVM/parameters" }
-snarkvm-synthesizer-program = { path = "../../snarkVM/synthesizer/program" }
-snarkvm-synthesizer = { path = "../../snarkVM/synthesizer" }
-snarkvm-wasm = { path = "../../snarkVM/wasm" }
 
 ## Profiles
 [profile.release]

@@ -334,9 +334,9 @@ impl ProgramManager {
     /// alongside the auxiliary information gathered while traversing the call graph.
     ///
     /// This behaves like {@link sampleAuthorization} but calls the underlying
-    /// `Stack::sample_authorization_extended`, which additionally surfaces record-tracking,
-    /// record-name, and program-checksum information needed to populate the mocked `Request`s.
-    /// The returned object has the following shape:
+    /// `Stack::sample_authorization_with_record_tracking`, which additionally surfaces
+    /// record-tracking, record-name, and program-checksum information needed to populate the mocked
+    /// `Request`s. The returned object has the following shape:
     ///
     /// ```text
     /// {
@@ -359,8 +359,8 @@ impl ProgramManager {
     /// @param {Object | undefined} imports The imports to the program in `{"name.aleo":"source"}` format.
     /// @param {number | undefined} edition The program edition (defaults to 1).
     /// @param {ProgramImports | undefined} program_imports Pre-loaded imports builder.
-    #[wasm_bindgen(js_name = sampleAuthorizationExtended)]
-    pub async fn sample_authorization_extended(
+    #[wasm_bindgen(js_name = sampleAuthorizationWithRecordTracking)]
+    pub async fn sample_authorization_with_record_tracking(
         address: &Address,
         program: &str,
         function_name: &str,
@@ -398,7 +398,7 @@ impl ProgramManager {
 
         // Produce the mock authorization with additional request-population information
         let (authorization, record_tracking, record_names, program_checksums) = stack
-            .sample_authorization_extended::<CurrentAleo, _>(
+            .sample_authorization_with_record_tracking::<CurrentAleo, _>(
                 address_native,
                 program_id,
                 function_name_native,
