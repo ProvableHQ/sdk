@@ -372,8 +372,7 @@ impl ExecutionRequest {
 
         // Compute the function ID.
         let network_id = U16Native::new(CurrentNetwork::ID);
-        let function_id =
-            compute_function_id(&network_id, &program_id, &function_name).map_err(|e| e.to_string())?;
+        let function_id = compute_function_id(&network_id, &program_id, &function_name).map_err(|e| e.to_string())?;
         let program_checksum = program_checksum.map(|checksum| *checksum);
 
         // Construct the message as
@@ -469,8 +468,10 @@ impl ExecutionRequest {
         let get_field = |target: &JsValue, key: &str| -> Result<JsValue, String> {
             Reflect::get(target, &JsValue::from_str(key)).map_err(|_| format!("external_inputs.{key} is missing"))
         };
-        let function_id_str = get_field(&external_inputs, "functionId").or_else(|_| get_field(&external_inputs, "function_id"))?
-            .as_string().ok_or_else(|| "external_inputs.functionId (or function_id) must be a string".to_string())?;
+        let function_id_str = get_field(&external_inputs, "functionId")
+            .or_else(|_| get_field(&external_inputs, "function_id"))?
+            .as_string()
+            .ok_or_else(|| "external_inputs.functionId (or function_id) must be a string".to_string())?;
         let function_id = FieldNative::from_str(&function_id_str).map_err(|e| e.to_string())?;
         let is_root_value = get_field(&external_inputs, "isRoot")?;
         let is_root = if let Some(b) = is_root_value.as_bool() {
@@ -516,7 +517,8 @@ impl ExecutionRequest {
                 data.iter()
                     .enumerate()
                     .map(|(j, d)| {
-                        let s = d.as_string().ok_or_else(|| format!("requestInputs[{i}].data[{j}] must be a string"))?;
+                        let s =
+                            d.as_string().ok_or_else(|| format!("requestInputs[{i}].data[{j}] must be a string"))?;
                         FieldNative::from_str(&s).map_err(|e| e.to_string())
                     })
                     .collect()

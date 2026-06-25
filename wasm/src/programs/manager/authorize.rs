@@ -406,7 +406,7 @@ impl ProgramManager {
                 rng,
             )
             .map_err(|e| e.to_string())?;
-        
+
         // Record-tracking: (minter_request, output_register) -> [(consumer_request, input_index), ...].
         // We flatten the tuple key into individual values (since JS maps cannot key on tuples) and
         // keep the consumers as a nested array.

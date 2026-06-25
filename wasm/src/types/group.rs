@@ -45,18 +45,9 @@ use crate::{
         },
     },
 };
-use snarkvm_console::network::Network;
-use snarkvm_console::prelude::{
-    Double,
-    FromBits,
-    FromBytes,
-    FromField,
-    FromFields,
-    ToBits,
-    ToBytes,
-    ToFields,
-    Uniform,
-    Zero,
+use snarkvm_console::{
+    network::Network,
+    prelude::{Double, FromBits, FromBytes, FromField, FromFields, ToBits, ToBytes, ToFields, Uniform, Zero},
 };
 
 use js_sys::{Array, Uint8Array};
