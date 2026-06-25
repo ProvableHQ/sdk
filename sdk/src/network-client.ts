@@ -1148,7 +1148,7 @@ class AleoNetworkClient {
     async getProgramAmendmentCount(programId: string): Promise<{ program_id: string; edition: number; amendment_count: number }> {
         try {
             this.ctx = { "X-ALEO-METHOD": "getProgramAmendmentCount" };
-            const raw = await this.fetchRaw("/programs/" + programId + "/amendment_count");
+            const raw = await this.fetchRaw("/program/" + programId + "/amendment_count");
             return JSON.parse(raw);
         } catch (error) {
             throw new Error(`Error fetching amendment count for ${programId}: ${error}`);
