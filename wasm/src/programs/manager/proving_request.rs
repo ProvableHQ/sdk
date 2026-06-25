@@ -25,7 +25,7 @@ use crate::{
     authorize_fee,
     log,
     process_inputs,
-    types::native::{AuthorizationNative, CurrentAleo, IdentifierNative, ProgramNative, RecordPlaintextNative},
+    types::native::{CurrentAleo, IdentifierNative, ProgramNative, RecordPlaintextNative},
 };
 
 use js_sys::{Array, Object};
@@ -149,7 +149,6 @@ mod tests {
     use crate::{
         ExecutionRequest,
         PrivateKey,
-        Program,
         array,
         test::{PUZZLE_SPINNER_V002, generate_puzzle_imports, generate_puzzle_inputs, get_env},
     };
@@ -181,8 +180,7 @@ mod tests {
         let request = transfer_public_execution_request();
         let requests = array![request];
 
-        let proving_request =
-            ProgramManager::proving_request_from_execution_request(requests, None, false).unwrap();
+        let proving_request = ProgramManager::proving_request_from_execution_request(requests, None, false).unwrap();
 
         assert_eq!(proving_request.kind(), "request");
         let reqs = proving_request.requests().unwrap();
