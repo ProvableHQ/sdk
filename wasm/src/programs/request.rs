@@ -613,7 +613,15 @@ impl ExecutionRequest {
         root_tvk: Option<Field>,
     ) -> Result<ExecutionRequest, String> {
         let (program_id, function_name, inputs_native, input_types_native, scm, tcm, network_id, function_id) =
-            Self::parse_common_args(&program_id, &function_name, &inputs, &input_types, &signer, &tvk, root_tvk.as_ref())?;
+            Self::parse_common_args(
+                &program_id,
+                &function_name,
+                &inputs,
+                &input_types,
+                &signer,
+                &tvk,
+                root_tvk.as_ref(),
+            )?;
 
         let mut record_view_keys_native =
             native_type_from_wasm_object_array!(record_view_keys.unwrap_or(Array::new()), Field, FieldNative)?;
@@ -678,7 +686,15 @@ impl ExecutionRequest {
         root_tvk: Option<Field>,
     ) -> Result<ExecutionRequest, String> {
         let (program_id, function_name, inputs_native, input_types_native, scm, tcm, network_id, function_id) =
-            Self::parse_common_args(&program_id, &function_name, &inputs, &input_types, &signer, &tvk, root_tvk.as_ref())?;
+            Self::parse_common_args(
+                &program_id,
+                &function_name,
+                &inputs,
+                &input_types,
+                &signer,
+                &tvk,
+                root_tvk.as_ref(),
+            )?;
 
         // Derive record_view_keys from the view key for each record input.
         let mut record_view_keys_native = Vec::new();
@@ -754,7 +770,15 @@ impl ExecutionRequest {
         root_tvk: Option<Field>,
     ) -> Result<ExecutionRequest, String> {
         let (program_id, function_name, inputs_native, input_types_native, scm, tcm, network_id, _function_id) =
-            Self::parse_common_args(&program_id, &function_name, &inputs, &input_types, &signer, &tvk, root_tvk.as_ref())?;
+            Self::parse_common_args(
+                &program_id,
+                &function_name,
+                &inputs,
+                &input_types,
+                &signer,
+                &tvk,
+                root_tvk.as_ref(),
+            )?;
 
         if input_ids.length() as usize != inputs_native.len() {
             return Err(format!(
@@ -1387,6 +1411,7 @@ mod tests {
             signed_request.sk_tag(),
             view_key,
             None, // no record inputs
+            None,
         )
         .expect("from_externally_signed_data_with_view_key should succeed");
 
@@ -1438,6 +1463,7 @@ mod tests {
             signed_request.sk_tag(),
             view_key,
             Some(gammas),
+            None,
         )
         .expect("from_externally_signed_data_with_view_key should succeed");
 
@@ -1704,6 +1730,7 @@ mod tests {
             signed.sk_tag(),
             None, // no record_view_keys
             None, // no gammas
+            None,
         )
         .expect("fromExternallySignedData with no records should succeed");
 
@@ -1742,6 +1769,7 @@ mod tests {
             signed.sk_tag(),
             Some(record_view_keys),
             Some(gammas),
+            None,
         )
         .expect("fromExternallySignedData with records should succeed");
 
@@ -1771,6 +1799,7 @@ mod tests {
             signed.sk_tag(),
             view_key,
             None, // no record inputs
+            None,
         )
         .expect("fromExternallySignedDataWithViewKey with no records should succeed");
 
@@ -1803,6 +1832,7 @@ mod tests {
             signed.sk_tag(),
             view_key,
             Some(gammas),
+            None,
         )
         .expect("fromExternallySignedDataWithViewKey with records should succeed");
 
@@ -1854,6 +1884,7 @@ mod tests {
             signed.signer(),
             signed.sk_tag(),
             input_ids,
+            None,
         )
         .expect("fromExternallySignedDataWithInputIds with public inputs should succeed");
 
@@ -1933,6 +1964,7 @@ mod tests {
             signed.signer(),
             signed.sk_tag(),
             input_ids,
+            None,
         )
         .expect("fromExternallySignedDataWithInputIds with records should succeed");
 
@@ -1966,6 +1998,7 @@ mod tests {
             signed.sk_tag(),
             None, // missing record_view_keys
             Some(gammas),
+            None,
         );
         assert!(result.is_err(), "Should fail when record_view_keys missing for record inputs");
     }
@@ -1993,6 +2026,7 @@ mod tests {
             signed.signer(),
             signed.sk_tag(),
             input_ids,
+            None,
         );
         assert!(result.is_err(), "Should fail when input_ids length doesn't match inputs length");
     }
@@ -2027,6 +2061,7 @@ mod tests {
             signed.signer(),
             signed.sk_tag(),
             input_ids,
+            None,
         );
         assert!(result.is_err(), "Should fail when scalar Field passed for record input type");
         let err = match result {

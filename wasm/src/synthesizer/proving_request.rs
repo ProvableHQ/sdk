@@ -22,13 +22,12 @@ use crate::{
 use snarkvm_wasm::utilities::ToBytes;
 
 use js_sys::{Array, Uint8Array};
-use wasm_bindgen::{JsValue, convert::TryFromJsValue};
 use std::{
     fmt::{Debug, Display},
     ops::Deref,
     str::FromStr,
 };
-use wasm_bindgen::prelude::*;
+use wasm_bindgen::{JsValue, convert::TryFromJsValue, prelude::*};
 
 /// Represents a proving request to a prover.
 ///
@@ -70,7 +69,11 @@ impl ProvingRequest {
     /// @param {ExecutionRequest} fee_request Optional signed request for the fee function. When omitted, the prover generates and pays the fee.
     /// @param {boolean} broadcast Flag that indicates whether the remote proving service should attempt to submit the transaction on the caller's behalf.
     #[wasm_bindgen(js_name = "fromRequests")]
-    pub fn from_requests(requests: Array, fee_request: Option<ExecutionRequest>, broadcast: bool) -> Result<Self, String> {
+    pub fn from_requests(
+        requests: Array,
+        fee_request: Option<ExecutionRequest>,
+        broadcast: bool,
+    ) -> Result<Self, String> {
         let requests_native: Vec<RequestNative> = requests
             .iter()
             .enumerate()
