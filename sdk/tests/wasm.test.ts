@@ -629,9 +629,9 @@ describe('WASM Objects', () => {
     describe('Set development consensus version heights', () => {
         it('Consensus version heights can be set externally', async () => {
             if (process.env["RUN_SKIPPED"]) {
-                const heights = getOrInitConsensusVersionTestHeights("0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15");
+                const heights = getOrInitConsensusVersionTestHeights("0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16");
                 console.log(heights);
-                expect(heights).to.deep.equal([0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15]);
+                expect(heights).to.deep.equal([0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16]);
             }
         });
     });
