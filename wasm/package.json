@@ -1,6 +1,6 @@
 {
   "name": "@provablehq/wasm",
-  "version": "0.11.2",
+  "version": "0.11.3",
   "type": "module",
   "description": "SnarkVM WASM binaries with javascript bindings",
   "collaborators": [
