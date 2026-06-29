@@ -307,6 +307,7 @@ describe("ProgramImportsBuilder", () => {
             const pm = new ProgramManager("https://api.provable.com/v2", keyProvider);
 
             // Stub amendment endpoint — edition 3 with amendment 2
+            sinon.stub(pm.networkClient, "getLatestProgramEdition").resolves(3);
             sinon.stub(pm.networkClient, "getProgramAmendmentCount").resolves({
                 program_id: "multiply_test.aleo",
                 edition: 3,
@@ -342,6 +343,7 @@ describe("ProgramImportsBuilder", () => {
             const pm = new ProgramManager("https://api.provable.com/v2", keyProvider);
 
             // Stub amendment endpoint to return default edition 1
+            sinon.stub(pm.networkClient, "getLatestProgramEdition").resolves(1);
             sinon.stub(pm.networkClient, "getProgramAmendmentCount").resolves({
                 program_id: "multiply_test.aleo",
                 edition: 1,
@@ -459,6 +461,7 @@ describe("ProgramImportsBuilder", () => {
             const pm = new ProgramManager("https://api.provable.com/v2", keyProvider);
 
             // Stub the amendment endpoint to return edition 5
+            sinon.stub(pm.networkClient, "getLatestProgramEdition").resolves(5);
             sinon.stub(pm.networkClient, "getProgramAmendmentCount").resolves({
                 program_id: "multiply_test.aleo",
                 edition: 5,
@@ -930,6 +933,7 @@ describe("ProgramImportsBuilder", () => {
             const pm = new ProgramManager("https://api.provable.com/v2", keyProvider);
 
             // Stub amendment endpoint — edition 0 (constructor program)
+            sinon.stub(pm.networkClient, "getLatestProgramEdition").resolves(0);
             sinon.stub(pm.networkClient, "getProgramAmendmentCount").resolves({
                 program_id: "multiply_test.aleo",
                 edition: 0,
@@ -1481,6 +1485,9 @@ describe("ProgramImportsBuilder", () => {
             // Stub network: top-level program is edition 2, import is edition 5
             sinon.stub(pm.networkClient, "getProgramImports").resolves({});
             sinon.stub(pm.networkClient, "getProgram").resolves("");
+            sinon.stub(pm.networkClient, "getLatestProgramEdition").callsFake(async (name: string) => {
+                return name === "multiply_test.aleo" ? 5 : 2;
+            });
             const amendmentStub = sinon.stub(pm.networkClient, "getProgramAmendmentCount");
             amendmentStub.callsFake(async (name: string) => {
                 if (name === "multiply_test.aleo") {
@@ -1521,6 +1528,7 @@ describe("ProgramImportsBuilder", () => {
 
             sinon.stub(pm.networkClient, "getProgramImports").resolves({});
             sinon.stub(pm.networkClient, "getProgram").resolves("");
+            sinon.stub(pm.networkClient, "getLatestProgramEdition").resolves(1);
             sinon.stub(pm.networkClient, "getProgramAmendmentCount").resolves({
                 program_id: "double_test.aleo",
                 edition: 1,

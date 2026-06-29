@@ -597,7 +597,8 @@ class ProgramManager {
         fallbackEdition?: number,
     ): Promise<{ edition: number; amendment: number }> {
         try {
-            const info = await this.networkClient.getProgramAmendmentCount(programName);
+            const edition = await this.networkClient.getLatestProgramEdition(programName);
+            const info = await this.networkClient.getProgramAmendmentCount(programName, edition);
             return { edition: info.edition, amendment: info.amendment_count };
         } catch (e: any) {
             logger.warn(`Error finding edition/amendment for ${programName}. Network response: '${e.message}'. Defaulting to edition ${fallbackEdition ?? 1}, amendment 0.`);

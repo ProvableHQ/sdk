@@ -30,9 +30,10 @@ export function createProgramManager(keyStoreDir: string): {
     // Stub network methods — we run entirely offline.
     networkClient.getProgramImports = async () => ({});
     networkClient.getProgram = async () => "";
-    (networkClient as any).getProgramAmendmentCount = async (name: string) => ({
+    networkClient.getLatestProgramEdition = async (_name: string) => 1;
+    networkClient.getProgramAmendmentCount = async (name: string, edition: number) => ({
         program_id: name,
-        edition: 1,
+        edition,
         amendment_count: 0,
     });
 
