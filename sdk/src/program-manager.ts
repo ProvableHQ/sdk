@@ -392,8 +392,77 @@ class ProgramManager {
     }
 
     /**
+     * Collect static imports declared by the entry program together with any
+     * caller-provided imports, then resolve missing transitive dependencies.
+     * Caller-provided program sources take precedence over network sources.
+     */
+    private async collectProgramImports(
+        program: string | Program,
+        imports: ProgramImports | undefined,
+        tolerateNetworkErrors: boolean,
+    ): Promise<Map<string, string>> {
+        const programSource = typeof program === "string" ? program : program.toString();
+        const providedImports = { ...(imports ?? {}) };
+        let resolvedImports: ProgramImports = { ...providedImports };
+
+        if (ProgramManager.getImportNames(programSource).length > 0) {
+            try {
+                const networkImports = await this.networkClient.getProgramImports(
+                    programSource,
+                    { ...resolvedImports },
+                );
+                resolvedImports = { ...networkImports, ...providedImports };
+            } catch (e) {
+                if (!tolerateNetworkErrors) throw e;
+                logger.warn(`Failed to resolve program imports from network: ${e}.`);
+            }
+        }
+
+        const collected = new Map<string, string>();
+        const collectQueue: [string, string][] = Object.entries(resolvedImports).map(
+            ([name, source]) => [name, typeof source === "string" ? source : source.toString()]
+        );
+
+        while (collectQueue.length > 0) {
+            const [name, source] = collectQueue.shift()!;
+            if (collected.has(name)) continue;
+            collected.set(name, source);
+
+            try {
+                const subImports = ProgramManager.getImportNames(source);
+                const unknownImports = subImports.filter(
+                    (id: string) => !collected.has(id) && !(id in resolvedImports),
+                );
+                if (unknownImports.length > 0) {
+                    const fetched = await Promise.all(
+                        unknownImports.map(async (id: string) => {
+                            try {
+                                const importedSource = await this.networkClient.getProgram(id);
+                                return [id, importedSource] as [string, string];
+                            } catch (e) {
+                                if (!tolerateNetworkErrors) throw e;
+                                return null;
+                            }
+                        }),
+                    );
+                    for (const entry of fetched) {
+                        if (entry && !collected.has(entry[0])) {
+                            collectQueue.push(entry);
+                        }
+                    }
+                }
+            } catch (e) {
+                if (!tolerateNetworkErrors) throw e;
+                logger.warn(`Failed to resolve transitive imports for ${name}: ${e}`);
+            }
+        }
+
+        return collected;
+    }
+
+    /**
      * Build a ProgramImportsBuilder from a program and its imports.
-     * Fetches imports from the network if not provided, resolves transitive
+     * Fetches missing imports from the network, resolves transitive
      * dependencies, and optionally pre-loads cached keys from the KeyStore.
      *
      * @param loadKeys When true (default), loads cached proving/verifying keys
@@ -415,17 +484,7 @@ class ProgramManager {
             return { builder, importEditions: new Map() };
         }
 
-        let resolvedImports: ProgramImports = {};
-        if (imports) {
-            resolvedImports = { ...imports };
-        }
-        if (importNames.length > 0 && !imports) {
-            try {
-                resolvedImports = await this.networkClient.getProgramImports(programSource);
-            } catch (e) {
-                logger.warn(`Failed to resolve program imports from network: ${e}.`);
-            }
-        }
+        const collected = await this.collectProgramImports(programSource, imports, true);
 
         // Build a map of which functions each import actually calls,
         // so we only load keys for functions in the call chain.
@@ -433,58 +492,7 @@ class ProgramManager {
             programObj.getCallGraph(entryFunction),
         );
 
-        // Phase 1: Collect all programs via BFS, discovering transitive imports.
-        // The initial getProgramImports call above already resolves the full
-        // transitive closure via recursive DFS.  The BFS loop here only needs
-        // to handle user-provided imports whose transitive deps may not yet be
-        // known.  For each unknown import we issue a single getProgram() call
-        // (not a full recursive getProgramImports) and fetch siblings in
-        // parallel to minimize round-trips.
-        const collected = new Map<string, string>();
-        const collectQueue: [string, string][] = Object.entries(resolvedImports).map(
-            ([name, src]) => [name, typeof src === "string" ? src : src.toString()]
-        );
-
-        while (collectQueue.length > 0) {
-            const [name, source] = collectQueue.shift()!;
-            if (collected.has(name)) continue;
-            collected.set(name, source);
-
-            // Discover transitive imports for collection (call-graph tracing
-            // happens in a separate pass after topological sorting).
-            try {
-                const subImports = ProgramManager.getImportNames(source);
-                if (subImports.length > 0) {
-                    // Fetch only unknown transitive imports — the source for
-                    // programs already in collected/resolvedImports is known, so
-                    // we skip them.  Fetches within a BFS level run in parallel.
-                    const unknownImports = subImports.filter(
-                        (id: string) => !collected.has(id) && !(id in resolvedImports),
-                    );
-                    if (unknownImports.length > 0) {
-                        const fetched = await Promise.all(
-                            unknownImports.map(async (id: string) => {
-                                try {
-                                    const src = await this.networkClient.getProgram(id);
-                                    return [id, src] as [string, string];
-                                } catch {
-                                    return null;
-                                }
-                            }),
-                        );
-                        for (const entry of fetched) {
-                            if (entry && !collected.has(entry[0])) {
-                                collectQueue.push(entry);
-                            }
-                        }
-                    }
-                }
-            } catch (e) {
-                logger.warn(`Failed to resolve transitive imports for ${name}: ${e}`);
-            }
-        }
-
-        // Phase 2: Add programs in topological order (leaves first).
+        // Add programs in topological order (leaves first).
         // A simple DFS post-order ensures dependencies are added before
         // dependents, regardless of the order collected entries arrived.
         const sorted: [string, string][] = [];
@@ -3700,7 +3708,9 @@ class ProgramManager {
             throw new Error("Authorization must be provided if estimating fee for Authorization.")
         }
         const programSource = program ? program.toString() : await this.networkClient.getProgram(programName, edition);
-        const programImports = imports ?? await this.networkClient.getProgramImports(programSource);
+        const programImports = Object.fromEntries(
+            await this.collectProgramImports(programSource, imports, false),
+        );
         return WasmProgramManager.estimateFeeForAuthorization(authorization, programSource, programImports, edition);
     }
 
@@ -3744,7 +3754,9 @@ class ProgramManager {
             throw new Error("Function name must be specified when estimating fee.");
         }
         const programSource = program ? program.toString() : await this.networkClient.getProgram(programName, edition);
-        const programImports = imports ? imports : await this.networkClient.getProgramImports(programSource);
+        const programImports = Object.fromEntries(
+            await this.collectProgramImports(programSource, imports, false),
+        );
         return WasmProgramManager.estimateExecutionFee(programSource, functionName, programImports, edition);
     }
 

@@ -193,6 +193,42 @@ describe("ProgramImportsBuilder", () => {
             expect(builder.contains("multiply_test.aleo")).to.equal(true);
         });
 
+        it("should merge entry imports with additional caller-provided imports", async () => {
+            const keyProvider = createMockKeyProvider();
+            const pm = new ProgramManager("https://api.provable.com/v2", keyProvider);
+            const imports = { "sum_double_test.aleo": ADD_DOUBLE_PROGRAM };
+
+            const networkStub = sinon.stub(pm.networkClient, "getProgramImports").callsFake(
+                async (_program, seededImports = {}) => ({
+                    ...seededImports,
+                    "multiply_test.aleo": MULTIPLY_PROGRAM,
+                }),
+            );
+            sinon.stub(pm.networkClient, "getProgram")
+                .withArgs("sum_test.aleo")
+                .resolves(ADD_PROGRAM);
+            sinon.stub(pm.networkClient, "getProgramAmendmentCount").resolves({
+                program_id: "test.aleo",
+                edition: 1,
+                amendment_count: 0,
+            });
+
+            const { builder } = await (pm as any).buildProgramImports(
+                DOUBLE_PROGRAM,
+                imports,
+                false,
+                "double_it",
+            );
+
+            expect(networkStub.calledOnce).to.equal(true);
+            expect(networkStub.firstCall.args[1]).to.deep.equal(imports);
+            expect(Array.from(builder.programNames())).to.have.members([
+                "multiply_test.aleo",
+                "sum_double_test.aleo",
+                "sum_test.aleo",
+            ]);
+        });
+
         it("should not fail when network fetch errors", async () => {
             const keyProvider = createMockKeyProvider();
             const pm = new ProgramManager("https://api.provable.com/v2", keyProvider);
@@ -226,6 +262,47 @@ describe("ProgramImportsBuilder", () => {
             expect(builder.contains("double_test.aleo")).to.equal(true);
             expect(builder.contains("multiply_test.aleo")).to.equal(true);
             expect(Array.from(builder.programNames())).to.have.length(2);
+        });
+    });
+
+    describe("fee estimation import resolution", () => {
+        it("should merge entry imports with caller imports for both fee estimators", async () => {
+            const keyProvider = createMockKeyProvider();
+            const pm = new ProgramManager("https://api.provable.com/v2", keyProvider);
+            const imports = { "sum_double_test.aleo": ADD_DOUBLE_PROGRAM };
+
+            sinon.stub(pm.networkClient, "getProgramImports").callsFake(
+                async (_program, seededImports = {}) => ({
+                    ...seededImports,
+                    "multiply_test.aleo": MULTIPLY_PROGRAM,
+                }),
+            );
+            sinon.stub(pm.networkClient, "getProgram")
+                .withArgs("sum_test.aleo")
+                .resolves(ADD_PROGRAM);
+            const executionFeeStub = sinon.stub(ProgramManagerBase, "estimateExecutionFee").returns(1n);
+            const authorizationFeeStub = sinon.stub(ProgramManagerBase, "estimateFeeForAuthorization").returns(1n);
+
+            await pm.estimateExecutionFee({
+                programName: "double_test.aleo",
+                functionName: "double_it",
+                program: DOUBLE_PROGRAM,
+                imports,
+            });
+            await pm.estimateFeeForAuthorization({
+                authorization: {} as any,
+                programName: "double_test.aleo",
+                program: DOUBLE_PROGRAM,
+                imports,
+            });
+
+            const expectedImports = {
+                "multiply_test.aleo": MULTIPLY_PROGRAM,
+                "sum_double_test.aleo": ADD_DOUBLE_PROGRAM,
+                "sum_test.aleo": ADD_PROGRAM,
+            };
+            expect(executionFeeStub.firstCall.args[2]).to.deep.equal(expectedImports);
+            expect(authorizationFeeStub.firstCall.args[2]).to.deep.equal(expectedImports);
         });
     });
 
