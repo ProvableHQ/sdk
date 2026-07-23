@@ -19,7 +19,7 @@ use crate::{
     types::native::{CurrentNetwork, IdentifierNative, ProgramNative},
 };
 use js_sys::{Array, Object, Reflect, Uint8Array};
-use snarkvm_console::program::{EntryType, FinalizeType, PlaintextType, ValueType};
+use snarkvm_console::program::{EntryType, PlaintextType, ValueType};
 use std::{
     collections::{HashSet, VecDeque},
     ops::Deref,
@@ -43,6 +43,10 @@ struct InterfaceFunction {
 }
 
 const FUTURE: &str = "future";
+
+/// Input marker for the ARC-22 Merkle proof array, which is matched structurally rather
+/// than by exact type string since the MerkleProof struct may be local or imported.
+const MERKLE_PROOFS: &str = "[MerkleProof; 2u32].private";
 
 /// The functions required by the ARC-20 token interface (IARC20).
 const ARC20_FUNCTIONS: &[InterfaceFunction] = &[
@@ -106,12 +110,12 @@ const ARC22_FUNCTIONS: &[InterfaceFunction] = &[
     InterfaceFunction { name: "transfer_public", inputs: &["address.public", "u128.public"], outputs: &[FUTURE] },
     InterfaceFunction {
         name: "transfer_private",
-        inputs: &["address.private", "u128.private", "Token.record", "[MerkleProof; 2u32].private"],
+        inputs: &["address.private", "u128.private", "Token.record", MERKLE_PROOFS],
         outputs: &["ComplianceRecord.record", "Token.record", "Token.record", FUTURE],
     },
     InterfaceFunction {
         name: "transfer_private_to_public",
-        inputs: &["address.public", "u128.public", "Token.record", "[MerkleProof; 2u32].private"],
+        inputs: &["address.public", "u128.public", "Token.record", MERKLE_PROOFS],
         outputs: &["ComplianceRecord.record", "Token.record", FUTURE],
     },
     InterfaceFunction {
@@ -701,9 +705,11 @@ impl Program {
     ///
     /// This checks that the program defines `Token` and `ComplianceRecord` records with the
     /// entries required by the standard (additional entries are permitted, per the
-    /// interface's open record definitions), a `MerkleProof` struct with the exact required
-    /// shape, and that every function and view function required by ARC-22 is present with
-    /// the exact input and output signature defined by the standard.
+    /// interface's open record definitions), and that every function and view function
+    /// required by ARC-22 is present with the exact input and output signature defined by
+    /// the standard. The `MerkleProof` struct used by the private transfer functions may be
+    /// declared locally (in which case its shape must match the standard exactly) or
+    /// imported from another program such as a freeze list registry.
     ///
     /// Note: this checks the token interface (IARC22) only. The freeze list registry
     /// interface (IARC22Freezelist) is typically implemented by a separate program and is
@@ -720,7 +726,6 @@ impl Program {
                 ("sender", "address"),
                 ("recipient", "address"),
             ])
-            && self.struct_matches("MerkleProof", ARC22_MERKLE_PROOF_MEMBERS)
             && ARC22_FUNCTIONS.iter().all(|function| self.matches_function(function))
             && ARC20_VIEWS.iter().all(|view| self.matches_view(view))
     }
@@ -738,14 +743,45 @@ impl Program {
         let outputs = function.output_types();
         inputs.len() == interface_function.inputs.len()
             && outputs.len() == interface_function.outputs.len()
-            && inputs.iter().zip(interface_function.inputs).all(|(input, expected)| input.to_string() == *expected)
+            && inputs.iter().zip(interface_function.inputs).all(|(input, expected)| {
+                if *expected == MERKLE_PROOFS {
+                    self.is_merkle_proof_array(input)
+                } else {
+                    input.to_string() == *expected
+                }
+            })
             && outputs.iter().zip(interface_function.outputs).all(|(output, expected)| {
                 if *expected == FUTURE {
-                    matches!(output, ValueType::Future(_))
+                    // A `Final` output must be the function's own future — a future pointing
+                    // at another program's function does not satisfy the interface.
+                    matches!(output, ValueType::Future(locator)
+                        if locator.program_id() == self.0.id()
+                            && locator.resource().to_string() == interface_function.name)
                 } else {
                     output.to_string() == *expected
                 }
             })
+    }
+
+    // Check that a function input is a private two-element array of the ARC-22 MerkleProof
+    // struct. The struct may be declared locally, in which case its shape must match the
+    // standard exactly, or imported from another program (e.g. a freeze list registry),
+    // whose definition cannot be resolved from this program alone (this function is not
+    // part of the public API).
+    fn is_merkle_proof_array(&self, input: &ValueType<CurrentNetwork>) -> bool {
+        let ValueType::Private(PlaintextType::Array(array)) = input else {
+            return false;
+        };
+        if **array.length() != 2u32 {
+            return false;
+        }
+        match array.next_element_type() {
+            PlaintextType::Struct(name) => {
+                name.to_string() == "MerkleProof" && self.struct_matches("MerkleProof", ARC22_MERKLE_PROOF_MEMBERS)
+            }
+            PlaintextType::ExternalStruct(locator) => locator.resource().to_string() == "MerkleProof",
+            _ => false,
+        }
     }
 
     // Check that a view function exists with the exact interface signature (this function is
@@ -762,18 +798,12 @@ impl Program {
         inputs.len() == interface_view.inputs.len()
             && outputs.len() == interface_view.outputs.len()
             && inputs.iter().zip(interface_view.inputs).all(|(input, expected)| input.to_string() == *expected)
-            && outputs.iter().zip(interface_view.outputs).all(|(output, expected)| {
-                if *expected == FUTURE {
-                    matches!(output, FinalizeType::Future(_))
-                } else {
-                    output.to_string() == *expected
-                }
-            })
+            && outputs.iter().zip(interface_view.outputs).all(|(output, expected)| output.to_string() == *expected)
     }
 
-    // Check that a record exists containing at least the given private entries; additional
-    // entries are permitted, matching the `..` in interface record definitions (this
-    // function is not part of the public API).
+    // Check that a record exists with a private owner, containing at least the given
+    // private entries; additional entries are permitted, matching the `..` in interface
+    // record definitions (this function is not part of the public API).
     fn record_has_entries(&self, record_name: &str, entries: &[(&str, &str)]) -> bool {
         let Ok(name) = IdentifierNative::from_str(record_name) else {
             return false;
@@ -781,6 +811,9 @@ impl Program {
         let Ok(record) = self.0.get_record(&name) else {
             return false;
         };
+        if !record.owner().is_private() {
+            return false;
+        }
         entries.iter().all(|(entry_name, entry_type)| {
             record.entries().iter().any(|(name, ty)| {
                 name.to_string() == *entry_name
@@ -1674,6 +1707,18 @@ view symbol:
     output r0 as identifier.public;
 "#;
 
+    // The Circle test USDCx stablecoin deployed on testnet. It matches the IARC22 function
+    // and record signatures but declares none of the required view functions, so it is NOT
+    // ARC-22 compliant — a realistic near-miss vector.
+    // Source: https://api.provable.com/v2/testnet/programs/test_usdcx_stablecoin.aleo
+    const TEST_USDCX_STABLECOIN: &str = include_str!("test_data/test_usdcx_stablecoin.aleo");
+
+    // The ARC-22 compliant token template compiled from source with Leo (branch
+    // `arc20_approvals` of ProvableHQ/ARCs, arc-0022/compliant_token_template). Unlike the
+    // fixtures above, its MerkleProof struct is imported from freezelist.aleo, so the
+    // private transfer inputs reference an external struct.
+    const COMPLIANT_TOKEN_TEMPLATE: &str = include_str!("test_data/compliant_token_template.aleo");
+
     #[wasm_bindgen_test]
     fn test_is_arc20() {
         // A fully compliant ARC-20 token program is detected.
@@ -1695,10 +1740,33 @@ view symbol:
             Program::from_string(&ARC20_TOKEN_PROGRAM.replace("function join:", "function join_tokens:")).unwrap();
         assert!(!missing_function.is_arc20());
 
-        // A token missing a required view function is not compliant.
+        // A token without the required view functions is not compliant.
+        let no_views = Program::from_string(ARC20_TOKEN_PROGRAM.split("view balance_of:").next().unwrap()).unwrap();
+        assert!(!no_views.is_arc20());
+
+        // A token missing a single required view function is not compliant.
         let missing_view =
             Program::from_string(&ARC20_TOKEN_PROGRAM.replace("view symbol:", "view symbol_of:")).unwrap();
         assert!(!missing_view.is_arc20());
+
+        // A view function that is present but has the wrong signature is not compliant.
+        let wrong_view = Program::from_string(&ARC20_TOKEN_PROGRAM.replace(
+            "view balance_of:\n    input r0 as address.public;",
+            "view balance_of:\n    input r0 as field.public;",
+        ))
+        .unwrap();
+        assert!(!wrong_view.is_arc20());
+
+        // A token whose future outputs point at another program is not compliant.
+        let foreign_futures =
+            Program::from_string(&ARC20_TOKEN_PROGRAM.replace("arc20_token.aleo/", "credits.aleo/")).unwrap();
+        assert!(!foreign_futures.is_arc20());
+
+        // A token whose record owner is public is not compliant.
+        let public_owner =
+            Program::from_string(&ARC20_TOKEN_PROGRAM.replace("owner as address.private", "owner as address.public"))
+                .unwrap();
+        assert!(!public_owner.is_arc20());
 
         // A token whose record is not named `Token` is not compliant.
         let wrong_record_name = Program::from_string(&ARC20_TOKEN_PROGRAM.replace("Token", "Coupon")).unwrap();
@@ -1718,7 +1786,7 @@ view symbol:
         // credits.aleo is not an ARC-22 token.
         assert!(!Program::get_credits_program().is_arc22());
 
-        // A program whose MerkleProof struct has the wrong shape is not compliant.
+        // A program whose local MerkleProof struct has the wrong shape is not compliant.
         let wrong_merkle_proof =
             Program::from_string(&ARC22_TOKEN_PROGRAM.replace("[field; 16u32]", "[field; 8u32]")).unwrap();
         assert!(!wrong_merkle_proof.is_arc22());
@@ -1727,5 +1795,20 @@ view symbol:
         let missing_compliance_record =
             Program::from_string(&ARC22_TOKEN_PROGRAM.replace("ComplianceRecord", "AuditRecord")).unwrap();
         assert!(!missing_compliance_record.is_arc22());
+    }
+
+    #[wasm_bindgen_test]
+    fn test_is_arc22_real_programs() {
+        // The Leo-compiled compliant token template is ARC-22 compliant. It declares all
+        // seven view functions and imports its MerkleProof struct from freezelist.aleo.
+        let template = Program::from_string(COMPLIANT_TOKEN_TEMPLATE).unwrap();
+        assert!(template.is_arc22());
+        assert!(!template.is_arc20());
+
+        // The deployed testnet USDCx stablecoin matches all IARC22 function and record
+        // signatures but declares no view functions, so it is not ARC-22 compliant.
+        let usdcx = Program::from_string(TEST_USDCX_STABLECOIN).unwrap();
+        assert!(!usdcx.is_arc22());
+        assert!(!usdcx.is_arc20());
     }
 }
