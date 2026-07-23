@@ -15,11 +15,15 @@
 // along with the Provable SDK library. If not, see <https://www.gnu.org/licenses/>.
 
 use crate::{
+    Field,
     account::Address,
     types::native::{CurrentNetwork, IdentifierNative, ProgramNative},
 };
 use js_sys::{Array, Object, Reflect, Uint8Array};
-use snarkvm_console::program::{EntryType, PlaintextType, ValueType};
+use snarkvm_console::{
+    prelude::ToField,
+    program::{EntryType, PlaintextType, ValueType},
+};
 use std::{
     collections::{HashSet, VecDeque},
     ops::Deref,
@@ -31,6 +35,124 @@ use wasm_bindgen::{JsValue, prelude::wasm_bindgen};
 #[wasm_bindgen]
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub struct Program(ProgramNative);
+
+/// The required signature of an interface function or view function, expressed in the
+/// canonical `.aleo` bytecode type notation (e.g. "address.public", "Token.record").
+/// The special output marker "future" matches any future type, since a future's locator
+/// embeds the id of the program being checked.
+struct InterfaceFunction {
+    name: &'static str,
+    inputs: &'static [&'static str],
+    outputs: &'static [&'static str],
+}
+
+const FUTURE: &str = "future";
+
+/// Input marker for the ARC-22 Merkle proof array, which is matched structurally rather
+/// than by exact type string since the MerkleProof struct may be local or imported.
+const MERKLE_PROOFS: &str = "[MerkleProof; 2u32].private";
+
+/// The functions required by the ARC-20 token interface (IARC20).
+const ARC20_FUNCTIONS: &[InterfaceFunction] = &[
+    InterfaceFunction { name: "transfer_public", inputs: &["address.public", "u128.public"], outputs: &[FUTURE] },
+    InterfaceFunction {
+        name: "transfer_private",
+        inputs: &["Token.record", "address.private", "u128.private"],
+        outputs: &["Token.record", "Token.record"],
+    },
+    InterfaceFunction {
+        name: "transfer_private_to_public",
+        inputs: &["Token.record", "address.public", "u128.public"],
+        outputs: &["Token.record", FUTURE],
+    },
+    InterfaceFunction {
+        name: "transfer_public_to_private",
+        inputs: &["address.private", "u128.public"],
+        outputs: &["Token.record", FUTURE],
+    },
+    InterfaceFunction {
+        name: "transfer_public_as_signer",
+        inputs: &["address.public", "u128.public"],
+        outputs: &[FUTURE],
+    },
+    InterfaceFunction {
+        name: "transfer_from_public",
+        inputs: &["address.public", "address.public", "u128.public"],
+        outputs: &[FUTURE],
+    },
+    InterfaceFunction {
+        name: "transfer_from_public_to_private",
+        inputs: &["address.public", "address.private", "u128.public"],
+        outputs: &["Token.record", FUTURE],
+    },
+    InterfaceFunction { name: "approve_public", inputs: &["address.public", "u128.public"], outputs: &[FUTURE] },
+    InterfaceFunction { name: "unapprove_public", inputs: &["address.public", "u128.public"], outputs: &[FUTURE] },
+    InterfaceFunction { name: "join", inputs: &["Token.record", "Token.record"], outputs: &["Token.record"] },
+    InterfaceFunction {
+        name: "split",
+        inputs: &["Token.record", "u128.private"],
+        outputs: &["Token.record", "Token.record"],
+    },
+];
+
+/// The view functions required by both the ARC-20 (IARC20) and ARC-22 (IARC22) token
+/// interfaces. View function inputs and outputs are always public.
+const ARC20_VIEWS: &[InterfaceFunction] = &[
+    InterfaceFunction { name: "balance_of", inputs: &["address.public"], outputs: &["u128.public"] },
+    InterfaceFunction { name: "allowance", inputs: &["address.public", "address.public"], outputs: &["u128.public"] },
+    InterfaceFunction { name: "supply", inputs: &[], outputs: &["u128.public"] },
+    InterfaceFunction { name: "max_supply", inputs: &[], outputs: &["u128.public"] },
+    InterfaceFunction { name: "decimals", inputs: &[], outputs: &["u8.public"] },
+    InterfaceFunction { name: "name", inputs: &[], outputs: &["identifier.public"] },
+    InterfaceFunction { name: "symbol", inputs: &[], outputs: &["identifier.public"] },
+];
+
+/// The functions required by the ARC-22 compliant token interface (IARC22).
+const ARC22_FUNCTIONS: &[InterfaceFunction] = &[
+    InterfaceFunction { name: "approve_public", inputs: &["address.public", "u128.public"], outputs: &[FUTURE] },
+    InterfaceFunction { name: "unapprove_public", inputs: &["address.public", "u128.public"], outputs: &[FUTURE] },
+    InterfaceFunction { name: "transfer_public", inputs: &["address.public", "u128.public"], outputs: &[FUTURE] },
+    InterfaceFunction {
+        name: "transfer_private",
+        inputs: &["address.private", "u128.private", "Token.record", MERKLE_PROOFS],
+        outputs: &["ComplianceRecord.record", "Token.record", "Token.record", FUTURE],
+    },
+    InterfaceFunction {
+        name: "transfer_private_to_public",
+        inputs: &["address.public", "u128.public", "Token.record", MERKLE_PROOFS],
+        outputs: &["ComplianceRecord.record", "Token.record", FUTURE],
+    },
+    InterfaceFunction {
+        name: "transfer_public_to_private",
+        inputs: &["address.private", "u128.public"],
+        outputs: &["ComplianceRecord.record", "Token.record", FUTURE],
+    },
+    InterfaceFunction {
+        name: "transfer_from_public",
+        inputs: &["address.public", "address.public", "u128.public"],
+        outputs: &[FUTURE],
+    },
+    InterfaceFunction {
+        name: "transfer_from_public_to_private",
+        inputs: &["address.public", "address.private", "u128.public"],
+        outputs: &["ComplianceRecord.record", "Token.record", FUTURE],
+    },
+    InterfaceFunction {
+        name: "transfer_public_as_signer",
+        inputs: &["address.public", "u128.public"],
+        outputs: &[FUTURE],
+    },
+    InterfaceFunction { name: "join", inputs: &["Token.record", "Token.record"], outputs: &["Token.record"] },
+    InterfaceFunction {
+        name: "split",
+        inputs: &["Token.record", "u128.private"],
+        outputs: &["Token.record", "Token.record"],
+    },
+];
+
+/// The members of the MerkleProof struct required by the ARC-22 interface, where
+/// the siblings array is sized by `MAX_TREE_DEPTH + 1` with `MAX_TREE_DEPTH = 15`.
+const ARC22_MERKLE_PROOF_MEMBERS: &[(&str, &str)] = &[("siblings", "[field; 16u32]"), ("leaf_index", "u32")];
 
 #[wasm_bindgen]
 impl Program {
@@ -566,6 +688,68 @@ impl Program {
         Ok(result.into())
     }
 
+    /// Determine if the program implements the ARC-20 fungible token interface (IARC20).
+    ///
+    /// This checks that the program defines a `Token` record with an `amount: u128` entry
+    /// (additional entries are permitted, per the interface's open record definition) and
+    /// that every function and view function required by ARC-20 is present with the exact
+    /// input and output signature defined by the standard.
+    ///
+    /// @see https://github.com/ProvableHQ/ARCs/blob/master/arc-0020/README.md
+    ///
+    /// @returns {boolean} True if the program implements the ARC-20 token interface
+    #[wasm_bindgen(js_name = "isArc20")]
+    pub fn is_arc20(&self) -> bool {
+        self.record_has_entries("Token", &[("amount", "u128")])
+            && ARC20_FUNCTIONS.iter().all(|function| self.matches_function(function))
+            && ARC20_VIEWS.iter().all(|view| self.matches_view(view))
+    }
+
+    /// Determine if the program implements the ARC-22 compliant token interface (IARC22).
+    ///
+    /// This checks that the program defines `Token` and `ComplianceRecord` records with the
+    /// entries required by the standard (additional entries are permitted, per the
+    /// interface's open record definitions), and that every function and view function
+    /// required by ARC-22 is present with the exact input and output signature defined by
+    /// the standard. The `MerkleProof` struct used by the private transfer functions may be
+    /// declared locally (in which case its shape must match the standard exactly) or
+    /// imported from another program such as a freeze list registry.
+    ///
+    /// Note: this checks the token interface (IARC22) only. The freeze list registry
+    /// interface (IARC22Freezelist) is typically implemented by a separate program and is
+    /// not required for a token program to be considered ARC-22 compliant.
+    ///
+    /// @see https://github.com/ProvableHQ/ARCs/blob/master/arc-0022/README.md
+    ///
+    /// @returns {boolean} True if the program implements the ARC-22 token interface
+    #[wasm_bindgen(js_name = "isArc22")]
+    pub fn is_arc22(&self) -> bool {
+        self.record_has_entries("Token", &[("amount", "u128")])
+            && self.record_has_entries("ComplianceRecord", &[
+                ("amount", "u128"),
+                ("sender", "address"),
+                ("recipient", "address"),
+            ])
+            && ARC22_FUNCTIONS.iter().all(|function| self.matches_function(function))
+            && ARC20_VIEWS.iter().all(|view| self.matches_view(view))
+    }
+
+    /// Get the program's name (without the `.aleo` suffix) encoded as a field element.
+    ///
+    /// This is the same value as casting the program name identifier to a field on-chain
+    /// (e.g. `my_program.aleo` -> `Identifier("my_program") as field`), which is used as
+    /// the program id in dynamic dispatch calls such as `IARC20@(token_id)`.
+    ///
+    /// @example
+    /// const program = aleo_wasm.Program.getCreditsProgram();
+    /// const field = program.nameToField(); // Field encoding of "credits"
+    ///
+    /// @returns {Field} The program name as a field element
+    #[wasm_bindgen(js_name = "nameToField")]
+    pub fn name_to_field(&self) -> Result<Field, String> {
+        Ok(Field::from(self.0.id().name().to_field().map_err(|e| e.to_string())?))
+    }
+
     /// Get the checksum of the program.
     ///
     /// @returns {Uint8Array} The checksum of the program as a 32-byte Uint8Array
@@ -573,6 +757,113 @@ impl Program {
     pub fn to_checksum(&self) -> Uint8Array {
         let checksum: Vec<u8> = self.0.to_checksum().iter().map(|b| **b).collect();
         Uint8Array::from(checksum.as_slice())
+    }
+}
+
+// Native helpers backing the ARC-20/ARC-22 interface checks. These methods operate on
+// snarkVM types directly and are not exported to wasm.
+impl Program {
+    // Check that a function exists with the exact interface signature.
+    fn matches_function(&self, interface_function: &InterfaceFunction) -> bool {
+        let Ok(name) = IdentifierNative::from_str(interface_function.name) else {
+            return false;
+        };
+        let Some(function) = self.0.functions().get(&name) else {
+            return false;
+        };
+        let inputs = function.input_types();
+        let outputs = function.output_types();
+        inputs.len() == interface_function.inputs.len()
+            && outputs.len() == interface_function.outputs.len()
+            && inputs.iter().zip(interface_function.inputs).all(|(input, expected)| {
+                if *expected == MERKLE_PROOFS {
+                    self.is_merkle_proof_array(input)
+                } else {
+                    input.to_string() == *expected
+                }
+            })
+            && outputs.iter().zip(interface_function.outputs).all(|(output, expected)| {
+                if *expected == FUTURE {
+                    // A `Final` output must be the function's own future — a future pointing
+                    // at another program's function does not satisfy the interface.
+                    matches!(output, ValueType::Future(locator)
+                        if locator.program_id() == self.0.id()
+                            && locator.resource().to_string() == interface_function.name)
+                } else {
+                    output.to_string() == *expected
+                }
+            })
+    }
+
+    // Check that a function input is a private two-element array of the ARC-22 MerkleProof
+    // struct. The struct may be declared locally, in which case its shape must match the
+    // standard exactly, or imported from another program (e.g. a freeze list registry),
+    // whose definition cannot be resolved from this program alone.
+    fn is_merkle_proof_array(&self, input: &ValueType<CurrentNetwork>) -> bool {
+        let ValueType::Private(PlaintextType::Array(array)) = input else {
+            return false;
+        };
+        if **array.length() != 2u32 {
+            return false;
+        }
+        match array.next_element_type() {
+            PlaintextType::Struct(name) => {
+                name.to_string() == "MerkleProof" && self.struct_matches("MerkleProof", ARC22_MERKLE_PROOF_MEMBERS)
+            }
+            PlaintextType::ExternalStruct(locator) => locator.resource().to_string() == "MerkleProof",
+            _ => false,
+        }
+    }
+
+    // Check that a view function exists with the exact interface signature.
+    fn matches_view(&self, interface_view: &InterfaceFunction) -> bool {
+        let Ok(name) = IdentifierNative::from_str(interface_view.name) else {
+            return false;
+        };
+        let Some(view) = self.0.views().get(&name) else {
+            return false;
+        };
+        let inputs = view.input_types();
+        let outputs = view.output_types();
+        inputs.len() == interface_view.inputs.len()
+            && outputs.len() == interface_view.outputs.len()
+            && inputs.iter().zip(interface_view.inputs).all(|(input, expected)| input.to_string() == *expected)
+            && outputs.iter().zip(interface_view.outputs).all(|(output, expected)| output.to_string() == *expected)
+    }
+
+    // Check that a record exists with a private owner, containing at least the given
+    // private entries; additional entries are permitted, matching the `..` in interface
+    // record definitions.
+    fn record_has_entries(&self, record_name: &str, entries: &[(&str, &str)]) -> bool {
+        let Ok(name) = IdentifierNative::from_str(record_name) else {
+            return false;
+        };
+        let Ok(record) = self.0.get_record(&name) else {
+            return false;
+        };
+        if !record.owner().is_private() {
+            return false;
+        }
+        entries.iter().all(|(entry_name, entry_type)| {
+            record.entries().iter().any(|(name, ty)| {
+                name.to_string() == *entry_name
+                    && matches!(ty, EntryType::Private(plaintext) if plaintext.to_string() == *entry_type)
+            })
+        })
+    }
+
+    // Check that a struct exists with exactly the given members in order.
+    fn struct_matches(&self, struct_name: &str, members: &[(&str, &str)]) -> bool {
+        let Ok(name) = IdentifierNative::from_str(struct_name) else {
+            return false;
+        };
+        let Ok(struct_) = self.0.get_struct(&name) else {
+            return false;
+        };
+        struct_.members().len() == members.len()
+            && struct_.members().iter().zip(members).all(|((name, ty), (expected_name, expected_type))| {
+                name.to_string() == *expected_name && ty.to_string() == *expected_type
+            })
     }
 }
 
@@ -613,7 +904,11 @@ impl FromStr for Program {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::{array, object};
+    use crate::{
+        array,
+        object,
+        utilities::test::{ARC20_TOKEN_PROGRAM, ARC22_TOKEN_PROGRAM, COMPLIANT_TOKEN_TEMPLATE, TEST_USDCX_STABLECOIN},
+    };
 
     use wasm_bindgen_test::*;
 
@@ -940,5 +1235,115 @@ function add_and_double:
         let imports = program.get_imports().to_vec();
         assert_eq!(&imports[0].as_string().unwrap(), "double_test.aleo");
         assert_eq!(&imports[1].as_string().unwrap(), "addition_test.aleo");
+    }
+
+    #[wasm_bindgen_test]
+    fn test_is_arc20() {
+        // A fully compliant ARC-20 token program is detected.
+        let arc20 = Program::from_string(ARC20_TOKEN_PROGRAM).unwrap();
+        assert!(arc20.is_arc20());
+
+        // An ARC-20 token is not an ARC-22 token (transfer signatures differ).
+        assert!(!arc20.is_arc22());
+
+        // credits.aleo is not an ARC-20 token.
+        assert!(!Program::get_credits_program().is_arc20());
+
+        // A token using u64 amounts instead of u128 is not compliant.
+        let wrong_amount_type = Program::from_string(&ARC20_TOKEN_PROGRAM.replace("u128", "u64")).unwrap();
+        assert!(!wrong_amount_type.is_arc20());
+
+        // A token missing a required function is not compliant.
+        let missing_function =
+            Program::from_string(&ARC20_TOKEN_PROGRAM.replace("function join:", "function join_tokens:")).unwrap();
+        assert!(!missing_function.is_arc20());
+
+        // A token without the required view functions is not compliant.
+        let no_views = Program::from_string(ARC20_TOKEN_PROGRAM.split("view balance_of:").next().unwrap()).unwrap();
+        assert!(!no_views.is_arc20());
+
+        // A token missing a single required view function is not compliant.
+        let missing_view =
+            Program::from_string(&ARC20_TOKEN_PROGRAM.replace("view symbol:", "view symbol_of:")).unwrap();
+        assert!(!missing_view.is_arc20());
+
+        // A view function that is present but has the wrong signature is not compliant.
+        let wrong_view = Program::from_string(&ARC20_TOKEN_PROGRAM.replace(
+            "view balance_of:\n    input r0 as address.public;",
+            "view balance_of:\n    input r0 as field.public;",
+        ))
+        .unwrap();
+        assert!(!wrong_view.is_arc20());
+
+        // A token whose future outputs point at another program is not compliant.
+        let foreign_futures =
+            Program::from_string(&ARC20_TOKEN_PROGRAM.replace("arc20_token.aleo/", "credits.aleo/")).unwrap();
+        assert!(!foreign_futures.is_arc20());
+
+        // A token whose record owner is public is not compliant.
+        let public_owner =
+            Program::from_string(&ARC20_TOKEN_PROGRAM.replace("owner as address.private", "owner as address.public"))
+                .unwrap();
+        assert!(!public_owner.is_arc20());
+
+        // A token whose record is not named `Token` is not compliant.
+        let wrong_record_name = Program::from_string(&ARC20_TOKEN_PROGRAM.replace("Token", "Coupon")).unwrap();
+        assert!(!wrong_record_name.is_arc20());
+    }
+
+    #[wasm_bindgen_test]
+    fn test_is_arc22() {
+        // A fully compliant ARC-22 token program is detected (the extra `token_id`
+        // entry on the Token record is permitted by the interface's `..`).
+        let arc22 = Program::from_string(ARC22_TOKEN_PROGRAM).unwrap();
+        assert!(arc22.is_arc22());
+
+        // An ARC-22 token is not an ARC-20 token (transfer signatures differ).
+        assert!(!arc22.is_arc20());
+
+        // credits.aleo is not an ARC-22 token.
+        assert!(!Program::get_credits_program().is_arc22());
+
+        // A program whose local MerkleProof struct has the wrong shape is not compliant.
+        let wrong_merkle_proof =
+            Program::from_string(&ARC22_TOKEN_PROGRAM.replace("[field; 16u32]", "[field; 8u32]")).unwrap();
+        assert!(!wrong_merkle_proof.is_arc22());
+
+        // A token missing the ComplianceRecord is not compliant.
+        let missing_compliance_record =
+            Program::from_string(&ARC22_TOKEN_PROGRAM.replace("ComplianceRecord", "AuditRecord")).unwrap();
+        assert!(!missing_compliance_record.is_arc22());
+    }
+
+    #[wasm_bindgen_test]
+    fn test_name_to_field() {
+        // The field encoding of the program's name (minus the .aleo suffix) matches the
+        // identifier-to-field conversion of the bare name.
+        let credits = Program::get_credits_program();
+        assert_eq!(
+            credits.name_to_field().unwrap().to_string(),
+            crate::utilities::string_to_field("credits").unwrap().to_string()
+        );
+
+        let arc20 = Program::from_string(ARC20_TOKEN_PROGRAM).unwrap();
+        assert_eq!(
+            arc20.name_to_field().unwrap().to_string(),
+            crate::utilities::string_to_field("arc20_token").unwrap().to_string()
+        );
+    }
+
+    #[wasm_bindgen_test]
+    fn test_is_arc22_real_programs() {
+        // The Leo-compiled compliant token template is ARC-22 compliant. It declares all
+        // seven view functions and imports its MerkleProof struct from freezelist.aleo.
+        let template = Program::from_string(COMPLIANT_TOKEN_TEMPLATE).unwrap();
+        assert!(template.is_arc22());
+        assert!(!template.is_arc20());
+
+        // The deployed testnet USDCx stablecoin matches all IARC22 function and record
+        // signatures but declares no view functions, so it is not ARC-22 compliant.
+        let usdcx = Program::from_string(TEST_USDCX_STABLECOIN).unwrap();
+        assert!(!usdcx.is_arc22());
+        assert!(!usdcx.is_arc20());
     }
 }
