@@ -15,11 +15,15 @@
 // along with the Provable SDK library. If not, see <https://www.gnu.org/licenses/>.
 
 use crate::{
+    Field,
     account::Address,
     types::native::{CurrentNetwork, IdentifierNative, ProgramNative},
 };
 use js_sys::{Array, Object, Reflect, Uint8Array};
-use snarkvm_console::program::{EntryType, PlaintextType, ValueType};
+use snarkvm_console::{
+    prelude::ToField,
+    program::{EntryType, PlaintextType, ValueType},
+};
 use std::{
     collections::{HashSet, VecDeque},
     ops::Deref,
@@ -730,8 +734,36 @@ impl Program {
             && ARC20_VIEWS.iter().all(|view| self.matches_view(view))
     }
 
-    // Check that a function exists with the exact interface signature (this function is not
-    // part of the public API).
+    /// Get the program's name (without the `.aleo` suffix) encoded as a field element.
+    ///
+    /// This is the same value as casting the program name identifier to a field on-chain
+    /// (e.g. `my_program.aleo` -> `Identifier("my_program") as field`), which is used as
+    /// the program id in dynamic dispatch calls such as `IARC20@(token_id)`.
+    ///
+    /// @example
+    /// const program = aleo_wasm.Program.getCreditsProgram();
+    /// const field = program.nameToField(); // Field encoding of "credits"
+    ///
+    /// @returns {Field} The program name as a field element
+    #[wasm_bindgen(js_name = "nameToField")]
+    pub fn name_to_field(&self) -> Result<Field, String> {
+        Ok(Field::from(self.0.id().name().to_field().map_err(|e| e.to_string())?))
+    }
+
+    /// Get the checksum of the program.
+    ///
+    /// @returns {Uint8Array} The checksum of the program as a 32-byte Uint8Array
+    #[wasm_bindgen(js_name = "toChecksum")]
+    pub fn to_checksum(&self) -> Uint8Array {
+        let checksum: Vec<u8> = self.0.to_checksum().iter().map(|b| **b).collect();
+        Uint8Array::from(checksum.as_slice())
+    }
+}
+
+// Native helpers backing the ARC-20/ARC-22 interface checks. These methods operate on
+// snarkVM types directly and are not exported to wasm.
+impl Program {
+    // Check that a function exists with the exact interface signature.
     fn matches_function(&self, interface_function: &InterfaceFunction) -> bool {
         let Ok(name) = IdentifierNative::from_str(interface_function.name) else {
             return false;
@@ -766,8 +798,7 @@ impl Program {
     // Check that a function input is a private two-element array of the ARC-22 MerkleProof
     // struct. The struct may be declared locally, in which case its shape must match the
     // standard exactly, or imported from another program (e.g. a freeze list registry),
-    // whose definition cannot be resolved from this program alone (this function is not
-    // part of the public API).
+    // whose definition cannot be resolved from this program alone.
     fn is_merkle_proof_array(&self, input: &ValueType<CurrentNetwork>) -> bool {
         let ValueType::Private(PlaintextType::Array(array)) = input else {
             return false;
@@ -784,8 +815,7 @@ impl Program {
         }
     }
 
-    // Check that a view function exists with the exact interface signature (this function is
-    // not part of the public API).
+    // Check that a view function exists with the exact interface signature.
     fn matches_view(&self, interface_view: &InterfaceFunction) -> bool {
         let Ok(name) = IdentifierNative::from_str(interface_view.name) else {
             return false;
@@ -803,7 +833,7 @@ impl Program {
 
     // Check that a record exists with a private owner, containing at least the given
     // private entries; additional entries are permitted, matching the `..` in interface
-    // record definitions (this function is not part of the public API).
+    // record definitions.
     fn record_has_entries(&self, record_name: &str, entries: &[(&str, &str)]) -> bool {
         let Ok(name) = IdentifierNative::from_str(record_name) else {
             return false;
@@ -822,8 +852,7 @@ impl Program {
         })
     }
 
-    // Check that a struct exists with exactly the given members in order (this function is
-    // not part of the public API).
+    // Check that a struct exists with exactly the given members in order.
     fn struct_matches(&self, struct_name: &str, members: &[(&str, &str)]) -> bool {
         let Ok(name) = IdentifierNative::from_str(struct_name) else {
             return false;
@@ -835,15 +864,6 @@ impl Program {
             && struct_.members().iter().zip(members).all(|((name, ty), (expected_name, expected_type))| {
                 name.to_string() == *expected_name && ty.to_string() == *expected_type
             })
-    }
-
-    /// Get the checksum of the program.
-    ///
-    /// @returns {Uint8Array} The checksum of the program as a 32-byte Uint8Array
-    #[wasm_bindgen(js_name = "toChecksum")]
-    pub fn to_checksum(&self) -> Uint8Array {
-        let checksum: Vec<u8> = self.0.to_checksum().iter().map(|b| **b).collect();
-        Uint8Array::from(checksum.as_slice())
     }
 }
 
@@ -1293,6 +1313,23 @@ function add_and_double:
         let missing_compliance_record =
             Program::from_string(&ARC22_TOKEN_PROGRAM.replace("ComplianceRecord", "AuditRecord")).unwrap();
         assert!(!missing_compliance_record.is_arc22());
+    }
+
+    #[wasm_bindgen_test]
+    fn test_name_to_field() {
+        // The field encoding of the program's name (minus the .aleo suffix) matches the
+        // identifier-to-field conversion of the bare name.
+        let credits = Program::get_credits_program();
+        assert_eq!(
+            credits.name_to_field().unwrap().to_string(),
+            crate::utilities::string_to_field("credits").unwrap().to_string()
+        );
+
+        let arc20 = Program::from_string(ARC20_TOKEN_PROGRAM).unwrap();
+        assert_eq!(
+            arc20.name_to_field().unwrap().to_string(),
+            crate::utilities::string_to_field("arc20_token").unwrap().to_string()
+        );
     }
 
     #[wasm_bindgen_test]
