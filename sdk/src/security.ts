@@ -27,6 +27,46 @@ export function encryptProvingRequest(publicKey: string, provingRequest: Proving
 }
 
 /**
+ * Serialize a ProvingRequest for later encryption with
+ * `encryptSerializedProvingRequest`.
+ *
+ * Useful when the request may have to be encrypted more than once: the
+ * delegated proving service's one-time keys are single-use, so a client that
+ * needs to resend a request (e.g. after the service rejected a spent or
+ * unknown `key_id`) can keep the serialized form and re-encrypt it for a
+ * fresh key instead of rebuilding and re-signing the request.
+ *
+ * @param {ProvingRequest} provingRequest the ProvingRequest to serialize.
+ *
+ * @returns {string} the serialized ProvingRequest in RFC 4648 standard Base64.
+ */
+export function serializeProvingRequest(provingRequest: ProvingRequest): string {
+    return base64.encode(provingRequest.toBytesLe());
+}
+
+/**
+ * Encrypt an already-serialized ProvingRequest (as produced by
+ * `serializeProvingRequest`) with a cryptobox X25519 public key
+ * (libsodium-compatible wire format).
+ *
+ * Produces exactly the same ciphertext format as `encryptProvingRequest` —
+ * `encryptSerializedProvingRequest(pk, serializeProvingRequest(req))` and
+ * `encryptProvingRequest(pk, req)` are interchangeable from the proving
+ * service's point of view.
+ *
+ * @param {string} publicKey The cryptobox X25519 public key to encrypt with (encoded in RFC 4648 standard Base64).
+ * @param {string} serializedProvingRequest the serialized ProvingRequest in RFC 4648 standard Base64.
+ *
+ * @returns {string} the encrypted ProvingRequest in RFC 4648 standard Base64.
+ */
+export function encryptSerializedProvingRequest(
+    publicKey: string,
+    serializedProvingRequest: string,
+): string {
+    return encryptMessage(publicKey, base64.decode(serializedProvingRequest));
+}
+
+/**
  * Encrypt a view key with a cryptobox X25519 public key (libsodium-compatible wire format).
  *
  * @param {string} publicKey The cryptobox X25519 public key to encrypt with (encoded in RFC 4648 standard Base64).

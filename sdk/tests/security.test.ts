@@ -5,8 +5,10 @@ import {
     Account,
     encryptAuthorization,
     encryptProvingRequest,
+    encryptSerializedProvingRequest,
     encryptViewKey,
     encryptRegistrationRequest,
+    serializeProvingRequest,
     zeroizeBytes,
     Authorization,
     ProvingRequest,
@@ -37,8 +39,10 @@ describe("security", () => {
         it("all encrypt/zeroize exports exist as functions", () => {
             expect(encryptAuthorization).to.be.a("function");
             expect(encryptProvingRequest).to.be.a("function");
+            expect(encryptSerializedProvingRequest).to.be.a("function");
             expect(encryptViewKey).to.be.a("function");
             expect(encryptRegistrationRequest).to.be.a("function");
+            expect(serializeProvingRequest).to.be.a("function");
             expect(zeroizeBytes).to.be.a("function");
             // Guard against WASM types being tree-shaken away.
             expect(Authorization).to.exist;
@@ -103,6 +107,44 @@ describe("security", () => {
 
             // 32-byte ephemeral public key prefix + 16-byte Poly1305 tag + payload
             expect(raw.length).to.equal(32 + 16 + viewKeyBytes.length);
+        });
+
+        it("encryptSerializedProvingRequest round-trips through sodium.crypto_box_seal_open", () => {
+            const keyPair = sodium.crypto_box_keypair();
+            const pub = sodium.to_base64(keyPair.publicKey, sodium.base64_variants.ORIGINAL);
+            // Arbitrary request bytes — the function is agnostic to the payload.
+            const requestBytes = new Account().viewKey().toBytesLe();
+
+            const ciphertext = encryptSerializedProvingRequest(pub, base64.encode(requestBytes));
+
+            const plaintextBytes = sodium.crypto_box_seal_open(
+                sodium.from_base64(ciphertext, sodium.base64_variants.ORIGINAL),
+                keyPair.publicKey,
+                keyPair.privateKey,
+            );
+            expect(plaintextBytes).to.deep.equal(requestBytes);
+        });
+
+        it("the serialized path is byte-compatible with the typed encrypt* wrappers", () => {
+            const keyPair = sodium.crypto_box_keypair();
+            const pub = sodium.to_base64(keyPair.publicKey, sodium.base64_variants.ORIGINAL);
+            const viewKey = new Account().viewKey();
+            const expected = viewKey.toBytesLe();
+
+            // encryptViewKey(pk, vk) and encryptSerializedProvingRequest(pk,
+            // base64(vk.toBytesLe())) feed the same bytes into the same sealed
+            // box, so both ciphertexts must decrypt to identical plaintext.
+            const typed = encryptViewKey(pub, viewKey);
+            const serialized = encryptSerializedProvingRequest(pub, base64.encode(expected));
+
+            for (const ciphertext of [typed, serialized]) {
+                const plaintextBytes = sodium.crypto_box_seal_open(
+                    sodium.from_base64(ciphertext, sodium.base64_variants.ORIGINAL),
+                    keyPair.publicKey,
+                    keyPair.privateKey,
+                );
+                expect(plaintextBytes).to.deep.equal(expected);
+            }
         });
 
         it("fuzz: 50 random messages all decrypt back to the original", () => {
