@@ -11,7 +11,14 @@ import { ViewKey, Authorization, ProvingRequest } from "./wasm.js";
  * @returns {string} the encrypted authorization in RFC 4648 standard Base64.
  */
 export function encryptAuthorization(publicKey: string, authorization: Authorization): string {
-    return encryptMessage(publicKey, authorization.toBytesLe());
+    // Zeroize the intermediate plaintext bytes regardless of success or
+    // failure — same pattern as encryptRegistrationRequest.
+    const bytes = authorization.toBytesLe();
+    try {
+        return encryptMessage(publicKey, bytes);
+    } finally {
+        zeroizeBytes(bytes);
+    }
 }
 
 /**
@@ -23,7 +30,14 @@ export function encryptAuthorization(publicKey: string, authorization: Authoriza
  * @returns {string} the encrypted ProvingRequest in RFC 4648 standard Base64.
  */
 export function encryptProvingRequest(publicKey: string, provingRequest: ProvingRequest): string {
-    return encryptMessage(publicKey, provingRequest.toBytesLe());
+    // Zeroize the intermediate plaintext bytes regardless of success or
+    // failure — same pattern as encryptRegistrationRequest.
+    const bytes = provingRequest.toBytesLe();
+    try {
+        return encryptMessage(publicKey, bytes);
+    } finally {
+        zeroizeBytes(bytes);
+    }
 }
 
 /**
@@ -87,7 +101,14 @@ export function encryptSerializedProvingRequest(
  * @returns {string} the encrypted view key in RFC 4648 standard Base64.
  */
 export function encryptViewKey(publicKey: string, viewKey: ViewKey): string {
-    return encryptMessage(publicKey, viewKey.toBytesLe());
+    // Zeroize the intermediate plaintext bytes regardless of success or
+    // failure — same pattern as encryptRegistrationRequest.
+    const bytes = viewKey.toBytesLe();
+    try {
+        return encryptMessage(publicKey, bytes);
+    } finally {
+        zeroizeBytes(bytes);
+    }
 }
 
 /**
