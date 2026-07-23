@@ -19,7 +19,7 @@ use crate::{
     types::native::{CurrentNetwork, IdentifierNative, ProgramNative},
 };
 use js_sys::{Array, Object, Reflect, Uint8Array};
-use snarkvm_console::program::{EntryType, PlaintextType, ValueType};
+use snarkvm_console::program::{EntryType, FinalizeType, PlaintextType, ValueType};
 use std::{
     collections::{HashSet, VecDeque},
     ops::Deref,
@@ -31,6 +31,120 @@ use wasm_bindgen::{JsValue, prelude::wasm_bindgen};
 #[wasm_bindgen]
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub struct Program(ProgramNative);
+
+/// The required signature of an interface function or view function, expressed in the
+/// canonical `.aleo` bytecode type notation (e.g. "address.public", "Token.record").
+/// The special output marker "future" matches any future type, since a future's locator
+/// embeds the id of the program being checked.
+struct InterfaceFunction {
+    name: &'static str,
+    inputs: &'static [&'static str],
+    outputs: &'static [&'static str],
+}
+
+const FUTURE: &str = "future";
+
+/// The functions required by the ARC-20 token interface (IARC20).
+const ARC20_FUNCTIONS: &[InterfaceFunction] = &[
+    InterfaceFunction { name: "transfer_public", inputs: &["address.public", "u128.public"], outputs: &[FUTURE] },
+    InterfaceFunction {
+        name: "transfer_private",
+        inputs: &["Token.record", "address.private", "u128.private"],
+        outputs: &["Token.record", "Token.record"],
+    },
+    InterfaceFunction {
+        name: "transfer_private_to_public",
+        inputs: &["Token.record", "address.public", "u128.public"],
+        outputs: &["Token.record", FUTURE],
+    },
+    InterfaceFunction {
+        name: "transfer_public_to_private",
+        inputs: &["address.private", "u128.public"],
+        outputs: &["Token.record", FUTURE],
+    },
+    InterfaceFunction {
+        name: "transfer_public_as_signer",
+        inputs: &["address.public", "u128.public"],
+        outputs: &[FUTURE],
+    },
+    InterfaceFunction {
+        name: "transfer_from_public",
+        inputs: &["address.public", "address.public", "u128.public"],
+        outputs: &[FUTURE],
+    },
+    InterfaceFunction {
+        name: "transfer_from_public_to_private",
+        inputs: &["address.public", "address.private", "u128.public"],
+        outputs: &["Token.record", FUTURE],
+    },
+    InterfaceFunction { name: "approve_public", inputs: &["address.public", "u128.public"], outputs: &[FUTURE] },
+    InterfaceFunction { name: "unapprove_public", inputs: &["address.public", "u128.public"], outputs: &[FUTURE] },
+    InterfaceFunction { name: "join", inputs: &["Token.record", "Token.record"], outputs: &["Token.record"] },
+    InterfaceFunction {
+        name: "split",
+        inputs: &["Token.record", "u128.private"],
+        outputs: &["Token.record", "Token.record"],
+    },
+];
+
+/// The view functions required by both the ARC-20 (IARC20) and ARC-22 (IARC22) token
+/// interfaces. View function inputs and outputs are always public.
+const ARC20_VIEWS: &[InterfaceFunction] = &[
+    InterfaceFunction { name: "balance_of", inputs: &["address.public"], outputs: &["u128.public"] },
+    InterfaceFunction { name: "allowance", inputs: &["address.public", "address.public"], outputs: &["u128.public"] },
+    InterfaceFunction { name: "supply", inputs: &[], outputs: &["u128.public"] },
+    InterfaceFunction { name: "max_supply", inputs: &[], outputs: &["u128.public"] },
+    InterfaceFunction { name: "decimals", inputs: &[], outputs: &["u8.public"] },
+    InterfaceFunction { name: "name", inputs: &[], outputs: &["identifier.public"] },
+    InterfaceFunction { name: "symbol", inputs: &[], outputs: &["identifier.public"] },
+];
+
+/// The functions required by the ARC-22 compliant token interface (IARC22).
+const ARC22_FUNCTIONS: &[InterfaceFunction] = &[
+    InterfaceFunction { name: "approve_public", inputs: &["address.public", "u128.public"], outputs: &[FUTURE] },
+    InterfaceFunction { name: "unapprove_public", inputs: &["address.public", "u128.public"], outputs: &[FUTURE] },
+    InterfaceFunction { name: "transfer_public", inputs: &["address.public", "u128.public"], outputs: &[FUTURE] },
+    InterfaceFunction {
+        name: "transfer_private",
+        inputs: &["address.private", "u128.private", "Token.record", "[MerkleProof; 2u32].private"],
+        outputs: &["ComplianceRecord.record", "Token.record", "Token.record", FUTURE],
+    },
+    InterfaceFunction {
+        name: "transfer_private_to_public",
+        inputs: &["address.public", "u128.public", "Token.record", "[MerkleProof; 2u32].private"],
+        outputs: &["ComplianceRecord.record", "Token.record", FUTURE],
+    },
+    InterfaceFunction {
+        name: "transfer_public_to_private",
+        inputs: &["address.private", "u128.public"],
+        outputs: &["ComplianceRecord.record", "Token.record", FUTURE],
+    },
+    InterfaceFunction {
+        name: "transfer_from_public",
+        inputs: &["address.public", "address.public", "u128.public"],
+        outputs: &[FUTURE],
+    },
+    InterfaceFunction {
+        name: "transfer_from_public_to_private",
+        inputs: &["address.public", "address.private", "u128.public"],
+        outputs: &["ComplianceRecord.record", "Token.record", FUTURE],
+    },
+    InterfaceFunction {
+        name: "transfer_public_as_signer",
+        inputs: &["address.public", "u128.public"],
+        outputs: &[FUTURE],
+    },
+    InterfaceFunction { name: "join", inputs: &["Token.record", "Token.record"], outputs: &["Token.record"] },
+    InterfaceFunction {
+        name: "split",
+        inputs: &["Token.record", "u128.private"],
+        outputs: &["Token.record", "Token.record"],
+    },
+];
+
+/// The members of the MerkleProof struct required by the ARC-22 interface, where
+/// the siblings array is sized by `MAX_TREE_DEPTH + 1` with `MAX_TREE_DEPTH = 15`.
+const ARC22_MERKLE_PROOF_MEMBERS: &[(&str, &str)] = &[("siblings", "[field; 16u32]"), ("leaf_index", "u32")];
 
 #[wasm_bindgen]
 impl Program {
@@ -566,6 +680,130 @@ impl Program {
         Ok(result.into())
     }
 
+    /// Determine if the program implements the ARC-20 fungible token interface (IARC20).
+    ///
+    /// This checks that the program defines a `Token` record with an `amount: u128` entry
+    /// (additional entries are permitted, per the interface's open record definition) and
+    /// that every function and view function required by ARC-20 is present with the exact
+    /// input and output signature defined by the standard.
+    ///
+    /// @see https://github.com/ProvableHQ/ARCs/blob/master/arc-0020/README.md
+    ///
+    /// @returns {boolean} True if the program implements the ARC-20 token interface
+    #[wasm_bindgen(js_name = "isArc20")]
+    pub fn is_arc20(&self) -> bool {
+        self.record_has_entries("Token", &[("amount", "u128")])
+            && ARC20_FUNCTIONS.iter().all(|function| self.matches_function(function))
+            && ARC20_VIEWS.iter().all(|view| self.matches_view(view))
+    }
+
+    /// Determine if the program implements the ARC-22 compliant token interface (IARC22).
+    ///
+    /// This checks that the program defines `Token` and `ComplianceRecord` records with the
+    /// entries required by the standard (additional entries are permitted, per the
+    /// interface's open record definitions), a `MerkleProof` struct with the exact required
+    /// shape, and that every function and view function required by ARC-22 is present with
+    /// the exact input and output signature defined by the standard.
+    ///
+    /// Note: this checks the token interface (IARC22) only. The freeze list registry
+    /// interface (IARC22Freezelist) is typically implemented by a separate program and is
+    /// not required for a token program to be considered ARC-22 compliant.
+    ///
+    /// @see https://github.com/ProvableHQ/ARCs/blob/master/arc-0022/README.md
+    ///
+    /// @returns {boolean} True if the program implements the ARC-22 token interface
+    #[wasm_bindgen(js_name = "isArc22")]
+    pub fn is_arc22(&self) -> bool {
+        self.record_has_entries("Token", &[("amount", "u128")])
+            && self.record_has_entries("ComplianceRecord", &[
+                ("amount", "u128"),
+                ("sender", "address"),
+                ("recipient", "address"),
+            ])
+            && self.struct_matches("MerkleProof", ARC22_MERKLE_PROOF_MEMBERS)
+            && ARC22_FUNCTIONS.iter().all(|function| self.matches_function(function))
+            && ARC20_VIEWS.iter().all(|view| self.matches_view(view))
+    }
+
+    // Check that a function exists with the exact interface signature (this function is not
+    // part of the public API).
+    fn matches_function(&self, interface_function: &InterfaceFunction) -> bool {
+        let Ok(name) = IdentifierNative::from_str(interface_function.name) else {
+            return false;
+        };
+        let Some(function) = self.0.functions().get(&name) else {
+            return false;
+        };
+        let inputs = function.input_types();
+        let outputs = function.output_types();
+        inputs.len() == interface_function.inputs.len()
+            && outputs.len() == interface_function.outputs.len()
+            && inputs.iter().zip(interface_function.inputs).all(|(input, expected)| input.to_string() == *expected)
+            && outputs.iter().zip(interface_function.outputs).all(|(output, expected)| {
+                if *expected == FUTURE {
+                    matches!(output, ValueType::Future(_))
+                } else {
+                    output.to_string() == *expected
+                }
+            })
+    }
+
+    // Check that a view function exists with the exact interface signature (this function is
+    // not part of the public API).
+    fn matches_view(&self, interface_view: &InterfaceFunction) -> bool {
+        let Ok(name) = IdentifierNative::from_str(interface_view.name) else {
+            return false;
+        };
+        let Some(view) = self.0.views().get(&name) else {
+            return false;
+        };
+        let inputs = view.input_types();
+        let outputs = view.output_types();
+        inputs.len() == interface_view.inputs.len()
+            && outputs.len() == interface_view.outputs.len()
+            && inputs.iter().zip(interface_view.inputs).all(|(input, expected)| input.to_string() == *expected)
+            && outputs.iter().zip(interface_view.outputs).all(|(output, expected)| {
+                if *expected == FUTURE {
+                    matches!(output, FinalizeType::Future(_))
+                } else {
+                    output.to_string() == *expected
+                }
+            })
+    }
+
+    // Check that a record exists containing at least the given private entries; additional
+    // entries are permitted, matching the `..` in interface record definitions (this
+    // function is not part of the public API).
+    fn record_has_entries(&self, record_name: &str, entries: &[(&str, &str)]) -> bool {
+        let Ok(name) = IdentifierNative::from_str(record_name) else {
+            return false;
+        };
+        let Ok(record) = self.0.get_record(&name) else {
+            return false;
+        };
+        entries.iter().all(|(entry_name, entry_type)| {
+            record.entries().iter().any(|(name, ty)| {
+                name.to_string() == *entry_name
+                    && matches!(ty, EntryType::Private(plaintext) if plaintext.to_string() == *entry_type)
+            })
+        })
+    }
+
+    // Check that a struct exists with exactly the given members in order (this function is
+    // not part of the public API).
+    fn struct_matches(&self, struct_name: &str, members: &[(&str, &str)]) -> bool {
+        let Ok(name) = IdentifierNative::from_str(struct_name) else {
+            return false;
+        };
+        let Ok(struct_) = self.0.get_struct(&name) else {
+            return false;
+        };
+        struct_.members().len() == members.len()
+            && struct_.members().iter().zip(members).all(|((name, ty), (expected_name, expected_type))| {
+                name.to_string() == *expected_name && ty.to_string() == *expected_type
+            })
+    }
+
     /// Get the checksum of the program.
     ///
     /// @returns {Uint8Array} The checksum of the program as a 32-byte Uint8Array
@@ -940,5 +1178,554 @@ function add_and_double:
         let imports = program.get_imports().to_vec();
         assert_eq!(&imports[0].as_string().unwrap(), "double_test.aleo");
         assert_eq!(&imports[1].as_string().unwrap(), "addition_test.aleo");
+    }
+
+    // A token program implementing the full IARC20 interface (ARC-20).
+    const ARC20_TOKEN_PROGRAM: &str = r#"program arc20_token.aleo;
+
+record Token:
+    owner as address.private;
+    amount as u128.private;
+
+struct approval:
+    approver as address;
+    spender as address;
+
+mapping account:
+    key as address.public;
+    value as u128.public;
+
+mapping approvals:
+    key as field.public;
+    value as u128.public;
+
+mapping settings:
+    key as u8.public;
+    value as u128.public;
+
+mapping token_info:
+    key as u8.public;
+    value as u8.public;
+
+function transfer_public:
+    input r0 as address.public;
+    input r1 as u128.public;
+    async transfer_public self.caller r0 r1 into r2;
+    output r2 as arc20_token.aleo/transfer_public.future;
+
+finalize transfer_public:
+    input r0 as address.public;
+    input r1 as address.public;
+    input r2 as u128.public;
+    get account[r0] into r3;
+    sub r3 r2 into r4;
+    set r4 into account[r0];
+    get.or_use account[r1] 0u128 into r5;
+    add r5 r2 into r6;
+    set r6 into account[r1];
+
+function transfer_private:
+    input r0 as Token.record;
+    input r1 as address.private;
+    input r2 as u128.private;
+    sub r0.amount r2 into r3;
+    cast r0.owner r3 into r4 as Token.record;
+    cast r1 r2 into r5 as Token.record;
+    output r4 as Token.record;
+    output r5 as Token.record;
+
+function transfer_private_to_public:
+    input r0 as Token.record;
+    input r1 as address.public;
+    input r2 as u128.public;
+    sub r0.amount r2 into r3;
+    cast r0.owner r3 into r4 as Token.record;
+    async transfer_private_to_public r1 r2 into r5;
+    output r4 as Token.record;
+    output r5 as arc20_token.aleo/transfer_private_to_public.future;
+
+finalize transfer_private_to_public:
+    input r0 as address.public;
+    input r1 as u128.public;
+    get.or_use account[r0] 0u128 into r2;
+    add r2 r1 into r3;
+    set r3 into account[r0];
+
+function transfer_public_to_private:
+    input r0 as address.private;
+    input r1 as u128.public;
+    cast r0 r1 into r2 as Token.record;
+    async transfer_public_to_private self.caller r1 into r3;
+    output r2 as Token.record;
+    output r3 as arc20_token.aleo/transfer_public_to_private.future;
+
+finalize transfer_public_to_private:
+    input r0 as address.public;
+    input r1 as u128.public;
+    get account[r0] into r2;
+    sub r2 r1 into r3;
+    set r3 into account[r0];
+
+function transfer_public_as_signer:
+    input r0 as address.public;
+    input r1 as u128.public;
+    async transfer_public_as_signer self.signer r0 r1 into r2;
+    output r2 as arc20_token.aleo/transfer_public_as_signer.future;
+
+finalize transfer_public_as_signer:
+    input r0 as address.public;
+    input r1 as address.public;
+    input r2 as u128.public;
+    get account[r0] into r3;
+    sub r3 r2 into r4;
+    set r4 into account[r0];
+    get.or_use account[r1] 0u128 into r5;
+    add r5 r2 into r6;
+    set r6 into account[r1];
+
+function transfer_from_public:
+    input r0 as address.public;
+    input r1 as address.public;
+    input r2 as u128.public;
+    async transfer_from_public self.caller r0 r1 r2 into r3;
+    output r3 as arc20_token.aleo/transfer_from_public.future;
+
+finalize transfer_from_public:
+    input r0 as address.public;
+    input r1 as address.public;
+    input r2 as address.public;
+    input r3 as u128.public;
+    cast r1 r0 into r4 as approval;
+    hash.bhp256 r4 into r5 as field;
+    get approvals[r5] into r6;
+    sub r6 r3 into r7;
+    set r7 into approvals[r5];
+    get account[r1] into r8;
+    sub r8 r3 into r9;
+    set r9 into account[r1];
+    get.or_use account[r2] 0u128 into r10;
+    add r10 r3 into r11;
+    set r11 into account[r2];
+
+function transfer_from_public_to_private:
+    input r0 as address.public;
+    input r1 as address.private;
+    input r2 as u128.public;
+    cast r1 r2 into r3 as Token.record;
+    async transfer_from_public_to_private self.caller r0 r2 into r4;
+    output r3 as Token.record;
+    output r4 as arc20_token.aleo/transfer_from_public_to_private.future;
+
+finalize transfer_from_public_to_private:
+    input r0 as address.public;
+    input r1 as address.public;
+    input r2 as u128.public;
+    cast r1 r0 into r3 as approval;
+    hash.bhp256 r3 into r4 as field;
+    get approvals[r4] into r5;
+    sub r5 r2 into r6;
+    set r6 into approvals[r4];
+    get account[r1] into r7;
+    sub r7 r2 into r8;
+    set r8 into account[r1];
+
+function approve_public:
+    input r0 as address.public;
+    input r1 as u128.public;
+    async approve_public self.caller r0 r1 into r2;
+    output r2 as arc20_token.aleo/approve_public.future;
+
+finalize approve_public:
+    input r0 as address.public;
+    input r1 as address.public;
+    input r2 as u128.public;
+    cast r0 r1 into r3 as approval;
+    hash.bhp256 r3 into r4 as field;
+    get.or_use approvals[r4] 0u128 into r5;
+    add r5 r2 into r6;
+    set r6 into approvals[r4];
+
+function unapprove_public:
+    input r0 as address.public;
+    input r1 as u128.public;
+    async unapprove_public self.caller r0 r1 into r2;
+    output r2 as arc20_token.aleo/unapprove_public.future;
+
+finalize unapprove_public:
+    input r0 as address.public;
+    input r1 as address.public;
+    input r2 as u128.public;
+    cast r0 r1 into r3 as approval;
+    hash.bhp256 r3 into r4 as field;
+    get approvals[r4] into r5;
+    sub r5 r2 into r6;
+    set r6 into approvals[r4];
+
+function join:
+    input r0 as Token.record;
+    input r1 as Token.record;
+    add r0.amount r1.amount into r2;
+    cast r0.owner r2 into r3 as Token.record;
+    output r3 as Token.record;
+
+function split:
+    input r0 as Token.record;
+    input r1 as u128.private;
+    sub r0.amount r1 into r2;
+    cast r0.owner r1 into r3 as Token.record;
+    cast r0.owner r2 into r4 as Token.record;
+    output r3 as Token.record;
+    output r4 as Token.record;
+
+view balance_of:
+    input r0 as address.public;
+    get.or_use account[r0] 0u128 into r1;
+    output r1 as u128.public;
+
+view allowance:
+    input r0 as address.public;
+    input r1 as address.public;
+    cast r0 r1 into r2 as approval;
+    hash.bhp256 r2 into r3 as field;
+    get.or_use approvals[r3] 0u128 into r4;
+    output r4 as u128.public;
+
+view supply:
+    get.or_use settings[0u8] 0u128 into r0;
+    output r0 as u128.public;
+
+view max_supply:
+    get.or_use settings[1u8] 0u128 into r0;
+    output r0 as u128.public;
+
+view decimals:
+    get.or_use token_info[0u8] 6u8 into r0;
+    output r0 as u8.public;
+
+view name:
+    cast 6577149field into r0 as identifier;
+    output r0 as identifier.public;
+
+view symbol:
+    cast 5526356field into r0 as identifier;
+    output r0 as identifier.public;
+"#;
+
+    // A compliance-enabled token implementing the full IARC22 interface (ARC-22).
+    // The Token record carries an extra `token_id` entry to exercise the interface's
+    // open record definition (`..`).
+    const ARC22_TOKEN_PROGRAM: &str = r#"program arc22_token.aleo;
+
+record Token:
+    owner as address.private;
+    amount as u128.private;
+    token_id as field.private;
+
+record ComplianceRecord:
+    owner as address.private;
+    amount as u128.private;
+    sender as address.private;
+    recipient as address.private;
+
+struct MerkleProof:
+    siblings as [field; 16u32];
+    leaf_index as u32;
+
+struct approval:
+    approver as address;
+    spender as address;
+
+mapping account:
+    key as address.public;
+    value as u128.public;
+
+mapping approvals:
+    key as field.public;
+    value as u128.public;
+
+mapping settings:
+    key as u8.public;
+    value as u128.public;
+
+mapping token_info:
+    key as u8.public;
+    value as u8.public;
+
+function approve_public:
+    input r0 as address.public;
+    input r1 as u128.public;
+    async approve_public self.caller r0 r1 into r2;
+    output r2 as arc22_token.aleo/approve_public.future;
+
+finalize approve_public:
+    input r0 as address.public;
+    input r1 as address.public;
+    input r2 as u128.public;
+    cast r0 r1 into r3 as approval;
+    hash.bhp256 r3 into r4 as field;
+    get.or_use approvals[r4] 0u128 into r5;
+    add r5 r2 into r6;
+    set r6 into approvals[r4];
+
+function unapprove_public:
+    input r0 as address.public;
+    input r1 as u128.public;
+    async unapprove_public self.caller r0 r1 into r2;
+    output r2 as arc22_token.aleo/unapprove_public.future;
+
+finalize unapprove_public:
+    input r0 as address.public;
+    input r1 as address.public;
+    input r2 as u128.public;
+    cast r0 r1 into r3 as approval;
+    hash.bhp256 r3 into r4 as field;
+    get approvals[r4] into r5;
+    sub r5 r2 into r6;
+    set r6 into approvals[r4];
+
+function transfer_public:
+    input r0 as address.public;
+    input r1 as u128.public;
+    async transfer_public self.caller r0 r1 into r2;
+    output r2 as arc22_token.aleo/transfer_public.future;
+
+finalize transfer_public:
+    input r0 as address.public;
+    input r1 as address.public;
+    input r2 as u128.public;
+    get account[r0] into r3;
+    sub r3 r2 into r4;
+    set r4 into account[r0];
+    get.or_use account[r1] 0u128 into r5;
+    add r5 r2 into r6;
+    set r6 into account[r1];
+
+function transfer_private:
+    input r0 as address.private;
+    input r1 as u128.private;
+    input r2 as Token.record;
+    input r3 as [MerkleProof; 2u32].private;
+    sub r2.amount r1 into r4;
+    cast r2.owner r1 r2.owner r0 into r5 as ComplianceRecord.record;
+    cast r2.owner r4 r2.token_id into r6 as Token.record;
+    cast r0 r1 r2.token_id into r7 as Token.record;
+    async transfer_private r0 r1 into r8;
+    output r5 as ComplianceRecord.record;
+    output r6 as Token.record;
+    output r7 as Token.record;
+    output r8 as arc22_token.aleo/transfer_private.future;
+
+finalize transfer_private:
+    input r0 as address.public;
+    input r1 as u128.public;
+    get.or_use account[r0] 0u128 into r2;
+    add r2 r1 into r3;
+    set r3 into account[r0];
+
+function transfer_private_to_public:
+    input r0 as address.public;
+    input r1 as u128.public;
+    input r2 as Token.record;
+    input r3 as [MerkleProof; 2u32].private;
+    sub r2.amount r1 into r4;
+    cast r2.owner r1 r2.owner r0 into r5 as ComplianceRecord.record;
+    cast r2.owner r4 r2.token_id into r6 as Token.record;
+    async transfer_private_to_public r0 r1 into r7;
+    output r5 as ComplianceRecord.record;
+    output r6 as Token.record;
+    output r7 as arc22_token.aleo/transfer_private_to_public.future;
+
+finalize transfer_private_to_public:
+    input r0 as address.public;
+    input r1 as u128.public;
+    get.or_use account[r0] 0u128 into r2;
+    add r2 r1 into r3;
+    set r3 into account[r0];
+
+function transfer_public_to_private:
+    input r0 as address.private;
+    input r1 as u128.public;
+    cast r0 r1 self.caller r0 into r2 as ComplianceRecord.record;
+    cast r0 r1 0field into r3 as Token.record;
+    async transfer_public_to_private self.caller r1 into r4;
+    output r2 as ComplianceRecord.record;
+    output r3 as Token.record;
+    output r4 as arc22_token.aleo/transfer_public_to_private.future;
+
+finalize transfer_public_to_private:
+    input r0 as address.public;
+    input r1 as u128.public;
+    get account[r0] into r2;
+    sub r2 r1 into r3;
+    set r3 into account[r0];
+
+function transfer_from_public:
+    input r0 as address.public;
+    input r1 as address.public;
+    input r2 as u128.public;
+    async transfer_from_public self.caller r0 r1 r2 into r3;
+    output r3 as arc22_token.aleo/transfer_from_public.future;
+
+finalize transfer_from_public:
+    input r0 as address.public;
+    input r1 as address.public;
+    input r2 as address.public;
+    input r3 as u128.public;
+    cast r1 r0 into r4 as approval;
+    hash.bhp256 r4 into r5 as field;
+    get approvals[r5] into r6;
+    sub r6 r3 into r7;
+    set r7 into approvals[r5];
+    get account[r1] into r8;
+    sub r8 r3 into r9;
+    set r9 into account[r1];
+    get.or_use account[r2] 0u128 into r10;
+    add r10 r3 into r11;
+    set r11 into account[r2];
+
+function transfer_from_public_to_private:
+    input r0 as address.public;
+    input r1 as address.private;
+    input r2 as u128.public;
+    cast r1 r2 r0 r1 into r3 as ComplianceRecord.record;
+    cast r1 r2 0field into r4 as Token.record;
+    async transfer_from_public_to_private self.caller r0 r2 into r5;
+    output r3 as ComplianceRecord.record;
+    output r4 as Token.record;
+    output r5 as arc22_token.aleo/transfer_from_public_to_private.future;
+
+finalize transfer_from_public_to_private:
+    input r0 as address.public;
+    input r1 as address.public;
+    input r2 as u128.public;
+    cast r1 r0 into r3 as approval;
+    hash.bhp256 r3 into r4 as field;
+    get approvals[r4] into r5;
+    sub r5 r2 into r6;
+    set r6 into approvals[r4];
+    get account[r1] into r7;
+    sub r7 r2 into r8;
+    set r8 into account[r1];
+
+function transfer_public_as_signer:
+    input r0 as address.public;
+    input r1 as u128.public;
+    async transfer_public_as_signer self.signer r0 r1 into r2;
+    output r2 as arc22_token.aleo/transfer_public_as_signer.future;
+
+finalize transfer_public_as_signer:
+    input r0 as address.public;
+    input r1 as address.public;
+    input r2 as u128.public;
+    get account[r0] into r3;
+    sub r3 r2 into r4;
+    set r4 into account[r0];
+    get.or_use account[r1] 0u128 into r5;
+    add r5 r2 into r6;
+    set r6 into account[r1];
+
+function join:
+    input r0 as Token.record;
+    input r1 as Token.record;
+    add r0.amount r1.amount into r2;
+    cast r0.owner r2 r0.token_id into r3 as Token.record;
+    output r3 as Token.record;
+
+function split:
+    input r0 as Token.record;
+    input r1 as u128.private;
+    sub r0.amount r1 into r2;
+    cast r0.owner r1 r0.token_id into r3 as Token.record;
+    cast r0.owner r2 r0.token_id into r4 as Token.record;
+    output r3 as Token.record;
+    output r4 as Token.record;
+
+view balance_of:
+    input r0 as address.public;
+    get.or_use account[r0] 0u128 into r1;
+    output r1 as u128.public;
+
+view allowance:
+    input r0 as address.public;
+    input r1 as address.public;
+    cast r0 r1 into r2 as approval;
+    hash.bhp256 r2 into r3 as field;
+    get.or_use approvals[r3] 0u128 into r4;
+    output r4 as u128.public;
+
+view supply:
+    get.or_use settings[0u8] 0u128 into r0;
+    output r0 as u128.public;
+
+view max_supply:
+    get.or_use settings[1u8] 0u128 into r0;
+    output r0 as u128.public;
+
+view decimals:
+    get.or_use token_info[0u8] 6u8 into r0;
+    output r0 as u8.public;
+
+view name:
+    cast 6577149field into r0 as identifier;
+    output r0 as identifier.public;
+
+view symbol:
+    cast 5526356field into r0 as identifier;
+    output r0 as identifier.public;
+"#;
+
+    #[wasm_bindgen_test]
+    fn test_is_arc20() {
+        // A fully compliant ARC-20 token program is detected.
+        let arc20 = Program::from_string(ARC20_TOKEN_PROGRAM).unwrap();
+        assert!(arc20.is_arc20());
+
+        // An ARC-20 token is not an ARC-22 token (transfer signatures differ).
+        assert!(!arc20.is_arc22());
+
+        // credits.aleo is not an ARC-20 token.
+        assert!(!Program::get_credits_program().is_arc20());
+
+        // A token using u64 amounts instead of u128 is not compliant.
+        let wrong_amount_type = Program::from_string(&ARC20_TOKEN_PROGRAM.replace("u128", "u64")).unwrap();
+        assert!(!wrong_amount_type.is_arc20());
+
+        // A token missing a required function is not compliant.
+        let missing_function =
+            Program::from_string(&ARC20_TOKEN_PROGRAM.replace("function join:", "function join_tokens:")).unwrap();
+        assert!(!missing_function.is_arc20());
+
+        // A token missing a required view function is not compliant.
+        let missing_view =
+            Program::from_string(&ARC20_TOKEN_PROGRAM.replace("view symbol:", "view symbol_of:")).unwrap();
+        assert!(!missing_view.is_arc20());
+
+        // A token whose record is not named `Token` is not compliant.
+        let wrong_record_name = Program::from_string(&ARC20_TOKEN_PROGRAM.replace("Token", "Coupon")).unwrap();
+        assert!(!wrong_record_name.is_arc20());
+    }
+
+    #[wasm_bindgen_test]
+    fn test_is_arc22() {
+        // A fully compliant ARC-22 token program is detected (the extra `token_id`
+        // entry on the Token record is permitted by the interface's `..`).
+        let arc22 = Program::from_string(ARC22_TOKEN_PROGRAM).unwrap();
+        assert!(arc22.is_arc22());
+
+        // An ARC-22 token is not an ARC-20 token (transfer signatures differ).
+        assert!(!arc22.is_arc20());
+
+        // credits.aleo is not an ARC-22 token.
+        assert!(!Program::get_credits_program().is_arc22());
+
+        // A program whose MerkleProof struct has the wrong shape is not compliant.
+        let wrong_merkle_proof =
+            Program::from_string(&ARC22_TOKEN_PROGRAM.replace("[field; 16u32]", "[field; 8u32]")).unwrap();
+        assert!(!wrong_merkle_proof.is_arc22());
+
+        // A token missing the ComplianceRecord is not compliant.
+        let missing_compliance_record =
+            Program::from_string(&ARC22_TOKEN_PROGRAM.replace("ComplianceRecord", "AuditRecord")).unwrap();
+        assert!(!missing_compliance_record.is_arc22());
     }
 }
