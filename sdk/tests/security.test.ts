@@ -11,8 +11,29 @@ import {
     serializeProvingRequest,
     zeroizeBytes,
     Authorization,
+    ExecutionRequest,
     ProvingRequest,
 } from "../src/node.js";
+
+// Construct a Request-variant ProvingRequest without any network access —
+// same pattern as the routing tests in network-client.test.ts.
+function buildProvingRequest(): ProvingRequest {
+    const privateKey = new Account().privateKey();
+    const inputs = ["aleo1rhgdu77hgyqd3xjj8ucu3jj9r2krwz6mnzyd80gncr5fxcwlh5rsvzp9px", "100u64"];
+    const inputTypes = ["address.public", "u64.public"];
+    const executionRequest = ExecutionRequest.sign(
+        privateKey,
+        "credits.aleo",
+        "transfer_public",
+        inputs,
+        inputTypes,
+        undefined,
+        undefined,
+        true,
+        false,
+    );
+    return ProvingRequest.fromRequest(executionRequest, undefined, false);
+}
 
 describe("security", () => {
     before(async () => {
@@ -109,42 +130,92 @@ describe("security", () => {
             expect(raw.length).to.equal(32 + 16 + viewKeyBytes.length);
         });
 
-        it("encryptSerializedProvingRequest round-trips through sodium.crypto_box_seal_open", () => {
+        it("serializeProvingRequest returns the request's exact toBytesLe bytes", () => {
+            const provingRequest = buildProvingRequest();
+
+            const serialized = serializeProvingRequest(provingRequest);
+
+            expect(serialized).to.be.an.instanceOf(Uint8Array);
+            expect(serialized).to.deep.equal(provingRequest.toBytesLe());
+            // Wire-valid: the bytes deserialize back into a Request-variant.
+            expect(ProvingRequest.fromBytesLeRequest(serialized).kind()).to.equal("request");
+        });
+
+        it("encryptSerializedProvingRequest round-trips and leaves the input buffer untouched", () => {
             const keyPair = sodium.crypto_box_keypair();
             const pub = sodium.to_base64(keyPair.publicKey, sodium.base64_variants.ORIGINAL);
-            // Arbitrary request bytes — the function is agnostic to the payload.
-            const requestBytes = new Account().viewKey().toBytesLe();
+            const serialized = serializeProvingRequest(buildProvingRequest());
+            const reference = serialized.slice();
 
-            const ciphertext = encryptSerializedProvingRequest(pub, base64.encode(requestBytes));
+            const ciphertext = encryptSerializedProvingRequest(pub, serialized);
+
+            // Input ownership stays with the caller: not mutated, reusable for a retry.
+            expect(serialized).to.deep.equal(reference);
 
             const plaintextBytes = sodium.crypto_box_seal_open(
                 sodium.from_base64(ciphertext, sodium.base64_variants.ORIGINAL),
                 keyPair.publicKey,
                 keyPair.privateKey,
             );
-            expect(plaintextBytes).to.deep.equal(requestBytes);
+            expect(plaintextBytes).to.deep.equal(reference);
         });
 
-        it("the serialized path is byte-compatible with the typed encrypt* wrappers", () => {
+        it("is interchangeable with encryptProvingRequest for the same request", () => {
             const keyPair = sodium.crypto_box_keypair();
             const pub = sodium.to_base64(keyPair.publicKey, sodium.base64_variants.ORIGINAL);
-            const viewKey = new Account().viewKey();
-            const expected = viewKey.toBytesLe();
+            const provingRequest = buildProvingRequest();
+            const serialized = serializeProvingRequest(provingRequest);
 
-            // encryptViewKey(pk, vk) and encryptSerializedProvingRequest(pk,
-            // base64(vk.toBytesLe())) feed the same bytes into the same sealed
-            // box, so both ciphertexts must decrypt to identical plaintext.
-            const typed = encryptViewKey(pub, viewKey);
-            const serialized = encryptSerializedProvingRequest(pub, base64.encode(expected));
+            const typedCiphertext = encryptProvingRequest(pub, provingRequest);
+            const serializedCiphertext = encryptSerializedProvingRequest(pub, serialized);
 
-            for (const ciphertext of [typed, serialized]) {
-                const plaintextBytes = sodium.crypto_box_seal_open(
+            const open = (ciphertext: string) =>
+                sodium.crypto_box_seal_open(
                     sodium.from_base64(ciphertext, sodium.base64_variants.ORIGINAL),
                     keyPair.publicKey,
                     keyPair.privateKey,
                 );
-                expect(plaintextBytes).to.deep.equal(expected);
+            expect(open(typedCiphertext)).to.deep.equal(open(serializedCiphertext));
+            expect(open(serializedCiphertext)).to.deep.equal(serialized);
+        });
+
+        it("supports the retry pattern: re-encrypt for a fresh key, then zeroize", () => {
+            const firstKeyPair = sodium.crypto_box_keypair();
+            const secondKeyPair = sodium.crypto_box_keypair();
+            const serialized = serializeProvingRequest(buildProvingRequest());
+            const reference = serialized.slice();
+
+            let firstCiphertext: string;
+            let secondCiphertext: string;
+            try {
+                firstCiphertext = encryptSerializedProvingRequest(
+                    sodium.to_base64(firstKeyPair.publicKey, sodium.base64_variants.ORIGINAL),
+                    serialized,
+                );
+                // e.g. the proving service rejected the first one-time key —
+                // the SAME bytes are re-encrypted for a fresh key.
+                secondCiphertext = encryptSerializedProvingRequest(
+                    sodium.to_base64(secondKeyPair.publicKey, sodium.base64_variants.ORIGINAL),
+                    serialized,
+                );
+            } finally {
+                zeroizeBytes(serialized);
             }
+
+            expect(serialized).to.deep.equal(new Uint8Array(reference.length));
+
+            const firstPlaintext = sodium.crypto_box_seal_open(
+                sodium.from_base64(firstCiphertext, sodium.base64_variants.ORIGINAL),
+                firstKeyPair.publicKey,
+                firstKeyPair.privateKey,
+            );
+            const secondPlaintext = sodium.crypto_box_seal_open(
+                sodium.from_base64(secondCiphertext, sodium.base64_variants.ORIGINAL),
+                secondKeyPair.publicKey,
+                secondKeyPair.privateKey,
+            );
+            expect(firstPlaintext).to.deep.equal(reference);
+            expect(secondPlaintext).to.deep.equal(reference);
         });
 
         it("fuzz: 50 random messages all decrypt back to the original", () => {

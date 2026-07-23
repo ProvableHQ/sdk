@@ -36,12 +36,19 @@ export function encryptProvingRequest(publicKey: string, provingRequest: Proving
  * unknown `key_id`) can keep the serialized form and re-encrypt it for a
  * fresh key instead of rebuilding and re-signing the request.
  *
+ * The returned buffer contains the plaintext request (including the signed
+ * authorization and its inputs) and is owned by the caller: keep it only as
+ * long as a resend may still be needed, then overwrite it with
+ * `zeroizeBytes(serialized)`. Zeroization in JavaScript is best-effort (see
+ * `zeroizeBytes`), and transient copies made inside the wasm boundary by
+ * `toBytesLe` are outside its reach.
+ *
  * @param {ProvingRequest} provingRequest the ProvingRequest to serialize.
  *
- * @returns {string} the serialized ProvingRequest in RFC 4648 standard Base64.
+ * @returns {Uint8Array} the serialized ProvingRequest bytes.
  */
-export function serializeProvingRequest(provingRequest: ProvingRequest): string {
-    return base64.encode(provingRequest.toBytesLe());
+export function serializeProvingRequest(provingRequest: ProvingRequest): Uint8Array {
+    return provingRequest.toBytesLe();
 }
 
 /**
@@ -54,16 +61,21 @@ export function serializeProvingRequest(provingRequest: ProvingRequest): string 
  * `encryptProvingRequest(pk, req)` are interchangeable from the proving
  * service's point of view.
  *
+ * The input buffer is not mutated and deliberately not zeroized here: the
+ * caller keeps ownership so the same bytes can be re-encrypted for another
+ * one-time key (retry). Call `zeroizeBytes(serializedProvingRequest)` once
+ * no resend can be needed anymore.
+ *
  * @param {string} publicKey The cryptobox X25519 public key to encrypt with (encoded in RFC 4648 standard Base64).
- * @param {string} serializedProvingRequest the serialized ProvingRequest in RFC 4648 standard Base64.
+ * @param {Uint8Array} serializedProvingRequest the serialized ProvingRequest bytes.
  *
  * @returns {string} the encrypted ProvingRequest in RFC 4648 standard Base64.
  */
 export function encryptSerializedProvingRequest(
     publicKey: string,
-    serializedProvingRequest: string,
+    serializedProvingRequest: Uint8Array,
 ): string {
-    return encryptMessage(publicKey, base64.decode(serializedProvingRequest));
+    return encryptMessage(publicKey, serializedProvingRequest);
 }
 
 /**
