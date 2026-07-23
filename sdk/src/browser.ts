@@ -319,7 +319,15 @@ export {
     KeyVerifier as FunctionKeyVerifier,
 } from "./keys/verifier/interface.js";
 
-export { encryptAuthorization, encryptProvingRequest, encryptViewKey, encryptRegistrationRequest, zeroizeBytes } from "./security.js";
+export {
+    encryptAuthorization,
+    encryptProvingRequest,
+    encryptSerializedProvingRequest,
+    encryptViewKey,
+    encryptRegistrationRequest,
+    serializeProvingRequest,
+    zeroizeBytes,
+} from "./security.js";
 
 export {
     // Converters

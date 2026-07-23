@@ -11,7 +11,14 @@ import { ViewKey, Authorization, ProvingRequest } from "./wasm.js";
  * @returns {string} the encrypted authorization in RFC 4648 standard Base64.
  */
 export function encryptAuthorization(publicKey: string, authorization: Authorization): string {
-    return encryptMessage(publicKey, authorization.toBytesLe());
+    // Zeroize the intermediate plaintext bytes regardless of success or
+    // failure — same pattern as encryptRegistrationRequest.
+    const bytes = authorization.toBytesLe();
+    try {
+        return encryptMessage(publicKey, bytes);
+    } finally {
+        zeroizeBytes(bytes);
+    }
 }
 
 /**
@@ -23,7 +30,66 @@ export function encryptAuthorization(publicKey: string, authorization: Authoriza
  * @returns {string} the encrypted ProvingRequest in RFC 4648 standard Base64.
  */
 export function encryptProvingRequest(publicKey: string, provingRequest: ProvingRequest): string {
-    return encryptMessage(publicKey, provingRequest.toBytesLe());
+    // Zeroize the intermediate plaintext bytes regardless of success or
+    // failure — same pattern as encryptRegistrationRequest.
+    const bytes = provingRequest.toBytesLe();
+    try {
+        return encryptMessage(publicKey, bytes);
+    } finally {
+        zeroizeBytes(bytes);
+    }
+}
+
+/**
+ * Serialize a ProvingRequest for later encryption with
+ * `encryptSerializedProvingRequest`.
+ *
+ * Useful when the request may have to be encrypted more than once: the
+ * delegated proving service's one-time keys are single-use, so a client that
+ * needs to resend a request (e.g. after the service rejected a spent or
+ * unknown `key_id`) can keep the serialized form and re-encrypt it for a
+ * fresh key instead of rebuilding and re-signing the request.
+ *
+ * The returned buffer contains the plaintext request (including the signed
+ * authorization and its inputs) and is owned by the caller: keep it only as
+ * long as a resend may still be needed, then overwrite it with
+ * `zeroizeBytes(serialized)`. Zeroization in JavaScript is best-effort (see
+ * `zeroizeBytes`), and transient copies made inside the wasm boundary by
+ * `toBytesLe` are outside its reach.
+ *
+ * @param {ProvingRequest} provingRequest the ProvingRequest to serialize.
+ *
+ * @returns {Uint8Array} the serialized ProvingRequest bytes.
+ */
+export function serializeProvingRequest(provingRequest: ProvingRequest): Uint8Array {
+    return provingRequest.toBytesLe();
+}
+
+/**
+ * Encrypt an already-serialized ProvingRequest (as produced by
+ * `serializeProvingRequest`) with a cryptobox X25519 public key
+ * (libsodium-compatible wire format).
+ *
+ * Produces exactly the same ciphertext format as `encryptProvingRequest` —
+ * `encryptSerializedProvingRequest(pk, serializeProvingRequest(req))` and
+ * `encryptProvingRequest(pk, req)` are interchangeable from the proving
+ * service's point of view.
+ *
+ * The input buffer is not mutated and deliberately not zeroized here: the
+ * caller keeps ownership so the same bytes can be re-encrypted for another
+ * one-time key (retry). Call `zeroizeBytes(serializedProvingRequest)` once
+ * no resend can be needed anymore.
+ *
+ * @param {string} publicKey The cryptobox X25519 public key to encrypt with (encoded in RFC 4648 standard Base64).
+ * @param {Uint8Array} serializedProvingRequest the serialized ProvingRequest bytes.
+ *
+ * @returns {string} the encrypted ProvingRequest in RFC 4648 standard Base64.
+ */
+export function encryptSerializedProvingRequest(
+    publicKey: string,
+    serializedProvingRequest: Uint8Array,
+): string {
+    return encryptMessage(publicKey, serializedProvingRequest);
 }
 
 /**
@@ -35,7 +101,14 @@ export function encryptProvingRequest(publicKey: string, provingRequest: Proving
  * @returns {string} the encrypted view key in RFC 4648 standard Base64.
  */
 export function encryptViewKey(publicKey: string, viewKey: ViewKey): string {
-    return encryptMessage(publicKey, viewKey.toBytesLe());
+    // Zeroize the intermediate plaintext bytes regardless of success or
+    // failure — same pattern as encryptRegistrationRequest.
+    const bytes = viewKey.toBytesLe();
+    try {
+        return encryptMessage(publicKey, bytes);
+    } finally {
+        zeroizeBytes(bytes);
+    }
 }
 
 /**
