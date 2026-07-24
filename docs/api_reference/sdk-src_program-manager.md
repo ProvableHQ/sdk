@@ -6,6 +6,123 @@
 
 [Source file](../../sdk/src/program-manager.ts)
 
+## Functions
+
+### `inputsToFields(inputs) ► Array.<string>`
+
+![modifier: private](images/badges/modifier-private.svg)
+
+Convert an array of Aleo type strings to field element strings.
+
+Inputs that are already field elements (e.g. &quot;1field&quot;) are passed through directly.
+Other Aleo values (e.g. &quot;1u32&quot;, records, futures, dynamic records) are parsed via
+Value and converted to their field representation.
+
+Parameters | Type | Description
+--- | --- | ---
+__inputs__ | `Array.<string>` | *Array of Aleo value strings*
+__*return*__ | `Array.<string>` | *Array of field element strings*
+
+---
+
+### `verifyProof(options) ► boolean`
+
+![modifier: private](images/badges/modifier-private.svg)
+
+Verify an Aleo zkSnark proof against a verifying key and public inputs.
+
+This verifies a proof produced by an Aleo program that may not be deployed on chain.
+It directly invokes the Varuna proof verification from snarkVM.
+
+**Note:** The proof must have been generated with the Fiat-Shamir domain separator
+&quot;snark_verify&quot;. Proofs generated via snarkVM with a different function name will fail
+verification even if the circuit and inputs are correct.
+
+Inputs can be raw field element strings (e.g. &quot;1field&quot;) or Aleo type strings
+(e.g. &quot;1u32&quot;, &quot;true&quot;, &quot;{ x: 1u8, y: 2u8 }&quot;). Non-field inputs are automatically
+converted to their field representation via Value.toFields().
+
+Parameters | Type | Description
+--- | --- | ---
+__options__ | `VerificationOptions` | *The verification parameters*
+__*return*__ | `boolean` | *True if the proof is valid, false otherwise*
+
+#### Examples
+
+```javascript
+import { verifyProof } from "@provablehq/sdk/mainnet.js";
+
+// Using raw field elements:
+const isValid = verifyProof({
+    verifyingKey: "verifier1...",
+    inputs: ["1field", "2field"],
+    proof: "proof1...",
+});
+
+// Using Aleo types (automatically converted to fields):
+const isValid2 = verifyProof({
+    verifyingKey: "verifier1...",
+    inputs: ["1u32", "2u32"],
+    proof: "proof1...",
+});
+```
+
+---
+
+### `verifyBatchProof(options) ► boolean`
+
+![modifier: private](images/badges/modifier-private.svg)
+
+Verify a batch Aleo zkSnark proof against multiple verifying keys and their corresponding public inputs.
+
+Each verifying key is paired with one or more sets of public inputs (instances).
+Inputs can be raw field element strings or Aleo type strings — non-field inputs
+are automatically converted to their field representation.
+
+**Note:** The proof must have been generated with the Fiat-Shamir domain separator
+&quot;snark_verify_batch&quot;. Proofs generated with a different function name will fail
+verification even if the circuits and inputs are correct.
+
+Parameters | Type | Description
+--- | --- | ---
+__options__ | `BatchVerificationOptions` | *The batch verification parameters*
+__*return*__ | `boolean` | *True if the batch proof is valid, false otherwise*
+
+#### Examples
+
+```javascript
+import { verifyBatchProof } from "@provablehq/sdk/mainnet.js";
+
+const isValid = verifyBatchProof({
+    verifyingKeys: ["verifier1...", "verifier2..."],
+    inputs: [[["1field", "2field"]], [["3field"]]],
+    proof: "proof1...",
+});
+```
+
+---
+
+### `programChecksum(program) ► Uint8Array`
+
+![modifier: private](images/badges/modifier-private.svg)
+
+Get the checksum of an Aleo program.
+
+Parameters | Type | Description
+--- | --- | ---
+__program__ | `string` | *Program string or Program object*
+__*return*__ | `Uint8Array` | *The keccak256 checksum of the program as a 32-byte Uint8Array*
+
+#### Examples
+
+```javascript
+import { programChecksum } from "@provablehq/sdk/mainnet.js";
+
+const checksum = programChecksum("program foo.aleo; ...");
+```
+
+---
+
 # Class `ProgramManager`
 
 The ProgramManager class is used to execute and deploy programs on the Aleo network and create value transfers.
@@ -27,6 +144,28 @@ __recordProvider__ | `RecordProvider` | *A record provider that implements {@lin
 
 ## Methods
 
+### `ensureInclusionKeys()`
+
+![modifier: public](images/badges/modifier-public.svg)
+
+Pre-load the inclusion prover for offline execution. Required when the
+user provides an explicit OfflineQuery (truly offline — can&#x27;t fetch lazily).
+For CallbackQuery, snarkVM handles inclusion key loading on demand.
+
+---
+
+### `buildCallbackQuery()`
+
+![modifier: public](images/badges/modifier-public.svg)
+
+Create a CallbackQuery that delegates all state fetching to the
+transport-aware network client. WASM calls back into these functions
+during trace.prepare_async() instead of making its own reqwest calls.
+
+This handles ALL programs including those with DynamicRecord inputs.
+
+---
+
 ### `checkFee()`
 
 ![modifier: public](images/badges/modifier-public.svg)
@@ -43,7 +182,7 @@ Set the account to use for transaction submission to the Aleo network
 
 Parameters | Type | Description
 --- | --- | ---
-__account__ | [Account](sdk-src_account.md) | *Account to use for transaction submission*
+__account__ | `Account` | *Account to use for transaction submission*
 
 ---
 
@@ -80,6 +219,113 @@ Set the record provider that provides records for transactions
 Parameters | Type | Description
 --- | --- | ---
 __recordProvider__ | `RecordProvider` | **
+
+---
+
+### `setKeyStore(keyStore)`
+
+![modifier: public](images/badges/modifier-public.svg)
+
+Set the key store for automatic key caching across executions.
+
+Parameters | Type | Description
+--- | --- | ---
+__keyStore__ | `KeyStore` | **
+
+---
+
+### `collectProgramImports()`
+
+![modifier: public](images/badges/modifier-public.svg)
+
+Collect static imports declared by the entry program together with any
+caller-provided imports, then resolve missing transitive dependencies.
+Caller-provided program sources take precedence over network sources.
+
+---
+
+### `buildProgramImports(loadKeys)`
+
+![modifier: public](images/badges/modifier-public.svg)
+
+Build a ProgramImportsBuilder from a program and its imports.
+Fetches missing imports from the network, resolves transitive
+dependencies, and optionally pre-loads cached keys from the KeyStore.
+
+Parameters | Type | Description
+--- | --- | ---
+__loadKeys__ | `undefined` | *When true (default), loads cached proving/verifying keys
+  from the KeyStore into the builder. Set to false for authorization and
+  proving request paths where keys are not synthesized.*
+
+---
+
+### `getImportNames()`
+
+![modifier: public](images/badges/modifier-public.svg) ![modifier: static](images/badges/modifier-static.svg)
+
+Extract &#x60;import program_name.aleo;&#x60; names from program source via regex.
+Avoids a WASM round-trip compared to Program.fromString + getImports.
+
+---
+
+### `callGraphToMap()`
+
+![modifier: public](images/badges/modifier-public.svg) ![modifier: static](images/badges/modifier-static.svg)
+
+Convert the JS object returned by Program.getCallGraph() into a
+Map&lt;string, Set&lt;string&gt;&gt; for use in buildProgramImports.
+
+---
+
+### `resolveKeyStore()`
+
+![modifier: public](images/badges/modifier-public.svg)
+
+Resolve the active KeyStore, preferring the directly-set _keyStore
+over the KeyProvider&#x27;s keyStore().
+
+---
+
+### `resolveEditionAndAmendment()`
+
+![modifier: public](images/badges/modifier-public.svg)
+
+Resolve the edition and amendment count for a program from the network.
+Returns &#x60;{ edition, amendment }&#x60; or falls back to &#x60;{ edition: 1, amendment: 0 }&#x60;.
+
+---
+
+### `loadKeysFromStore()`
+
+![modifier: public](images/badges/modifier-public.svg)
+
+Load cached proving/verifying keys from the KeyStore into a ProgramImportsBuilder.
+Only loads keys for the specified functions — returns immediately if
+functionNames is empty or undefined.
+Resolves edition and amendment from the network for accurate key locator
+construction when not explicitly provided.
+
+---
+
+### `persistExtractedKeys()`
+
+![modifier: public](images/badges/modifier-public.svg)
+
+Persist newly synthesized keys from the returned ProgramImportsBuilder
+into the KeyStore. Only writes keys that are not already in the store,
+avoiding unnecessary writes of large proving keys.
+Fetches each program&#x27;s current edition and amendment count from the network
+for accurate key locator construction.
+
+---
+
+### `resolveTopLevelKeys()`
+
+![modifier: public](images/badges/modifier-public.svg)
+
+Resolve top-level function keys, checking the KeyStore first and
+falling back to the KeyProvider.
 
 ---
 
@@ -503,7 +749,7 @@ const authorization = await programManager.buildAuthorizationUnchecked({
 
 ![modifier: public](images/badges/modifier-public.svg)
 
-Builds a &#x60;ProvingRequest&#x60; for submission to a prover for execution.
+Builds a &#x60;ProvingRequest&#x60; for submission to a prover for execution. If building a proving request with an ExecutionRequest, a private key must be explicitly provided.
 
 Parameters | Type | Description
 --- | --- | ---
@@ -623,6 +869,30 @@ setTimeout(async () => {
  assert(transaction.id() === tx_id);
 }, 10000);
 ```
+
+---
+
+### `prepareInputs(programSource, functionName, inputs) ► Array.<string>`
+
+![modifier: public](images/badges/modifier-public.svg)
+
+Prepares user-provided inputs for a function call by auto-converting bare
+string identifiers to field elements where the function signature expects
+a &#x60;field&#x60; type. This lets callers of dynamic-dispatch programs pass
+human-readable strings (e.g. &#x60;&quot;my_program&quot;&#x60;) instead of requiring
+&#x60;stringToField(&quot;my_program&quot;).toString()&#x60;.
+
+Inputs that already look like a numeric field literal (matching
+&#x60;/^\d+field$/&#x60; after trimming whitespace) are left untouched. Non-field
+inputs are returned as-is. If introspection fails for any reason the
+original inputs are returned unchanged.
+
+Parameters | Type | Description
+--- | --- | ---
+__programSource__ | `string` | *The program source code or Program object*
+__functionName__ | `string` | *The function to inspect*
+__inputs__ | `Array.<string>` | *The raw user-provided inputs*
+__*return*__ | `Array.<string>` | *The (possibly converted) inputs*
 
 ---
 
@@ -1556,7 +1826,7 @@ __*return*__ | `Promise.<Transaction>` | *- A promise that resolves to the trans
 import { AleoKeyProvider, getOrInitConsensusVersionTestHeights, ProgramManager, NetworkRecordProvider } from "@provablehq/sdk/mainnet.js";
 
 // Initialize the development consensus heights in order to work with devnode.
-getOrInitConsensusVersionTestHeights("0,1,2,3,4,5,6,7,8,9,10,11,12");
+getOrInitConsensusVersionTestHeights("0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16");
 
 // Create a new NetworkClient and RecordProvider.
 const recordProvider = new NetworkRecordProvider(account, networkClient);
@@ -1606,7 +1876,7 @@ __*return*__ | `string` | *The transaction id of the deployed program or a failu
 import { ProgramManager, NetworkRecordProvider, getOrInitConsensusVersionTestHeights } from "@provablehq/sdk/mainnet.js";
 
 // Initialize the development consensus heights in order to work with a local devnode.
-getOrInitConsensusVersionTestHeights("0,1,2,3,4,5,6,7,8,9,10,11,12");
+getOrInitConsensusVersionTestHeights("0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16");
 
 // Create a new NetworkClient, and RecordProvider
 const recordProvider = new NetworkRecordProvider(account, networkClient);
@@ -1697,7 +1967,7 @@ Set the account to use for transaction submission to the Aleo network
 
 Parameters | Type | Description
 --- | --- | ---
-__account__ | [Account](sdk-src_account.md) | *Account to use for transaction submission*
+__account__ | `Account` | *Account to use for transaction submission*
 
 ---
 
@@ -1734,6 +2004,18 @@ Set the record provider that provides records for transactions
 Parameters | Type | Description
 --- | --- | ---
 __recordProvider__ | `RecordProvider` | **
+
+---
+
+### `setKeyStore(keyStore)`
+
+![modifier: public](images/badges/modifier-public.svg)
+
+Set the key store for automatic key caching across executions.
+
+Parameters | Type | Description
+--- | --- | ---
+__keyStore__ | `KeyStore` | **
 
 ---
 
@@ -2158,7 +2440,7 @@ const authorization = await programManager.buildAuthorizationUnchecked({
 
 ![modifier: public](images/badges/modifier-public.svg)
 
-Builds a &#x60;ProvingRequest&#x60; for submission to a prover for execution.
+Builds a &#x60;ProvingRequest&#x60; for submission to a prover for execution. If building a proving request with an ExecutionRequest, a private key must be explicitly provided.
 
 Parameters | Type | Description
 --- | --- | ---
@@ -2278,6 +2560,30 @@ setTimeout(async () => {
  assert(transaction.id() === tx_id);
 }, 10000);
 ```
+
+---
+
+### `prepareInputs(programSource, functionName, inputs) ► Array.<string>`
+
+![modifier: public](images/badges/modifier-public.svg)
+
+Prepares user-provided inputs for a function call by auto-converting bare
+string identifiers to field elements where the function signature expects
+a &#x60;field&#x60; type. This lets callers of dynamic-dispatch programs pass
+human-readable strings (e.g. &#x60;&quot;my_program&quot;&#x60;) instead of requiring
+&#x60;stringToField(&quot;my_program&quot;).toString()&#x60;.
+
+Inputs that already look like a numeric field literal (matching
+&#x60;/^\d+field$/&#x60; after trimming whitespace) are left untouched. Non-field
+inputs are returned as-is. If introspection fails for any reason the
+original inputs are returned unchanged.
+
+Parameters | Type | Description
+--- | --- | ---
+__programSource__ | `string` | *The program source code or Program object*
+__functionName__ | `string` | *The function to inspect*
+__inputs__ | `Array.<string>` | *The raw user-provided inputs*
+__*return*__ | `Array.<string>` | *The (possibly converted) inputs*
 
 ---
 
@@ -3213,7 +3519,7 @@ __*return*__ | `Promise.<Transaction>` | *- A promise that resolves to the trans
 import { AleoKeyProvider, getOrInitConsensusVersionTestHeights, ProgramManager, NetworkRecordProvider } from "@provablehq/sdk/mainnet.js";
 
 // Initialize the development consensus heights in order to work with devnode.
-getOrInitConsensusVersionTestHeights("0,1,2,3,4,5,6,7,8,9,10,11,12");
+getOrInitConsensusVersionTestHeights("0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16");
 
 // Create a new NetworkClient and RecordProvider.
 const recordProvider = new NetworkRecordProvider(account, networkClient);
@@ -3263,7 +3569,7 @@ __*return*__ | `string` | *The transaction id of the deployed program or a failu
 import { ProgramManager, NetworkRecordProvider, getOrInitConsensusVersionTestHeights } from "@provablehq/sdk/mainnet.js";
 
 // Initialize the development consensus heights in order to work with a local devnode.
-getOrInitConsensusVersionTestHeights("0,1,2,3,4,5,6,7,8,9,10,11,12");
+getOrInitConsensusVersionTestHeights("0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16");
 
 // Create a new NetworkClient, and RecordProvider
 const recordProvider = new NetworkRecordProvider(account, networkClient);
@@ -3330,5 +3636,183 @@ setTimeout(async () => {
  assert(transaction.id() === tx.id());
 }, 20000);
 ```
+
+---
+
+### `ensureInclusionKeys(isOffline) ► Promise.<void>`
+
+![modifier: private](images/badges/modifier-private.svg)
+
+Pre-load the inclusion prover for offline execution. Required when the
+user provides an explicit OfflineQuery (truly offline — can&#x27;t fetch lazily).
+For CallbackQuery, snarkVM handles inclusion key loading on demand.
+
+Parameters | Type | Description
+--- | --- | ---
+__isOffline__ | `boolean` | **
+__*return*__ | `Promise.<void>` | **
+
+---
+
+### `buildCallbackQuery() ► CallbackQuery`
+
+![modifier: private](images/badges/modifier-private.svg)
+
+Create a CallbackQuery that delegates all state fetching to the
+transport-aware network client. WASM calls back into these functions
+during trace.prepare_async() instead of making its own reqwest calls.
+
+This handles ALL programs including those with DynamicRecord inputs.
+
+Parameters | Type | Description
+--- | --- | ---
+__*return*__ | [CallbackQuery](sdk-src_wasm.md) | **
+
+---
+
+### `collectProgramImports(program, imports, tolerateNetworkErrors) ► Promise.<Map.<string, string>>`
+
+![modifier: private](images/badges/modifier-private.svg)
+
+Collect static imports declared by the entry program together with any
+caller-provided imports, then resolve missing transitive dependencies.
+Caller-provided program sources take precedence over network sources.
+
+Parameters | Type | Description
+--- | --- | ---
+__program__ | `string` | **
+__imports__ | [ProgramImports](sdk-src_wasm.md) | **
+__tolerateNetworkErrors__ | `boolean` | **
+__*return*__ | `Promise.<Map.<string, string>>` | **
+
+---
+
+### `buildProgramImports(loadKeys) ► Promise.<object>`
+
+![modifier: private](images/badges/modifier-private.svg)
+
+Build a ProgramImportsBuilder from a program and its imports.
+Fetches missing imports from the network, resolves transitive
+dependencies, and optionally pre-loads cached keys from the KeyStore.
+
+Parameters | Type | Description
+--- | --- | ---
+__loadKeys__ | `undefined` | *When true (default), loads cached proving/verifying keys
+  from the KeyStore into the builder. Set to false for authorization and
+  proving request paths where keys are not synthesized.*
+__*return*__ | `Promise.<object>` | **
+
+---
+
+### `getImportNames(programSource) ► Array`
+
+![modifier: private](images/badges/modifier-private.svg) ![modifier: static](images/badges/modifier-static.svg)
+
+Extract &#x60;import program_name.aleo;&#x60; names from program source via regex.
+Avoids a WASM round-trip compared to Program.fromString + getImports.
+
+Parameters | Type | Description
+--- | --- | ---
+__programSource__ | `string` | **
+__*return*__ | `Array` | **
+
+---
+
+### `callGraphToMap(callGraph) ► Map.<string, Set.<string>>`
+
+![modifier: private](images/badges/modifier-private.svg) ![modifier: static](images/badges/modifier-static.svg)
+
+Convert the JS object returned by Program.getCallGraph() into a
+Map&lt;string, Set&lt;string&gt;&gt; for use in buildProgramImports.
+
+Parameters | Type | Description
+--- | --- | ---
+__callGraph__ | `Record.<string, Array>` | **
+__*return*__ | `Map.<string, Set.<string>>` | **
+
+---
+
+### `resolveKeyStore() ► Promise.<(KeyStore|undefined)>`
+
+![modifier: private](images/badges/modifier-private.svg)
+
+Resolve the active KeyStore, preferring the directly-set _keyStore
+over the KeyProvider&#x27;s keyStore().
+
+Parameters | Type | Description
+--- | --- | ---
+__*return*__ | `Promise.<(KeyStore\|undefined)>` | **
+
+---
+
+### `resolveEditionAndAmendment(programName, fallbackEdition) ► Promise.<object>`
+
+![modifier: private](images/badges/modifier-private.svg)
+
+Resolve the edition and amendment count for a program from the network.
+Returns &#x60;{ edition, amendment }&#x60; or falls back to &#x60;{ edition: 1, amendment: 0 }&#x60;.
+
+Parameters | Type | Description
+--- | --- | ---
+__programName__ | `string` | **
+__fallbackEdition__ | `number` | **
+__*return*__ | `Promise.<object>` | **
+
+---
+
+### `loadKeysFromStore(builder, programName, functionNames, edition, amendment) ► Promise.<void>`
+
+![modifier: private](images/badges/modifier-private.svg)
+
+Load cached proving/verifying keys from the KeyStore into a ProgramImportsBuilder.
+Only loads keys for the specified functions — returns immediately if
+functionNames is empty or undefined.
+Resolves edition and amendment from the network for accurate key locator
+construction when not explicitly provided.
+
+Parameters | Type | Description
+--- | --- | ---
+__builder__ | `ProgramImportsBuilder` | **
+__programName__ | `string` | **
+__functionNames__ | `Array` | **
+__edition__ | `number` | **
+__amendment__ | `number` | **
+__*return*__ | `Promise.<void>` | **
+
+---
+
+### `persistExtractedKeys(builder, importEditions) ► Promise.<void>`
+
+![modifier: private](images/badges/modifier-private.svg)
+
+Persist newly synthesized keys from the returned ProgramImportsBuilder
+into the KeyStore. Only writes keys that are not already in the store,
+avoiding unnecessary writes of large proving keys.
+Fetches each program&#x27;s current edition and amendment count from the network
+for accurate key locator construction.
+
+Parameters | Type | Description
+--- | --- | ---
+__builder__ | `ProgramImportsBuilder` | **
+__importEditions__ | `Map.<string, object>` | **
+__*return*__ | `Promise.<void>` | **
+
+---
+
+### `resolveTopLevelKeys(programName, functionName, keySearchParams, edition, amendment) ► Promise.<(FunctionKeyPair|undefined)>`
+
+![modifier: private](images/badges/modifier-private.svg)
+
+Resolve top-level function keys, checking the KeyStore first and
+falling back to the KeyProvider.
+
+Parameters | Type | Description
+--- | --- | ---
+__programName__ | `string` | **
+__functionName__ | `string` | **
+__keySearchParams__ | `KeySearchParams` | **
+__edition__ | `number` | **
+__amendment__ | `number` | **
+__*return*__ | `Promise.<(FunctionKeyPair\|undefined)>` | **
 
 ---

@@ -19,6 +19,8 @@ const localNetworkClient = new AleoNetworkClient("http://0.0.0.0:3030", undefine
 
 // Connection to a public beacon node
 const account = Account.fromCiphertext(process.env.ciphertext, process.env.password);
+const apiKey = process.env.apiKey;
+const consumerId = process.env.consumerId;
 const publicNetworkClient = new AleoNetworkClient("https://api.provable.com/v2", undefined, account);
 ```
 
@@ -32,7 +34,7 @@ Set an account to use in networkClient calls
 
 Parameters | Type | Description
 --- | --- | ---
-__account__ | [Account](sdk-src_account.md) | *Set an account to use for record scanning functions.*
+__account__ | `Account` | *Set an account to use for record scanning functions.*
 
 #### Examples
 
@@ -80,6 +82,54 @@ const networkClient = new AleoNetworkClient("http://0.0.0.0:3030", undefined);
 
 // Set the host to a public node.
 networkClient.setHost("https://api.provable.com/v2");
+```
+
+---
+
+### `setProverUri(proverUri)`
+
+![modifier: public](images/badges/modifier-public.svg)
+
+Set a new uri for a remote prover.
+
+Parameters | Type | Description
+--- | --- | ---
+__proverUri__ | `string` | *The uri of the remote prover.*
+
+#### Examples
+
+```javascript
+import { AleoNetworkClient } from "@provablehq/sdk/mainnet.js";
+
+// Create a networkClient that connects to the provable explorer api.
+const networkClient = new AleoNetworkClient("https://api.provable.com/v2", undefined);
+
+// Set the prover uri.
+networkClient.setProverUri("https://prover.provable.prove");
+```
+
+---
+
+### `setRecordScannerUri(recordScannerUri)`
+
+![modifier: public](images/badges/modifier-public.svg)
+
+Set a new uri for a remote record scanner.
+
+Parameters | Type | Description
+--- | --- | ---
+__recordScannerUri__ | `string` | *The uri of the remote record scanner.*
+
+#### Examples
+
+```javascript
+import { AleoNetworkClient } from "@provablehq/sdk/mainnet.js";
+
+// Create a networkClient that connects to the provable explorer api.
+const networkClient = new AleoNetworkClient("https://api.provable.com/v2", undefined);
+
+// Set the record scanner uri.
+networkClient.setRecordScannerUri("https://scanner.provable.scan");
 ```
 
 ---
@@ -496,6 +546,19 @@ const latestHeight = networkClient.getLatestHeight();
 
 ---
 
+### `getStatePaths(commitments) ► Promise.<Array.<string>>`
+
+![modifier: public](images/badges/modifier-public.svg)
+
+Returns state paths for the given record commitments.
+
+Parameters | Type | Description
+--- | --- | ---
+__commitments__ | `Array.<string>` | *Array of commitment field strings.*
+__*return*__ | `Promise.<Array.<string>>` | *Array of state path strings corresponding to the commitments.*
+
+---
+
 ### `getLatestBlockHash() ► Promise.<string>`
 
 ![modifier: public](images/badges/modifier-public.svg)
@@ -577,6 +640,27 @@ const networkClient = new AleoNetworkClient("https://api.provable.com/v2", undef
 
 const programVersion = networkClient.getLatestProgramEdition("hello_hello.aleo");
 assert.equal(programVersion, 1);
+```
+
+---
+
+### `getProgramAmendmentCount(programId) ► Object`
+
+![modifier: public](images/badges/modifier-public.svg)
+
+Returns the current edition and amendment count for a program.
+
+Parameters | Type | Description
+--- | --- | ---
+__programId__ | `string` | *The program ID (e.g. &quot;hello_hello.aleo&quot;)*
+__*return*__ | `Object` | **
+
+#### Examples
+
+```javascript
+const networkClient = new AleoNetworkClient("https://api.provable.com/v2");
+const info = await networkClient.getProgramAmendmentCount("hello_hello.aleo");
+console.log(info.edition, info.amendment_count);
 ```
 
 ---
@@ -1054,16 +1138,37 @@ __*return*__ | `Promise.<JwtData>` | *The JWT token and expiration time*
 
 ---
 
+### `handleProvingResponse()`
+
+![modifier: public](images/badges/modifier-public.svg)
+
+Parses a /prove/authorization or /prove/request response. Returns a result object (never throws for 200/400/500/503).
+
+---
+
 ### `submitProvingRequest(options) ► Promise.<ProvingResponse>`
 
 ![modifier: public](images/badges/modifier-public.svg)
 
-Submit a &#x60;ProvingRequest&#x60; to a remote proving service for delegated proving. If the broadcast flag of the &#x60;ProvingRequest&#x60; is set to &#x60;true&#x60; the remote service will attempt to broadcast the result &#x60;Transaction&#x60; on behalf of the requestor.
+Submit a &#x60;ProvingRequest&#x60; to a remote proving service for delegated proving. If the broadcast flag of the &#x60;ProvingRequest&#x60; is set to &#x60;true&#x60; the remote service will attempt to broadcast the result &#x60;Transaction&#x60; on behalf of the requestor. Throws on HTTP 400, 500, 503 (and retries on 500/503). Callers should [submitProvingRequestSafe](submitProvingRequestSafe) to handle proving request failures without throwing.
 
 Parameters | Type | Description
 --- | --- | ---
 __options__ | `DelegatedProvingParams` | *The optional parameters required to submit a proving request.*
 __*return*__ | `Promise.<ProvingResponse>` | *The ProvingResponse containing the transaction result and the result of the broadcast if the &#x60;broadcast&#x60; flag was set to &#x60;true&#x60;.*
+
+---
+
+### `submitProvingRequestSafe(options) ► Promise.<ProvingResult>`
+
+![modifier: public](images/badges/modifier-public.svg)
+
+Submit a proving request and return a result object instead of throwing. This method is usable when callers want to handle HTTP status (400, 500, 503) yourself. Retries on 500/503 and returns on 200 or 400.
+
+Parameters | Type | Description
+--- | --- | ---
+__options__ | `DelegatedProvingParams` | *The optional parameters required to submit a proving request.*
+__*return*__ | `Promise.<ProvingResult>` | *&#x60;{ ok: true, data }&#x60; on success (200), or &#x60;{ ok: false, status, error }&#x60; on 400/500/503. Check &#x60;result.ok&#x60; and then either &#x60;result.data&#x60; or &#x60;result.status&#x60; / &#x60;result.error.message&#x60;.*
 
 ---
 
@@ -1112,7 +1217,7 @@ Set an account to use in networkClient calls
 
 Parameters | Type | Description
 --- | --- | ---
-__account__ | [Account](sdk-src_account.md) | *Set an account to use for record scanning functions.*
+__account__ | `Account` | *Set an account to use for record scanning functions.*
 
 #### Examples
 
@@ -1134,7 +1239,7 @@ Return the Aleo account used in the networkClient
 
 Parameters | Type | Description
 --- | --- | ---
-__*return*__ | [Account](sdk-src_account.md) | **
+__*return*__ | `Account` | **
 
 #### Examples
 
@@ -1164,6 +1269,54 @@ const networkClient = new AleoNetworkClient("http://0.0.0.0:3030", undefined);
 
 // Set the host to a public node.
 networkClient.setHost("https://api.provable.com/v2");
+```
+
+---
+
+### `setProverUri(proverUri)`
+
+![modifier: public](images/badges/modifier-public.svg)
+
+Set a new uri for a remote prover.
+
+Parameters | Type | Description
+--- | --- | ---
+__proverUri__ | `string` | *The uri of the remote prover.*
+
+#### Examples
+
+```javascript
+import { AleoNetworkClient } from "@provablehq/sdk/mainnet.js";
+
+// Create a networkClient that connects to the provable explorer api.
+const networkClient = new AleoNetworkClient("https://api.provable.com/v2", undefined);
+
+// Set the prover uri.
+networkClient.setProverUri("https://prover.provable.prove");
+```
+
+---
+
+### `setRecordScannerUri(recordScannerUri)`
+
+![modifier: public](images/badges/modifier-public.svg)
+
+Set a new uri for a remote record scanner.
+
+Parameters | Type | Description
+--- | --- | ---
+__recordScannerUri__ | `string` | *The uri of the remote record scanner.*
+
+#### Examples
+
+```javascript
+import { AleoNetworkClient } from "@provablehq/sdk/mainnet.js";
+
+// Create a networkClient that connects to the provable explorer api.
+const networkClient = new AleoNetworkClient("https://api.provable.com/v2", undefined);
+
+// Set the record scanner uri.
+networkClient.setRecordScannerUri("https://scanner.provable.scan");
 ```
 
 ---
@@ -1582,6 +1735,19 @@ const latestHeight = networkClient.getLatestHeight();
 
 ---
 
+### `getStatePaths(commitments) ► Promise.<Array.<string>>`
+
+![modifier: public](images/badges/modifier-public.svg)
+
+Returns state paths for the given record commitments.
+
+Parameters | Type | Description
+--- | --- | ---
+__commitments__ | `Array.<string>` | *Array of commitment field strings.*
+__*return*__ | `Promise.<Array.<string>>` | *Array of state path strings corresponding to the commitments.*
+
+---
+
 ### `getLatestBlockHash() ► Promise.<string>`
 
 ![modifier: public](images/badges/modifier-public.svg)
@@ -1663,6 +1829,27 @@ const networkClient = new AleoNetworkClient("https://api.provable.com/v2", undef
 
 const programVersion = networkClient.getLatestProgramEdition("hello_hello.aleo");
 assert.equal(programVersion, 1);
+```
+
+---
+
+### `getProgramAmendmentCount(programId) ► Object`
+
+![modifier: public](images/badges/modifier-public.svg)
+
+Returns the current edition and amendment count for a program.
+
+Parameters | Type | Description
+--- | --- | ---
+__programId__ | `string` | *The program ID (e.g. &quot;hello_hello.aleo&quot;)*
+__*return*__ | `Object` | **
+
+#### Examples
+
+```javascript
+const networkClient = new AleoNetworkClient("https://api.provable.com/v2");
+const info = await networkClient.getProgramAmendmentCount("hello_hello.aleo");
+console.log(info.edition, info.amendment_count);
 ```
 
 ---
@@ -2130,12 +2317,25 @@ __*return*__ | `Promise.<string>` | *The solution id of the submitted solution o
 
 ![modifier: public](images/badges/modifier-public.svg)
 
-Submit a &#x60;ProvingRequest&#x60; to a remote proving service for delegated proving. If the broadcast flag of the &#x60;ProvingRequest&#x60; is set to &#x60;true&#x60; the remote service will attempt to broadcast the result &#x60;Transaction&#x60; on behalf of the requestor.
+Submit a &#x60;ProvingRequest&#x60; to a remote proving service for delegated proving. If the broadcast flag of the &#x60;ProvingRequest&#x60; is set to &#x60;true&#x60; the remote service will attempt to broadcast the result &#x60;Transaction&#x60; on behalf of the requestor. Throws on HTTP 400, 500, 503 (and retries on 500/503). Callers should [submitProvingRequestSafe](submitProvingRequestSafe) to handle proving request failures without throwing.
 
 Parameters | Type | Description
 --- | --- | ---
 __options__ | `DelegatedProvingParams` | *The optional parameters required to submit a proving request.*
 __*return*__ | `Promise.<ProvingResponse>` | *The ProvingResponse containing the transaction result and the result of the broadcast if the &#x60;broadcast&#x60; flag was set to &#x60;true&#x60;.*
+
+---
+
+### `submitProvingRequestSafe(options) ► Promise.<ProvingResult>`
+
+![modifier: public](images/badges/modifier-public.svg)
+
+Submit a proving request and return a result object instead of throwing. This method is usable when callers want to handle HTTP status (400, 500, 503) yourself. Retries on 500/503 and returns on 200 or 400.
+
+Parameters | Type | Description
+--- | --- | ---
+__options__ | `DelegatedProvingParams` | *The optional parameters required to submit a proving request.*
+__*return*__ | `Promise.<ProvingResult>` | *&#x60;{ ok: true, data }&#x60; on success (200), or &#x60;{ ok: false, status, error }&#x60; on 400/500/503. Check &#x60;result.ok&#x60; and then either &#x60;result.data&#x60; or &#x60;result.status&#x60; / &#x60;result.error.message&#x60;.*
 
 ---
 
@@ -2215,5 +2415,18 @@ Parameters | Type | Description
 __apiKey__ | `string` | *The API key for authentication.*
 __consumerId__ | `string` | *The consumer ID associated with the API key.*
 __*return*__ | `Promise.<JwtData>` | *The JWT token and expiration time*
+
+---
+
+### `handleProvingResponse(response) ► Promise.<ProvingResult>`
+
+![modifier: private](images/badges/modifier-private.svg)
+
+Parses a /prove/authorization or /prove/request response. Returns a result object (never throws for 200/400/500/503).
+
+Parameters | Type | Description
+--- | --- | ---
+__response__ | `Response` | **
+__*return*__ | `Promise.<ProvingResult>` | **
 
 ---

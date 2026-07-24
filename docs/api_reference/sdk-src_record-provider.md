@@ -21,7 +21,7 @@ Set the account used to search for records
 
 Parameters | Type | Description
 --- | --- | ---
-__account__ | [Account](sdk-src_account.md) | *The account used to use for searching for records.*
+__account__ | `Account` | *The account used to use for searching for records.*
 
 ---
 
@@ -119,7 +119,7 @@ Set the account used to search for records
 
 Parameters | Type | Description
 --- | --- | ---
-__account__ | [Account](sdk-src_account.md) | *The account used to use for searching for records.*
+__account__ | `Account` | *The account used to use for searching for records.*
 
 ---
 
