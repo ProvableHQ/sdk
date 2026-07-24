@@ -32,7 +32,7 @@ constructor:
 async function main() {
     // Initialize multi-threading to allow WASM execution.
     await initThreadPool();
-    const heights = getOrInitConsensusVersionTestHeights("0,1,2,3,4,5,6,7,8,9,10,11,12,13");
+    const heights = getOrInitConsensusVersionTestHeights("0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16");
     console.log(`Set development consensus heights to ${heights}`);
 
     const privateKey = "APrivateKey1zkp8CZNn3yeCseEtxuVPbDCwSyhGW6yZKUYKfgXmcpoGPWH";
