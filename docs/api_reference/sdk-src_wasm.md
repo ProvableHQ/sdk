@@ -54,11 +54,12 @@ __*return*__ | [Plaintext](sdk-src_wasm.md) | *The address object.*
 
 ![modifier: public](images/badges/modifier-public.svg) ![modifier: static](images/badges/modifier-static.svg)
 
-Create an aleo address object from a string representation of an address
+Create an aleo address object from a string representation of an address.
+The input is automatically lowercased before parsing.
 
 Parameters | Type | Description
 --- | --- | ---
-__address__ | `string` | *String representation of an addressm*
+__address__ | `string` | *String representation of an address*
 __*return*__ | [Address](sdk-src_wasm.md) | *Address*
 
 ---
@@ -75,6 +76,30 @@ __*return*__ | `Uint8Array` | **
 
 ---
 
+### `toI8Lossy() ► I8`
+
+![modifier: public](images/badges/modifier-public.svg)
+
+Cast the address to an I8 with lossy truncation.
+
+Parameters | Type | Description
+--- | --- | ---
+__*return*__ | `I8` | **
+
+---
+
+### `toU8Lossy() ► U8`
+
+![modifier: public](images/badges/modifier-public.svg)
+
+Cast the address to a U8 with lossy truncation.
+
+Parameters | Type | Description
+--- | --- | ---
+__*return*__ | `U8` | **
+
+---
+
 ### `fromBitsLe(bits) ► Address`
 
 ![modifier: public](images/badges/modifier-public.svg) ![modifier: static](images/badges/modifier-static.svg)
@@ -88,6 +113,42 @@ __*return*__ | [Address](sdk-src_wasm.md) | *The address object.*
 
 ---
 
+### `toI16Lossy() ► I16`
+
+![modifier: public](images/badges/modifier-public.svg)
+
+Cast the address to an I16 with lossy truncation.
+
+Parameters | Type | Description
+--- | --- | ---
+__*return*__ | `I16` | **
+
+---
+
+### `toI32Lossy() ► I32`
+
+![modifier: public](images/badges/modifier-public.svg)
+
+Cast the address to an I32 with lossy truncation.
+
+Parameters | Type | Description
+--- | --- | ---
+__*return*__ | `I32` | **
+
+---
+
+### `toI64Lossy() ► I64`
+
+![modifier: public](images/badges/modifier-public.svg)
+
+Cast the address to an I64 with lossy truncation.
+
+Parameters | Type | Description
+--- | --- | ---
+__*return*__ | `I64` | **
+
+---
+
 ### `toPlaintext() ► Plaintext`
 
 ![modifier: public](images/badges/modifier-public.svg)
@@ -97,6 +158,54 @@ Get the plaintext representation of the address.
 Parameters | Type | Description
 --- | --- | ---
 __*return*__ | [Plaintext](sdk-src_wasm.md) | **
+
+---
+
+### `toString() ► string`
+
+![modifier: public](images/badges/modifier-public.svg)
+
+Get a string representation of an Aleo address object
+
+Parameters | Type | Description
+--- | --- | ---
+__*return*__ | `string` | *String representation of the address*
+
+---
+
+### `toU16Lossy() ► U16`
+
+![modifier: public](images/badges/modifier-public.svg)
+
+Cast the address to a U16 with lossy truncation.
+
+Parameters | Type | Description
+--- | --- | ---
+__*return*__ | `U16` | **
+
+---
+
+### `toU32Lossy() ► U32`
+
+![modifier: public](images/badges/modifier-public.svg)
+
+Cast the address to a U32 with lossy truncation.
+
+Parameters | Type | Description
+--- | --- | ---
+__*return*__ | `U32` | **
+
+---
+
+### `toU64Lossy() ► U64`
+
+![modifier: public](images/badges/modifier-public.svg)
+
+Cast the address to a U64 with lossy truncation.
+
+Parameters | Type | Description
+--- | --- | ---
+__*return*__ | `U64` | **
 
 ---
 
@@ -126,6 +235,30 @@ __*return*__ | [Address](sdk-src_wasm.md) | *Address corresponding to the view k
 
 ---
 
+### `toI128Lossy() ► I128`
+
+![modifier: public](images/badges/modifier-public.svg)
+
+Cast the address to an I128 with lossy truncation.
+
+Parameters | Type | Description
+--- | --- | ---
+__*return*__ | `I128` | **
+
+---
+
+### `toU128Lossy() ► U128`
+
+![modifier: public](images/badges/modifier-public.svg)
+
+Cast the address to a U128 with lossy truncation.
+
+Parameters | Type | Description
+--- | --- | ---
+__*return*__ | `U128` | **
+
+---
+
 ### `fromProgramId(program_id) ► Address`
 
 ![modifier: public](images/badges/modifier-public.svg) ![modifier: static](images/badges/modifier-static.svg)
@@ -136,6 +269,18 @@ Parameters | Type | Description
 --- | --- | ---
 __program_id__ | `string` | *The program ID string.*
 __*return*__ | [Address](sdk-src_wasm.md) | *The address corresponding to the program ID.*
+
+---
+
+### `toScalarLossy() ► Scalar`
+
+![modifier: public](images/badges/modifier-public.svg)
+
+Cast the address to a Scalar with lossy truncation (via x-coordinate).
+
+Parameters | Type | Description
+--- | --- | ---
+__*return*__ | [Scalar](sdk-src_wasm.md) | **
 
 ---
 
@@ -165,6 +310,18 @@ __*return*__ | [Address](sdk-src_wasm.md) | *Address corresponding to the privat
 
 ---
 
+### `toBooleanLossy() ► Boolean`
+
+![modifier: public](images/badges/modifier-public.svg)
+
+Cast the address to a Boolean with lossy truncation (LSB of x-coordinate).
+
+Parameters | Type | Description
+--- | --- | ---
+__*return*__ | [Boolean](sdk-src_wasm.md) | **
+
+---
+
 ### `verify(Byte) ► boolean`
 
 ![modifier: public](images/badges/modifier-public.svg)
@@ -175,6 +332,33 @@ Parameters | Type | Description
 --- | --- | ---
 __Byte__ | `Uint8Array` | *array representing a message signed by the address*
 __*return*__ | `boolean` | *Boolean representing whether or not the signature is valid*
+
+---
+
+### `isValid(address) ► boolean`
+
+![modifier: public](images/badges/modifier-public.svg) ![modifier: static](images/badges/modifier-static.svg)
+
+Check if the input is a valid Aleo address.
+String addresses are automatically lowercased before validation.
+
+Parameters | Type | Description
+--- | --- | ---
+__address__ | `string` | *Either a string representation of an address
+       or a Uint8Array of bytes in little-endian format.*
+__*return*__ | `boolean` | *True if the input is a valid address, false otherwise.*
+
+---
+
+### `toField() ► Field`
+
+![modifier: public](images/badges/modifier-public.svg)
+
+Cast the address to a Field element (x-coordinate of the underlying group point).
+
+Parameters | Type | Description
+--- | --- | ---
+__*return*__ | [Field](sdk-src_wasm.md) | **
 
 ---
 
@@ -437,6 +621,18 @@ __value__ | `boolean` | **
 
 ## Methods
 
+### `toAddress() ► Address`
+
+![modifier: public](images/badges/modifier-public.svg)
+
+Cast the boolean to an Address (strict, via Group). Returns an error if conversion fails.
+
+Parameters | Type | Description
+--- | --- | ---
+__*return*__ | [Address](sdk-src_wasm.md) | **
+
+---
+
 ### `toBitsLe() ► Array.<any>`
 
 ![modifier: public](images/badges/modifier-public.svg)
@@ -509,6 +705,31 @@ Parameters | Type | Description
 --- | --- | ---
 __bytes__ | `Uint8Array` | **
 __*return*__ | [Boolean](sdk-src_wasm.md) | **
+
+---
+
+### `toGroupLossy() ► Group`
+
+![modifier: public](images/badges/modifier-public.svg)
+
+Cast the boolean to a Group element (lossy, via Field with Elligator-2 fallback).
+This conversion never fails.
+
+Parameters | Type | Description
+--- | --- | ---
+__*return*__ | [Group](sdk-src_wasm.md) | **
+
+---
+
+### `toAddressLossy() ► Address`
+
+![modifier: public](images/badges/modifier-public.svg)
+
+Cast the boolean to an Address (lossy, via Group with Elligator-2 fallback).
+
+Parameters | Type | Description
+--- | --- | ---
+__*return*__ | [Address](sdk-src_wasm.md) | **
 
 ---
 
@@ -601,6 +822,30 @@ __*return*__ | [Boolean](sdk-src_wasm.md) | **
 
 ---
 
+### `toI8() ► I8`
+
+![modifier: public](images/badges/modifier-public.svg)
+
+Cast the boolean to an I8 (false&#x3D;0, true&#x3D;1).
+
+Parameters | Type | Description
+--- | --- | ---
+__*return*__ | `I8` | **
+
+---
+
+### `toU8() ► U8`
+
+![modifier: public](images/badges/modifier-public.svg)
+
+Cast the boolean to a U8 (false&#x3D;0, true&#x3D;1).
+
+Parameters | Type | Description
+--- | --- | ---
+__*return*__ | `U8` | **
+
+---
+
 ### `equals(other) ► boolean`
 
 ![modifier: public](images/badges/modifier-public.svg)
@@ -626,6 +871,139 @@ __*return*__ | [Boolean](sdk-src_wasm.md) | **
 
 ---
 
+### `toI16() ► I16`
+
+![modifier: public](images/badges/modifier-public.svg)
+
+Cast the boolean to an I16 (false&#x3D;0, true&#x3D;1).
+
+Parameters | Type | Description
+--- | --- | ---
+__*return*__ | `I16` | **
+
+---
+
+### `toI32() ► I32`
+
+![modifier: public](images/badges/modifier-public.svg)
+
+Cast the boolean to an I32 (false&#x3D;0, true&#x3D;1).
+
+Parameters | Type | Description
+--- | --- | ---
+__*return*__ | `I32` | **
+
+---
+
+### `toI64() ► I64`
+
+![modifier: public](images/badges/modifier-public.svg)
+
+Cast the boolean to an I64 (false&#x3D;0, true&#x3D;1).
+
+Parameters | Type | Description
+--- | --- | ---
+__*return*__ | `I64` | **
+
+---
+
+### `toU16() ► U16`
+
+![modifier: public](images/badges/modifier-public.svg)
+
+Cast the boolean to a U16 (false&#x3D;0, true&#x3D;1).
+
+Parameters | Type | Description
+--- | --- | ---
+__*return*__ | `U16` | **
+
+---
+
+### `toU32() ► U32`
+
+![modifier: public](images/badges/modifier-public.svg)
+
+Cast the boolean to a U32 (false&#x3D;0, true&#x3D;1).
+
+Parameters | Type | Description
+--- | --- | ---
+__*return*__ | `U32` | **
+
+---
+
+### `toU64() ► U64`
+
+![modifier: public](images/badges/modifier-public.svg)
+
+Cast the boolean to a U64 (false&#x3D;0, true&#x3D;1).
+
+Parameters | Type | Description
+--- | --- | ---
+__*return*__ | `U64` | **
+
+---
+
+### `toI128() ► I128`
+
+![modifier: public](images/badges/modifier-public.svg)
+
+Cast the boolean to an I128 (false&#x3D;0, true&#x3D;1).
+
+Parameters | Type | Description
+--- | --- | ---
+__*return*__ | `I128` | **
+
+---
+
+### `toU128() ► U128`
+
+![modifier: public](images/badges/modifier-public.svg)
+
+Cast the boolean to a U128 (false&#x3D;0, true&#x3D;1).
+
+Parameters | Type | Description
+--- | --- | ---
+__*return*__ | `U128` | **
+
+---
+
+### `toField() ► Field`
+
+![modifier: public](images/badges/modifier-public.svg)
+
+Cast the boolean to a Field element (false&#x3D;0, true&#x3D;1). Lossless.
+
+Parameters | Type | Description
+--- | --- | ---
+__*return*__ | [Field](sdk-src_wasm.md) | **
+
+---
+
+### `toGroup() ► Group`
+
+![modifier: public](images/badges/modifier-public.svg)
+
+Cast the boolean to a Group element (strict, via Field x-coordinate recovery).
+Returns an error if the resulting field is not a valid x-coordinate.
+
+Parameters | Type | Description
+--- | --- | ---
+__*return*__ | [Group](sdk-src_wasm.md) | **
+
+---
+
+### `toScalar() ► Scalar`
+
+![modifier: public](images/badges/modifier-public.svg)
+
+Cast the boolean to a Scalar element (false&#x3D;0, true&#x3D;1). Lossless.
+
+Parameters | Type | Description
+--- | --- | ---
+__*return*__ | [Scalar](sdk-src_wasm.md) | **
+
+---
+
 ### `toString() ► string`
 
 ![modifier: public](images/badges/modifier-public.svg)
@@ -635,6 +1013,29 @@ Returns the string representation of the boolean element.
 Parameters | Type | Description
 --- | --- | ---
 __*return*__ | `string` | **
+
+---
+
+# Class `CallbackQuery`
+
+A query implementation that delegates state fetching to JS callback functions.
+
+Instead of making direct HTTP calls via reqwest, each QueryTrait method
+calls a JS function that returns a Promise. The JS side handles the actual
+network request through the configured transport.
+
+## Constructors
+
+
+### `CallbackQuery(get_state_root, get_state_paths, get_block_height)`
+
+Create a new CallbackQuery with JS callback functions.
+
+Parameters | Type | Description
+--- | --- | ---
+__get_state_root__ | `function` | *A function that returns Promise&lt;string&gt; (the state root)*
+__get_state_paths__ | `function` | *A function that takes string[] (commitments) and returns Promise&lt;string[]&gt; (state paths)*
+__get_block_height__ | `function` | *A function that returns Promise&lt;number&gt; (the block height)*
 
 ---
 
@@ -816,6 +1217,163 @@ Serialize a Ciphertext into a js string.
 Parameters | Type | Description
 --- | --- | ---
 __*return*__ | `string` | *The serialized Ciphertext.*
+
+---
+
+# Class `DynamicRecord`
+
+A fixed-size representation of an Aleo record. Like static records, a dynamic record
+contains an owner, nonce, and a version, but instead of storing the full data it only
+stores the Merkle root of the data, ensuring all dynamic records have a constant size.
+
+## Methods
+
+### `toBitsLe() ► Array.<any>`
+
+![modifier: public](images/badges/modifier-public.svg)
+
+Returns the dynamic record as a little-endian bit array (JS Array of booleans).
+
+Parameters | Type | Description
+--- | --- | ---
+__*return*__ | `Array.<any>` | **
+
+---
+
+### `fromRecord(record) ► DynamicRecord`
+
+![modifier: public](images/badges/modifier-public.svg) ![modifier: static](images/badges/modifier-static.svg)
+
+Creates a DynamicRecord from a RecordPlaintext.
+
+Parameters | Type | Description
+--- | --- | ---
+__record__ | [RecordPlaintext](sdk-src_wasm.md) | **
+__*return*__ | [DynamicRecord](sdk-src_wasm.md) | **
+
+---
+
+### `fromString(s) ► DynamicRecord`
+
+![modifier: public](images/badges/modifier-public.svg) ![modifier: static](images/badges/modifier-static.svg)
+
+Creates a DynamicRecord from its string representation.
+
+Parameters | Type | Description
+--- | --- | ---
+__s__ | `string` | **
+__*return*__ | [DynamicRecord](sdk-src_wasm.md) | **
+
+---
+
+### `toBytesLe() ► Uint8Array`
+
+![modifier: public](images/badges/modifier-public.svg)
+
+Serializes the dynamic record to a little-endian byte array (Uint8Array).
+
+Parameters | Type | Description
+--- | --- | ---
+__*return*__ | `Uint8Array` | **
+
+---
+
+### `fromBytesLe(bytes) ► DynamicRecord`
+
+![modifier: public](images/badges/modifier-public.svg) ![modifier: static](images/badges/modifier-static.svg)
+
+Deserializes a DynamicRecord from a little-endian byte array (Uint8Array).
+
+Parameters | Type | Description
+--- | --- | ---
+__bytes__ | `Uint8Array` | **
+__*return*__ | [DynamicRecord](sdk-src_wasm.md) | **
+
+---
+
+### `root() ► Field`
+
+![modifier: public](images/badges/modifier-public.svg)
+
+Returns the Merkle root of the record data as a Field.
+
+Parameters | Type | Description
+--- | --- | ---
+__*return*__ | [Field](sdk-src_wasm.md) | **
+
+---
+
+### `nonce() ► Group`
+
+![modifier: public](images/badges/modifier-public.svg)
+
+Returns the nonce of the record as a Group.
+
+Parameters | Type | Description
+--- | --- | ---
+__*return*__ | [Group](sdk-src_wasm.md) | **
+
+---
+
+### `owner() ► Address`
+
+![modifier: public](images/badges/modifier-public.svg)
+
+Returns the owner address of the dynamic record.
+
+Parameters | Type | Description
+--- | --- | ---
+__*return*__ | [Address](sdk-src_wasm.md) | **
+
+---
+
+### `isHiding() ► boolean`
+
+![modifier: public](images/badges/modifier-public.svg)
+
+Returns &#x60;true&#x60; if the dynamic record is a hiding variant (version !&#x3D; 0).
+
+Parameters | Type | Description
+--- | --- | ---
+__*return*__ | `boolean` | **
+
+---
+
+### `toFields() ► Array.<any>`
+
+![modifier: public](images/badges/modifier-public.svg)
+
+Returns the dynamic record as an array of field elements.
+
+Parameters | Type | Description
+--- | --- | ---
+__*return*__ | `Array.<any>` | **
+
+---
+
+### `toRecord(owner_is_private) ► RecordPlaintext`
+
+![modifier: public](images/badges/modifier-public.svg)
+
+Converts this DynamicRecord back to a RecordPlaintext.
+&#x60;owner_is_private&#x60; controls whether the owner field uses private or public visibility.
+
+Parameters | Type | Description
+--- | --- | ---
+__owner_is_private__ | `boolean` | **
+__*return*__ | [RecordPlaintext](sdk-src_wasm.md) | **
+
+---
+
+### `toString() ► string`
+
+![modifier: public](images/badges/modifier-public.svg)
+
+Returns the string representation of the dynamic record.
+
+Parameters | Type | Description
+--- | --- | ---
+__*return*__ | `string` | **
 
 ---
 
@@ -1108,6 +1666,19 @@ Field element.
 
 ## Methods
 
+### `toAddress() ► Address`
+
+![modifier: public](images/badges/modifier-public.svg)
+
+Cast the field element to an Address (strict, via Group x-coordinate recovery).
+Returns an error if the field is not a valid x-coordinate on the curve.
+
+Parameters | Type | Description
+--- | --- | ---
+__*return*__ | [Address](sdk-src_wasm.md) | **
+
+---
+
 ### `toBitsLe() ► Array.<any>`
 
 ![modifier: public](images/badges/modifier-public.svg)
@@ -1117,6 +1688,19 @@ Get the left endian boolean array representation of the field element.
 Parameters | Type | Description
 --- | --- | ---
 __*return*__ | `Array.<any>` | **
+
+---
+
+### `toBoolean() ► Boolean`
+
+![modifier: public](images/badges/modifier-public.svg)
+
+Cast the field element to a Boolean (strict).
+Returns an error if the field is not zero or one.
+
+Parameters | Type | Description
+--- | --- | ---
+__*return*__ | [Boolean](sdk-src_wasm.md) | **
 
 ---
 
@@ -1145,6 +1729,30 @@ __*return*__ | `Uint8Array` | **
 
 ---
 
+### `toI8Lossy() ► I8`
+
+![modifier: public](images/badges/modifier-public.svg)
+
+Cast the field to an I8 with lossy truncation.
+
+Parameters | Type | Description
+--- | --- | ---
+__*return*__ | `I8` | **
+
+---
+
+### `toU8Lossy() ► U8`
+
+![modifier: public](images/badges/modifier-public.svg)
+
+Cast the field to a U8 with lossy truncation.
+
+Parameters | Type | Description
+--- | --- | ---
+__*return*__ | `U8` | **
+
+---
+
 ### `fromBitsLe(bits) ► Field`
 
 ![modifier: public](images/badges/modifier-public.svg) ![modifier: static](images/badges/modifier-static.svg)
@@ -1155,6 +1763,42 @@ Parameters | Type | Description
 --- | --- | ---
 __bits__ | `Array.<any>` | **
 __*return*__ | [Field](sdk-src_wasm.md) | **
+
+---
+
+### `toI16Lossy() ► I16`
+
+![modifier: public](images/badges/modifier-public.svg)
+
+Cast the field to an I16 with lossy truncation.
+
+Parameters | Type | Description
+--- | --- | ---
+__*return*__ | `I16` | **
+
+---
+
+### `toI32Lossy() ► I32`
+
+![modifier: public](images/badges/modifier-public.svg)
+
+Cast the field to an I32 with lossy truncation.
+
+Parameters | Type | Description
+--- | --- | ---
+__*return*__ | `I32` | **
+
+---
+
+### `toI64Lossy() ► I64`
+
+![modifier: public](images/badges/modifier-public.svg)
+
+Cast the field to an I64 with lossy truncation.
+
+Parameters | Type | Description
+--- | --- | ---
+__*return*__ | `I64` | **
 
 ---
 
@@ -1170,6 +1814,42 @@ __*return*__ | [Plaintext](sdk-src_wasm.md) | **
 
 ---
 
+### `toU16Lossy() ► U16`
+
+![modifier: public](images/badges/modifier-public.svg)
+
+Cast the field to a U16 with lossy truncation.
+
+Parameters | Type | Description
+--- | --- | ---
+__*return*__ | `U16` | **
+
+---
+
+### `toU32Lossy() ► U32`
+
+![modifier: public](images/badges/modifier-public.svg)
+
+Cast the field to a U32 with lossy truncation.
+
+Parameters | Type | Description
+--- | --- | ---
+__*return*__ | `U32` | **
+
+---
+
+### `toU64Lossy() ► U64`
+
+![modifier: public](images/badges/modifier-public.svg)
+
+Cast the field to a U64 with lossy truncation.
+
+Parameters | Type | Description
+--- | --- | ---
+__*return*__ | `U64` | **
+
+---
+
 ### `fromBytesLe(bytes) ► Field`
 
 ![modifier: public](images/badges/modifier-public.svg) ![modifier: static](images/badges/modifier-static.svg)
@@ -1180,6 +1860,82 @@ Parameters | Type | Description
 --- | --- | ---
 __bytes__ | `Uint8Array` | **
 __*return*__ | [Field](sdk-src_wasm.md) | **
+
+---
+
+### `toI128Lossy() ► I128`
+
+![modifier: public](images/badges/modifier-public.svg)
+
+Cast the field to an I128 with lossy truncation.
+
+Parameters | Type | Description
+--- | --- | ---
+__*return*__ | `I128` | **
+
+---
+
+### `toU128Lossy() ► U128`
+
+![modifier: public](images/badges/modifier-public.svg)
+
+Cast the field to a U128 with lossy truncation.
+
+Parameters | Type | Description
+--- | --- | ---
+__*return*__ | `U128` | **
+
+---
+
+### `toGroupLossy() ► Group`
+
+![modifier: public](images/badges/modifier-public.svg)
+
+Cast the field element to a Group element with lossy conversion.
+
+Uses the snarkVM cast_lossy path: tries x-coordinate recovery first,
+falls back to the generator for field &#x3D;&#x3D; 1, and applies Elligator-2
+otherwise. This conversion never fails.
+
+Parameters | Type | Description
+--- | --- | ---
+__*return*__ | [Group](sdk-src_wasm.md) | **
+
+---
+
+### `toScalarLossy() ► Scalar`
+
+![modifier: public](images/badges/modifier-public.svg)
+
+Cast the field element to a Scalar with lossy truncation.
+
+Parameters | Type | Description
+--- | --- | ---
+__*return*__ | [Scalar](sdk-src_wasm.md) | **
+
+---
+
+### `toAddressLossy() ► Address`
+
+![modifier: public](images/badges/modifier-public.svg)
+
+Cast the field element to an Address with lossy conversion (via Group, Elligator-2 fallback).
+
+Parameters | Type | Description
+--- | --- | ---
+__*return*__ | [Address](sdk-src_wasm.md) | **
+
+---
+
+### `toBooleanLossy() ► Boolean`
+
+![modifier: public](images/badges/modifier-public.svg)
+
+Cast the field element to a Boolean with lossy truncation (extracts least-significant bit).
+
+Parameters | Type | Description
+--- | --- | ---
+__*return*__ | [Boolean](sdk-src_wasm.md) | **
 
 ---
 
@@ -1346,6 +2102,21 @@ __*return*__ | [Field](sdk-src_wasm.md) | **
 
 ---
 
+### `toGroup() ► Group`
+
+![modifier: public](images/badges/modifier-public.svg)
+
+Cast the field element to a Group element (strict).
+
+Attempts to recover the group element from the field as an x-coordinate.
+Returns an error if the field is not a valid x-coordinate on the curve.
+
+Parameters | Type | Description
+--- | --- | ---
+__*return*__ | [Group](sdk-src_wasm.md) | **
+
+---
+
 ### `toString() ► string`
 
 ![modifier: public](images/badges/modifier-public.svg)
@@ -1363,6 +2134,31 @@ __*return*__ | `string` | **
 Elliptic curve element.
 
 ## Methods
+
+### `fromField(field) ► Group`
+
+![modifier: public](images/badges/modifier-public.svg) ![modifier: static](images/badges/modifier-static.svg)
+
+Generate the group element from the x coordinate of the group.
+
+Parameters | Type | Description
+--- | --- | ---
+__field__ | [Field](sdk-src_wasm.md) | **
+__*return*__ | [Group](sdk-src_wasm.md) | **
+
+---
+
+### `toAddress() ► Address`
+
+![modifier: public](images/badges/modifier-public.svg)
+
+Cast the group element to an Address (lossless — Address wraps Group).
+
+Parameters | Type | Description
+--- | --- | ---
+__*return*__ | [Address](sdk-src_wasm.md) | **
+
+---
 
 ### `toBitsLe() ► Array.<any>`
 
@@ -1401,6 +2197,30 @@ __*return*__ | `Uint8Array` | **
 
 ---
 
+### `toI8Lossy() ► I8`
+
+![modifier: public](images/badges/modifier-public.svg)
+
+Cast the group to an I8 with lossy truncation.
+
+Parameters | Type | Description
+--- | --- | ---
+__*return*__ | `I8` | **
+
+---
+
+### `toU8Lossy() ► U8`
+
+![modifier: public](images/badges/modifier-public.svg)
+
+Cast the group to a U8 with lossy truncation.
+
+Parameters | Type | Description
+--- | --- | ---
+__*return*__ | `U8` | **
+
+---
+
 ### `fromBitsLe(bits) ► Group`
 
 ![modifier: public](images/badges/modifier-public.svg) ![modifier: static](images/badges/modifier-static.svg)
@@ -1414,6 +2234,42 @@ __*return*__ | [Group](sdk-src_wasm.md) | **
 
 ---
 
+### `toI16Lossy() ► I16`
+
+![modifier: public](images/badges/modifier-public.svg)
+
+Cast the group to an I16 with lossy truncation.
+
+Parameters | Type | Description
+--- | --- | ---
+__*return*__ | `I16` | **
+
+---
+
+### `toI32Lossy() ► I32`
+
+![modifier: public](images/badges/modifier-public.svg)
+
+Cast the group to an I32 with lossy truncation.
+
+Parameters | Type | Description
+--- | --- | ---
+__*return*__ | `I32` | **
+
+---
+
+### `toI64Lossy() ► I64`
+
+![modifier: public](images/badges/modifier-public.svg)
+
+Cast the group to an I64 with lossy truncation.
+
+Parameters | Type | Description
+--- | --- | ---
+__*return*__ | `I64` | **
+
+---
+
 ### `toPlaintext() ► Plaintext`
 
 ![modifier: public](images/badges/modifier-public.svg)
@@ -1423,6 +2279,42 @@ Create a plaintext element from a group element.
 Parameters | Type | Description
 --- | --- | ---
 __*return*__ | [Plaintext](sdk-src_wasm.md) | **
+
+---
+
+### `toU16Lossy() ► U16`
+
+![modifier: public](images/badges/modifier-public.svg)
+
+Cast the group to a U16 with lossy truncation.
+
+Parameters | Type | Description
+--- | --- | ---
+__*return*__ | `U16` | **
+
+---
+
+### `toU32Lossy() ► U32`
+
+![modifier: public](images/badges/modifier-public.svg)
+
+Cast the group to a U32 with lossy truncation.
+
+Parameters | Type | Description
+--- | --- | ---
+__*return*__ | `U32` | **
+
+---
+
+### `toU64Lossy() ► U64`
+
+![modifier: public](images/badges/modifier-public.svg)
+
+Cast the group to a U64 with lossy truncation.
+
+Parameters | Type | Description
+--- | --- | ---
+__*return*__ | `U64` | **
 
 ---
 
@@ -1439,6 +2331,30 @@ __*return*__ | [Group](sdk-src_wasm.md) | **
 
 ---
 
+### `toI128Lossy() ► I128`
+
+![modifier: public](images/badges/modifier-public.svg)
+
+Cast the group to an I128 with lossy truncation.
+
+Parameters | Type | Description
+--- | --- | ---
+__*return*__ | `I128` | **
+
+---
+
+### `toU128Lossy() ► U128`
+
+![modifier: public](images/badges/modifier-public.svg)
+
+Cast the group to a U128 with lossy truncation.
+
+Parameters | Type | Description
+--- | --- | ---
+__*return*__ | `U128` | **
+
+---
+
 ### `scalarMultiply(scalar) ► Group`
 
 ![modifier: public](images/badges/modifier-public.svg)
@@ -1452,6 +2368,18 @@ __*return*__ | [Group](sdk-src_wasm.md) | **
 
 ---
 
+### `toScalarLossy() ► Scalar`
+
+![modifier: public](images/badges/modifier-public.svg)
+
+Cast the group element to a Scalar with lossy truncation (via x-coordinate).
+
+Parameters | Type | Description
+--- | --- | ---
+__*return*__ | [Scalar](sdk-src_wasm.md) | **
+
+---
+
 ### `toXCoordinate() ► Field`
 
 ![modifier: public](images/badges/modifier-public.svg)
@@ -1461,6 +2389,31 @@ Get the x-coordinate of the group element.
 Parameters | Type | Description
 --- | --- | ---
 __*return*__ | [Field](sdk-src_wasm.md) | **
+
+---
+
+### `toBooleanLossy() ► Boolean`
+
+![modifier: public](images/badges/modifier-public.svg)
+
+Cast the group element to a Boolean with lossy truncation (LSB of x-coordinate).
+
+Parameters | Type | Description
+--- | --- | ---
+__*return*__ | [Boolean](sdk-src_wasm.md) | **
+
+---
+
+### `fromFieldString(field) ► Group`
+
+![modifier: public](images/badges/modifier-public.svg) ![modifier: static](images/badges/modifier-static.svg)
+
+Generate the group element from a string representation of the x coordinate of the group.
+
+Parameters | Type | Description
+--- | --- | ---
+__field__ | `string` | **
+__*return*__ | [Group](sdk-src_wasm.md) | **
 
 ---
 
@@ -1561,6 +2514,19 @@ Parameters | Type | Description
 --- | --- | ---
 __other__ | [Group](sdk-src_wasm.md) | **
 __*return*__ | [Group](sdk-src_wasm.md) | **
+
+---
+
+### `toField() ► Field`
+
+![modifier: public](images/badges/modifier-public.svg)
+
+Cast the group element to a Field (returns x-coordinate).
+This is an alias for &#x60;toXCoordinate()&#x60;.
+
+Parameters | Type | Description
+--- | --- | ---
+__*return*__ | [Field](sdk-src_wasm.md) | **
 
 ---
 
@@ -2028,6 +2994,18 @@ __*return*__ | [PrivateKey](sdk-src_wasm.md) | **
 
 ---
 
+### `toBytesLe() ► Uint8Array`
+
+![modifier: public](images/badges/modifier-public.svg)
+
+Get the byte representation of a private key
+
+Parameters | Type | Description
+--- | --- | ---
+__*return*__ | `Uint8Array` | *Byte representation of a private key*
+
+---
+
 ### `to_view_key() ► ViewKey`
 
 ![modifier: public](images/badges/modifier-public.svg)
@@ -2037,6 +3015,32 @@ Get the view key corresponding to the private key
 Parameters | Type | Description
 --- | --- | ---
 __*return*__ | `ViewKey` | **
+
+---
+
+### `toString() ► string`
+
+![modifier: public](images/badges/modifier-public.svg)
+
+Get a string representation of the private key. This function should be used very carefully
+as it exposes the private key plaintext
+
+Parameters | Type | Description
+--- | --- | ---
+__*return*__ | `string` | *String representation of a private key*
+
+---
+
+### `fromBytesLe(bytes) ► PrivateKey`
+
+![modifier: public](images/badges/modifier-public.svg) ![modifier: static](images/badges/modifier-static.svg)
+
+Get a private key from a byte representation
+
+Parameters | Type | Description
+--- | --- | ---
+__bytes__ | `Uint8Array` | *Byte representation of a private key*
+__*return*__ | [PrivateKey](sdk-src_wasm.md) | *Private key*
 
 ---
 
@@ -2233,6 +3237,18 @@ console.log(imports === expected_imports); // Output should be "true"
 
 ---
 
+### `toChecksum() ► Uint8Array`
+
+![modifier: public](images/badges/modifier-public.svg)
+
+Get the checksum of the program.
+
+Parameters | Type | Description
+--- | --- | ---
+__*return*__ | `Uint8Array` | *The checksum of the program as a 32-byte Uint8Array*
+
+---
+
 ### `getMappings() ► Array`
 
 ![modifier: public](images/badges/modifier-public.svg)
@@ -2304,6 +3320,47 @@ const credits_program = aleo_wasm.Program.getCreditsProgram();
 const credits_functions = credits_program.getFunctions();
 console.log(credits_functions === expected_functions); // Output should be "true"
 ```
+
+---
+
+### `nameToField() ► Field`
+
+![modifier: public](images/badges/modifier-public.svg)
+
+Get the program&#x27;s name (without the &#x60;.aleo&#x60; suffix) encoded as a field element.
+
+This is the same value as casting the program name identifier to a field on-chain
+(e.g. &#x60;my_program.aleo&#x60; -&gt; &#x60;Identifier(&quot;my_program&quot;) as field&#x60;), which is used as
+the program id in dynamic dispatch calls such as &#x60;IARC20@(token_id)&#x60;.
+
+Parameters | Type | Description
+--- | --- | ---
+__*return*__ | [Field](sdk-src_wasm.md) | *The program name as a field element*
+
+#### Examples
+
+```javascript
+const program = aleo_wasm.Program.getCreditsProgram();
+const field = program.nameToField(); // Field encoding of "credits"
+```
+
+---
+
+### `getCallGraph(entry_function) ► object`
+
+![modifier: public](images/badges/modifier-public.svg)
+
+Get the external call graph reachable from a specific entry function.
+
+Starting from &#x60;entry_function&#x60;, traces all reachable functions and closures
+within this program (via local calls) and collects external calls
+(&#x60;call program.aleo/function&#x60;). Returns a JS object mapping program names
+to arrays of called function names.
+
+Parameters | Type | Description
+--- | --- | ---
+__entry_function__ | `string` | *The name of the entry function to trace from*
+__*return*__ | `object` | *An object like &#x60;{ &quot;program.aleo&quot;: [&quot;fn1&quot;, &quot;fn2&quot;] }&#x60;*
 
 ---
 
@@ -2486,6 +3543,47 @@ __*return*__ | [Address](sdk-src_wasm.md) | *The address of the program*
 
 ---
 
+### `isArc20() ► boolean`
+
+![modifier: public](images/badges/modifier-public.svg)
+
+Determine if the program implements the ARC-20 fungible token interface (IARC20).
+
+This checks that the program defines a &#x60;Token&#x60; record with an &#x60;amount: u128&#x60; entry
+(additional entries are permitted, per the interface&#x27;s open record definition) and
+that every function and view function required by ARC-20 is present with the exact
+input and output signature defined by the standard.
+
+Parameters | Type | Description
+--- | --- | ---
+__*return*__ | `boolean` | *True if the program implements the ARC-20 token interface*
+
+---
+
+### `isArc22() ► boolean`
+
+![modifier: public](images/badges/modifier-public.svg)
+
+Determine if the program implements the ARC-22 compliant token interface (IARC22).
+
+This checks that the program defines &#x60;Token&#x60; and &#x60;ComplianceRecord&#x60; records with the
+entries required by the standard (additional entries are permitted, per the
+interface&#x27;s open record definitions), and that every function and view function
+required by ARC-22 is present with the exact input and output signature defined by
+the standard. The &#x60;MerkleProof&#x60; struct used by the private transfer functions may be
+declared locally (in which case its shape must match the standard exactly) or
+imported from another program such as a freeze list registry.
+
+Note: this checks the token interface (IARC22) only. The freeze list registry
+interface (IARC22Freezelist) is typically implemented by a separate program and is
+not required for a token program to be considered ARC-22 compliant.
+
+Parameters | Type | Description
+--- | --- | ---
+__*return*__ | `boolean` | *True if the program implements the ARC-22 token interface*
+
+---
+
 ### `isEqual(other) ► boolean`
 
 ![modifier: public](images/badges/modifier-public.svg)
@@ -2508,6 +3606,355 @@ Get a string representation of the program
 Parameters | Type | Description
 --- | --- | ---
 __*return*__ | `string` | *String containing the program source code*
+
+---
+
+# Class `ProgramImports`
+
+Backed by &#x60;Rc&lt;RefCell&lt;&gt;&gt;&#x60; for interior mutability — cloning produces a cheap
+reference-counted copy that shares the same underlying data. This allows
+execution functions to clone the builder internally while the caller&#x27;s
+original reference automatically sees any mutations (e.g. synthesized keys).
+
+## Constructors
+
+
+### `ProgramImports()`
+
+Create a new empty ProgramImports builder.
+
+Initializes an internal snarkVM Process. This is the same cost as a
+single execution call, but is paid once and reused across all operations.
+
+---
+
+## Methods
+
+### `addProgram(name, source, edition) ► void`
+
+![modifier: public](images/badges/modifier-public.svg)
+
+Add a program&#x27;s source code to the imports.
+
+The source is parsed, validated, and added to the internal Process.
+Static imports of the program are resolved depth-first from programs
+already present in this builder.
+
+Parameters | Type | Description
+--- | --- | ---
+__name__ | `string` | *The program name (e.g., &quot;my_program.aleo&quot;).*
+__source__ | `string` | *The program source code.*
+__edition__ | `number` | *The program edition (defaults to 1).*
+__*return*__ | `void` | **
+
+---
+
+### `fromObject(object) ► ProgramImports`
+
+![modifier: public](images/badges/modifier-public.svg) ![modifier: static](images/badges/modifier-static.svg)
+
+Create a ProgramImports from a plain JavaScript object.
+
+Accepts three formats:
+&#x60;&#x60;&#x60;js
+// 1. Plain string — source code only.
+{ &quot;my_program.aleo&quot;: &quot;program source...&quot; }
+
+// 2. Structured — program source with optional edition.
+{ &quot;my_program.aleo&quot;: { program: &quot;program source...&quot; } }
+
+// 3. Structured with keys — program source plus proving/verifying keys per function.
+{
+  &quot;my_program.aleo&quot;: {
+    program: &quot;program source...&quot;,
+    keys: {
+      &quot;my_function&quot;: {
+        provingKey: Uint8Array,
+        verifyingKey: Uint8Array
+      }
+    }
+  }
+}
+&#x60;&#x60;&#x60;
+
+Programs created via this method default to edition 1.
+
+Parameters | Type | Description
+--- | --- | ---
+__object__ | `Object` | *A plain JavaScript object mapping program names to source code
+  and optional keys.*
+__*return*__ | [ProgramImports](sdk-src_wasm.md) | **
+
+---
+
+### `getProgram(name) ► string`
+
+![modifier: public](images/badges/modifier-public.svg)
+
+Return the source code of a program by name, without serializing keys.
+
+Parameters | Type | Description
+--- | --- | ---
+__name__ | `string` | *The program name (e.g., &quot;my_program.aleo&quot;).*
+__*return*__ | `string` | **
+
+---
+
+### `programNames() ► Array.<string>`
+
+![modifier: public](images/badges/modifier-public.svg)
+
+Return the names of all programs in this builder as a JS &#x60;Array&lt;string&gt;&#x60;.
+
+This is a lightweight alternative to &#x60;toObject()&#x60; when you only need to
+enumerate program names without serializing keys.
+
+Parameters | Type | Description
+--- | --- | ---
+__*return*__ | `Array.<string>` | **
+
+---
+
+### `addProvingKey(program_name, identifier, key) ► void`
+
+![modifier: public](images/badges/modifier-public.svg)
+
+Add a proving key for a function or record within an imported program.
+
+The key is transferred directly from the WASM &#x60;ProvingKey&#x60; type with no
+serialization overhead.
+
+Parameters | Type | Description
+--- | --- | ---
+__program_name__ | `string` | *The program name (e.g., &quot;my_program.aleo&quot;).*
+__identifier__ | `string` | *The function name or record name the key belongs to.*
+__key__ | [ProvingKey](sdk-src_wasm.md) | *The proving key.*
+__*return*__ | `void` | **
+
+---
+
+### `getProvingKey(program_name, identifier) ► ProvingKey`
+
+![modifier: public](images/badges/modifier-public.svg)
+
+Get a proving key for a specific program and identifier (function or record name).
+Returns a clone of the key from the internal Process. Non-destructive — the key
+remains available for future calls.
+
+Parameters | Type | Description
+--- | --- | ---
+__program_name__ | `string` | *The program name (e.g., &quot;my_program.aleo&quot;).*
+__identifier__ | `string` | *The function or record name.*
+__*return*__ | [ProvingKey](sdk-src_wasm.md) | **
+
+---
+
+### `addVerifyingKey(program_name, identifier, key) ► void`
+
+![modifier: public](images/badges/modifier-public.svg)
+
+Add a verifying key for a function or record within an imported program.
+
+The key is transferred directly from the WASM &#x60;VerifyingKey&#x60; type with no
+serialization overhead.
+
+Parameters | Type | Description
+--- | --- | ---
+__program_name__ | `string` | *The program name (e.g., &quot;my_program.aleo&quot;).*
+__identifier__ | `string` | *The function name or record name the key belongs to.*
+__key__ | [VerifyingKey](sdk-src_wasm.md) | *The verifying key.*
+__*return*__ | `void` | **
+
+---
+
+### `getVerifyingKey(program_name, identifier) ► VerifyingKey`
+
+![modifier: public](images/badges/modifier-public.svg)
+
+Get a verifying key for a specific program and identifier (function or record name).
+Returns a clone of the key from the internal Process. Non-destructive — the key
+remains available for future calls.
+
+Parameters | Type | Description
+--- | --- | ---
+__program_name__ | `string` | *The program name (e.g., &quot;my_program.aleo&quot;).*
+__identifier__ | `string` | *The function or record name.*
+__*return*__ | [VerifyingKey](sdk-src_wasm.md) | **
+
+---
+
+### `addProvingKeyBytes(program_name, identifier, bytes) ► void`
+
+![modifier: public](images/badges/modifier-public.svg)
+
+Add a proving key from its byte representation.
+
+Deserializes the bytes into a native proving key and stores it. The program
+must already have been added via &#x60;addProgram&#x60;.
+
+Parameters | Type | Description
+--- | --- | ---
+__program_name__ | `string` | *The program name (e.g., &quot;my_program.aleo&quot;).*
+__identifier__ | `string` | *The function name or record name the key belongs to.*
+__bytes__ | `Uint8Array` | *The proving key bytes.*
+__*return*__ | `void` | **
+
+---
+
+### `addVerifyingKeyBytes(program_name, identifier, bytes) ► void`
+
+![modifier: public](images/badges/modifier-public.svg)
+
+Add a verifying key from its byte representation.
+
+Deserializes the bytes into a native verifying key and stores it. The program
+must already have been added via &#x60;addProgram&#x60;.
+
+Parameters | Type | Description
+--- | --- | ---
+__program_name__ | `string` | *The program name (e.g., &quot;my_program.aleo&quot;).*
+__identifier__ | `string` | *The function name or record name the key belongs to.*
+__bytes__ | `Uint8Array` | *The verifying key bytes.*
+__*return*__ | `void` | **
+
+---
+
+### `functionKeysAvailable(program_name) ► Array.<string>`
+
+![modifier: public](images/badges/modifier-public.svg)
+
+Return the names of functions that have both a proving key and a verifying key
+stored for the given program.
+
+Parameters | Type | Description
+--- | --- | ---
+__program_name__ | `string` | *The program name (e.g., &quot;my_program.aleo&quot;).*
+__*return*__ | `Array.<string>` | **
+
+---
+
+### `clone() ► ProgramImports`
+
+![modifier: public](images/badges/modifier-public.svg)
+
+Create a cheap clone that shares the same underlying data.
+
+Useful for passing to WASM execution functions which consume ownership:
+the caller keeps the original, and both copies see any mutations
+(e.g. synthesized keys) through the shared interior state.
+
+Parameters | Type | Description
+--- | --- | ---
+__*return*__ | [ProgramImports](sdk-src_wasm.md) | **
+
+---
+
+### `contains(name) ► boolean`
+
+![modifier: public](images/badges/modifier-public.svg)
+
+Check whether a specific program has been added.
+
+Parameters | Type | Description
+--- | --- | ---
+__name__ | `string` | *The program name.*
+__*return*__ | `boolean` | **
+
+---
+
+### `isEmpty() ► boolean`
+
+![modifier: public](images/badges/modifier-public.svg)
+
+Check whether any programs have been added to this builder.
+
+Parameters | Type | Description
+--- | --- | ---
+__*return*__ | `boolean` | **
+
+---
+
+### `toObject() ► Object`
+
+![modifier: public](images/badges/modifier-public.svg)
+
+Convert this ProgramImports to a plain JavaScript object.
+
+Entries without keys use the simple &#x60;{ &quot;name.aleo&quot;: &quot;source&quot; }&#x60; format.
+Entries with keys use the structured format:
+&#x60;&#x60;&#x60;js
+{
+  &quot;name.aleo&quot;: {
+    program: &quot;program source...&quot;,
+    keys: {
+      &quot;function_name&quot;: {
+        provingKey: Uint8Array,
+        verifyingKey: Uint8Array
+      }
+    }
+  }
+}
+&#x60;&#x60;&#x60;
+
+Parameters | Type | Description
+--- | --- | ---
+__*return*__ | `Object` | **
+
+---
+
+# Class `Proof`
+
+SNARK proof for verification of program execution
+
+## Methods
+
+### `fromBytes(bytes) ► Proof`
+
+![modifier: public](images/badges/modifier-public.svg) ![modifier: static](images/badges/modifier-static.svg)
+
+Construct a new proof from a byte array
+
+Parameters | Type | Description
+--- | --- | ---
+__bytes__ | `Uint8Array` | *Byte array representation of a proof*
+__*return*__ | [Proof](sdk-src_wasm.md) | **
+
+---
+
+### `fromString(string) ► Proof`
+
+![modifier: public](images/badges/modifier-public.svg) ![modifier: static](images/badges/modifier-static.svg)
+
+Create a proof from string
+
+Parameters | Type | Description
+--- | --- | ---
+__string__ | `string` | *String representation of the proof*
+__*return*__ | [Proof](sdk-src_wasm.md) | **
+
+---
+
+### `toBytes() ► Uint8Array`
+
+![modifier: public](images/badges/modifier-public.svg)
+
+Return the byte representation of a proof
+
+Parameters | Type | Description
+--- | --- | ---
+__*return*__ | `Uint8Array` | *Byte array representation of a proof*
+
+---
+
+### `toString() ► string`
+
+![modifier: public](images/badges/modifier-public.svg)
+
+Get a string representation of the proof
+
+Parameters | Type | Description
+--- | --- | ---
+__*return*__ | `string` | *String representation of the proof*
 
 ---
 
@@ -2880,17 +4327,46 @@ provingKey.isTransferPublicToPrivateProver() ? console.log("Key verified") : thr
 
 Represents a proving request to a prover.
 
+Carries one of two variants:
+- &#x60;Authorization&#x60; — a fully-constructed snarkVM &#x60;Authorization&#x60; (plus optional
+  fee authorization). Submitted to &#x60;/prove/authorization&#x60; (encrypted-only).
+- &#x60;Request&#x60; — a single signed snarkVM &#x60;Request&#x60; (plus optional fee &#x60;Request&#x60;)
+  that the prover authorizes server-side. Submitted to &#x60;/prove/request&#x60;
+  (encrypted-only).
+
+Use [ProvingRequest#kind](ProvingRequest#kind) when handling a &#x60;ProvingRequest&#x60; of unknown
+variant (e.g. after deserialization). Variant-specific accessors throw if
+called on the wrong variant.
+
 ## Methods
+
+### `feeRequest() ► ExecutionRequest`
+
+![modifier: public](images/badges/modifier-public.svg)
+
+Returns the signed fee &#x60;ExecutionRequest&#x60; in the Request variant, or
+&#x60;undefined&#x60; when no fee request is set or this is an Authorization variant.
+
+Parameters | Type | Description
+--- | --- | ---
+__*return*__ | `ExecutionRequest` | **
+
+---
 
 ### `fromString(request) ► ProvingRequest`
 
 ![modifier: public](images/badges/modifier-public.svg) ![modifier: static](images/badges/modifier-static.svg)
 
-Creates a ProvingRequest from a string representation.
+Creates a &#x60;ProvingRequest&#x60; from a JSON string representation.
+
+The variant is determined automatically by the JSON shape:
+&#x60;{ authorization, ... }&#x60; → Authorization variant; &#x60;{ request, ... }&#x60; →
+Request variant. Use [ProvingRequest#kind](ProvingRequest#kind) to inspect the
+resulting variant.
 
 Parameters | Type | Description
 --- | --- | ---
-__request__ | `Uint8Array` | *String representation of the ProvingRequest.*
+__request__ | `string` | *JSON string representation of the ProvingRequest.*
 __*return*__ | [ProvingRequest](sdk-src_wasm.md) | **
 
 ---
@@ -2899,7 +4375,10 @@ __*return*__ | [ProvingRequest](sdk-src_wasm.md) | **
 
 ![modifier: public](images/badges/modifier-public.svg)
 
-Creates a left-endian byte representation of the ProvingRequest.
+Creates a left-endian byte representation of the ProvingRequest,
+dispatching on the variant. The bytes are wire-compatible with the
+matching DPS route (&#x60;/prove[/encrypted]&#x60; for Authorization,
+&#x60;/prove/request&#x60; for Request).
 
 Parameters | Type | Description
 --- | --- | ---
@@ -2907,11 +4386,35 @@ __*return*__ | `Uint8Array` | **
 
 ---
 
+### `fromRequest(request, fee_request, broadcast) ► ProvingRequest`
+
+![modifier: public](images/badges/modifier-public.svg) ![modifier: static](images/badges/modifier-static.svg)
+
+Creates a new Request-variant &#x60;ProvingRequest&#x60; from a single signed
+&#x60;ExecutionRequest&#x60; and an optional signed fee &#x60;ExecutionRequest&#x60;.
+
+The Request variant is processed by the DPS at the &#x60;/prove/request&#x60;
+endpoint, which is encrypted-only. The server runs
+&#x60;Process::authorize_request&#x60; to turn each &#x60;Request&#x60; into an
+&#x60;Authorization&#x60; before proving.
+
+Only valid for single-public-request executions. Layered / nested
+calls are not supported by &#x60;/prove/request&#x60; at this time.
+
+Parameters | Type | Description
+--- | --- | ---
+__request__ | `ExecutionRequest` | *The signed request for the function.*
+__fee_request__ | `ExecutionRequest` | *Optional signed request for the fee function. When omitted, the prover generates and pays the fee.*
+__broadcast__ | `boolean` | *Flag that indicates whether the remote proving service should attempt to submit the transaction on the caller&#x27;s behalf.*
+__*return*__ | [ProvingRequest](sdk-src_wasm.md) | **
+
+---
+
 ### `authorization() ► Authorization`
 
 ![modifier: public](images/badges/modifier-public.svg)
 
-Get the Authorization of the main function in the ProvingRequest.
+Returns the Authorization of the main function in the ProvingRequest.
 
 Parameters | Type | Description
 --- | --- | ---
@@ -2923,11 +4426,13 @@ __*return*__ | [Authorization](sdk-src_wasm.md) | **
 
 ![modifier: public](images/badges/modifier-public.svg) ![modifier: static](images/badges/modifier-static.svg)
 
-Creates a ProvingRequest from a left-endian byte representation of the ProvingRequest.
+Reads bytes as an Authorization-variant &#x60;ProvingRequest&#x60;. For the
+Request variant, use [ProvingRequest.fromBytesLeRequest](ProvingRequest.fromBytesLeRequest)
+explicitly — byte layout carries no variant discriminator.
 
 Parameters | Type | Description
 --- | --- | ---
-__bytes__ | `Uint8Array` | *Left-endian bytes representing the proving request.*
+__bytes__ | `Uint8Array` | *Left-endian bytes representing an Authorization-variant proving request.*
 __*return*__ | [ProvingRequest](sdk-src_wasm.md) | **
 
 ---
@@ -2936,7 +4441,8 @@ __*return*__ | [ProvingRequest](sdk-src_wasm.md) | **
 
 ![modifier: public](images/badges/modifier-public.svg)
 
-Get the fee Authorization in the ProvingRequest.
+Returns the fee Authorization in the ProvingRequest, or &#x60;undefined&#x60;
+when no fee is set or this is a Request variant.
 
 Parameters | Type | Description
 --- | --- | ---
@@ -2944,11 +4450,27 @@ __*return*__ | [Authorization](sdk-src_wasm.md) | **
 
 ---
 
+### `fromBytesLeRequest(bytes) ► ProvingRequest`
+
+![modifier: public](images/badges/modifier-public.svg) ![modifier: static](images/badges/modifier-static.svg)
+
+Reads bytes as a Request-variant &#x60;ProvingRequest&#x60;. Byte layout is
+disjoint from the Authorization variant; callers must pick the right
+reader for the bytes they hold.
+
+Parameters | Type | Description
+--- | --- | ---
+__bytes__ | `Uint8Array` | *Left-endian bytes representing a Request-variant proving request.*
+__*return*__ | [ProvingRequest](sdk-src_wasm.md) | **
+
+---
+
 ### `new(authorization, fee_authorization, broadcast) ► ProvingRequest`
 
 ![modifier: public](images/badges/modifier-public.svg) ![modifier: static](images/badges/modifier-static.svg)
 
-Creates a new ProvingRequest from a function Authorization and an optional fee Authorization.
+Creates a new Authorization-variant &#x60;ProvingRequest&#x60; from a function
+&#x60;Authorization&#x60; and an optional fee &#x60;Authorization&#x60;.
 
 Parameters | Type | Description
 --- | --- | ---
@@ -2956,6 +4478,20 @@ __authorization__ | [Authorization](sdk-src_wasm.md) | *An Authorization for a f
 __fee_authorization__ | [Authorization](sdk-src_wasm.md) | *The authorization for the &#x60;credits.aleo/fee_public&#x60; or &#x60;credits.aleo/fee_private&#x60; function that pays the fee for the execution of the main function.*
 __broadcast__ | `boolean` | *Flag that indicates whether the remote proving service should attempt to submit the transaction on the caller&#x27;s behalf.*
 __*return*__ | [ProvingRequest](sdk-src_wasm.md) | **
+
+---
+
+### `kind() ► string`
+
+![modifier: public](images/badges/modifier-public.svg)
+
+Returns the variant of this &#x60;ProvingRequest&#x60;: &#x60;&quot;authorization&quot;&#x60; or
+&#x60;&quot;request&quot;&#x60;. Useful when handling a &#x60;ProvingRequest&#x60; whose variant
+was determined at deserialization time.
+
+Parameters | Type | Description
+--- | --- | ---
+__*return*__ | `string` | **
 
 ---
 
@@ -2969,6 +4505,18 @@ Parameters | Type | Description
 --- | --- | ---
 __other__ | [ProvingRequest](sdk-src_wasm.md) | **
 __*return*__ | `boolean` | **
+
+---
+
+### `request() ► ExecutionRequest`
+
+![modifier: public](images/badges/modifier-public.svg)
+
+Returns the signed &#x60;ExecutionRequest&#x60; carried by the Request variant.
+
+Parameters | Type | Description
+--- | --- | ---
+__*return*__ | `ExecutionRequest` | **
 
 ---
 
@@ -2988,11 +4536,50 @@ __*return*__ | `boolean` | **
 
 ![modifier: public](images/badges/modifier-public.svg)
 
-Creates a string representation of the ProvingRequest.
+Creates a JSON string representation of the ProvingRequest.
+The shape carries enough information to recover the variant via
+[ProvingRequest.fromString](ProvingRequest.fromString).
 
 Parameters | Type | Description
 --- | --- | ---
 __*return*__ | `string` | **
+
+---
+
+# Class `QueryOption`
+
+A unified query type that wraps either an OfflineQuery (pre-fetched state)
+or a CallbackQuery (on-demand JS transport delegation).
+
+Construct from JavaScript using the static factory methods:
+- &#x60;QueryOption.offlineQuery(offlineQuery)&#x60; for pre-fetched state
+- &#x60;QueryOption.callbackQuery(callbackQuery)&#x60; for on-demand JS callbacks
+
+## Methods
+
+### `offlineQuery(query) ► QueryOption`
+
+![modifier: public](images/badges/modifier-public.svg) ![modifier: static](images/badges/modifier-static.svg)
+
+Create a QueryOption from an OfflineQuery.
+
+Parameters | Type | Description
+--- | --- | ---
+__query__ | [OfflineQuery](sdk-src_wasm.md) | **
+__*return*__ | [QueryOption](sdk-src_wasm.md) | **
+
+---
+
+### `callbackQuery(query) ► QueryOption`
+
+![modifier: public](images/badges/modifier-public.svg) ![modifier: static](images/badges/modifier-static.svg)
+
+Create a QueryOption from a CallbackQuery.
+
+Parameters | Type | Description
+--- | --- | ---
+__query__ | [CallbackQuery](sdk-src_wasm.md) | **
+__*return*__ | [QueryOption](sdk-src_wasm.md) | **
 
 ---
 
@@ -3382,6 +4969,21 @@ __*return*__ | [RecordPlaintext](sdk-src_wasm.md) | *A clone of the RecordPlaint
 
 ---
 
+### `gamma(program_id, record_name, private_key) ► Group`
+
+![modifier: public](images/badges/modifier-public.svg)
+
+Compute the record&#x27;s gamma value.
+
+Parameters | Type | Description
+--- | --- | ---
+__program_id__ | `string` | *The program id that produced the record.*
+__record_name__ | `string` | *The name of the record within the program.*
+__private_key__ | [PrivateKey](sdk-src_wasm.md) | *The private key that created the record.*
+__*return*__ | [Group](sdk-src_wasm.md) | *The computed value of gamma.*
+
+---
+
 ### `nonce() ► string`
 
 ![modifier: public](images/badges/modifier-public.svg)
@@ -3436,6 +5038,19 @@ Scalar field element.
 
 ## Methods
 
+### `toAddress() ► Address`
+
+![modifier: public](images/badges/modifier-public.svg)
+
+Cast the scalar to an Address (strict, via Field x-coordinate recovery).
+Returns an error if the resulting field is not a valid x-coordinate on the curve.
+
+Parameters | Type | Description
+--- | --- | ---
+__*return*__ | [Address](sdk-src_wasm.md) | **
+
+---
+
 ### `toBitsLe() ► Array.<any>`
 
 ![modifier: public](images/badges/modifier-public.svg)
@@ -3445,6 +5060,19 @@ Get the left endian boolean array representation of the scalar element.
 Parameters | Type | Description
 --- | --- | ---
 __*return*__ | `Array.<any>` | **
+
+---
+
+### `toBoolean() ► Boolean`
+
+![modifier: public](images/badges/modifier-public.svg)
+
+Cast the scalar to a Boolean (strict).
+Returns an error if the scalar is not zero or one.
+
+Parameters | Type | Description
+--- | --- | ---
+__*return*__ | [Boolean](sdk-src_wasm.md) | **
 
 ---
 
@@ -3473,6 +5101,30 @@ __*return*__ | `Uint8Array` | **
 
 ---
 
+### `toI8Lossy() ► I8`
+
+![modifier: public](images/badges/modifier-public.svg)
+
+Cast the scalar to an I8 with lossy truncation.
+
+Parameters | Type | Description
+--- | --- | ---
+__*return*__ | `I8` | **
+
+---
+
+### `toU8Lossy() ► U8`
+
+![modifier: public](images/badges/modifier-public.svg)
+
+Cast the scalar to a U8 with lossy truncation.
+
+Parameters | Type | Description
+--- | --- | ---
+__*return*__ | `U8` | **
+
+---
+
 ### `fromBitsLe(bits) ► Scalar`
 
 ![modifier: public](images/badges/modifier-public.svg) ![modifier: static](images/badges/modifier-static.svg)
@@ -3483,6 +5135,42 @@ Parameters | Type | Description
 --- | --- | ---
 __bits__ | `Array.<any>` | **
 __*return*__ | [Scalar](sdk-src_wasm.md) | **
+
+---
+
+### `toI16Lossy() ► I16`
+
+![modifier: public](images/badges/modifier-public.svg)
+
+Cast the scalar to an I16 with lossy truncation.
+
+Parameters | Type | Description
+--- | --- | ---
+__*return*__ | `I16` | **
+
+---
+
+### `toI32Lossy() ► I32`
+
+![modifier: public](images/badges/modifier-public.svg)
+
+Cast the scalar to an I32 with lossy truncation.
+
+Parameters | Type | Description
+--- | --- | ---
+__*return*__ | `I32` | **
+
+---
+
+### `toI64Lossy() ► I64`
+
+![modifier: public](images/badges/modifier-public.svg)
+
+Cast the scalar to an I64 with lossy truncation.
+
+Parameters | Type | Description
+--- | --- | ---
+__*return*__ | `I64` | **
 
 ---
 
@@ -3498,6 +5186,42 @@ __*return*__ | [Plaintext](sdk-src_wasm.md) | **
 
 ---
 
+### `toU16Lossy() ► U16`
+
+![modifier: public](images/badges/modifier-public.svg)
+
+Cast the scalar to a U16 with lossy truncation.
+
+Parameters | Type | Description
+--- | --- | ---
+__*return*__ | `U16` | **
+
+---
+
+### `toU32Lossy() ► U32`
+
+![modifier: public](images/badges/modifier-public.svg)
+
+Cast the scalar to a U32 with lossy truncation.
+
+Parameters | Type | Description
+--- | --- | ---
+__*return*__ | `U32` | **
+
+---
+
+### `toU64Lossy() ► U64`
+
+![modifier: public](images/badges/modifier-public.svg)
+
+Cast the scalar to a U64 with lossy truncation.
+
+Parameters | Type | Description
+--- | --- | ---
+__*return*__ | `U64` | **
+
+---
+
 ### `fromBytesLe(bytes) ► Scalar`
 
 ![modifier: public](images/badges/modifier-public.svg) ![modifier: static](images/badges/modifier-static.svg)
@@ -3508,6 +5232,66 @@ Parameters | Type | Description
 --- | --- | ---
 __bytes__ | `Uint8Array` | **
 __*return*__ | [Scalar](sdk-src_wasm.md) | **
+
+---
+
+### `toI128Lossy() ► I128`
+
+![modifier: public](images/badges/modifier-public.svg)
+
+Cast the scalar to an I128 with lossy truncation.
+
+Parameters | Type | Description
+--- | --- | ---
+__*return*__ | `I128` | **
+
+---
+
+### `toU128Lossy() ► U128`
+
+![modifier: public](images/badges/modifier-public.svg)
+
+Cast the scalar to a U128 with lossy truncation.
+
+Parameters | Type | Description
+--- | --- | ---
+__*return*__ | `U128` | **
+
+---
+
+### `toGroupLossy() ► Group`
+
+![modifier: public](images/badges/modifier-public.svg)
+
+Cast the scalar to a Group element with lossy conversion (via Field, Elligator-2 fallback).
+
+Parameters | Type | Description
+--- | --- | ---
+__*return*__ | [Group](sdk-src_wasm.md) | **
+
+---
+
+### `toAddressLossy() ► Address`
+
+![modifier: public](images/badges/modifier-public.svg)
+
+Cast the scalar to an Address with lossy conversion (via Group, Elligator-2 fallback).
+
+Parameters | Type | Description
+--- | --- | ---
+__*return*__ | [Address](sdk-src_wasm.md) | **
+
+---
+
+### `toBooleanLossy() ► Boolean`
+
+![modifier: public](images/badges/modifier-public.svg)
+
+Cast the scalar to a Boolean with lossy truncation (extracts least-significant bit).
+
+Parameters | Type | Description
+--- | --- | ---
+__*return*__ | [Boolean](sdk-src_wasm.md) | **
 
 ---
 
@@ -3673,6 +5457,19 @@ __*return*__ | [Field](sdk-src_wasm.md) | **
 
 ---
 
+### `toGroup() ► Group`
+
+![modifier: public](images/badges/modifier-public.svg)
+
+Cast the scalar to a Group element (strict, via Field x-coordinate recovery).
+Returns an error if the resulting field is not a valid x-coordinate on the curve.
+
+Parameters | Type | Description
+--- | --- | ---
+__*return*__ | [Group](sdk-src_wasm.md) | **
+
+---
+
 ### `toString() ► string`
 
 ![modifier: public](images/badges/modifier-public.svg)
@@ -3776,6 +5573,18 @@ Get the plaintext representation of the signature.
 Parameters | Type | Description
 --- | --- | ---
 __*return*__ | [Plaintext](sdk-src_wasm.md) | **
+
+---
+
+### `toString() ► string`
+
+![modifier: public](images/badges/modifier-public.svg)
+
+Get a string representation of a signature
+
+Parameters | Type | Description
+--- | --- | ---
+__*return*__ | `string` | *String representation of a signature*
 
 ---
 
@@ -4177,6 +5986,239 @@ __*return*__ | `string` | *String representation of the transaction*
 
 ---
 
+# Class `Value`
+
+Aleo Value type. Value is the fundamental type representing program function inputs and outputs
+in Aleo. It wraps three variants: Plaintext, Record, and Future.
+
+## Examples
+
+```javascript
+// Parse a plaintext value from a string.
+const value = Value.fromString("100u64");
+console.log(value.valueType()); // "plaintext"
+console.log(value.isPlaintext()); // true
+
+// Extract the inner Plaintext.
+const plaintext = value.toPlaintext();
+console.log(plaintext.toString()); // "100u64"
+```
+
+## Methods
+
+### `toBitsLe() ► Array`
+
+![modifier: public](images/badges/modifier-public.svg)
+
+Returns the little-endian boolean array representation of the bits.
+
+Parameters | Type | Description
+--- | --- | ---
+__*return*__ | `Array` | *Boolean array of bits in little-endian order.*
+
+---
+
+### `valueType() ► string`
+
+![modifier: public](images/badges/modifier-public.svg)
+
+Returns the type of the value variant as a string.
+
+Possible values: &quot;plaintext&quot;, &quot;record&quot;, &quot;future&quot;, &quot;dynamic_record&quot;, or &quot;dynamic_future&quot;.
+
+Parameters | Type | Description
+--- | --- | ---
+__*return*__ | `string` | *The variant type name.*
+
+---
+
+### `fromString(value) ► Value`
+
+![modifier: public](images/badges/modifier-public.svg) ![modifier: static](images/badges/modifier-static.svg)
+
+Creates a Value from its string representation.
+
+Parameters | Type | Description
+--- | --- | ---
+__value__ | `string` | *The string representation of the value.*
+__*return*__ | [Value](sdk-src_wasm.md) | *The Value object.*
+
+---
+
+### `toBytesLe() ► Uint8Array`
+
+![modifier: public](images/badges/modifier-public.svg)
+
+Returns the little-endian byte array representation of the value.
+
+Parameters | Type | Description
+--- | --- | ---
+__*return*__ | `Uint8Array` | *The little-endian byte array.*
+
+---
+
+### `isPlaintext() ► boolean`
+
+![modifier: public](images/badges/modifier-public.svg)
+
+Returns true if the value is a Plaintext variant.
+
+Parameters | Type | Description
+--- | --- | ---
+__*return*__ | `boolean` | **
+
+---
+
+### `toPlaintext() ► Plaintext`
+
+![modifier: public](images/badges/modifier-public.svg)
+
+Extracts the inner Plaintext from a Plaintext variant.
+
+Parameters | Type | Description
+--- | --- | ---
+__*return*__ | [Plaintext](sdk-src_wasm.md) | *The inner Plaintext value.*
+
+---
+
+### `fromBytesLe(bytes) ► Value`
+
+![modifier: public](images/badges/modifier-public.svg) ![modifier: static](images/badges/modifier-static.svg)
+
+Creates a Value from a little-endian byte array.
+
+Parameters | Type | Description
+--- | --- | ---
+__bytes__ | `Uint8Array` | *A little-endian byte array.*
+__*return*__ | [Value](sdk-src_wasm.md) | *The Value object.*
+
+---
+
+### `toFieldsRaw() ► Array`
+
+![modifier: public](images/badges/modifier-public.svg)
+
+Returns the raw field array representation of the value.
+
+Parameters | Type | Description
+--- | --- | ---
+__*return*__ | `Array` | *Array of raw Field elements.*
+
+---
+
+### `fromPlaintext(plaintext) ► Value`
+
+![modifier: public](images/badges/modifier-public.svg) ![modifier: static](images/badges/modifier-static.svg)
+
+Creates a Value from a Plaintext object.
+
+Parameters | Type | Description
+--- | --- | ---
+__plaintext__ | [Plaintext](sdk-src_wasm.md) | *The Plaintext to wrap.*
+__*return*__ | [Value](sdk-src_wasm.md) | *A Value wrapping the Plaintext.*
+
+---
+
+### `toBitsRawBe() ► Array`
+
+![modifier: public](images/badges/modifier-public.svg)
+
+Returns the raw big-endian boolean array representation of the bits.
+
+Parameters | Type | Description
+--- | --- | ---
+__*return*__ | `Array` | *Raw boolean array of bits in big-endian order.*
+
+---
+
+### `toBitsRawLe() ► Array`
+
+![modifier: public](images/badges/modifier-public.svg)
+
+Returns the raw little-endian boolean array representation of the bits.
+
+Parameters | Type | Description
+--- | --- | ---
+__*return*__ | `Array` | *Raw boolean array of bits in little-endian order.*
+
+---
+
+### `toRecordPlaintext() ► RecordPlaintext`
+
+![modifier: public](images/badges/modifier-public.svg)
+
+Extracts the inner Record from a Record variant as a RecordPlaintext.
+
+Parameters | Type | Description
+--- | --- | ---
+__*return*__ | [RecordPlaintext](sdk-src_wasm.md) | *The inner record.*
+
+---
+
+### `fromRecordPlaintext(record) ► Value`
+
+![modifier: public](images/badges/modifier-public.svg) ![modifier: static](images/badges/modifier-static.svg)
+
+Creates a Value from a RecordPlaintext object.
+
+Parameters | Type | Description
+--- | --- | ---
+__record__ | [RecordPlaintext](sdk-src_wasm.md) | *The RecordPlaintext to wrap.*
+__*return*__ | [Value](sdk-src_wasm.md) | *A Value wrapping the Record.*
+
+---
+
+### `isFuture() ► boolean`
+
+![modifier: public](images/badges/modifier-public.svg)
+
+Returns true if the value is a Future variant.
+
+Note: There is no &#x60;toFuture()&#x60; method because the Future type does not have a WASM wrapper.
+Use &#x60;toString()&#x60; or &#x60;toBytesLe()&#x60; to serialize a Future value.
+
+Parameters | Type | Description
+--- | --- | ---
+__*return*__ | `boolean` | **
+
+---
+
+### `isRecord() ► boolean`
+
+![modifier: public](images/badges/modifier-public.svg)
+
+Returns true if the value is a Record variant.
+
+Parameters | Type | Description
+--- | --- | ---
+__*return*__ | `boolean` | **
+
+---
+
+### `toFields() ► Array`
+
+![modifier: public](images/badges/modifier-public.svg)
+
+Returns the field array representation of the value.
+
+Parameters | Type | Description
+--- | --- | ---
+__*return*__ | `Array` | *Array of Field elements.*
+
+---
+
+### `toString() ► string`
+
+![modifier: public](images/badges/modifier-public.svg)
+
+Returns the string representation of the value.
+
+Parameters | Type | Description
+--- | --- | ---
+__*return*__ | `string` | *The string representation of the value.*
+
+---
+
 # Class `VerifyingKey`
 
 Verifying key for a function within an Aleo program
@@ -4221,6 +6263,21 @@ __*return*__ | `number` | *The number of constraints*
 
 ---
 
+### `verifyBatch(verifying_keys, inputs, proof) ► boolean`
+
+![modifier: public](images/badges/modifier-public.svg) ![modifier: static](images/badges/modifier-static.svg)
+
+Verify a batch SNARK proof against multiple verifying keys and their corresponding public inputs.
+
+Parameters | Type | Description
+--- | --- | ---
+__verifying_keys__ | `Array.<string>` | *Array of verifying key strings, one per circuit*
+__inputs__ | `Array.<Array.<Array.<string>>>` | *3D array of field element strings [circuit_idx][instance_idx][field_idx]*
+__proof__ | [Proof](sdk-src_wasm.md) | *The batch proof to verify*
+__*return*__ | `boolean` | *True if the batch proof is valid, false otherwise*
+
+---
+
 ### `copy() ► VerifyingKey`
 
 ![modifier: public](images/badges/modifier-public.svg)
@@ -4230,6 +6287,20 @@ Create a copy of the verifying key
 Parameters | Type | Description
 --- | --- | ---
 __*return*__ | [VerifyingKey](sdk-src_wasm.md) | *A copy of the verifying key*
+
+---
+
+### `verify(inputs, proof) ► boolean`
+
+![modifier: public](images/badges/modifier-public.svg)
+
+Verify a SNARK proof against this verifying key and public inputs.
+
+Parameters | Type | Description
+--- | --- | ---
+__inputs__ | `Array.<string>` | *Array of field element strings representing public inputs (e.g. [&quot;1field&quot;, &quot;2field&quot;])*
+__proof__ | [Proof](sdk-src_wasm.md) | *The proof to verify*
+__*return*__ | `boolean` | *True if the proof is valid, false otherwise*
 
 ---
 
