@@ -93,7 +93,7 @@ dependencies = [
  "hex",
  "indexmap",
  "js-sys",
- "rand 0.10.1",
+ "rand",
  "rayon",
  "reqwest 0.11.27",
  "serde",
@@ -359,7 +359,7 @@ checksum = "6f8d983286843e49675a4b7a2d174efe136dc93a18d69130dd18198a6c167601"
 dependencies = [
  "cfg-if",
  "cpufeatures 0.3.0",
- "rand_core 0.10.1",
+ "rand_core",
 ]
 
 [[package]]
@@ -547,7 +547,7 @@ dependencies = [
  "ctutils",
  "hybrid-array",
  "num-traits",
- "rand_core 0.10.1",
+ "rand_core",
  "subtle",
  "zeroize",
 ]
@@ -569,7 +569,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "ce6e4c961d6cd6c9a86db418387425e8bdeaf05b3c8bc1411e6dca4c252f1453"
 dependencies = [
  "hybrid-array",
- "rand_core 0.10.1",
+ "rand_core",
 ]
 
 [[package]]
@@ -711,7 +711,7 @@ dependencies = [
  "crypto-common 0.2.2",
  "digest 0.11.3",
  "hybrid-array",
- "rand_core 0.10.1",
+ "rand_core",
  "rustcrypto-ff",
  "rustcrypto-group",
  "sec1",
@@ -1042,11 +1042,9 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "899def5c37c4fd7b2664648c28120ecec138e4d395b459e5ca34f9cce2dd77fd"
 dependencies = [
  "cfg-if",
- "js-sys",
  "libc",
  "r-efi 5.3.0",
  "wasip2",
- "wasm-bindgen",
 ]
 
 [[package]]
@@ -1059,7 +1057,7 @@ dependencies = [
  "js-sys",
  "libc",
  "r-efi 6.0.0",
- "rand_core 0.10.1",
+ "rand_core",
  "wasip2",
  "wasip3",
  "wasm-bindgen",
@@ -1957,15 +1955,16 @@ dependencies = [
 
 [[package]]
 name = "quinn-proto"
-version = "0.11.14"
+version = "0.11.16"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "434b42fec591c96ef50e21e886936e66d3cc3f737104fdb9b737c40ffb94c098"
+checksum = "2f4bfc015262b9df63c8845072ce59068853ff5872180c2ce2f13038b970e560"
 dependencies = [
  "aws-lc-rs",
  "bytes",
- "getrandom 0.3.4",
+ "getrandom 0.4.2",
  "lru-slab",
- "rand 0.9.2",
+ "rand",
+ "rand_pcg",
  "ring",
  "rustc-hash",
  "rustls",
@@ -2020,33 +2019,13 @@ checksum = "f8dcc9c7d52a811697d2151c701e0d08956f92b0e24136cf4cf27b57a6a0d9bf"
 
 [[package]]
 name = "rand"
-version = "0.9.2"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "6db2770f06117d490610c7488547d543617b21bfa07796d7a12f6f1bd53850d1"
-dependencies = [
- "rand_chacha 0.9.0",
- "rand_core 0.9.5",
-]
-
-[[package]]
-name = "rand"
 version = "0.10.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "d2e8e8bcc7961af1fdac401278c6a831614941f6164ee3bf4ce61b7edb162207"
 dependencies = [
  "chacha20",
  "getrandom 0.4.2",
- "rand_core 0.10.1",
-]
-
-[[package]]
-name = "rand_chacha"
-version = "0.9.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "d3022b5f1df60f26e1ffddd6c66e8aa15de382ae63b3a0c1bfc0e4d3e3f325cb"
-dependencies = [
- "ppv-lite86",
- "rand_core 0.9.5",
+ "rand_core",
 ]
 
 [[package]]
@@ -2056,16 +2035,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "3e6af7f3e25ded52c41df4e0b1af2d047e45896c2f3281792ed68a1c243daedb"
 dependencies = [
  "ppv-lite86",
- "rand_core 0.10.1",
-]
-
-[[package]]
-name = "rand_core"
-version = "0.9.5"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "76afc826de14238e6e8c374ddcc1fa19e374fd8dd986b0d2af0d02377261d83c"
-dependencies = [
- "getrandom 0.3.4",
+ "rand_core",
 ]
 
 [[package]]
@@ -2075,12 +2045,21 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "63b8176103e19a2643978565ca18b50549f6101881c443590420e4dc998a3c69"
 
 [[package]]
+name = "rand_pcg"
+version = "0.10.2"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "caa0f4137e1c0a72f4c651489402276c8e8e1cf081f3b0ba156d2cbeef09e86a"
+dependencies = [
+ "rand_core",
+]
+
+[[package]]
 name = "rand_xorshift"
 version = "0.5.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "60aa6af80be32871323012e02e6e65f8a7cc7890931ae421d217ad8fe0df2ccf"
 dependencies = [
- "rand_core 0.10.1",
+ "rand_core",
 ]
 
 [[package]]
@@ -2254,7 +2233,7 @@ version = "0.14.0-rc.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "fd2a8adb347447693cd2ba0d218c4b66c62da9b0a5672b17b981e4291ec65ff6"
 dependencies = [
- "rand_core 0.10.1",
+ "rand_core",
  "subtle",
 ]
 
@@ -2264,7 +2243,7 @@ version = "0.14.0-rc.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "369f9b61aa45933c062c9f6b5c3c50ab710687eca83dd3802653b140b43f85ed"
 dependencies = [
- "rand_core 0.10.1",
+ "rand_core",
  "rustcrypto-ff",
  "subtle",
 ]
@@ -2566,7 +2545,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "28d567dcbaf0049cb8ac2608a76cd95ff9e4412e1899d389ee400918ca7537f5"
 dependencies = [
  "digest 0.11.3",
- "rand_core 0.10.1",
+ "rand_core",
 ]
 
 [[package]]
@@ -2611,7 +2590,7 @@ dependencies = [
  "indexmap",
  "itertools",
  "num-traits",
- "rand 0.10.1",
+ "rand",
  "rayon",
  "serde",
  "sha2 0.11.0",
@@ -2894,7 +2873,7 @@ dependencies = [
  "itertools",
  "nom",
  "num-traits",
- "rand 0.10.1",
+ "rand",
  "serde",
  "snarkvm-curves",
  "snarkvm-fields",
@@ -3016,7 +2995,7 @@ name = "snarkvm-curves"
 version = "4.7.3"
 source = "git+https://github.com/ProvableHQ/snarkVM.git?rev=b7f0859592c75dd251430377240c7697a37ab899#b7f0859592c75dd251430377240c7697a37ab899"
 dependencies = [
- "rand 0.10.1",
+ "rand",
  "rustc_version",
  "serde",
  "snarkvm-fields",
@@ -3033,7 +3012,7 @@ dependencies = [
  "anyhow",
  "itertools",
  "num-traits",
- "rand 0.10.1",
+ "rand",
  "rayon",
  "serde",
  "snarkvm-utilities",
@@ -3047,7 +3026,7 @@ version = "4.7.3"
 source = "git+https://github.com/ProvableHQ/snarkVM.git?rev=b7f0859592c75dd251430377240c7697a37ab899#b7f0859592c75dd251430377240c7697a37ab899"
 dependencies = [
  "anyhow",
- "rand 0.10.1",
+ "rand",
  "serde_json",
  "snarkvm-console",
  "snarkvm-ledger-narwhal-subdag",
@@ -3159,8 +3138,8 @@ dependencies = [
  "indexmap",
  "lru",
  "parking_lot",
- "rand 0.10.1",
- "rand_chacha 0.10.0",
+ "rand",
+ "rand_chacha",
  "rayon",
  "serde_json",
  "snarkvm-algorithms",
@@ -3179,8 +3158,8 @@ dependencies = [
  "indexmap",
  "lru",
  "parking_lot",
- "rand 0.10.1",
- "rand_chacha 0.10.0",
+ "rand",
+ "rand_chacha",
  "rayon",
  "snarkvm-circuit",
  "snarkvm-console",
@@ -3247,7 +3226,7 @@ dependencies = [
  "lazy_static",
  "parking_lot",
  "paste",
- "rand 0.10.1",
+ "rand",
  "serde_json",
  "sha2 0.11.0",
  "snarkvm-curves",
@@ -3268,7 +3247,7 @@ dependencies = [
  "itertools",
  "lru",
  "parking_lot",
- "rand 0.10.1",
+ "rand",
  "rayon",
  "serde_json",
  "snarkvm-algorithms",
@@ -3314,8 +3293,8 @@ dependencies = [
  "indexmap",
  "itertools",
  "parking_lot",
- "rand 0.10.1",
- "rand_chacha 0.10.0",
+ "rand",
+ "rand_chacha",
  "rayon",
  "serde_json",
  "snarkvm-algorithms",
@@ -3338,8 +3317,8 @@ dependencies = [
  "enum-iterator",
  "indexmap",
  "paste",
- "rand 0.10.1",
- "rand_chacha 0.10.0",
+ "rand",
+ "rand_chacha",
  "rayon",
  "serde_json",
  "snarkvm-algorithms",
@@ -3375,7 +3354,7 @@ dependencies = [
  "colored",
  "num-bigint",
  "num_cpus",
- "rand 0.10.1",
+ "rand",
  "rand_xorshift",
  "rayon",
  "serde",
