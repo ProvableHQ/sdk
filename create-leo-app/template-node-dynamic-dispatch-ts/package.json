@@ -15,7 +15,7 @@
         "test:all": "npm run build && node dist/index.js"
     },
     "dependencies": {
-        "@provablehq/sdk": "^0.11.4"
+        "@provablehq/sdk": "^0.11.5"
     },
     "devDependencies": {
         "rimraf": "^6.0.1",
