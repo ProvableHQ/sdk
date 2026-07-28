@@ -170,6 +170,7 @@ export {
     Value,
     VerifyingKey,
     ViewKey,
+    getMaxProgramImports,
     initThreadPool,
     getOrInitConsensusVersionTestHeights,
     setWasmLogLevel,

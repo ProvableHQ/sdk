@@ -181,6 +181,7 @@ pub use utilities::test;
 pub use utilities::{
     EncryptionToolkit,
     get,
+    get_max_program_imports,
     get_network,
     get_or_init_consensus_version_heights,
     get_program_from_network,
