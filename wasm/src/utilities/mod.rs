@@ -21,7 +21,10 @@ pub mod encrypt;
 pub use encrypt::EncryptionToolkit;
 
 pub mod rest;
-use crate::{Field, types::native::IdentifierNative};
+use crate::{
+    Field,
+    types::native::{CurrentNetwork, IdentifierNative},
+};
 pub use rest::{
     get,
     get_network,
@@ -32,7 +35,7 @@ pub use rest::{
     latest_program_edition,
     latest_stateroot,
 };
-use snarkvm_console::prelude::ToField;
+use snarkvm_console::prelude::{Network, ToField};
 use std::str::FromStr;
 
 #[cfg(test)]
@@ -54,6 +57,20 @@ pub fn get_or_init_consensus_version_heights(heights: Option<String>) -> js_sys:
 
     // Map to just the heights (u32) and convert to JS array
     pairs.iter().map(|(_, height)| wasm_bindgen::JsValue::from_f64(*height as f64)).collect::<js_sys::Array>()
+}
+
+/// Returns the maximum number of imports allowed in a program by the
+/// snarkVM network implementation this SDK was built against.
+///
+/// @returns {number} The maximum number of program imports.
+///
+/// @example
+/// import { getMaxProgramImports } from '@provablehq/sdk';
+///
+/// const maxImports = getMaxProgramImports();
+#[wasm_bindgen::prelude::wasm_bindgen(js_name = getMaxProgramImports)]
+pub fn get_max_program_imports() -> u32 {
+    u32::try_from(CurrentNetwork::MAX_IMPORTS).expect("snarkVM MAX_IMPORTS must fit in a u32")
 }
 
 #[wasm_bindgen::prelude::wasm_bindgen(js_name = stringToField)]
@@ -78,5 +95,10 @@ mod tests {
     fn test_string_to_field() {
         assert_eq!(string_to_field("transfer_a").unwrap().to_string(), "459830232632696923845236field");
         assert_eq!(string_to_field("transfer_b").unwrap().to_string(), "464552599115566569058932field");
+    }
+
+    #[wasm_bindgen_test]
+    fn test_get_max_program_imports() {
+        assert_eq!(get_max_program_imports(), u32::try_from(CurrentNetwork::MAX_IMPORTS).unwrap());
     }
 }
