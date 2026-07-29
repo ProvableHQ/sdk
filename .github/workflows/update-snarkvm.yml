@@ -2,149 +2,83 @@ name: Update snarkVM dependency
 
 on:
   schedule:
-    # Run once every day at midnight (UTC)
-    - cron: '0 0 * * *'
-  push:
-    branches:
-      - 'ci/snarkvm-update'
+    # 08:00 PDT (15:00 UTC). GitHub cron is UTC-only, so during PST (winter)
+    # this fires at 07:00 Pacific instead.
+    - cron: '0 15 * * *'
+  workflow_dispatch:
 
-env:
-  RUST_BACKTRACE: 1
+permissions:
+  contents: write
+  pull-requests: write
+
+concurrency:
+  group: update-snarkvm
+  cancel-in-progress: false
 
 jobs:
-  update-snarkvm-staging:
-    name: Update snarkVM to latest staging
-    runs-on: ubuntu-22.04
-    permissions:
-      contents: write
-      pull-requests: write
+  update-snarkvm:
+    name: Upgrade snarkVM to latest release tag
+    runs-on: ubuntu-latest-m
+    timeout-minutes: 120
     steps:
-      - name: Checkout SDK
+      - name: Checkout mainnet
         uses: actions/checkout@v5
         with:
           ref: mainnet
-          token: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Get current snarkVM commit from Cargo.toml
-        id: current-commit
+      # Deterministic pre-flight: resolve versions and skip the (expensive)
+      # Claude run entirely when there is nothing to do.
+      - name: Check snarkVM versions
+        id: preflight
+        env:
+          GH_TOKEN: ${{ github.token }}
         run: |
-          # Extract the first snarkVM rev found in the Cargo.toml
-          CURRENT_COMMIT=$(grep -E 'snarkvm-[a-zA-Z0-9_-]+ = .*rev\s*=' wasm/Cargo.toml | head -n 1 | sed -E 's/.*rev\s*=\s*"([a-f0-9]+)".*/\1/')
-          echo "Current snarkVM commit: $CURRENT_COMMIT"
-          echo "current_commit=$CURRENT_COMMIT" >> $GITHUB_OUTPUT
+          bash .agents/skills/snarkvm-upgrade/scripts/check-version.sh wasm/Cargo.toml | tee -a "$GITHUB_OUTPUT"
 
-      - name: Get latest snarkVM staging commit
-        id: snarkvm-commit
-        uses: actions/github-script@v7
-        with:
-          script: |
-            // Get the latest commit hash from snarkVM staging branch
-            const { data: branch } = await github.rest.repos.getBranch({
-              owner: 'ProvableHQ',
-              repo: 'snarkVM',
-              branch: 'staging'
-            });
-            
-            const latestCommit = branch.commit.sha;
-            console.log('Latest snarkVM staging commit:', latestCommit);
-            core.setOutput('latest_commit', latestCommit);
-            core.setOutput('update_needed', 'true');
-
-      - name: Setup Git
-        if: steps.snarkvm-commit.outputs.update_needed == 'true'
-        run: |
-          git config --global user.name "github-actions[bot]"
-          git config --global user.email "github-actions[bot]@users.noreply.github.com"
-
-      - name: Create new update-snarkvm-staging branch from staging
-        if: steps.snarkvm-commit.outputs.update_needed == 'true'
-        run: |
-          git fetch origin staging:staging
-          # Always create a fresh branch from staging
-          echo "Creating new update-snarkvm-staging branch from staging"
-          git checkout -B update-snarkvm-staging origin/staging
-          echo "Created fresh update-snarkvm-staging branch from staging"
-
-      - name: Update snarkVM dependency
-        if: steps.snarkvm-commit.outputs.update_needed == 'true'
-        run: |
-          # Validate the commit hash format (should be 40 chars hex or 7+ chars)
-          LATEST_COMMIT="${{ steps.snarkvm-commit.outputs.latest_commit }}"
-          if [[ ! "$LATEST_COMMIT" =~ ^[a-f0-9]{7,40}$ ]]; then
-            echo "Error: Invalid commit hash format: $LATEST_COMMIT"
-            exit 1
+          # Also skip if an upgrade PR for the target tag is already open.
+          LATEST=$(grep '^LATEST=' "$GITHUB_OUTPUT" | tail -1 | cut -d= -f2)
+          if gh pr list --state open --json headRefName \
+              --jq '.[].headRefName' | grep -qx "update-snarkvm-${LATEST}"; then
+            echo "PR_EXISTS=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "PR_EXISTS=false" >> "$GITHUB_OUTPUT"
           fi
-          
-          # First, update the rev in Cargo.toml to point to the new commit
-          cd wasm
-          cargo add snarkvm-algorithms --git https://github.com/ProvableHQ/snarkVM --rev $LATEST_COMMIT
-          cargo add snarkvm-circuit-network --git https://github.com/ProvableHQ/snarkVM --rev $LATEST_COMMIT
-          cargo add snarkvm-console --git https://github.com/ProvableHQ/snarkVM --rev $LATEST_COMMIT
-          cargo add snarkvm-ledger-block --git https://github.com/ProvableHQ/snarkVM --rev $LATEST_COMMIT
-          cargo add snarkvm-ledger-query --git https://github.com/ProvableHQ/snarkVM --rev $LATEST_COMMIT
-          cargo add snarkvm-ledger-store --git https://github.com/ProvableHQ/snarkVM --rev $LATEST_COMMIT
-          cargo add snarkvm-parameters --git https://github.com/ProvableHQ/snarkVM --rev $LATEST_COMMIT
-          cargo add snarkvm-synthesizer-program --git https://github.com/ProvableHQ/snarkVM --rev $LATEST_COMMIT
-          cargo add snarkvm-synthesizer --git https://github.com/ProvableHQ/snarkVM --rev $LATEST_COMMIT
-          cargo add snarkvm-wasm --git https://github.com/ProvableHQ/snarkVM --rev $LATEST_COMMIT
 
-          echo "✅ Successfully updated snarkVM dependency to $LATEST_COMMIT"
+      - name: Set up yarn
+        if: steps.preflight.outputs.UPDATE_NEEDED == 'true' && steps.preflight.outputs.PR_EXISTS == 'false'
+        uses: ./.github/actions/setup-yarn
 
-      - name: Commit and push changes
-        if: steps.snarkvm-commit.outputs.update_needed == 'true'
+      - name: Set up rust
+        if: steps.preflight.outputs.UPDATE_NEEDED == 'true' && steps.preflight.outputs.PR_EXISTS == 'false'
+        uses: ./.github/actions/setup-rust
+
+      - name: Configure git identity
+        if: steps.preflight.outputs.UPDATE_NEEDED == 'true' && steps.preflight.outputs.PR_EXISTS == 'false'
         run: |
-          git add wasm/Cargo.toml wasm/Cargo.lock
-          git commit --no-verify -m "Update snarkVM to latest staging commit ${{ steps.snarkvm-commit.outputs.latest_commit }}
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
 
-          Previous commit: ${{ steps.snarkvm-commit.outputs.current_commit }}
-          Latest commit: ${{ steps.snarkvm-commit.outputs.latest_commit }}
-          
-          This update was performed automatically by the snarkVM update workflow."
-
-          # Make sure the remote branch exists and is up to date
-          git fetch origin update-snarkvm-staging || true
-
-          # Push forcefully (safe because only CI touches this branch)
-          git push --force origin update-snarkvm-staging
-
-      - name: Create or update PR
-        if: steps.snarkvm-commit.outputs.update_needed == 'true'
-        uses: actions/github-script@v7
+      - name: Run the snarkvm-upgrade skill
+        if: steps.preflight.outputs.UPDATE_NEEDED == 'true' && steps.preflight.outputs.PR_EXISTS == 'false'
+        uses: anthropics/claude-code-action@v1
         with:
-          script: |
-            // Check if a PR already exists from update-snarkvm-staging to staging
-            const { data: prs } = await github.rest.pulls.list({
-              owner: 'ProvableHQ',
-              repo: 'sdk',
-              head: 'ProvableHQ:update-snarkvm-staging',
-              base: 'staging',
-              state: 'open'
-            });
-            
-            if (prs.length === 0) {
-              // No PR exists, create one
-              const { data: pr } = await github.rest.pulls.create({
-                owner: 'ProvableHQ',
-                repo: 'sdk',
-                title: 'Update snarkVM to latest staging commit',
-                head: 'update-snarkvm-staging',
-                base: 'staging',
-                body: 'This PR updates the snarkVM dependency to track the latest staging commit.\n\nLatest commit: ${{ steps.snarkvm-commit.outputs.latest_commit }}\nPrevious commit: ${{ steps.snarkvm-commit.outputs.current_commit }}\n\nThis PR was created automatically by the snarkVM update workflow.'
-              });
-              console.log(`Created PR #${pr.number}: ${pr.html_url}`);
-            } else {
-              console.log(`PR already exists: ${prs[0].html_url}`);
-            }
+          anthropic_api_key: ${{ secrets.ANTHROPIC_API_KEY }}
+          # PRs opened with the default GITHUB_TOKEN do not trigger CI
+          # workflows (GitHub restriction). Swap in a PAT or GitHub App token
+          # if the upgrade PRs should run the SDK CI automatically.
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          prompt: /snarkvm-upgrade
+          claude_args: |
+            --allowedTools Bash(bash .agents/skills/snarkvm-upgrade/scripts/check-version.sh*) Bash(yarn *) Bash(cargo *) Bash(npm view:*) Bash(git *) Bash(gh *) Bash(curl *) Read Write Edit Glob Grep
 
       - name: Summary
         if: always()
         run: |
-          echo "## Workflow Summary (staging)" >> $GITHUB_STEP_SUMMARY
-          echo "- Current snarkVM commit: ${{ steps.snarkvm-commit.outputs.current_commit }}" >> $GITHUB_STEP_SUMMARY
-          echo "- Latest snarkVM commit: ${{ steps.snarkvm-commit.outputs.latest_commit }}" >> $GITHUB_STEP_SUMMARY
-          echo "- Update needed: ${{ steps.snarkvm-commit.outputs.update_needed }}" >> $GITHUB_STEP_SUMMARY
-          if [ "${{ steps.snarkvm-commit.outputs.update_needed }}" = "true" ]; then
-            echo "- ✅ snarkVM dependency updated successfully" >> $GITHUB_STEP_SUMMARY
-          else
-            echo "- ℹ️ No update required" >> $GITHUB_STEP_SUMMARY
-          fi
+          {
+            echo "## snarkVM upgrade check"
+            echo "- Current: ${{ steps.preflight.outputs.CURRENT }}"
+            echo "- Latest tag: ${{ steps.preflight.outputs.LATEST }}"
+            echo "- Update needed: ${{ steps.preflight.outputs.UPDATE_NEEDED }}"
+            echo "- Upgrade PR already open: ${{ steps.preflight.outputs.PR_EXISTS }}"
+            echo "- crates.io published: ${{ steps.preflight.outputs.CRATES_PUBLISHED }}"
+          } >> "$GITHUB_STEP_SUMMARY"
