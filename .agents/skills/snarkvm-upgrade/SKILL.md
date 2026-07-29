@@ -166,21 +166,45 @@ Then apply one patch bump with the repo's own script, from the repo root:
 yarn change-version <version>   # e.g. 0.11.5 -> 0.11.6
 ```
 
-Do NOT hand-edit the versions. `scripts/change-version.js` covers three
-things that are easy to miss individually, and one of them is not a
-`package.json` at all:
+Do NOT hand-edit the versions. Two different things need to move, and the
+second is much wider than it looks:
 
-- the `version` field in `wasm/`, `sdk/` and `create-leo-app/package.json`
-- the `[package] version` of the `aleo-wasm` crate in `wasm/Cargo.toml`,
-  which must not drift behind the npm packages
-- every `@provablehq/wasm` and `@provablehq/sdk` cross-reference in every
-  `package.json` in the tree, including each `create-leo-app/template-*`
+1. **The three published packages get a new `version`** — `wasm/`, `sdk/`
+   and `create-leo-app/package.json` — plus the `[package] version` of the
+   `aleo-wasm` crate in `wasm/Cargo.toml`, which must not drift behind them.
+2. **Every `package.json` in the repo that names `@provablehq/wasm` or
+   `@provablehq/sdk` gets its dependency reference updated**, whether or not
+   that package is published. At the time of writing that is 24 files:
+   `sdk/package.json` (`@provablehq/wasm`), 18 `create-leo-app/template-*`,
+   all four `e2e/*`, and `website/`. The `e2e/*` and `website/` ones are the
+   easy ones to forget — they are not published, so nothing about them
+   changes except the reference, and a stale reference there resolves to the
+   previously published package instead of the code in this PR.
 
-Afterwards confirm the crate came along, since it is the one a manual pass
-tends to leave behind:
+`scripts/change-version.js` does all of it: it globs every `package.json`
+outside `node_modules` and rewrites both dependency names wherever they
+appear, in `dependencies` or `devDependencies` alike. Do not maintain a
+hand-written list of paths — a new workspace would silently miss the bump.
+
+Then prove the sweep is complete rather than assuming it. This prints
+nothing when every reference points at the new version, and prints the
+offenders when it does not:
 
 ```bash
-git diff --stat wasm/Cargo.toml wasm/package.json sdk/package.json
+grep -rn --include=package.json -E '"@provablehq/(sdk|wasm)": *"' . \
+    | grep -v '/node_modules/' \
+    | grep -v '"\^<new version>"'
+```
+
+Anything it lists is either a file the glob missed or a spec it could not
+rewrite (a `workspace:` or pinned-exact range, for example). Fix those by
+hand and report them in the PR body — the sweep is part of the upgrade, not
+an optional tidy-up.
+
+Confirm the crate came along too, since it is the one a manual pass tends to
+leave behind:
+
+```bash
 grep -A1 '^\[package\]' wasm/Cargo.toml
 ```
 
@@ -209,4 +233,6 @@ The PR body MUST cover:
   `yarn test:sdk` all passed. In CI it is confirmation that `yarn build:all`
   is clean, plus a note that the `verify` job owns the suite — do not claim
   results you did not observe.
-- The npm version bumps applied.
+- The version bumps applied: the new version, the crate version alongside
+  it, and confirmation that the `@provablehq/*` dependency sweep came back
+  clean. Name any file that needed a hand fix.
