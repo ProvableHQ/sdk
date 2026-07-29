@@ -145,6 +145,19 @@ function clonePreparedProgramBuilder(
     return builder.clone();
 }
 
+function programImportsFromBuilder(
+    builder: ProgramImportsBuilder,
+    entryProgramName: string,
+): ProgramImports {
+    const imports: ProgramImports = {};
+    for (const name of Array.from(builder.programNames())) {
+        if (name === entryProgramName) continue;
+        const source = builder.getProgram(name);
+        if (source) imports[name] = source;
+    }
+    return imports;
+}
+
 /**
  * A reusable program context created by {@link ProgramManager.prepareProgram}.
  *
@@ -2090,6 +2103,17 @@ class ProgramManager {
             }
         }
 
+        // A private-fee estimate runs before the prepared builder is passed to
+        // Rust, so materialize its complete import set for the estimate now.
+        if (preparedProgram) {
+            const preparedBuilder = clonePreparedProgramBuilder(preparedProgram);
+            try {
+                imports = programImportsFromBuilder(preparedBuilder, programName);
+            } finally {
+                preparedBuilder.free();
+            }
+        }
+
         // Get the fee record from the account if it is not provided in the parameters
         try {
             if (privateFee && !useFeeMaster && !options.executionRequest) {
@@ -2134,13 +2158,7 @@ class ProgramManager {
         // serializing key bytes (toObject would serialize all proving/
         // verifying keys, which can be tens of MB).
         if (hasPreparedProcess || hasImports) {
-            const merged: ProgramImports = {};
-            for (const name of Array.from(builder.programNames())) {
-                if (name === programName) continue;
-                const src = builder.getProgram(name);
-                if (src) merged[name] = src;
-            }
-            imports = merged;
+            imports = programImportsFromBuilder(builder, programName);
         }
 
         if (options.executionRequest instanceof ExecutionRequest) {
