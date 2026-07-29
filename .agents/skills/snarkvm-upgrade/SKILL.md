@@ -202,11 +202,21 @@ hand and report them in the PR body — the sweep is part of the upgrade, not
 an optional tidy-up.
 
 Confirm the crate came along too, since it is the one a manual pass tends to
-leave behind:
+leave behind. Assert it rather than eyeballing it — the crate version must
+equal the `wasm` npm version:
 
 ```bash
-grep -A1 '^\[package\]' wasm/Cargo.toml
+CRATE=$(awk '/^\[package\]/{p=1} p&&/^version *=/{if (match($0, /"[^"]+"/)) print substr($0, RSTART+1, RLENGTH-2); exit}' wasm/Cargo.toml)
+NPM=$(node -p "require('./wasm/package.json').version")
+[ "$CRATE" = "$NPM" ] \
+    && echo "OK: crate and npm agree at $CRATE" \
+    || echo "MISMATCH: crate $CRATE vs npm $NPM"
 ```
+
+Reading the version out of the `[package]` block by key rather than by line
+offset matters: `version` is not adjacent to the `[package]` header, and any
+check that assumes a fixed number of lines silently stops working the moment
+the block is reordered.
 
 ## Step 8: Commit and open the PR
 
