@@ -116,6 +116,13 @@ yarn build:all
 yarn test:sdk
 ```
 
+Both test commands need `PUZZLE_PK` (and `PUZZLE_VK` for the record scanner
+tests) in the environment — several non-skipped wasm and SDK tests decrypt
+fixtures with that key and fail outright when it is unset. CI supplies them
+from repository secrets; locally, export them before running. A failure that
+traces back to a missing key is an environment problem, not a migration
+problem — never edit a test to route around it.
+
 ## Step 7: Bump npm package versions
 
 For each published package, set the version to one patch above what npm

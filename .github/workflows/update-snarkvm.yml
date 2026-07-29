@@ -108,6 +108,18 @@ jobs:
 
       - name: Run the snarkvm-upgrade skill
         uses: anthropics/claude-code-action@be7b93b1907a4abad570368f3c74b6fe3807510b # v1
+        # The same secrets sdk.yml exports to its test-wasm and test-sdk jobs.
+        # Without them `yarn test:wasm` and `yarn test:sdk` cannot pass — a
+        # handful of non-skipped tests read PUZZLE_PK — so verification could
+        # never go green and the automation could never produce a PR. Scoped
+        # to this step rather than the job so the patch-packaging and upload
+        # steps run without them.
+        env:
+          PUZZLE_PK: ${{ secrets.PUZZLE_PK }}
+          PUZZLE_VK: ${{ secrets.PUZZLE_VK }}
+          RECORD_SCANNER_URL: ${{ secrets.RECORD_SCANNER_URL }}
+          KONG_API_KEY: ${{ secrets.ALEO_DPS_API_KEY }}
+          CONSUMER_ID: ${{ secrets.ALEO_CONSUMER_ID }}
         with:
           anthropic_api_key: ${{ secrets.ANTHROPIC_API_KEY }}
           github_token: ${{ secrets.GITHUB_TOKEN }}

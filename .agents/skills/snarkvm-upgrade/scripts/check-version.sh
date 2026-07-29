@@ -55,16 +55,20 @@ case "$PIN_STYLE" in
     version) CURRENT="v$PIN_VALUE" ;;
     tag) CURRENT="$PIN_VALUE" ;;
     rev)
-        # Map the rev to a tag, matching both lightweight tags and the peeled
-        # (^{}) entries of annotated tags. Empty if the rev is untagged.
+        # Map the rev to a release tag, matching both lightweight tags and the
+        # peeled (^{}) entries of annotated tags. One commit can carry several
+        # tags — an earlier release, a testnet pre-release — so keep only
+        # vX.Y.Z names and take the highest rather than whichever ls-remote
+        # happens to list first; otherwise a co-located non-release tag makes
+        # an already-current pin look stale. Empty when the rev carries no
+        # release tag, which correctly reads as "needs an upgrade".
         CURRENT=$(echo "$TAG_LIST" | awk -v rev="$PIN_VALUE" '
             index($1, rev) == 1 {
                 t = $2
                 sub(/^refs\/tags\//, "", t)
                 sub(/\^\{\}$/, "", t)
-                print t
-                exit
-            }')
+                if (t ~ /^v[0-9]+\.[0-9]+\.[0-9]+$/) print t
+            }' | sort -V | tail -1)
         ;;
 esac
 
