@@ -27,7 +27,9 @@ bash .agents/skills/snarkvm-upgrade/scripts/check-version.sh wasm/Cargo.toml
 ```
 
 The script prints `PIN_STYLE`, `CURRENT`, `LATEST`, `UPDATE_NEEDED`, and
-`CRATES_PUBLISHED`.
+`CRATES_PUBLISHED` (`true` only when EVERY `snarkvm-*` crate in the
+Cargo.toml has `LATEST` on crates.io — a half-published release reports
+`false`).
 
 **If `UPDATE_NEEDED=false`, report that the SDK is already on the latest
 snarkVM release tag and STOP.** Nothing below runs.
@@ -73,12 +75,16 @@ git checkout mainnet && git pull
 git checkout -b "update-snarkvm-<LATEST>"
 ```
 
+(In CI the workflow's checkout step already provides an up-to-date
+`mainnet`; skip the `git pull` there — the clone is shallow.)
+
 ## Step 4: Update wasm/Cargo.toml
 
 Rewrite every `[dependencies.snarkvm-*]` block (there are 10), preserving
 each block's `features` and `default-features` keys exactly:
 
-- **If `CRATES_PUBLISHED=true`:** delete the `git` and `rev`/`tag` keys and
+- **If `CRATES_PUBLISHED=true`** (the script has already confirmed every
+  `snarkvm-*` crate individually): delete the `git` and `rev`/`tag` keys and
   set `version = "<LATEST without the v prefix>"`.
 - **If `CRATES_PUBLISHED=false`:** keep
   `git = "https://github.com/ProvableHQ/snarkVM.git"`, delete `rev`, and set
@@ -131,6 +137,12 @@ Then update cross-references to match:
   `"@provablehq/sdk": "^<new sdk version>"`
 
 ## Step 8: Commit and open the PR
+
+**In CI (`GITHUB_ACTIONS=true`) the job's GitHub token is read-only.** Make
+the local commit on the `update-snarkvm-<LATEST>` branch, write the PR body
+(the required contents below) to `/tmp/pr-body.md`, and stop — do NOT push
+and do NOT run `gh pr create`; the workflow's follow-up job publishes the
+committed patch. Locally, run the full sequence:
 
 ```bash
 git add -A

@@ -7,78 +7,185 @@ on:
     - cron: '0 15 * * *'
   workflow_dispatch:
 
-permissions:
-  contents: write
-  pull-requests: write
+# Split-job security model: the `upgrade` job executes untrusted inputs (the
+# new snarkVM's build scripts, upstream release text fed to Claude) and
+# therefore runs with a read-only token; only the `open-pr` job — which
+# executes nothing from the patch — holds write permissions. Third-party
+# actions are pinned to full commit SHAs so a moved tag cannot inject code.
+permissions: {}
 
 concurrency:
   group: update-snarkvm
   cancel-in-progress: false
 
 jobs:
-  update-snarkvm:
-    name: Upgrade snarkVM to latest release tag
-    runs-on: ubuntu-latest-m
-    timeout-minutes: 120
+  check:
+    name: Check for a new snarkVM release tag
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pull-requests: read
+    outputs:
+      current: ${{ steps.preflight.outputs.CURRENT }}
+      latest: ${{ steps.preflight.outputs.LATEST }}
+      update_needed: ${{ steps.preflight.outputs.UPDATE_NEEDED }}
+      pr_exists: ${{ steps.preflight.outputs.PR_EXISTS }}
+      crates_published: ${{ steps.preflight.outputs.CRATES_PUBLISHED }}
     steps:
       - name: Checkout mainnet
-        uses: actions/checkout@v5
+        uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
         with:
           ref: mainnet
 
-      # Deterministic pre-flight: resolve versions and skip the (expensive)
-      # Claude run entirely when there is nothing to do.
+      # Deterministic pre-flight: resolve versions so the (expensive) Claude
+      # job is skipped entirely when there is nothing to do.
       - name: Check snarkVM versions
         id: preflight
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
+          set -o pipefail
           bash .agents/skills/snarkvm-upgrade/scripts/check-version.sh wasm/Cargo.toml | tee -a "$GITHUB_OUTPUT"
 
           # Also skip if an upgrade PR for the target tag is already open.
+          # Scoped to the exact tag on purpose: a stale open PR for an older
+          # tag should not block a newer upgrade.
           LATEST=$(grep '^LATEST=' "$GITHUB_OUTPUT" | tail -1 | cut -d= -f2)
-          if gh pr list --state open --json headRefName \
-              --jq '.[].headRefName' | grep -qx "update-snarkvm-${LATEST}"; then
+          OPEN_BRANCHES=$(gh pr list --state open --json headRefName --jq '.[].headRefName')
+          if grep -Fqx "update-snarkvm-${LATEST}" <<< "$OPEN_BRANCHES"; then
             echo "PR_EXISTS=true" >> "$GITHUB_OUTPUT"
           else
             echo "PR_EXISTS=false" >> "$GITHUB_OUTPUT"
           fi
 
+      - name: Summary
+        if: always()
+        env:
+          CURRENT: ${{ steps.preflight.outputs.CURRENT }}
+          LATEST: ${{ steps.preflight.outputs.LATEST }}
+          UPDATE_NEEDED: ${{ steps.preflight.outputs.UPDATE_NEEDED }}
+          PR_EXISTS: ${{ steps.preflight.outputs.PR_EXISTS }}
+          CRATES_PUBLISHED: ${{ steps.preflight.outputs.CRATES_PUBLISHED }}
+        run: |
+          {
+            echo "## snarkVM upgrade check"
+            echo "- Current: ${CURRENT}"
+            echo "- Latest tag: ${LATEST}"
+            echo "- Update needed: ${UPDATE_NEEDED}"
+            echo "- Upgrade PR already open: ${PR_EXISTS}"
+            echo "- crates.io published: ${CRATES_PUBLISHED}"
+          } >> "$GITHUB_STEP_SUMMARY"
+
+  upgrade:
+    name: Upgrade snarkVM to ${{ needs.check.outputs.latest }}
+    needs: check
+    if: needs.check.outputs.update_needed == 'true' && needs.check.outputs.pr_exists == 'false'
+    runs-on: ubuntu-latest-m
+    timeout-minutes: 120
+    # Read-only on purpose: this job runs the new snarkVM's build scripts and
+    # feeds upstream release text to Claude, so it must not hold a token that
+    # can write to the repo. The upgrade leaves CI as a patch artifact.
+    permissions:
+      contents: read
+    steps:
+      - name: Checkout mainnet
+        uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
+        with:
+          ref: mainnet
+
       - name: Set up yarn
-        if: steps.preflight.outputs.UPDATE_NEEDED == 'true' && steps.preflight.outputs.PR_EXISTS == 'false'
         uses: ./.github/actions/setup-yarn
 
       - name: Set up rust
-        if: steps.preflight.outputs.UPDATE_NEEDED == 'true' && steps.preflight.outputs.PR_EXISTS == 'false'
         uses: ./.github/actions/setup-rust
 
       - name: Configure git identity
-        if: steps.preflight.outputs.UPDATE_NEEDED == 'true' && steps.preflight.outputs.PR_EXISTS == 'false'
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
 
       - name: Run the snarkvm-upgrade skill
-        if: steps.preflight.outputs.UPDATE_NEEDED == 'true' && steps.preflight.outputs.PR_EXISTS == 'false'
-        uses: anthropics/claude-code-action@v1
+        uses: anthropics/claude-code-action@be7b93b1907a4abad570368f3c74b6fe3807510b # v1
         with:
           anthropic_api_key: ${{ secrets.ANTHROPIC_API_KEY }}
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          prompt: /snarkvm-upgrade
+          # Entries with spaces MUST stay quoted: the action shell-tokenizes
+          # claude_args, so an unquoted Bash(yarn *) splits into two broken
+          # rules and the allowlist silently stops matching anything. No curl
+          # here — the check script covers the one crates.io lookup, and a
+          # generic curl would be a prompt-injection exfiltration channel.
+          claude_args: >-
+            --allowedTools
+            "Bash(bash .agents/skills/snarkvm-upgrade/scripts/check-version.sh*)"
+            "Bash(yarn *)" "Bash(cargo *)" "Bash(npm view:*)" "Bash(git *)"
+            "Bash(gh *)" "Bash(head *)" "Bash(tail *)" "Bash(sort *)"
+            "Bash(grep *)" "Bash(sed *)" "Bash(awk *)" "Bash(cat *)"
+            "Bash(ls *)" Read Write Edit Glob Grep
+
+      # Fails the job — and therefore the run — when Claude stopped without
+      # delivering (e.g. tests could not be made green).
+      - name: Package the upgrade as a patch artifact
+        env:
+          LATEST: ${{ needs.check.outputs.latest }}
+        run: |
+          git format-patch "mainnet..update-snarkvm-${LATEST}" --stdout > upgrade.patch
+          test -s upgrade.patch
+          cp /tmp/pr-body.md pr-body.md
+          test -s pr-body.md
+
+      - name: Upload the patch artifact
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: snarkvm-upgrade
+          path: |
+            upgrade.patch
+            pr-body.md
+          retention-days: 7
+          if-no-files-found: error
+
+  open-pr:
+    name: Open the upgrade PR
+    needs: [check, upgrade]
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      pull-requests: write
+    env:
+      LATEST: ${{ needs.check.outputs.latest }}
+    steps:
+      - name: Checkout mainnet
+        uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
+        with:
+          ref: mainnet
+
+      - name: Download the patch artifact
+        uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4
+        with:
+          name: snarkvm-upgrade
+
+      - name: Apply and validate the patch
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git checkout -b "update-snarkvm-${LATEST}"
+          git am upgrade.patch
+
+          # The read-only job's output must not modify the automation that
+          # publishes it — refuse patches touching CI or agent config.
+          if git diff --name-only "mainnet..HEAD" | grep -E '^(\.github/|\.agents/|\.claude/)'; then
+            echo "::error::Patch modifies workflow or agent configuration — refusing to publish."
+            exit 1
+          fi
+
+      - name: Push and open the PR
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          git push -u origin "update-snarkvm-${LATEST}"
           # PRs opened with the default GITHUB_TOKEN do not trigger CI
           # workflows (GitHub restriction). Swap in a PAT or GitHub App token
           # if the upgrade PRs should run the SDK CI automatically.
-          github_token: ${{ secrets.GITHUB_TOKEN }}
-          prompt: /snarkvm-upgrade
-          claude_args: |
-            --allowedTools Bash(bash .agents/skills/snarkvm-upgrade/scripts/check-version.sh*) Bash(yarn *) Bash(cargo *) Bash(npm view:*) Bash(git *) Bash(gh *) Bash(curl *) Read Write Edit Glob Grep
-
-      - name: Summary
-        if: always()
-        run: |
-          {
-            echo "## snarkVM upgrade check"
-            echo "- Current: ${{ steps.preflight.outputs.CURRENT }}"
-            echo "- Latest tag: ${{ steps.preflight.outputs.LATEST }}"
-            echo "- Update needed: ${{ steps.preflight.outputs.UPDATE_NEEDED }}"
-            echo "- Upgrade PR already open: ${{ steps.preflight.outputs.PR_EXISTS }}"
-            echo "- crates.io published: ${{ steps.preflight.outputs.CRATES_PUBLISHED }}"
-          } >> "$GITHUB_STEP_SUMMARY"
+          gh pr create --base mainnet \
+            --title "Update snarkVM to ${LATEST}" \
+            --body-file pr-body.md

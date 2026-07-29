@@ -8,19 +8,30 @@
 #   CURRENT=vX.Y.Z              Current version (empty if rev matches no tag)
 #   LATEST=vX.Y.Z               Latest non-testnet release tag upstream
 #   UPDATE_NEEDED=true|false
-#   CRATES_PUBLISHED=true|false Whether LATEST is published on crates.io
-#                               (only checked when UPDATE_NEEDED=true)
+#   CRATES_PUBLISHED=true|false Whether EVERY snarkvm-* crate in the Cargo.toml
+#                               has LATEST published on crates.io (only checked
+#                               when UPDATE_NEEDED=true)
 set -euo pipefail
 
 CARGO_TOML="${1:-wasm/Cargo.toml}"
 SNARKVM_REPO="https://github.com/ProvableHQ/snarkVM.git"
 
-# First version/rev/tag key inside any [dependencies.snarkvm-*] block. All
-# snarkvm-* deps are pinned identically, so one representative is enough.
+# Pin keys from the first [dependencies.snarkvm-*] block, preferring
+# rev > tag > version when several coexist (all snarkvm-* deps are pinned
+# identically, so one block is representative). Inline comments are stripped.
 PIN_INFO=$(awk '
     /^\[dependencies\.snarkvm-/ { in_block = 1; next }
-    /^\[/ { in_block = 0 }
-    in_block && /^(version|rev|tag)[ =]/ { gsub(/[" ]/, ""); print; exit }
+    /^\[/ { if (found) exit; in_block = 0 }
+    in_block && /^(version|rev|tag)[ =]/ {
+        sub(/#.*$/, ""); gsub(/[" ]/, "")
+        eq = index($0, "="); vals[substr($0, 1, eq - 1)] = substr($0, eq + 1)
+        found = 1
+    }
+    END {
+        if ("rev" in vals) print "rev=" vals["rev"]
+        else if ("tag" in vals) print "tag=" vals["tag"]
+        else if ("version" in vals) print "version=" vals["version"]
+    }
 ' "$CARGO_TOML")
 
 if [[ -z "$PIN_INFO" ]]; then
@@ -62,13 +73,21 @@ if [[ "$CURRENT" == "$LATEST" ]]; then
     CRATES_PUBLISHED=""
 else
     UPDATE_NEEDED=true
-    # crates.io requires a User-Agent; 404 means the version is unpublished.
-    if curl -sf -A "provablehq-sdk-snarkvm-update" \
-        "https://crates.io/api/v1/crates/snarkvm-wasm/${LATEST#v}" > /dev/null; then
-        CRATES_PUBLISHED=true
-    else
-        CRATES_PUBLISHED=false
-    fi
+    # Every snarkvm-* crate named in the Cargo.toml must have LATEST on
+    # crates.io — a half-published upstream release must fall back to the git
+    # tag pin. crates.io requires a User-Agent; 404 means unpublished.
+    # "[dependencies.snarkvm-wasm]" splits on "." and "]" into
+    # "[dependencies" / "snarkvm-wasm" / "".
+    CRATES=$(awk -F'[].]' '/^\[dependencies\.snarkvm-/ { print $2 }' "$CARGO_TOML")
+    CRATES_PUBLISHED=true
+    while read -r crate; do
+        [[ -z "$crate" ]] && continue
+        if ! curl -sf -A "provablehq-sdk-snarkvm-update" \
+            "https://crates.io/api/v1/crates/${crate}/${LATEST#v}" > /dev/null; then
+            CRATES_PUBLISHED=false
+            break
+        fi
+    done <<< "$CRATES"
 fi
 
 echo "PIN_STYLE=$PIN_STYLE"
