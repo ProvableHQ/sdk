@@ -13,7 +13,8 @@ package versions, and opens a PR against `mainnet` for human review.
 Hard rules:
 
 - Never open a PR with failing tests. If a migration cannot be made green,
-  stop and report the blocking failure instead.
+  stop and report the blocking failure instead. In CI you do not run the
+  suite yourself (see Step 6) — never state or imply that it passed.
 - Read `.agents/voice.md` before editing any code. Every comment, JSDoc
   block, Rust `///` doc comment, and prose change MUST follow it.
 - No Co-Authored-By or other attribution lines in commits.
@@ -115,7 +116,8 @@ Read `.agents/voice.md` now, before editing.
 
 ## Step 6: Verify
 
-Run in this order, fixing failures and repeating until all three pass:
+Locally, run all three in this order, fixing failures and repeating until
+they pass:
 
 ```bash
 yarn test:wasm
@@ -124,11 +126,23 @@ yarn test:sdk
 ```
 
 Both test commands need `PUZZLE_PK` (and `PUZZLE_VK` for the record scanner
-tests) in the environment — several non-skipped wasm and SDK tests decrypt
-fixtures with that key and fail outright when it is unset. CI supplies them
-from repository secrets; locally, export them before running. A failure that
-traces back to a missing key is an environment problem, not a migration
-problem — never edit a test to route around it.
+tests) exported — several non-skipped wasm and SDK tests decrypt fixtures
+with that key and fail outright when it is unset. A failure that traces back
+to a missing key is an environment problem, not a migration problem — never
+edit a test to route around it.
+
+**In CI (`GITHUB_ACTIONS=true`), run `yarn build:all` only, and get it
+clean.** Do not run `yarn test:wasm` or `yarn test:sdk` there: the job holds
+no test credentials on purpose, because upstream release text reaches this
+step and anything in its environment is reachable by an injected instruction.
+A separate `verify` job re-runs the full suite against your finished patch
+with the credentials, and the run fails if it is not green.
+
+So in CI a clean `yarn build:all` is necessary but not sufficient. It catches
+the API breakage that is the bulk of a snarkVM migration; it cannot catch a
+behavioral change. If a migration is subtle enough that you would want to
+watch a test to confirm it, say so in the PR body rather than asserting the
+suite passed — you have not run it.
 
 ## Step 7: Bump package versions
 
@@ -190,6 +204,9 @@ The PR body MUST cover:
 - Old and new snarkVM versions, and the pin style chosen (crates.io
   `version` vs git `tag`) with the `CRATES_PUBLISHED` result.
 - A summary of the upstream changeset and every migration applied.
-- Test results: confirmation that `yarn test:wasm`, `yarn build:all`, and
-  `yarn test:sdk` all passed.
+- Test results, stated as exactly what you ran and nothing more. Locally
+  that is confirmation that `yarn test:wasm`, `yarn build:all` and
+  `yarn test:sdk` all passed. In CI it is confirmation that `yarn build:all`
+  is clean, plus a note that the `verify` job owns the suite — do not claim
+  results you did not observe.
 - The npm version bumps applied.

@@ -7,11 +7,26 @@ on:
     - cron: '0 15 * * *'
   workflow_dispatch:
 
-# Split-job security model: the `upgrade` job executes untrusted inputs (the
-# new snarkVM's build scripts, upstream release text fed to Claude) and
-# therefore runs with a read-only token; only the `open-pr` job — which
-# executes nothing from the patch — holds write permissions. Third-party
-# actions are pinned to full commit SHAs so a moved tag cannot inject code.
+# Split-job security model, three separations that each hold on their own:
+#
+#   check    resolves versions. No secrets, nothing untrusted.
+#   upgrade  runs Claude over upstream release text and builds the new
+#            snarkVM, so it is the job that executes untrusted input. It gets
+#            a read-only token and NO test credentials.
+#   verify   is the only job holding test credentials. It runs the suite
+#            against the finished patch with no Claude in the loop, so
+#            injected instructions cannot reach the credentials, and it has
+#            no write token either.
+#   open-pr  executes nothing from the patch and is the only job that can
+#            write to the repo.
+#
+# Consequence worth stating plainly: `verify` still compiles the new snarkVM
+# while holding credentials, so a malicious upstream build script remains a
+# path to them. Closing that needs a dedicated revocable test key, not a
+# different job layout.
+#
+# Third-party actions are pinned to full commit SHAs so a moved tag cannot
+# inject code.
 permissions: {}
 
 concurrency:
@@ -106,20 +121,12 @@ jobs:
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
 
+      # No test credentials here by design. Upstream release text reaches
+      # Claude in this step, so anything in its environment is reachable by an
+      # injected instruction. The skill therefore only builds in CI; the
+      # `verify` job below owns the test suite and is authoritative.
       - name: Run the snarkvm-upgrade skill
         uses: anthropics/claude-code-action@be7b93b1907a4abad570368f3c74b6fe3807510b # v1
-        # The same secrets sdk.yml exports to its test-wasm and test-sdk jobs.
-        # Without them `yarn test:wasm` and `yarn test:sdk` cannot pass — a
-        # handful of non-skipped tests read PUZZLE_PK — so verification could
-        # never go green and the automation could never produce a PR. Scoped
-        # to this step rather than the job so the patch-packaging and upload
-        # steps run without them.
-        env:
-          PUZZLE_PK: ${{ secrets.PUZZLE_PK }}
-          PUZZLE_VK: ${{ secrets.PUZZLE_VK }}
-          RECORD_SCANNER_URL: ${{ secrets.RECORD_SCANNER_URL }}
-          KONG_API_KEY: ${{ secrets.ALEO_DPS_API_KEY }}
-          CONSUMER_ID: ${{ secrets.ALEO_CONSUMER_ID }}
         with:
           anthropic_api_key: ${{ secrets.ANTHROPIC_API_KEY }}
           github_token: ${{ secrets.GITHUB_TOKEN }}
@@ -138,7 +145,8 @@ jobs:
             "Bash(ls *)" Read Write Edit Glob Grep
 
       # Fails the job — and therefore the run — when Claude stopped without
-      # delivering (e.g. tests could not be made green).
+      # delivering a committed branch and a PR body. This only proves that
+      # something was produced; `verify` decides whether it works.
       - name: Package the upgrade as a patch artifact
         env:
           LATEST: ${{ needs.check.outputs.latest }}
@@ -147,39 +155,6 @@ jobs:
           test -s upgrade.patch
           cp /tmp/pr-body.md pr-body.md
           test -s pr-body.md
-
-      # Upstream release text reaches Claude, and Claude can commit files and
-      # write the PR body, so an injected instruction could carry a secret out
-      # through the publish path without ever touching the network. The
-      # allowlist cannot prevent that and open-pr's filter only checks paths,
-      # not content. Scan for the literal values here, in the one job that
-      # already holds them, and fail before anything is uploaded.
-      #
-      # RECORD_SCANNER_URL is deliberately not scanned: it is a plain endpoint
-      # that already appears verbatim in the create-leo-app templates, so it
-      # would match legitimate diffs. Values are only ever named, never echoed.
-      - name: Refuse a patch carrying secret material
-        env:
-          PUZZLE_PK: ${{ secrets.PUZZLE_PK }}
-          PUZZLE_VK: ${{ secrets.PUZZLE_VK }}
-          KONG_API_KEY: ${{ secrets.ALEO_DPS_API_KEY }}
-          CONSUMER_ID: ${{ secrets.ALEO_CONSUMER_ID }}
-        run: |
-          status=0
-          for name in PUZZLE_PK PUZZLE_VK KONG_API_KEY CONSUMER_ID; do
-            value="${!name}"
-            # A short or unset secret would make grep -F match everything and
-            # wedge the pipeline, so only scan values long enough to be real.
-            if [ "${#value}" -lt 12 ]; then
-              echo "::warning::${name} is unset or too short to scan."
-              continue
-            fi
-            if grep -qF -- "$value" upgrade.patch pr-body.md; then
-              echo "::error::Patch or PR body contains the value of ${name} — refusing to publish."
-              status=1
-            fi
-          done
-          exit $status
 
       - name: Upload the patch artifact
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
@@ -191,9 +166,101 @@ jobs:
           retention-days: 7
           if-no-files-found: error
 
+  # The gate that makes "never open a PR with failing tests" enforceable
+  # instead of merely instructed. Claude does not run the suite in CI and does
+  # not hold the credentials for it; this job does, with no Claude in the loop.
+  verify:
+    name: Verify the upgrade against the test suite
+    needs: [check, upgrade]
+    runs-on: ubuntu-latest-m
+    timeout-minutes: 120
+    permissions:
+      contents: read
+    env:
+      LATEST: ${{ needs.check.outputs.latest }}
+      PUZZLE_PK: ${{ secrets.PUZZLE_PK }}
+      PUZZLE_VK: ${{ secrets.PUZZLE_VK }}
+      RECORD_SCANNER_URL: ${{ secrets.RECORD_SCANNER_URL }}
+      KONG_API_KEY: ${{ secrets.ALEO_DPS_API_KEY }}
+      CONSUMER_ID: ${{ secrets.ALEO_CONSUMER_ID }}
+    steps:
+      - name: Checkout mainnet
+        uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
+        with:
+          ref: mainnet
+
+      - name: Download the patch artifact
+        uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4
+        with:
+          name: snarkvm-upgrade
+          path: /tmp/upgrade-artifact
+
+      # Runs before the patch is applied and before anything is compiled, so a
+      # patch carrying credentials is rejected while this job has still
+      # executed nothing from it. Claude can commit files and write the PR
+      # body, and open-pr's own refusal check filters paths rather than
+      # content, so this is the step that closes the publish path.
+      #
+      # RECORD_SCANNER_URL is deliberately not scanned: it is a plain endpoint
+      # that already appears verbatim in the create-leo-app templates, so it
+      # would match legitimate diffs. Values are only ever named, never echoed.
+      - name: Refuse a patch carrying secret material
+        run: |
+          status=0
+          for name in PUZZLE_PK PUZZLE_VK KONG_API_KEY CONSUMER_ID; do
+            value="${!name}"
+            # A short or unset secret would make grep -F match everything and
+            # wedge the pipeline, so only scan values long enough to be real.
+            if [ "${#value}" -lt 12 ]; then
+              echo "::warning::${name} is unset or too short to scan."
+              continue
+            fi
+            if grep -qF -- "$value" \
+                /tmp/upgrade-artifact/upgrade.patch \
+                /tmp/upgrade-artifact/pr-body.md; then
+              echo "::error::Patch or PR body contains the value of ${name} — refusing to publish."
+              status=1
+            fi
+          done
+          exit $status
+
+      - name: Apply and validate the patch
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git checkout -b "update-snarkvm-${LATEST}"
+          git am /tmp/upgrade-artifact/upgrade.patch
+
+          # Same refusal open-pr applies, enforced here as well and for a
+          # second reason: the setup-yarn and setup-rust composite actions
+          # below are read from this working tree, so a patch touching
+          # .github/ would get to run its own code in a job holding the test
+          # credentials. Nothing from the patch has executed yet at this point.
+          if git diff --name-only "mainnet..HEAD" | grep -E '^(\.github/|\.agents/|\.claude/)'; then
+            echo "::error::Patch modifies workflow or agent configuration — refusing to verify."
+            exit 1
+          fi
+
+      - name: Set up yarn
+        uses: ./.github/actions/setup-yarn
+
+      - name: Set up rust
+        uses: ./.github/actions/setup-rust
+
+      # Same order the skill documents, and the order the repo requires: wasm
+      # is built before the SDK bundles that depend on its output.
+      - name: yarn test:wasm
+        run: yarn test:wasm
+
+      - name: yarn build:all
+        run: yarn build:all
+
+      - name: yarn test:sdk
+        run: yarn test:sdk
+
   open-pr:
     name: Open the upgrade PR
-    needs: [check, upgrade]
+    needs: [check, upgrade, verify]
     runs-on: ubuntu-latest
     permissions:
       contents: write
