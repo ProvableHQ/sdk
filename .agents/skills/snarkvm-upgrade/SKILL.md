@@ -76,13 +76,24 @@ clean; minor jumps have required all of these at once):
 
 ## Step 3: Create the working branch
 
+Locally, start from an up-to-date `mainnet`:
+
 ```bash
 git checkout mainnet && git pull
 git checkout -b "update-snarkvm-<LATEST>"
 ```
 
-(In CI the workflow's checkout step already provides an up-to-date
-`mainnet`; skip the `git pull` there — the clone is shallow.)
+**In CI, branch from `HEAD` and do not name a base branch:**
+
+```bash
+git checkout -b "update-snarkvm-<LATEST>"
+```
+
+The workflow has already checked out the branch the run was dispatched
+against, which is `mainnet` for the scheduled runs and the branch under test
+when someone dispatches one manually. `git checkout mainnet` would fail or
+move you off that base, and the clone is shallow so `git pull` has nothing to
+do either.
 
 ## Step 4: Update wasm/Cargo.toml
 
