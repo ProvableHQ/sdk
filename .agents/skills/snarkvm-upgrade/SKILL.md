@@ -130,25 +130,45 @@ from repository secrets; locally, export them before running. A failure that
 traces back to a missing key is an environment problem, not a migration
 problem — never edit a test to route around it.
 
-## Step 7: Bump npm package versions
+## Step 7: Bump package versions
 
-For each published package, set the version to one patch above what npm
-currently serves (NOT one above the local version — they can differ):
+The three published packages move in lockstep, so read what npm currently
+serves (NOT the local version — they can differ) and confirm the three agree:
 
 ```bash
-npm view @provablehq/wasm version   # bump wasm/package.json to this +1 patch
-npm view @provablehq/sdk version    # bump sdk/package.json to this +1 patch
-npm view create-leo-app version     # bump create-leo-app/package.json to this +1 patch
+npm view @provablehq/wasm version
+npm view @provablehq/sdk version
+npm view create-leo-app version
 ```
 
 If any registry query fails, stop and report — a PR without the version
-bumps is incomplete.
+bumps is incomplete. If the three do NOT agree, stop and report as well:
+the single-argument script below cannot express divergent versions, and
+guessing which one leads is not this skill's call to make.
 
-Then update cross-references to match:
+Then apply one patch bump with the repo's own script, from the repo root:
 
-- `sdk/package.json`: dependency `"@provablehq/wasm": "^<new wasm version>"`
-- every `create-leo-app/template-*/package.json`:
-  `"@provablehq/sdk": "^<new sdk version>"`
+```bash
+yarn change-version <version>   # e.g. 0.11.5 -> 0.11.6
+```
+
+Do NOT hand-edit the versions. `scripts/change-version.js` covers three
+things that are easy to miss individually, and one of them is not a
+`package.json` at all:
+
+- the `version` field in `wasm/`, `sdk/` and `create-leo-app/package.json`
+- the `[package] version` of the `aleo-wasm` crate in `wasm/Cargo.toml`,
+  which must not drift behind the npm packages
+- every `@provablehq/wasm` and `@provablehq/sdk` cross-reference in every
+  `package.json` in the tree, including each `create-leo-app/template-*`
+
+Afterwards confirm the crate came along, since it is the one a manual pass
+tends to leave behind:
+
+```bash
+git diff --stat wasm/Cargo.toml wasm/package.json sdk/package.json
+grep -A1 '^\[package\]' wasm/Cargo.toml
+```
 
 ## Step 8: Commit and open the PR
 

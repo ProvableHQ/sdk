@@ -148,6 +148,39 @@ jobs:
           cp /tmp/pr-body.md pr-body.md
           test -s pr-body.md
 
+      # Upstream release text reaches Claude, and Claude can commit files and
+      # write the PR body, so an injected instruction could carry a secret out
+      # through the publish path without ever touching the network. The
+      # allowlist cannot prevent that and open-pr's filter only checks paths,
+      # not content. Scan for the literal values here, in the one job that
+      # already holds them, and fail before anything is uploaded.
+      #
+      # RECORD_SCANNER_URL is deliberately not scanned: it is a plain endpoint
+      # that already appears verbatim in the create-leo-app templates, so it
+      # would match legitimate diffs. Values are only ever named, never echoed.
+      - name: Refuse a patch carrying secret material
+        env:
+          PUZZLE_PK: ${{ secrets.PUZZLE_PK }}
+          PUZZLE_VK: ${{ secrets.PUZZLE_VK }}
+          KONG_API_KEY: ${{ secrets.ALEO_DPS_API_KEY }}
+          CONSUMER_ID: ${{ secrets.ALEO_CONSUMER_ID }}
+        run: |
+          status=0
+          for name in PUZZLE_PK PUZZLE_VK KONG_API_KEY CONSUMER_ID; do
+            value="${!name}"
+            # A short or unset secret would make grep -F match everything and
+            # wedge the pipeline, so only scan values long enough to be real.
+            if [ "${#value}" -lt 12 ]; then
+              echo "::warning::${name} is unset or too short to scan."
+              continue
+            fi
+            if grep -qF -- "$value" upgrade.patch pr-body.md; then
+              echo "::error::Patch or PR body contains the value of ${name} — refusing to publish."
+              status=1
+            fi
+          done
+          exit $status
+
       - name: Upload the patch artifact
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
         with:
