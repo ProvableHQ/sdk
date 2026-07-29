@@ -122,6 +122,16 @@ interface ExecuteOptions {
  * Preparing resolves the program source, edition, and transitive imports and
  * initializes the underlying snarkVM process. It does not require a private key
  * and does not create an authorization.
+ *
+ * @property programName Name of the program to prepare (e.g. "credits.aleo").
+ * @property functionName Function the prepared context is scoped to. Calls
+ *   using the context must target this function.
+ * @property programSource Optional program source. When omitted, the source
+ *   is fetched from the network, which requires the program to be deployed.
+ * @property programImports Optional import sources keyed by program name.
+ *   Missing transitive imports are fetched from the network.
+ * @property edition Optional program edition. Defaults to the edition
+ *   currently on-chain, resolved via a network call.
  */
 interface PrepareProgramOptions {
     programName: string;
@@ -483,8 +493,24 @@ class ProgramManager {
      * returned context through the `preparedProgram` option, then call `free()`
      * when it is no longer needed.
      *
-     * @param {PrepareProgramOptions} options Program and function to prepare.
-     * @returns {Promise<PreparedProgram>} A reusable, caller-owned context.
+     * @param options Program and function to prepare.
+     * @returns A reusable, caller-owned context.
+     *
+     * @example
+     * const prepared = await programManager.prepareProgram({
+     *     programName: "hello_hello.aleo",
+     *     functionName: "hello",
+     * });
+     * try {
+     *     const authorization = await programManager.buildAuthorization({
+     *         programName: "hello_hello.aleo",
+     *         functionName: "hello",
+     *         inputs: ["5u32", "5u32"],
+     *         preparedProgram: prepared,
+     *     });
+     * } finally {
+     *     prepared.free();
+     * }
      */
     async prepareProgram(
         options: PrepareProgramOptions,
@@ -2103,15 +2129,29 @@ class ProgramManager {
             }
         }
 
-        // A private-fee estimate runs before the prepared builder is passed to
-        // Rust, so materialize its complete import set for the estimate now.
-        if (preparedProgram) {
-            const preparedBuilder = clonePreparedProgramBuilder(preparedProgram);
-            try {
-                imports = programImportsFromBuilder(preparedBuilder, programName);
-            } finally {
-                preparedBuilder.free();
-            }
+        // Build ProgramImportsBuilder for import resolution (no key loading —
+        // proving requests don't synthesize keys).
+        const builder = preparedProgram
+            ? clonePreparedProgramBuilder(preparedProgram)
+            : (await this.buildProgramImports(program, imports, false, functionName)).builder;
+        const hasPreparedProcess = preparedProgram !== undefined;
+        const hasImports = !builder.isEmpty();
+
+        // Normalize imports once to the full merged set from the builder so
+        // both the private-fee estimate below and the Rust-side fee estimator
+        // (estimate_fee_for_authorization uses the legacy imports Object to
+        // avoid a RefCell double-borrow — see proving_request.rs) see all
+        // transitive imports, not just the caller's partial set. Use
+        // programNames + getProgram to avoid serializing key bytes (toObject
+        // would serialize all proving/verifying keys, which can be tens of
+        // MB). The prepared executionRequest path skips the copy: it passes
+        // the process builder directly and never estimates fees, so the
+        // imports Object goes unused there.
+        const importsObjectUnused =
+            hasPreparedProcess
+            && options.executionRequest instanceof ExecutionRequest;
+        if ((hasPreparedProcess || hasImports) && !importsObjectUnused) {
+            imports = programImportsFromBuilder(builder, programName);
         }
 
         // Get the fee record from the account if it is not provided in the parameters
@@ -2141,26 +2181,6 @@ class ProgramManager {
             );
         }
 
-        // Build ProgramImportsBuilder for import resolution (no key loading —
-        // proving requests don't synthesize keys).
-        // Note: imports is kept for the Rust-side fee estimation fallback
-        // (estimate_fee_for_authorization uses the legacy imports Object to avoid
-        // a RefCell double-borrow — see proving_request.rs).
-        const builder = preparedProgram
-            ? clonePreparedProgramBuilder(preparedProgram)
-            : (await this.buildProgramImports(program, imports, false, functionName)).builder;
-        const hasPreparedProcess = preparedProgram !== undefined;
-        const hasImports = !builder.isEmpty();
-
-        // Normalize imports to the full merged set from the builder so the
-        // Rust fee estimator sees all transitive imports, not just the
-        // caller's partial set. Use programNames + getProgram to avoid
-        // serializing key bytes (toObject would serialize all proving/
-        // verifying keys, which can be tens of MB).
-        if (hasPreparedProcess || hasImports) {
-            imports = programImportsFromBuilder(builder, programName);
-        }
-
         if (options.executionRequest instanceof ExecutionRequest) {
             return await WasmProgramManager.buildProvingRequestFromExecutionRequest(
                 options.executionRequest,
@@ -2168,7 +2188,9 @@ class ProgramManager {
                 unchecked,
                 broadcast,
                 edition,
-                imports, // kept for fee estimation in Rust
+                // The prepared process supersedes the legacy imports Object;
+                // without one, imports is kept for fee estimation in Rust.
+                hasPreparedProcess ? undefined : imports,
                 executionPrivateKey,
                 hasPreparedProcess ? builder : hasImports ? builder.clone() : undefined,
             );

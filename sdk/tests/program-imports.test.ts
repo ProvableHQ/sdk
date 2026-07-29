@@ -1524,6 +1524,61 @@ describe("ProgramImportsBuilder", () => {
             }
         });
 
+        it("should materialize prepared imports exactly once per proving request", async () => {
+            const keyProvider = createMockKeyProvider();
+            const pm = new ProgramManager("https://api.provable.com/v2", keyProvider);
+
+            sinon.stub(pm.networkClient, "getProgramImports").resolves({
+                "multiply_test.aleo": MULTIPLY_PROGRAM,
+            });
+            sinon.stub(pm.networkClient, "getProgramAmendmentCount").resolves({
+                program_id: "multiply_test.aleo",
+                edition: 1,
+                amendment_count: 0,
+            });
+
+            const preparedProgram = await pm.prepareProgram({
+                programName: "double_test.aleo",
+                functionName: "double_it",
+                programSource: DOUBLE_PROGRAM,
+                programImports: {
+                    "multiply_test.aleo": MULTIPLY_PROGRAM,
+                },
+                edition: 1,
+            });
+            sinon.stub(pm, "estimateExecutionFee").resolves(1n);
+            sinon.stub(pm, "getCreditsRecord").resolves({} as any);
+            sinon.stub(ProgramManagerBase, "buildProvingRequest").resolves({} as any);
+
+            // Copying import sources out of WASM dominates the prepared-path
+            // overhead in provingRequest. programImportsFromBuilder walks
+            // programNames once per materialization, so one call proves the
+            // import set crossed the WASM boundary exactly once.
+            const programNamesSpy = sinon.spy(
+                ProgramImportsBuilder.prototype,
+                "programNames",
+            );
+            try {
+                await pm.provingRequest({
+                    programName: "double_test.aleo",
+                    functionName: "double_it",
+                    inputs: ["5u32"],
+                    priorityFee: 0,
+                    privateFee: true,
+                    privateKey: new PrivateKey(),
+                    broadcast: false,
+                    unchecked: true,
+                    useFeeMaster: false,
+                    preparedProgram,
+                });
+
+                expect(programNamesSpy.callCount).to.equal(1);
+            } finally {
+                programNamesSpy.restore();
+                preparedProgram.free();
+            }
+        });
+
         it("should reject preparing a function that does not exist", async () => {
             const keyProvider = createMockKeyProvider();
             const pm = new ProgramManager("https://api.provable.com/v2", keyProvider);
