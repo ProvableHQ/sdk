@@ -116,6 +116,96 @@ interface ExecuteOptions {
 }
 
 /**
+ * Options for preparing a program for later authorization or proving-request
+ * generation.
+ *
+ * Preparing resolves the program source, edition, and transitive imports and
+ * initializes the underlying snarkVM process. It does not require a private key
+ * and does not create an authorization.
+ *
+ * @property programName Name of the program to prepare (e.g. "credits.aleo").
+ * @property functionName Function the prepared context is scoped to. Calls
+ *   using the context must target this function.
+ * @property programSource Optional program source. When omitted, the source
+ *   is fetched from the network, which requires the program to be deployed.
+ * @property programImports Optional import sources keyed by program name.
+ *   Missing transitive imports are fetched from the network.
+ * @property edition Optional program edition. Defaults to the edition
+ *   currently on-chain, resolved via a network call.
+ */
+interface PrepareProgramOptions {
+    programName: string;
+    functionName: string;
+    programSource?: string | Program;
+    programImports?: ProgramImports;
+    edition?: number;
+}
+
+const preparedProgramBuilders = new WeakMap<object, ProgramImportsBuilder>();
+
+function clonePreparedProgramBuilder(
+    preparedProgram: PreparedProgram,
+): ProgramImportsBuilder {
+    const builder = preparedProgramBuilders.get(preparedProgram);
+    if (!builder) {
+        throw new Error("Prepared program has already been freed");
+    }
+    // The WASM clone is a cheap shared Rc handle, not a deep copy. Mutations
+    // made while authorizing intentionally remain cached in the prepared context.
+    return builder.clone();
+}
+
+function programImportsFromBuilder(
+    builder: ProgramImportsBuilder,
+    entryProgramName: string,
+): ProgramImports {
+    const imports: ProgramImports = {};
+    for (const name of Array.from(builder.programNames())) {
+        if (name === entryProgramName) continue;
+        const source = builder.getProgram(name);
+        if (source) imports[name] = source;
+    }
+    return imports;
+}
+
+/**
+ * A reusable program context created by {@link ProgramManager.prepareProgram}.
+ *
+ * The context is scoped to one program function. Calls using it must be
+ * sequential. The caller owns the context and should call {@link free} when it
+ * is no longer needed.
+ */
+class PreparedProgram {
+    readonly programName: string;
+    readonly functionName: string;
+    readonly programSource: string;
+    readonly edition: number;
+
+    /**
+     * Instances are normally created through {@link ProgramManager.prepareProgram}.
+     */
+    constructor(
+        programName: string,
+        functionName: string,
+        programSource: string,
+        edition: number,
+    ) {
+        this.programName = programName;
+        this.functionName = functionName;
+        this.programSource = programSource;
+        this.edition = edition;
+    }
+
+    /**
+     * Release the prepared snarkVM process. This method is idempotent.
+     */
+    free(): void {
+        preparedProgramBuilders.get(this)?.free();
+        preparedProgramBuilders.delete(this);
+    }
+}
+
+/**
  * Options for building an Authorization for a function.
  *
  * @property {string} programName Name of the program containing the function to build the authorization for.
@@ -125,6 +215,7 @@ interface ExecuteOptions {
  * @property {PrivateKey} [privateKey] Optional private key to use to build the authorization.
  * @property {ProgramImports} [programImports] The other programs the program imports.
  * @property {edition} [edition]
+ * @property {PreparedProgram} [preparedProgram] A reusable context returned by ProgramManager.prepareProgram.
  */
 interface AuthorizationOptions {
     programName: string;
@@ -134,6 +225,7 @@ interface AuthorizationOptions {
     privateKey?: PrivateKey;
     programImports?: ProgramImports;
     edition?: number;
+    preparedProgram?: PreparedProgram;
 }
 
 /**
@@ -198,6 +290,7 @@ interface ExecuteAuthorizationOptions {
  * @property {boolean} unchecked - Whether to execute the transaction without checking the validity of the authorization (faster but may fail).
  * @property {number} [edition] - Edition of the program to execute the function in.
  * @property {boolean} [useFeeMaster] - Whether to use the FeeMaster account to execute the transaction.
+ * @property {PreparedProgram} [preparedProgram] - A reusable context returned by ProgramManager.prepareProgram.
  */
 interface ProvingRequestOptions {
     programName: string;
@@ -216,6 +309,7 @@ interface ProvingRequestOptions {
     edition?: number;
     useFeeMaster?: boolean;
     executionRequest?: ExecutionRequest;
+    preparedProgram?: PreparedProgram;
 }
 
 /**
@@ -389,6 +483,136 @@ class ProgramManager {
      */
     setKeyStore(keyStore: KeyStore) {
         this._keyStore = keyStore;
+    }
+
+    /**
+     * Prepare a program for later authorization or proving-request generation.
+     *
+     * This resolves the source, edition, and transitive imports and initializes
+     * the underlying snarkVM process without accessing a private key. Reuse the
+     * returned context through the `preparedProgram` option, then call `free()`
+     * when it is no longer needed.
+     *
+     * @param options Program and function to prepare.
+     * @returns A reusable, caller-owned context.
+     *
+     * @example
+     * const prepared = await programManager.prepareProgram({
+     *     programName: "hello_hello.aleo",
+     *     functionName: "hello",
+     * });
+     * try {
+     *     const authorization = await programManager.buildAuthorization({
+     *         programName: "hello_hello.aleo",
+     *         functionName: "hello",
+     *         inputs: ["5u32", "5u32"],
+     *         preparedProgram: prepared,
+     *     });
+     * } finally {
+     *     prepared.free();
+     * }
+     */
+    async prepareProgram(
+        options: PrepareProgramOptions,
+    ): Promise<PreparedProgram> {
+        let program = options.programSource;
+        if (program === undefined) {
+            try {
+                program = await this.networkClient.getProgram(options.programName);
+            } catch (e: any) {
+                logAndThrow(
+                    `Error finding ${options.programName}. Network response: '${e.message}'. Please ensure you're connected to a valid Aleo network the program is deployed to the network.`,
+                );
+            }
+        } else if (program instanceof Program) {
+            program = program.toString();
+        }
+
+        const parsedProgram = Program.fromString(program);
+        if (parsedProgram.id() !== options.programName) {
+            throw new Error(
+                `Program source ID '${parsedProgram.id()}' does not match requested program '${options.programName}'`,
+            );
+        }
+        if (!parsedProgram.getFunctions().includes(options.functionName)) {
+            throw new Error(
+                `Function '${options.functionName}' does not exist in program '${options.programName}'`,
+            );
+        }
+
+        const edition = options.edition
+            ?? (await this.resolveEditionAndAmendment(options.programName)).edition;
+        const { builder } = await this.buildProgramImports(
+            program,
+            options.programImports,
+            false,
+            options.functionName,
+        );
+
+        // Add the entry program as well as its imports so the snarkVM process is
+        // fully initialized before an authorization is requested.
+        builder.addProgram(options.programName, program, edition);
+
+        const preparedProgram = new PreparedProgram(
+            options.programName,
+            options.functionName,
+            program,
+            edition,
+        );
+        preparedProgramBuilders.set(preparedProgram, builder);
+        return preparedProgram;
+    }
+
+    private validatePreparedProgram(
+        preparedProgram: PreparedProgram,
+        options: {
+            programName: string;
+            functionName: string;
+            programSource?: string | Program;
+            programImports?: ProgramImports;
+            edition?: number;
+        },
+    ): void {
+        if (
+            preparedProgram.programName !== options.programName
+            || preparedProgram.functionName !== options.functionName
+        ) {
+            throw new Error(
+                `Prepared program is for ${preparedProgram.programName}/${preparedProgram.functionName}, not ${options.programName}/${options.functionName}`,
+            );
+        }
+
+        const providedSource = options.programSource instanceof Program
+            ? options.programSource.toString()
+            : options.programSource;
+        if (
+            providedSource !== undefined
+            && providedSource !== preparedProgram.programSource
+        ) {
+            throw new Error("Prepared program source does not match the supplied program source");
+        }
+
+        if (
+            options.edition !== undefined
+            && options.edition !== preparedProgram.edition
+        ) {
+            throw new Error("Prepared program edition does not match the supplied edition");
+        }
+
+        if (options.programImports) {
+            const builder = clonePreparedProgramBuilder(preparedProgram);
+            try {
+                for (const [name, source] of Object.entries(options.programImports)) {
+                    if (builder.getProgram(name) !== source.toString()) {
+                        throw new Error(
+                            `Prepared program import '${name}' does not match the supplied import`,
+                        );
+                    }
+                }
+            } finally {
+                builder.free();
+            }
+        }
     }
 
     /**
@@ -1608,11 +1832,16 @@ class ProgramManager {
             inputs,
         } = options;
 
+        const preparedProgram = options.preparedProgram;
+        if (preparedProgram) {
+            this.validatePreparedProgram(preparedProgram, options);
+        }
+
         const privateKey = options.privateKey;
-        let program = options.programSource;
-        let programName = options.programName;
-        let imports = options.programImports;
-        let edition = options.edition;
+        let program = preparedProgram?.programSource ?? options.programSource;
+        let programName = preparedProgram?.programName ?? options.programName;
+        const imports = options.programImports;
+        let edition = preparedProgram?.edition ?? options.edition;
 
         // Ensure the function exists on the network.
         if (program === undefined) {
@@ -1647,15 +1876,20 @@ class ProgramManager {
             throw "No private key provided and no private key set in the ProgramManager";
         }
 
-        const resolved = await this.resolveEditionAndAmendment(programName, edition);
-        edition = edition ?? resolved.edition;
+        if (!preparedProgram) {
+            const resolved = await this.resolveEditionAndAmendment(programName, edition);
+            edition = edition ?? resolved.edition;
+        }
 
         // Auto-convert bare string inputs to field elements where the function expects field type.
         const preparedInputs = this.prepareInputs(program, functionName, inputs);
 
         // Build ProgramImportsBuilder for import resolution (no key loading —
         // authorizations don't synthesize keys).
-        const { builder } = await this.buildProgramImports(program, imports, false, functionName);
+        const builder = preparedProgram
+            ? clonePreparedProgramBuilder(preparedProgram)
+            : (await this.buildProgramImports(program, imports, false, functionName)).builder;
+        const hasPreparedProcess = preparedProgram !== undefined;
         const hasImports = !builder.isEmpty();
 
         // Build and return an `Authorization` for the desired function.
@@ -1664,9 +1898,9 @@ class ProgramManager {
             program,
             functionName,
             preparedInputs,
-            hasImports ? undefined : imports,
+            hasPreparedProcess || hasImports ? undefined : imports,
             edition,
-            hasImports ? builder?.clone() : undefined,
+            hasPreparedProcess ? builder : hasImports ? builder.clone() : undefined,
         );
 
         return authorization;
@@ -1709,11 +1943,16 @@ class ProgramManager {
             inputs,
         } = options;
 
+        const preparedProgram = options.preparedProgram;
+        if (preparedProgram) {
+            this.validatePreparedProgram(preparedProgram, options);
+        }
+
         const privateKey = options.privateKey;
-        let program = options.programSource;
-        let programName = options.programName;
-        let imports = options.programImports;
-        let edition = options.edition;
+        let program = preparedProgram?.programSource ?? options.programSource;
+        let programName = preparedProgram?.programName ?? options.programName;
+        const imports = options.programImports;
+        let edition = preparedProgram?.edition ?? options.edition;
 
         // Ensure the function exists on the network.
         if (program === undefined) {
@@ -1748,15 +1987,20 @@ class ProgramManager {
             throw "No private key provided and no private key set in the ProgramManager";
         }
 
-        const resolved = await this.resolveEditionAndAmendment(programName, edition);
-        edition = edition ?? resolved.edition;
+        if (!preparedProgram) {
+            const resolved = await this.resolveEditionAndAmendment(programName, edition);
+            edition = edition ?? resolved.edition;
+        }
 
         // Auto-convert bare string inputs to field elements where the function expects field type.
         const preparedInputs = this.prepareInputs(program, functionName, inputs);
 
         // Build ProgramImportsBuilder for import resolution (no key loading —
         // authorizations don't synthesize keys).
-        const { builder } = await this.buildProgramImports(program, imports, false, functionName);
+        const builder = preparedProgram
+            ? clonePreparedProgramBuilder(preparedProgram)
+            : (await this.buildProgramImports(program, imports, false, functionName)).builder;
+        const hasPreparedProcess = preparedProgram !== undefined;
         const hasImports = !builder.isEmpty();
 
         // Build and return an `Authorization` for the desired function.
@@ -1765,9 +2009,9 @@ class ProgramManager {
             program,
             functionName,
             preparedInputs,
-            hasImports ? undefined : imports,
+            hasPreparedProcess || hasImports ? undefined : imports,
             edition,
-            hasImports ? builder?.clone() : undefined,
+            hasPreparedProcess ? builder : hasImports ? builder.clone() : undefined,
         );
 
         return authorization;
@@ -1818,14 +2062,19 @@ class ProgramManager {
             unchecked = false,
         } = options;
 
+        const preparedProgram = options.preparedProgram;
+        if (preparedProgram) {
+            this.validatePreparedProgram(preparedProgram, options);
+        }
+
         const baseFee = options.baseFee ? options.baseFee : 0;
         const privateKey = options.privateKey;
         const useFeeMaster = options.useFeeMaster ? options.useFeeMaster : false;
-        let program = options.programSource;
-        let programName = options.programName;
+        let program = preparedProgram?.programSource ?? options.programSource;
+        let programName = preparedProgram?.programName ?? options.programName;
         let feeRecord = options.feeRecord;
         let imports = options.programImports;
-        let edition = options.edition;
+        let edition = preparedProgram?.edition ?? options.edition;
 
         if (!inputs && !options.executionRequest) {
             throw new Error("Either function inputs or an execution request must be provided to form a proving request");
@@ -1851,8 +2100,10 @@ class ProgramManager {
             programName = Program.fromString(program).id();
         }
 
-        const resolved = await this.resolveEditionAndAmendment(programName, edition);
-        edition = edition ?? resolved.edition;
+        if (!preparedProgram) {
+            const resolved = await this.resolveEditionAndAmendment(programName, edition);
+            edition = edition ?? resolved.edition;
+        }
 
         // Get the private key from the account if it is not provided in the parameters.
         let executionPrivateKey = privateKey;
@@ -1866,7 +2117,7 @@ class ProgramManager {
 
         // Resolve the program imports if they exist.
         const numberOfImports = Program.fromString(program).getImports().length;
-        if (numberOfImports > 0 && !imports) {
+        if (!preparedProgram && numberOfImports > 0 && !imports) {
             try {
                 imports = <ProgramImports>(
                     await this.networkClient.getProgramImports(programName)
@@ -1876,6 +2127,31 @@ class ProgramManager {
                     `Error finding program imports. Network response: '${e.message}'. Please ensure you're connected to a valid Aleo network and the program is deployed to the network.`,
                 );
             }
+        }
+
+        // Build ProgramImportsBuilder for import resolution (no key loading —
+        // proving requests don't synthesize keys).
+        const builder = preparedProgram
+            ? clonePreparedProgramBuilder(preparedProgram)
+            : (await this.buildProgramImports(program, imports, false, functionName)).builder;
+        const hasPreparedProcess = preparedProgram !== undefined;
+        const hasImports = !builder.isEmpty();
+
+        // Normalize imports once to the full merged set from the builder so
+        // both the private-fee estimate below and the Rust-side fee estimator
+        // (estimate_fee_for_authorization uses the legacy imports Object to
+        // avoid a RefCell double-borrow — see proving_request.rs) see all
+        // transitive imports, not just the caller's partial set. Use
+        // programNames + getProgram to avoid serializing key bytes (toObject
+        // would serialize all proving/verifying keys, which can be tens of
+        // MB). The prepared executionRequest path skips the copy: it passes
+        // the process builder directly and never estimates fees, so the
+        // imports Object goes unused there.
+        const importsObjectUnused =
+            hasPreparedProcess
+            && options.executionRequest instanceof ExecutionRequest;
+        if ((hasPreparedProcess || hasImports) && !importsObjectUnused) {
+            imports = programImportsFromBuilder(builder, programName);
         }
 
         // Get the fee record from the account if it is not provided in the parameters
@@ -1905,28 +2181,6 @@ class ProgramManager {
             );
         }
 
-        // Build ProgramImportsBuilder for import resolution (no key loading —
-        // proving requests don't synthesize keys).
-        // Note: imports is kept for the Rust-side fee estimation fallback
-        // (estimate_fee_for_authorization uses the legacy imports Object to avoid
-        // a RefCell double-borrow — see proving_request.rs).
-        const { builder } = await this.buildProgramImports(program, imports, false, functionName);
-        const hasImports = !builder.isEmpty();
-
-        // Normalize imports to the full merged set from the builder so the
-        // Rust fee estimator sees all transitive imports, not just the
-        // caller's partial set. Use programNames + getProgram to avoid
-        // serializing key bytes (toObject would serialize all proving/
-        // verifying keys, which can be tens of MB).
-        if (hasImports) {
-            const merged: ProgramImports = {};
-            for (const name of Array.from(builder.programNames())) {
-                const src = builder.getProgram(name);
-                if (src) merged[name] = src;
-            }
-            imports = merged;
-        }
-
         if (options.executionRequest instanceof ExecutionRequest) {
             return await WasmProgramManager.buildProvingRequestFromExecutionRequest(
                 options.executionRequest,
@@ -1934,9 +2188,11 @@ class ProgramManager {
                 unchecked,
                 broadcast,
                 edition,
-                imports, // kept for fee estimation in Rust
+                // The prepared process supersedes the legacy imports Object;
+                // without one, imports is kept for fee estimation in Rust.
+                hasPreparedProcess ? undefined : imports,
                 executionPrivateKey,
-                hasImports ? builder?.clone() : undefined,
+                hasPreparedProcess ? builder : hasImports ? builder.clone() : undefined,
             );
         } else {
             // Ensure the private key exists.
@@ -1966,7 +2222,7 @@ class ProgramManager {
                 unchecked,
                 edition,
                 useFeeMaster,
-                hasImports ? builder?.clone() : undefined,
+                hasPreparedProcess ? builder : hasImports ? builder.clone() : undefined,
             );
         }
     }
@@ -4384,4 +4640,4 @@ function programChecksum(program: string | Program): Uint8Array {
     }
 }
 
-export { ProgramManager, AuthorizationOptions, FeeAuthorizationOptions, ExecuteOptions, ProvingRequestOptions, ExternalSigningOptions, VerificationOptions, BatchVerificationOptions, inputsToFields, verifyProof, verifyBatchProof, programChecksum };
+export { ProgramManager, PreparedProgram, PrepareProgramOptions, AuthorizationOptions, FeeAuthorizationOptions, ExecuteOptions, ProvingRequestOptions, ExternalSigningOptions, VerificationOptions, BatchVerificationOptions, inputsToFields, verifyProof, verifyBatchProof, programChecksum };

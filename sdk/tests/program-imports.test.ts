@@ -1381,6 +1381,357 @@ describe("ProgramImportsBuilder", () => {
         });
     });
 
+    describe("Prepared programs", function () {
+        this.timeout(60_000);
+
+        it("should reuse a prepared process for fee-master and direct-fee proving requests", async () => {
+            const keyProvider = createMockKeyProvider();
+            const pm = new ProgramManager("https://api.provable.com/v2", keyProvider);
+            const privateKey = new PrivateKey();
+
+            sinon.stub(pm.networkClient, "getProgramImports").resolves({
+                "multiply_test.aleo": MULTIPLY_PROGRAM,
+            });
+            sinon.stub(pm.networkClient, "getProgramAmendmentCount").resolves({
+                program_id: "multiply_test.aleo",
+                edition: 1,
+                amendment_count: 0,
+            });
+            const buildImportsSpy = sinon.spy(pm as any, "buildProgramImports");
+
+            const preparedProgram = await pm.prepareProgram({
+                programName: "double_test.aleo",
+                functionName: "double_it",
+                programSource: DOUBLE_PROGRAM,
+                programImports: {
+                    "multiply_test.aleo": MULTIPLY_PROGRAM,
+                },
+                edition: 1,
+            });
+
+            expect(preparedProgram.programName).to.equal("double_test.aleo");
+            expect(preparedProgram.functionName).to.equal("double_it");
+
+            try {
+                const authorization = await pm.buildAuthorizationUnchecked({
+                    programName: "double_test.aleo",
+                    functionName: "double_it",
+                    inputs: ["5u32"],
+                    privateKey,
+                    programSource: DOUBLE_PROGRAM,
+                    programImports: {
+                        "multiply_test.aleo": MULTIPLY_PROGRAM,
+                    },
+                    edition: 1,
+                    preparedProgram,
+                });
+                expect(authorization.transitions().length).to.equal(2);
+                authorization.free();
+
+                const provingRequest = await pm.provingRequest({
+                    programName: "double_test.aleo",
+                    functionName: "double_it",
+                    inputs: ["5u32"],
+                    priorityFee: 0,
+                    privateFee: false,
+                    privateKey,
+                    programSource: DOUBLE_PROGRAM,
+                    programImports: {
+                        "multiply_test.aleo": MULTIPLY_PROGRAM,
+                    },
+                    edition: 1,
+                    broadcast: false,
+                    unchecked: true,
+                    useFeeMaster: true,
+                    preparedProgram,
+                });
+
+                expect(provingRequest.authorization().transitions().length).to.equal(2);
+                expect(provingRequest.feeAuthorization()).to.equal(undefined);
+
+                const directFeeProvingRequest = await pm.provingRequest({
+                    programName: "double_test.aleo",
+                    functionName: "double_it",
+                    inputs: ["5u32"],
+                    priorityFee: 0,
+                    privateFee: false,
+                    privateKey,
+                    programSource: DOUBLE_PROGRAM,
+                    programImports: {
+                        "multiply_test.aleo": MULTIPLY_PROGRAM,
+                    },
+                    edition: 1,
+                    broadcast: false,
+                    unchecked: true,
+                    useFeeMaster: false,
+                    preparedProgram,
+                });
+
+                expect(directFeeProvingRequest.authorization().transitions().length).to.equal(2);
+                expect(directFeeProvingRequest.feeAuthorization()).to.not.equal(undefined);
+                expect(buildImportsSpy.calledOnce).to.equal(true);
+            } finally {
+                preparedProgram.free();
+            }
+        });
+
+        it("should use prepared imports when estimating a private fee record", async () => {
+            const keyProvider = createMockKeyProvider();
+            const pm = new ProgramManager("https://api.provable.com/v2", keyProvider);
+
+            sinon.stub(pm.networkClient, "getProgramImports").resolves({
+                "multiply_test.aleo": MULTIPLY_PROGRAM,
+            });
+            sinon.stub(pm.networkClient, "getProgramAmendmentCount").resolves({
+                program_id: "multiply_test.aleo",
+                edition: 1,
+                amendment_count: 0,
+            });
+
+            const preparedProgram = await pm.prepareProgram({
+                programName: "double_test.aleo",
+                functionName: "double_it",
+                programSource: DOUBLE_PROGRAM,
+                programImports: {
+                    "multiply_test.aleo": MULTIPLY_PROGRAM,
+                },
+                edition: 1,
+            });
+            const estimateFeeStub = sinon.stub(pm, "estimateExecutionFee").resolves(1n);
+            sinon.stub(pm, "getCreditsRecord").resolves({} as any);
+            sinon.stub(ProgramManagerBase, "buildProvingRequest").resolves({} as any);
+
+            try {
+                await pm.provingRequest({
+                    programName: "double_test.aleo",
+                    functionName: "double_it",
+                    inputs: ["5u32"],
+                    priorityFee: 0,
+                    privateFee: true,
+                    privateKey: new PrivateKey(),
+                    broadcast: false,
+                    unchecked: true,
+                    useFeeMaster: false,
+                    preparedProgram,
+                });
+
+                expect(estimateFeeStub.calledOnce).to.equal(true);
+                expect(estimateFeeStub.firstCall.args[0].imports).to.deep.equal({
+                    "multiply_test.aleo": MULTIPLY_PROGRAM,
+                });
+            } finally {
+                preparedProgram.free();
+            }
+        });
+
+        it("should materialize prepared imports exactly once per proving request", async () => {
+            const keyProvider = createMockKeyProvider();
+            const pm = new ProgramManager("https://api.provable.com/v2", keyProvider);
+
+            sinon.stub(pm.networkClient, "getProgramImports").resolves({
+                "multiply_test.aleo": MULTIPLY_PROGRAM,
+            });
+            sinon.stub(pm.networkClient, "getProgramAmendmentCount").resolves({
+                program_id: "multiply_test.aleo",
+                edition: 1,
+                amendment_count: 0,
+            });
+
+            const preparedProgram = await pm.prepareProgram({
+                programName: "double_test.aleo",
+                functionName: "double_it",
+                programSource: DOUBLE_PROGRAM,
+                programImports: {
+                    "multiply_test.aleo": MULTIPLY_PROGRAM,
+                },
+                edition: 1,
+            });
+            sinon.stub(pm, "estimateExecutionFee").resolves(1n);
+            sinon.stub(pm, "getCreditsRecord").resolves({} as any);
+            sinon.stub(ProgramManagerBase, "buildProvingRequest").resolves({} as any);
+
+            // Copying import sources out of WASM dominates the prepared-path
+            // overhead in provingRequest. programImportsFromBuilder walks
+            // programNames once per materialization, so one call proves the
+            // import set crossed the WASM boundary exactly once.
+            const programNamesSpy = sinon.spy(
+                ProgramImportsBuilder.prototype,
+                "programNames",
+            );
+            try {
+                await pm.provingRequest({
+                    programName: "double_test.aleo",
+                    functionName: "double_it",
+                    inputs: ["5u32"],
+                    priorityFee: 0,
+                    privateFee: true,
+                    privateKey: new PrivateKey(),
+                    broadcast: false,
+                    unchecked: true,
+                    useFeeMaster: false,
+                    preparedProgram,
+                });
+
+                expect(programNamesSpy.callCount).to.equal(1);
+            } finally {
+                programNamesSpy.restore();
+                preparedProgram.free();
+            }
+        });
+
+        it("should reject preparing a function that does not exist", async () => {
+            const keyProvider = createMockKeyProvider();
+            const pm = new ProgramManager("https://api.provable.com/v2", keyProvider);
+
+            let error: Error | undefined;
+            try {
+                await pm.prepareProgram({
+                    programName: "multiply_test.aleo",
+                    functionName: "missing",
+                    programSource: MULTIPLY_PROGRAM,
+                    edition: 1,
+                });
+            } catch (e) {
+                error = e as Error;
+            }
+
+            expect(error?.message).to.equal(
+                "Function 'missing' does not exist in program 'multiply_test.aleo'",
+            );
+        });
+
+        it("should reject a prepared context for a different function", async () => {
+            const keyProvider = createMockKeyProvider();
+            const pm = new ProgramManager("https://api.provable.com/v2", keyProvider);
+            const preparedProgram = await pm.prepareProgram({
+                programName: "multiply_test.aleo",
+                functionName: "multiply",
+                programSource: MULTIPLY_PROGRAM,
+                edition: 1,
+            });
+
+            try {
+                let error: Error | undefined;
+                try {
+                    await pm.buildAuthorizationUnchecked({
+                        programName: "multiply_test.aleo",
+                        functionName: "other",
+                        inputs: ["2u32", "3u32"],
+                        privateKey: new PrivateKey(),
+                        preparedProgram,
+                    });
+                } catch (e) {
+                    error = e as Error;
+                }
+
+                expect(error?.message).to.contain(
+                    "Prepared program is for multiply_test.aleo/multiply",
+                );
+            } finally {
+                preparedProgram.free();
+            }
+        });
+
+        it("should reject source, edition, and import mismatches", async () => {
+            const keyProvider = createMockKeyProvider();
+            const pm = new ProgramManager("https://api.provable.com/v2", keyProvider);
+            const privateKey = new PrivateKey();
+            const preparedProgram = await pm.prepareProgram({
+                programName: "double_test.aleo",
+                functionName: "double_it",
+                programSource: DOUBLE_PROGRAM,
+                programImports: {
+                    "multiply_test.aleo": MULTIPLY_PROGRAM,
+                },
+                edition: 1,
+            });
+
+            const expectValidationError = async (
+                action: () => Promise<unknown>,
+                expectedMessage: string,
+            ) => {
+                let error: Error | undefined;
+                try {
+                    await action();
+                } catch (e) {
+                    error = e as Error;
+                }
+                expect(error?.message).to.equal(expectedMessage);
+            };
+
+            try {
+                await expectValidationError(
+                    () => pm.buildAuthorizationUnchecked({
+                        programName: "double_test.aleo",
+                        functionName: "double_it",
+                        inputs: ["5u32"],
+                        privateKey,
+                        programSource: `${DOUBLE_PROGRAM}\n`,
+                        preparedProgram,
+                    }),
+                    "Prepared program source does not match the supplied program source",
+                );
+
+                await expectValidationError(
+                    () => pm.buildAuthorizationUnchecked({
+                        programName: "double_test.aleo",
+                        functionName: "double_it",
+                        inputs: ["5u32"],
+                        privateKey,
+                        edition: 2,
+                        preparedProgram,
+                    }),
+                    "Prepared program edition does not match the supplied edition",
+                );
+
+                await expectValidationError(
+                    () => pm.buildAuthorizationUnchecked({
+                        programName: "double_test.aleo",
+                        functionName: "double_it",
+                        inputs: ["5u32"],
+                        privateKey,
+                        programImports: {
+                            "multiply_test.aleo": ADD_PROGRAM,
+                        },
+                        preparedProgram,
+                    }),
+                    "Prepared program import 'multiply_test.aleo' does not match the supplied import",
+                );
+            } finally {
+                preparedProgram.free();
+            }
+        });
+
+        it("should fail clearly after a prepared context is freed", async () => {
+            const keyProvider = createMockKeyProvider();
+            const pm = new ProgramManager("https://api.provable.com/v2", keyProvider);
+            const preparedProgram = await pm.prepareProgram({
+                programName: "multiply_test.aleo",
+                functionName: "multiply",
+                programSource: MULTIPLY_PROGRAM,
+                edition: 1,
+            });
+
+            preparedProgram.free();
+            preparedProgram.free();
+
+            let error: Error | undefined;
+            try {
+                await pm.buildAuthorizationUnchecked({
+                    programName: "multiply_test.aleo",
+                    functionName: "multiply",
+                    inputs: ["2u32", "3u32"],
+                    privateKey: new PrivateKey(),
+                    preparedProgram,
+                });
+            } catch (e) {
+                error = e as Error;
+            }
+
+            expect(error?.message).to.equal("Prepared program has already been freed");
+        });
+    });
+
     // =========================================================================
     // Integration tests — require WASM execution (slow, ~10-20s each)
     // =========================================================================
