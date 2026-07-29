@@ -13,13 +13,17 @@ package versions, and opens a PR against `mainnet` for human review.
 Hard rules:
 
 - Never open a PR with failing tests. If a migration cannot be made green,
-  stop and report the blocking failure instead. In CI you do not run the
-  suite yourself (see Step 6) — never state or imply that it passed.
+  stop and report the blocking failure instead.
 - Read `.agents/voice.md` before editing any code. Every comment, JSDoc
   block, Rust `///` doc comment, and prose change MUST follow it.
 - No Co-Authored-By or other attribution lines in commits.
 
 ## Step 1: Determine whether an upgrade is needed
+
+This procedure runs interactively, on a developer machine. The
+`update-snarkvm.yml` workflow only notices that a release exists and files an
+issue; it deliberately does not migrate, because the build-edit-build loop
+needs incremental compiles and a human in the loop.
 
 From the repo root, on a clean checkout of `mainnet`:
 
@@ -46,10 +50,8 @@ gh api "repos/ProvableHQ/snarkVM/compare/<old>...<LATEST>" --jq '.files[].filena
 gh api "repos/ProvableHQ/snarkVM/releases/tags/<LATEST>" --jq '.body'
 ```
 
-A 404 on the last one just means the tag was pushed without release notes —
-continue without them, and do not wrap it in `|| true`. Every command in this
-skill has to survive the CI tool allowlist, which matches whole commands, and
-`|| true` is a second command that is not granted.
+A 404 on the last one just means the tag was pushed without release notes;
+continue without them.
 
 Identify changes to APIs the SDK consumes: anything imported in
 `wasm/src/` (grep for the changed module paths), and transitively the
@@ -76,24 +78,10 @@ clean; minor jumps have required all of these at once):
 
 ## Step 3: Create the working branch
 
-Locally, start from an up-to-date `mainnet`:
-
 ```bash
 git checkout mainnet && git pull
 git checkout -b "update-snarkvm-<LATEST>"
 ```
-
-**In CI, branch from `HEAD` and do not name a base branch:**
-
-```bash
-git checkout -b "update-snarkvm-<LATEST>"
-```
-
-The workflow has already checked out the branch the run was dispatched
-against, which is `mainnet` for the scheduled runs and the branch under test
-when someone dispatches one manually. `git checkout mainnet` would fail or
-move you off that base, and the clone is shallow so `git pull` has nothing to
-do either.
 
 ## Step 4: Update wasm/Cargo.toml
 
@@ -146,19 +134,6 @@ tests) exported — several non-skipped wasm and SDK tests decrypt fixtures
 with that key and fail outright when it is unset. A failure that traces back
 to a missing key is an environment problem, not a migration problem — never
 edit a test to route around it.
-
-**In CI (`GITHUB_ACTIONS=true`), run `yarn build:all` only, and get it
-clean.** Do not run `yarn test:wasm` or `yarn test:sdk` there: the job holds
-no test credentials on purpose, because upstream release text reaches this
-step and anything in its environment is reachable by an injected instruction.
-A separate `verify` job re-runs the full suite against your finished patch
-with the credentials, and the run fails if it is not green.
-
-So in CI a clean `yarn build:all` is necessary but not sufficient. It catches
-the API breakage that is the bulk of a snarkVM migration; it cannot catch a
-behavioral change. If a migration is subtle enough that you would want to
-watch a test to confirm it, say so in the PR body rather than asserting the
-suite passed — you have not run it.
 
 ## Step 7: Bump package versions
 
@@ -229,19 +204,7 @@ npm version and exits nonzero on a mismatch, so it fails loudly instead of
 needing to be read. If it reports `MISMATCH`, re-run `yarn change-version`
 rather than patching one file by hand.
 
-Keep this a script rather than an inline one-liner. The CI job runs under a
-tool allowlist that matches whole commands, and an assertion assembled from a
-command substitution, `[` and `echo` joined by `&&`/`||` is four separate
-commands that the allowlist does not grant — it would be denied in CI while
-appearing to work locally.
-
 ## Step 8: Commit and open the PR
-
-**In CI (`GITHUB_ACTIONS=true`) the job's GitHub token is read-only.** Make
-the local commit on the `update-snarkvm-<LATEST>` branch, write the PR body
-(the required contents below) to `/tmp/pr-body.md`, and stop — do NOT push
-and do NOT run `gh pr create`; the workflow's follow-up job publishes the
-committed patch. Locally, run the full sequence:
 
 ```bash
 git add -A
@@ -255,11 +218,9 @@ The PR body MUST cover:
 - Old and new snarkVM versions, and the pin style chosen (crates.io
   `version` vs git `tag`) with the `CRATES_PUBLISHED` result.
 - A summary of the upstream changeset and every migration applied.
-- Test results, stated as exactly what you ran and nothing more. Locally
-  that is confirmation that `yarn test:wasm`, `yarn build:all` and
-  `yarn test:sdk` all passed. In CI it is confirmation that `yarn build:all`
-  is clean, plus a note that the `verify` job owns the suite — do not claim
-  results you did not observe.
+- Test results, stated as exactly what you ran and nothing more:
+  confirmation that `yarn test:wasm`, `yarn build:all` and `yarn test:sdk`
+  all passed. Never claim a result you did not observe.
 - The version bumps applied: the new version, the crate version alongside
   it, and confirmation that the `@provablehq/*` dependency sweep came back
   clean. Name any file that needed a hand fix.
