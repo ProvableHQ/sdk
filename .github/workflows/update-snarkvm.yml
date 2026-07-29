@@ -51,8 +51,10 @@ jobs:
           # Scoped to the exact tag on purpose: a stale open PR for an older
           # tag should not block a newer upgrade.
           LATEST=$(grep '^LATEST=' "$GITHUB_OUTPUT" | tail -1 | cut -d= -f2)
-          OPEN_BRANCHES=$(gh pr list --state open --json headRefName --jq '.[].headRefName')
-          if grep -Fqx "update-snarkvm-${LATEST}" <<< "$OPEN_BRANCHES"; then
+          # --head filters server-side by branch, so the check cannot miss a
+          # PR beyond the listing's default page size.
+          OPEN_COUNT=$(gh pr list --state open --head "update-snarkvm-${LATEST}" --json number --jq length)
+          if [ "$OPEN_COUNT" -gt 0 ]; then
             echo "PR_EXISTS=true" >> "$GITHUB_OUTPUT"
           else
             echo "PR_EXISTS=false" >> "$GITHUB_OUTPUT"
@@ -182,7 +184,11 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          git push -u origin "update-snarkvm-${LATEST}"
+          # Force push: a closed or abandoned upgrade PR leaves a stale
+          # update-snarkvm-<tag> branch behind that would reject a plain
+          # push. Only this automation writes to that branch namespace, and
+          # the pre-flight guarantees no PR for this tag is open.
+          git push --force -u origin "update-snarkvm-${LATEST}"
           # PRs opened with the default GITHUB_TOKEN do not trigger CI
           # workflows (GitHub restriction). Swap in a PAT or GitHub App token
           # if the upgrade PRs should run the SDK CI automatically.
