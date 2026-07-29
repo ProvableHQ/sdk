@@ -140,6 +140,8 @@ function clonePreparedProgramBuilder(
     if (!builder) {
         throw new Error("Prepared program has already been freed");
     }
+    // The WASM clone is a cheap shared Rc handle, not a deep copy. Mutations
+    // made while authorizing intentionally remain cached in the prepared context.
     return builder.clone();
 }
 
@@ -491,6 +493,11 @@ class ProgramManager {
         if (parsedProgram.id() !== options.programName) {
             throw new Error(
                 `Program source ID '${parsedProgram.id()}' does not match requested program '${options.programName}'`,
+            );
+        }
+        if (!parsedProgram.getFunctions().includes(options.functionName)) {
+            throw new Error(
+                `Function '${options.functionName}' does not exist in program '${options.programName}'`,
             );
         }
 
