@@ -58,7 +58,7 @@ use snarkvm_synthesizer::prelude::{InclusionVersion, execution_cost, execution_c
 use crate::types::native::{PrivateKeyNative, ViewKeyNative};
 use core::ops::Add;
 use js_sys::{Array, Object, Reflect};
-use snarkvm_console::network::ConsensusVersion;
+use snarkvm_console::network::{ConsensusVersion, varuna_version_from_consensus};
 use std::str::FromStr;
 use wasm_bindgen::JsValue;
 
@@ -855,10 +855,7 @@ impl ProgramManager {
             <CurrentNetwork as Network>::CONSENSUS_VERSION(latest_height).map_err(|e| e.to_string())?;
         authorization.check_valid_edition(process, consensus_version).map_err(|e| e.to_string())?;
         authorization.check_valid_records(consensus_version).map_err(|e| e.to_string())?;
-        let varuna_version = match (ConsensusVersion::V1..=ConsensusVersion::V3).contains(&consensus_version) {
-            true => VarunaVersion::V1,
-            false => VarunaVersion::V2,
-        };
+        let varuna_version = varuna_version_from_consensus(consensus_version);
 
         let (_, mut trace) = process.execute::<CurrentAleo, _>(authorization, rng).map_err(|e| e.to_string())?;
 
