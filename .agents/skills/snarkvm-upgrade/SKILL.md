@@ -43,8 +43,13 @@ otherwise the raw `rev` from `wasm/Cargo.toml`:
 ```bash
 gh api "repos/ProvableHQ/snarkVM/compare/<old>...<LATEST>" --jq '.commits[].commit.message' | head -100
 gh api "repos/ProvableHQ/snarkVM/compare/<old>...<LATEST>" --jq '.files[].filename' | sort -u
-gh api "repos/ProvableHQ/snarkVM/releases/tags/<LATEST>" --jq '.body' 2>/dev/null || true
+gh api "repos/ProvableHQ/snarkVM/releases/tags/<LATEST>" --jq '.body'
 ```
+
+A 404 on the last one just means the tag was pushed without release notes —
+continue without them, and do not wrap it in `|| true`. Every command in this
+skill has to survive the CI tool allowlist, which matches whole commands, and
+`|| true` is a second command that is not granted.
 
 Identify changes to APIs the SDK consumes: anything imported in
 `wasm/src/` (grep for the changed module paths), and transitively the
@@ -202,21 +207,22 @@ hand and report them in the PR body — the sweep is part of the upgrade, not
 an optional tidy-up.
 
 Confirm the crate came along too, since it is the one a manual pass tends to
-leave behind. Assert it rather than eyeballing it — the crate version must
-equal the `wasm` npm version:
+leave behind:
 
 ```bash
-CRATE=$(awk '/^\[package\]/{p=1} p&&/^version *=/{if (match($0, /"[^"]+"/)) print substr($0, RSTART+1, RLENGTH-2); exit}' wasm/Cargo.toml)
-NPM=$(node -p "require('./wasm/package.json').version")
-[ "$CRATE" = "$NPM" ] \
-    && echo "OK: crate and npm agree at $CRATE" \
-    || echo "MISMATCH: crate $CRATE vs npm $NPM"
+bash .agents/skills/snarkvm-upgrade/scripts/check-package-versions.sh
 ```
 
-Reading the version out of the `[package]` block by key rather than by line
-offset matters: `version` is not adjacent to the `[package]` header, and any
-check that assumes a fixed number of lines silently stops working the moment
-the block is reordered.
+It asserts that the `aleo-wasm` crate version equals the `@provablehq/wasm`
+npm version and exits nonzero on a mismatch, so it fails loudly instead of
+needing to be read. If it reports `MISMATCH`, re-run `yarn change-version`
+rather than patching one file by hand.
+
+Keep this a script rather than an inline one-liner. The CI job runs under a
+tool allowlist that matches whole commands, and an assertion assembled from a
+command substitution, `[` and `echo` joined by `&&`/`||` is four separate
+commands that the allowlist does not grant — it would be denied in CI while
+appearing to work locally.
 
 ## Step 8: Commit and open the PR
 

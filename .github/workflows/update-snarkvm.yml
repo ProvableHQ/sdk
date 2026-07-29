@@ -66,9 +66,17 @@ jobs:
           # Scoped to the exact tag on purpose: a stale open PR for an older
           # tag should not block a newer upgrade.
           LATEST=$(grep '^LATEST=' "$GITHUB_OUTPUT" | tail -1 | cut -d= -f2)
-          # --head filters server-side by branch, so the check cannot miss a
-          # PR beyond the listing's default page size.
-          OPEN_COUNT=$(gh pr list --state open --head "update-snarkvm-${LATEST}" --json number --jq length)
+          # Filtered server-side, so the check cannot miss a PR beyond the
+          # listing's default page size. Scoped to this repository's own
+          # branches and to the mainnet base on purpose: `gh pr list --head`
+          # matches on branch NAME alone and explicitly does not support
+          # owner:branch, so on a public repo with hundreds of forks anyone
+          # could open a fork PR named update-snarkvm-<tag> and suppress the
+          # upgrade indefinitely. The failure mode would be silence.
+          OPEN_COUNT=$(gh api --method GET "repos/${GITHUB_REPOSITORY}/pulls" \
+            -f state=open \
+            -f "head=${GITHUB_REPOSITORY_OWNER}:update-snarkvm-${LATEST}" \
+            -f base=mainnet --jq length)
           if [ "$OPEN_COUNT" -gt 0 ]; then
             echo "PR_EXISTS=true" >> "$GITHUB_OUTPUT"
           else
@@ -136,9 +144,13 @@ jobs:
           # rules and the allowlist silently stops matching anything. No curl
           # here — the check script covers the one crates.io lookup, and a
           # generic curl would be a prompt-injection exfiltration channel.
+          # Scripts are granted by exact name, never as a directory wildcard —
+          # Claude holds Write here, so a rule like scripts/* would let it
+          # create and then run a script of its own choosing.
           claude_args: >-
             --allowedTools
             "Bash(bash .agents/skills/snarkvm-upgrade/scripts/check-version.sh*)"
+            "Bash(bash .agents/skills/snarkvm-upgrade/scripts/check-package-versions.sh*)"
             "Bash(yarn *)" "Bash(cargo *)" "Bash(npm view:*)" "Bash(git *)"
             "Bash(gh *)" "Bash(head *)" "Bash(tail *)" "Bash(sort *)"
             "Bash(grep *)" "Bash(sed *)" "Bash(awk *)" "Bash(cat *)"
