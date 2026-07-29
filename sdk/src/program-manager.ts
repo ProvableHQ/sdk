@@ -133,6 +133,36 @@ interface PrepareProgramOptions {
 
 const preparedProgramBuilders = new WeakMap<object, ProgramImportsBuilder>();
 
+const busyPreparedPrograms = new WeakSet<object>();
+
+/**
+ * Run `action` while holding exclusive use of `preparedProgram`.
+ *
+ * The prepared snarkVM process is shared state (the WASM builder clones are
+ * reference-counted handles to one process), so concurrent calls would race on
+ * it and abort the WASM module with a borrow panic. This guard turns that into
+ * a catchable error instead.
+ */
+async function withPreparedProgram<T>(
+    preparedProgram: PreparedProgram | undefined,
+    action: () => Promise<T>,
+): Promise<T> {
+    if (!preparedProgram) {
+        return action();
+    }
+    if (busyPreparedPrograms.has(preparedProgram)) {
+        throw new Error(
+            "Prepared program is already in use; calls sharing a prepared program must be sequential",
+        );
+    }
+    busyPreparedPrograms.add(preparedProgram);
+    try {
+        return await action();
+    } finally {
+        busyPreparedPrograms.delete(preparedProgram);
+    }
+}
+
 function clonePreparedProgramBuilder(
     preparedProgram: PreparedProgram,
 ): ProgramImportsBuilder {
@@ -162,8 +192,9 @@ function programImportsFromBuilder(
  * A reusable program context created by {@link ProgramManager.prepareProgram}.
  *
  * The context is scoped to one program function. Calls using it must be
- * sequential. The caller owns the context and should call {@link free} when it
- * is no longer needed.
+ * sequential — a call made while another call is still using the context is
+ * rejected with an error. The caller owns the context and should call
+ * {@link free} when it is no longer needed.
  */
 class PreparedProgram {
     readonly programName: string;
@@ -1800,6 +1831,13 @@ class ProgramManager {
     async buildAuthorization(
         options: AuthorizationOptions,
     ): Promise<Authorization> {
+        return withPreparedProgram(options.preparedProgram, () =>
+            this.buildAuthorizationInner(options));
+    }
+
+    private async buildAuthorizationInner(
+        options: AuthorizationOptions,
+    ): Promise<Authorization> {
         // Destructure the options object to access the parameters.
         const {
             functionName,
@@ -1909,6 +1947,13 @@ class ProgramManager {
      * });
      */
     async buildAuthorizationUnchecked(
+        options: AuthorizationOptions,
+    ): Promise<Authorization> {
+        return withPreparedProgram(options.preparedProgram, () =>
+            this.buildAuthorizationUncheckedInner(options));
+    }
+
+    private async buildAuthorizationUncheckedInner(
         options: AuthorizationOptions,
     ): Promise<Authorization> {
         // Destructure the options object to access the parameters.
@@ -2023,6 +2068,13 @@ class ProgramManager {
      * });
      */
     async provingRequest(
+        options: ProvingRequestOptions,
+    ): Promise<ProvingRequest> {
+        return withPreparedProgram(options.preparedProgram, () =>
+            this.provingRequestInner(options));
+    }
+
+    private async provingRequestInner(
         options: ProvingRequestOptions,
     ): Promise<ProvingRequest> {
         // Destructure the options object to access the parameters.

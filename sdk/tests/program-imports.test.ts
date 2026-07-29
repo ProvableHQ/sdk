@@ -1675,6 +1675,93 @@ describe("ProgramImportsBuilder", () => {
 
             expect(error?.message).to.equal("Prepared program has already been freed");
         });
+
+        it("should reject a concurrent call while a prepared context is in use", async () => {
+            const keyProvider = createMockKeyProvider();
+            const pm = new ProgramManager("https://api.provable.com/v2", keyProvider);
+            const privateKey = new PrivateKey();
+            const preparedProgram = await pm.prepareProgram({
+                programName: "multiply_test.aleo",
+                functionName: "multiply",
+                programSource: MULTIPLY_PROGRAM,
+                edition: 1,
+            });
+
+            const authorizationOptions = {
+                programName: "multiply_test.aleo",
+                functionName: "multiply",
+                inputs: ["2u32", "3u32"],
+                privateKey,
+                preparedProgram,
+            };
+
+            try {
+                const firstCall = pm.buildAuthorizationUnchecked(authorizationOptions);
+
+                let error: Error | undefined;
+                try {
+                    await pm.buildAuthorizationUnchecked(authorizationOptions);
+                } catch (e) {
+                    error = e as Error;
+                }
+                expect(error?.message).to.equal(
+                    "Prepared program is already in use; calls sharing a prepared program must be sequential",
+                );
+
+                // The in-flight call is unaffected by the rejected one.
+                const authorization = await firstCall;
+                expect(authorization.transitions().length).to.equal(1);
+                authorization.free();
+
+                // The context is released once the in-flight call settles.
+                const nextAuthorization = await pm.buildAuthorizationUnchecked(authorizationOptions);
+                expect(nextAuthorization.transitions().length).to.equal(1);
+                nextAuthorization.free();
+            } finally {
+                preparedProgram.free();
+            }
+        });
+
+        it("should release a prepared context when a call fails", async () => {
+            const keyProvider = createMockKeyProvider();
+            const pm = new ProgramManager("https://api.provable.com/v2", keyProvider);
+            const privateKey = new PrivateKey();
+            const preparedProgram = await pm.prepareProgram({
+                programName: "multiply_test.aleo",
+                functionName: "multiply",
+                programSource: MULTIPLY_PROGRAM,
+                edition: 1,
+            });
+
+            try {
+                let error: Error | undefined;
+                try {
+                    await pm.buildAuthorizationUnchecked({
+                        programName: "multiply_test.aleo",
+                        functionName: "other",
+                        inputs: ["2u32", "3u32"],
+                        privateKey,
+                        preparedProgram,
+                    });
+                } catch (e) {
+                    error = e as Error;
+                }
+                expect(error?.message).to.contain("Prepared program is for multiply_test.aleo/multiply");
+
+                // The failed call must not leave the context marked as in use.
+                const authorization = await pm.buildAuthorizationUnchecked({
+                    programName: "multiply_test.aleo",
+                    functionName: "multiply",
+                    inputs: ["2u32", "3u32"],
+                    privateKey,
+                    preparedProgram,
+                });
+                expect(authorization.transitions().length).to.equal(1);
+                authorization.free();
+            } finally {
+                preparedProgram.free();
+            }
+        });
     });
 
     // =========================================================================
