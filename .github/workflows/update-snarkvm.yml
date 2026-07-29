@@ -7,27 +7,18 @@ on:
     - cron: '0 15 * * *'
   workflow_dispatch:
 
-# This workflow notices upgrades. It does not perform them.
+# Notification only. This workflow resolves versions and files an issue; it
+# never edits the repo and it does not perform the upgrade.
 #
-# An earlier version of this file ran the migration itself, driving Claude over
-# the new snarkVM inside CI. That was the wrong venue and the work is better
-# done elsewhere:
+# The upgrade is deliberately left to a person. Its inner loop is build, read
+# the error, edit, build again, and `yarn build:all` takes ~8 minutes on these
+# runners WITH a warm cache — which bumping snarkVM invalidates by definition,
+# so every cycle approaches a cold build of snarkvm and its whole dependency
+# tree. A few cycles exhaust any sane timeout, and there is no resume. That
+# work belongs somewhere with incremental compiles.
 #
-#   - The inner loop of a snarkVM migration is build, read the error, edit,
-#     build again. `yarn build:all` takes ~8 minutes here WITH a warm cache,
-#     and bumping snarkVM invalidates that cache by definition, so each cycle
-#     approaches a cold build of snarkvm and its whole dependency tree. A
-#     handful of cycles exhausts any sane job timeout, and there is no resume:
-#     timing out at 80% discards everything.
-#   - CI is non-interactive, so a permission denial is fatal and invisible
-#     rather than a question. Exploratory migration work is exactly the case
-#     where asking a human is the right move.
-#
-# So the split is along "does this need iteration and judgment". Resolving a
-# tag does not, and is what a cron is good at. Migrating does, and belongs in
-# an interactive session — run `/snarkvm-upgrade` locally, where compiles are
-# incremental and a human is in the loop. See
-# .agents/skills/snarkvm-upgrade/SKILL.md.
+# Resolving a tag needs no iteration and no judgment, which is what a cron is
+# good at, and is all this does.
 permissions: {}
 
 concurrency:
@@ -46,7 +37,7 @@ jobs:
       # workflow can be exercised from a branch. Scheduled runs only ever fire
       # on the default branch, so this is `mainnet` for every automated run.
       - name: Checkout the base branch
-        uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
+        uses: actions/checkout@v4
         with:
           ref: ${{ github.ref_name }}
 
@@ -54,7 +45,7 @@ jobs:
         id: preflight
         run: |
           set -o pipefail
-          bash .agents/skills/snarkvm-upgrade/scripts/check-version.sh wasm/Cargo.toml | tee -a "$GITHUB_OUTPUT"
+          bash scripts/check-snarkvm-version.sh wasm/Cargo.toml | tee -a "$GITHUB_OUTPUT"
 
       - name: Summary
         if: always()
@@ -127,20 +118,21 @@ jobs:
             echo
             echo "### To upgrade"
             echo
-            echo "From a clean \`mainnet\` checkout, run:"
+            echo "Rewrite all ten \`[dependencies.snarkvm-*]\` blocks in \`wasm/Cargo.toml\`,"
+            echo "migrate \`wasm/src/\` and then \`sdk/src/\` for any API changes, and bump the"
+            echo "package and crate versions with \`yarn change-version <version>\`."
+            echo
+            echo "Verify with:"
             echo
             echo '```'
-            echo "/snarkvm-upgrade"
+            echo "yarn test:wasm && yarn build:all && yarn test:sdk"
             echo '```'
             echo
-            echo "The procedure is in \`.agents/skills/snarkvm-upgrade/SKILL.md\`. It reviews"
-            echo "the upstream changeset, migrates \`wasm/\` then \`sdk/\`, runs the full test"
-            echo "suite, bumps the package and crate versions, and opens the PR."
+            echo "\`PUZZLE_PK\` and \`PUZZLE_VK\` must be exported — several tests decrypt"
+            echo "fixtures with them and fail outright when unset."
             echo
-            echo "Migration is deliberately not automated here — the build-edit-build loop"
-            echo "needs incremental compiles and a human in the loop, neither of which a"
-            echo "cold CI runner provides. See the comment at the top of"
-            echo "\`.github/workflows/update-snarkvm.yml\`."
+            echo "The full procedure, including migration patterns seen in previous"
+            echo "upgrades, is written up in \`.agents/skills/snarkvm-upgrade/SKILL.md\`."
           } > issue-body.md
 
           gh issue create \

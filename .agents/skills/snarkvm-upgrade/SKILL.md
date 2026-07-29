@@ -28,7 +28,7 @@ needs incremental compiles and a human in the loop.
 From the repo root, on a clean checkout of `mainnet`:
 
 ```bash
-bash .agents/skills/snarkvm-upgrade/scripts/check-version.sh wasm/Cargo.toml
+bash scripts/check-snarkvm-version.sh wasm/Cargo.toml
 ```
 
 The script prints `PIN_STYLE`, `CURRENT`, `LATEST`, `UPDATE_NEEDED`, and
@@ -196,7 +196,7 @@ Confirm the crate came along too, since it is the one a manual pass tends to
 leave behind:
 
 ```bash
-bash .agents/skills/snarkvm-upgrade/scripts/check-package-versions.sh
+bash scripts/check-package-versions.sh
 ```
 
 It asserts that the `aleo-wasm` crate version equals the `@provablehq/wasm`
