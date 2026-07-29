@@ -52,7 +52,13 @@ LATEST=$(echo "$TAG_LIST" \
     | sort -V | tail -1)
 
 case "$PIN_STYLE" in
-    version) CURRENT="v$PIN_VALUE" ;;
+    version)
+        # Drop any Cargo range operator before prefixing "v", so CURRENT comes
+        # out as a clean vX.Y.Z. It has to be a usable git ref as well as a
+        # version: the skill feeds it to `gh api .../compare/<CURRENT>...` when
+        # an upgrade is needed, and "v^4.9.0" resolves to nothing.
+        CURRENT="v$(printf '%s' "$PIN_VALUE" | sed -E 's/^[[:space:]]*(\^|~|>=|<=|>|<|=)?[[:space:]]*v?//')"
+        ;;
     tag) CURRENT="$PIN_VALUE" ;;
     rev)
         # Map the rev to a release tag, matching both lightweight tags and the
@@ -72,7 +78,34 @@ case "$PIN_STYLE" in
         ;;
 esac
 
-if [[ "$CURRENT" == "$LATEST" ]]; then
+# Reduce a pin to bare X.Y.Z so the comparison below is about versions and not
+# about spelling. A leading "v", a Cargo range operator, and an omitted patch
+# component are all noise: "^4.9", "=v4.9.0" and "4.9.0" describe the same
+# release. Prints nothing for anything that is not purely numeric components
+# (wildcards, pre-release suffixes, an untagged rev), and the caller treats
+# that as "unknown" — which errs toward running the upgrade, never toward
+# silently skipping one.
+normalize_version() {
+    local v
+    # The "v" and the operator are accepted in either order ("v^4.9.0" as well
+    # as "^v4.9.0"). Only those two tokens are stripped, never an arbitrary
+    # alphabetic prefix — "testnet-v4.9.0" must NOT reduce to a release
+    # version, or a pre-release pin would compare equal to the release.
+    v=$(printf '%s' "$1" \
+        | sed -E 's/^[[:space:]]*(v[[:space:]]*)?(\^|~|>=|<=|>|<|=)?[[:space:]]*(v[[:space:]]*)?//')
+    [[ "$v" =~ ^[0-9]+(\.[0-9]+){0,2}$ ]] || return 0
+    local major minor patch
+    IFS=. read -r major minor patch <<< "$v"
+    printf '%s.%s.%s' "$major" "${minor:-0}" "${patch:-0}"
+}
+
+# CURRENT itself stays in its original form — it is reported to the user and
+# used as a git ref by the skill's changeset diff — so normalize into
+# throwaway locals purely for the equality test.
+CURRENT_NORM=$(normalize_version "$CURRENT")
+LATEST_NORM=$(normalize_version "$LATEST")
+
+if [[ -n "$CURRENT_NORM" && "$CURRENT_NORM" == "$LATEST_NORM" ]]; then
     UPDATE_NEEDED=false
     CRATES_PUBLISHED=""
 else

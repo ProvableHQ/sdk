@@ -88,7 +88,14 @@ each block's `features` and `default-features` keys exactly:
   set `version = "<LATEST without the v prefix>"`.
 - **If `CRATES_PUBLISHED=false`:** keep
   `git = "https://github.com/ProvableHQ/snarkVM.git"`, delete `rev`, and set
-  `tag = "<LATEST>"`.
+  `tag = "<LATEST>"`. Delete any `version` key in the block too — alongside a
+  `git` source Cargo treats it as a requirement the source must satisfy, so a
+  stale one fails the build outright on a major bump.
+
+Prefer crates.io: a `version` pin is the goal and the git `tag` is only the
+fallback for a release that is not fully published yet. Never leave a `rev`
+pin in place after an upgrade — write `version` or `tag`, so the next run's
+`CURRENT` resolves to a release tag rather than a bare commit.
 
 `wasm/Cargo.lock` refreshes as a side effect of the first build in Step 6.
 After that build, check `git diff wasm/Cargo.lock` — only `snarkvm-*` crates
