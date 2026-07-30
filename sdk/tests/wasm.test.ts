@@ -629,14 +629,9 @@ describe('WASM Objects', () => {
     describe('Set development consensus version heights', () => {
         it('Consensus version heights can be set externally', async () => {
             if (process.env["RUN_SKIPPED"]) {
-                // snarkVM expects exactly one height per ConsensusVersion
-                // variant and panics on any other count, so this constant
-                // tracks the variant count rather than the heights themselves.
-                // snarkVM 4.9.0 defines V1 through V18.
-                const numConsensusVersions = 18;
-                const heights = Array.from({ length: numConsensusVersions }, (_, index) => index);
-                const applied = getOrInitConsensusVersionTestHeights(heights.join(","));
-                expect(applied).to.deep.equal(heights);
+                const heights = getOrInitConsensusVersionTestHeights("0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17");
+                console.log(heights);
+                expect(heights).to.deep.equal([0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17]);
             }
         });
     });
