@@ -38,8 +38,7 @@ use crate::{
     },
 };
 use js_sys::Array;
-use snarkvm_algorithms::snark::varuna::VarunaVersion;
-use snarkvm_console::network::Network;
+use snarkvm_console::network::{Network, varuna_version_from_consensus};
 use snarkvm_ledger_query::QueryTrait;
 use snarkvm_synthesizer::prelude::InclusionVersion;
 use std::{ops::Add, str::FromStr};
@@ -113,14 +112,17 @@ impl ProgramManager {
             q.current_block_height_async().await.map_err(|e| e.to_string())?
         };
 
+        // Determine the consensus and Varuna versions from the latest block height.
+        let consensus_version =
+            <CurrentNetwork as Network>::CONSENSUS_VERSION(latest_height).map_err(|err| err.to_string())?;
+        let varuna_version = varuna_version_from_consensus(consensus_version);
+
         log("Proving the split execution");
         let execution = trace
-            .prove_execution::<CurrentAleo, _>("credits.aleo/split", VarunaVersion::V2, rng)
+            .prove_execution::<CurrentAleo, _>("credits.aleo/split", varuna_version, rng)
             .map_err(|e| e.to_string())?;
 
         log("Verifying the split execution");
-        let consensus_version =
-            <CurrentNetwork as Network>::CONSENSUS_VERSION(latest_height).map_err(|err| err.to_string())?;
         let inclusion_upgrade_height =
             <CurrentNetwork as Network>::INCLUSION_UPGRADE_HEIGHT().map_err(|err| err.to_string())?;
         let inclusion_version =
@@ -129,7 +131,7 @@ impl ProgramManager {
         let execution_stacks = execution_stacks_for_execution(process, &execution)?;
         ProcessNative::verify_execution(
             consensus_version,
-            VarunaVersion::V2,
+            varuna_version,
             inclusion_version,
             &execution,
             &execution_stacks,
