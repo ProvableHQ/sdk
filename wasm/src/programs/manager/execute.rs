@@ -47,7 +47,6 @@ use crate::{
         TransactionNative,
     },
 };
-use snarkvm_algorithms::snark::varuna::VarunaVersion;
 use snarkvm_console::{
     network::Network,
     program::{Value, ValueType},
@@ -191,8 +190,9 @@ impl ProgramManager {
 
         let mut execution_response = if prove_execution {
             log("Preparing inclusion proofs for execution");
-            if let Some(ref query) = query {
+            let latest_height = if let Some(ref query) = query {
                 trace.prepare_async(query).await.map_err(|err| err.to_string())?;
+                query.current_block_height_async().await.map_err(|e| e.to_string())?
             } else {
                 let function_name = IdentifierNative::from_str(function).map_err(|err| err.to_string())?;
                 let view_key =
@@ -207,12 +207,18 @@ impl ProgramManager {
                 .await
                 .map_err(|err| err.to_string())?;
                 trace.prepare_async(&query).await.map_err(|err| err.to_string())?;
+                query.current_block_height_async().await.map_err(|e| e.to_string())?
             };
+
+            // Determine the consensus and Varuna versions from the latest block height.
+            let consensus_version =
+                <CurrentNetwork as Network>::CONSENSUS_VERSION(latest_height).map_err(|err| err.to_string())?;
+            let varuna_version = varuna_version_from_consensus(consensus_version);
 
             log("Proving execution");
             let locator = program_native.id().to_string().add("/").add(function);
             let execution =
-                trace.prove_execution::<CurrentAleo, _>(&locator, VarunaVersion::V2, rng).map_err(|e| e.to_string())?;
+                trace.prove_execution::<CurrentAleo, _>(&locator, varuna_version, rng).map_err(|e| e.to_string())?;
             ExecutionResponse::new(Some(execution), function, response, process, program)?
         } else {
             ExecutionResponse::new(None, function, response, process, program)?
