@@ -49,7 +49,7 @@ pub mod test;
 /// import { getOrInitConsensusVersionTestHeights } from '@provablehq/sdk';
 ///
 /// Set the consensus version heights.
-/// getOrInitConsensusVersionTestHeights("0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17");
+/// getOrInitConsensusVersionTestHeights("0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18");
 #[wasm_bindgen::prelude::wasm_bindgen(js_name = getOrInitConsensusVersionTestHeights)]
 pub fn get_or_init_consensus_version_heights(heights: Option<String>) -> js_sys::Array {
     // Call the underlying Rust function that returns [(ConsensusVersion, u32); N]
@@ -93,7 +93,7 @@ mod tests {
         // of the wrong length panics too, which would let this test pass
         // without ever exercising the genesis check.
         get_or_init_consensus_version_heights(Some(
-            "10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27".to_string(),
+            "10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28".to_string(),
         ));
     }
 

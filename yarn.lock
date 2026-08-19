@@ -3002,12 +3002,12 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@provablehq/sdk@npm:^0.11.6, @provablehq/sdk@workspace:sdk":
+"@provablehq/sdk@npm:^0.11.7, @provablehq/sdk@workspace:sdk":
   version: 0.0.0-use.local
   resolution: "@provablehq/sdk@workspace:sdk"
   dependencies:
     "@arethetypeswrong/cli": "npm:^0.18.2"
-    "@provablehq/wasm": "npm:^0.11.6"
+    "@provablehq/wasm": "npm:^0.11.7"
     "@rollup/plugin-replace": "npm:^6.0.2"
     "@scure/base": "npm:^2.0.0"
     "@serenity-kit/noble-sodium": "npm:0.2.3"
@@ -3041,7 +3041,7 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"@provablehq/wasm@npm:^0.11.6, @provablehq/wasm@workspace:wasm":
+"@provablehq/wasm@npm:^0.11.7, @provablehq/wasm@workspace:wasm":
   version: 0.0.0-use.local
   resolution: "@provablehq/wasm@workspace:wasm"
   dependencies:
@@ -4769,7 +4769,7 @@ __metadata:
     "@babel/core": "npm:^7.29.6"
     "@babel/preset-env": "npm:^7.26.7"
     "@babel/preset-react": "npm:^7.26.3"
-    "@provablehq/sdk": "npm:^0.11.6"
+    "@provablehq/sdk": "npm:^0.11.7"
     "@types/react": "npm:^19.0.8"
     "@types/react-dom": "npm:^19.0.3"
     "@vitejs/plugin-react": "npm:^4.3.4"
@@ -4802,7 +4802,7 @@ __metadata:
     "@babel/core": "npm:^7.29.6"
     "@babel/preset-env": "npm:^7.26.7"
     "@babel/preset-react": "npm:^7.26.3"
-    "@provablehq/sdk": "npm:^0.11.6"
+    "@provablehq/sdk": "npm:^0.11.7"
     "@types/react": "npm:^19.0.8"
     "@types/react-dom": "npm:^19.0.3"
     "@vitejs/plugin-react": "npm:^4.3.4"
@@ -4834,7 +4834,7 @@ __metadata:
     "@babel/preset-env": "npm:^7.26.7"
     "@babel/preset-react": "npm:^7.26.3"
     "@babel/preset-typescript": "npm:^7.26.0"
-    "@provablehq/sdk": "npm:^0.11.6"
+    "@provablehq/sdk": "npm:^0.11.7"
     "@types/babel__generator": "npm:^7.6.8"
     "@types/node": "npm:^22.12.0"
     "@types/react": "npm:^19.0.8"
@@ -4868,7 +4868,7 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "aleo-starter@workspace:create-leo-app/template-vanilla"
   dependencies:
-    "@provablehq/sdk": "npm:^0.11.6"
+    "@provablehq/sdk": "npm:^0.11.7"
     tslib: "npm:^2.8.1"
     vite: "npm:^6.4.3"
   languageName: unknown
@@ -4886,7 +4886,7 @@ __metadata:
     "@codemirror/language": "npm:^6.10.8"
     "@codemirror/legacy-modes": "npm:^6.4.2"
     "@codemirror/stream-parser": "npm:^0.19.9"
-    "@provablehq/sdk": "npm:^0.11.6"
+    "@provablehq/sdk": "npm:^0.11.7"
     "@types/react": "npm:^19.0.8"
     "@types/react-dom": "npm:^19.0.3"
     "@uiw/codemirror-theme-noctis-lilac": "npm:^4.23.7"
@@ -6714,7 +6714,7 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "devnode-starter@workspace:create-leo-app/template-devnode-js"
   dependencies:
-    "@provablehq/sdk": "npm:^0.11.6"
+    "@provablehq/sdk": "npm:^0.11.7"
   languageName: unknown
   linkType: soft
 
@@ -6892,7 +6892,7 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "e2e-dynamic@workspace:e2e/dynamic"
   dependencies:
-    "@provablehq/sdk": "npm:^0.11.6"
+    "@provablehq/sdk": "npm:^0.11.7"
   languageName: unknown
   linkType: soft
 
@@ -6900,7 +6900,7 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "e2e-mainnet@workspace:e2e/mainnet"
   dependencies:
-    "@provablehq/sdk": "npm:^0.11.6"
+    "@provablehq/sdk": "npm:^0.11.7"
   languageName: unknown
   linkType: soft
 
@@ -6908,7 +6908,7 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "e2e-testnet@workspace:e2e/testnet"
   dependencies:
-    "@provablehq/sdk": "npm:^0.11.6"
+    "@provablehq/sdk": "npm:^0.11.7"
   languageName: unknown
   linkType: soft
 
@@ -7649,7 +7649,7 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "extension-starter@workspace:create-leo-app/template-extension"
   dependencies:
-    "@provablehq/sdk": "npm:^0.11.6"
+    "@provablehq/sdk": "npm:^0.11.7"
     "@rollup/plugin-node-resolve": "npm:^16.0.0"
     "@web/rollup-plugin-import-meta-assets": "npm:^2.2.1"
     rimraf: "npm:^6.0.1"
@@ -10326,7 +10326,7 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "node-build-and-execute-authorization-ts-starter@workspace:create-leo-app/template-build-and-execute-authorization-ts"
   dependencies:
-    "@provablehq/sdk": "npm:^0.11.6"
+    "@provablehq/sdk": "npm:^0.11.7"
     rimraf: "npm:^6.0.1"
     rollup: "npm:^4.59.0"
     rollup-plugin-typescript2: "npm:^0.36.0"
@@ -10397,7 +10397,7 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "node-offline-transaction-example@workspace:create-leo-app/template-offline-public-transaction-ts"
   dependencies:
-    "@provablehq/sdk": "npm:^0.11.6"
+    "@provablehq/sdk": "npm:^0.11.7"
     rimraf: "npm:^6.0.1"
     rollup: "npm:^4.59.0"
     rollup-plugin-typescript2: "npm:^0.36.0"
@@ -10416,7 +10416,7 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "node-starter@workspace:create-leo-app/template-node"
   dependencies:
-    "@provablehq/sdk": "npm:^0.11.6"
+    "@provablehq/sdk": "npm:^0.11.7"
   languageName: unknown
   linkType: soft
 
@@ -10424,7 +10424,7 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "node-ts-starter@workspace:create-leo-app/template-node-ts"
   dependencies:
-    "@provablehq/sdk": "npm:^0.11.6"
+    "@provablehq/sdk": "npm:^0.11.7"
     rimraf: "npm:^6.0.1"
     rollup: "npm:^4.59.0"
     rollup-plugin-typescript2: "npm:^0.36.0"
@@ -10436,7 +10436,7 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "node-ts-transfer-private-starter@workspace:create-leo-app/template-private-transaction-ts"
   dependencies:
-    "@provablehq/sdk": "npm:^0.11.6"
+    "@provablehq/sdk": "npm:^0.11.7"
     rimraf: "npm:^6.0.1"
     rollup: "npm:^4.59.0"
     rollup-plugin-typescript2: "npm:^0.36.0"
@@ -10448,7 +10448,7 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "nodenext@workspace:e2e/nodenext"
   dependencies:
-    "@provablehq/sdk": "npm:^0.11.6"
+    "@provablehq/sdk": "npm:^0.11.7"
     typescript: "npm:^5.7.3"
   languageName: unknown
   linkType: soft
@@ -13812,7 +13812,7 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "template-nextjs@workspace:create-leo-app/template-nextjs-ts"
   dependencies:
-    "@provablehq/sdk": "npm:^0.11.6"
+    "@provablehq/sdk": "npm:^0.11.7"
     "@types/node": "npm:^22.12.0"
     "@types/react": "npm:^19.0.8"
     "@types/react-dom": "npm:^19.0.3"
@@ -13828,7 +13828,7 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "template-node-credits-aleo-functions-ts@workspace:create-leo-app/template-node-credits-aleo-functions-ts"
   dependencies:
-    "@provablehq/sdk": "npm:^0.11.6"
+    "@provablehq/sdk": "npm:^0.11.7"
     rimraf: "npm:^6.0.1"
     rollup: "npm:^4.59.0"
     rollup-plugin-typescript2: "npm:^0.36.0"
@@ -13840,7 +13840,7 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "template-node-dynamic-dispatch-proving-ts@workspace:create-leo-app/template-node-dynamic-dispatch-proving-ts"
   dependencies:
-    "@provablehq/sdk": "npm:^0.11.6"
+    "@provablehq/sdk": "npm:^0.11.7"
     rimraf: "npm:^6.0.1"
     rollup: "npm:^4.59.0"
     rollup-plugin-typescript2: "npm:^0.36.0"
@@ -13852,7 +13852,7 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "template-node-dynamic-dispatch-ts@workspace:create-leo-app/template-node-dynamic-dispatch-ts"
   dependencies:
-    "@provablehq/sdk": "npm:^0.11.6"
+    "@provablehq/sdk": "npm:^0.11.7"
     rimraf: "npm:^6.0.1"
     rollup: "npm:^4.59.0"
     rollup-plugin-typescript2: "npm:^0.36.0"
@@ -13864,7 +13864,7 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "template-node-loyalty-program-ts@workspace:create-leo-app/template-node-loyalty-program-ts"
   dependencies:
-    "@provablehq/sdk": "npm:^0.11.6"
+    "@provablehq/sdk": "npm:^0.11.7"
     dotenv: "npm:^16.4.5"
     rimraf: "npm:^6.0.1"
     rollup: "npm:^4.59.0"
@@ -13881,7 +13881,7 @@ __metadata:
     "@babel/preset-env": "npm:^7.26.7"
     "@babel/preset-react": "npm:^7.26.3"
     "@babel/preset-typescript": "npm:^7.26.0"
-    "@provablehq/sdk": "npm:^0.11.6"
+    "@provablehq/sdk": "npm:^0.11.7"
     "@types/babel__generator": "npm:^7.6.8"
     "@types/node": "npm:^22.12.0"
     "@types/react": "npm:^19.0.8"
@@ -13919,7 +13919,7 @@ __metadata:
     "@babel/preset-env": "npm:^7.26.7"
     "@babel/preset-react": "npm:^7.26.3"
     "@babel/preset-typescript": "npm:^7.26.0"
-    "@provablehq/sdk": "npm:^0.11.6"
+    "@provablehq/sdk": "npm:^0.11.7"
     "@types/babel__generator": "npm:^7.6.8"
     "@types/node": "npm:^22.12.0"
     "@types/react": "npm:^19.0.8"
