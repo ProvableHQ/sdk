@@ -32,7 +32,10 @@ use crate::{
     },
 };
 use snarkvm_algorithms::snark::varuna::VarunaVersion;
-use snarkvm_console::{network::Network, prelude::Environment};
+use snarkvm_console::{
+    network::{Network, varuna_version_from_consensus},
+    prelude::Environment,
+};
 use snarkvm_synthesizer::prelude::InclusionVersion;
 
 use js_sys::{Array, Object, Reflect};
@@ -202,6 +205,7 @@ pub fn verify_function_execution(
 
     // Verify the execution.
     let consensus_version = <CurrentNetwork as Network>::CONSENSUS_VERSION(block_height).map_err(|e| e.to_string())?;
+    let varuna_version = varuna_version_from_consensus(consensus_version);
     let inclusion_version =
         if block_height >= <CurrentNetwork as Network>::INCLUSION_UPGRADE_HEIGHT().map_err(|e| e.to_string())? {
             InclusionVersion::V1
@@ -209,14 +213,8 @@ pub fn verify_function_execution(
             InclusionVersion::V0
         };
     let execution_stacks = execution_stacks_for_execution(process, execution)?;
-    ProcessNative::verify_execution(
-        consensus_version,
-        VarunaVersion::V2,
-        inclusion_version,
-        execution,
-        &execution_stacks,
-    )
-    .map_or(Ok(false), |_| Ok(true))
+    ProcessNative::verify_execution(consensus_version, varuna_version, inclusion_version, execution, &execution_stacks)
+        .map_or(Ok(false), |_| Ok(true))
 }
 
 /// Verify a SNARK proof against a verifying key and public inputs.

@@ -276,6 +276,7 @@ macro_rules! execute_fee {
             query.current_block_height_async().await.map_err(|e| e.to_string())?
         };
         let consensus_version = <CurrentNetwork as Network>::CONSENSUS_VERSION(latest_height).map_err(|err| err.to_string())?;
+        let varuna_version = ::snarkvm_console::network::varuna_version_from_consensus(consensus_version);
         let inclusion_upgrade_height = <CurrentNetwork as Network>::INCLUSION_UPGRADE_HEIGHT().map_err(|err| err.to_string())?;
         let inclusion_version = if latest_height >= inclusion_upgrade_height {
             ::snarkvm_synthesizer::prelude::InclusionVersion::V1
@@ -284,10 +285,10 @@ macro_rules! execute_fee {
         };
 
         log("Proving fee execution");
-        let fee = trace.prove_fee::<CurrentAleo, _>(::snarkvm_algorithms::snark::varuna::VarunaVersion::V2, &mut rand::rng()).map_err(|e|e.to_string())?;
+        let fee = trace.prove_fee::<CurrentAleo, _>(varuna_version, &mut rand::rng()).map_err(|e|e.to_string())?;
 
         log("Verifying fee execution");
-        $process.verify_fee(consensus_version, ::snarkvm_algorithms::snark::varuna::VarunaVersion::V2, inclusion_version, &fee, $deployment_or_execution_id).map_err(|e| e.to_string())?;
+        $process.verify_fee(consensus_version, varuna_version, inclusion_version, &fee, $deployment_or_execution_id).map_err(|e| e.to_string())?;
 
         fee
     }}

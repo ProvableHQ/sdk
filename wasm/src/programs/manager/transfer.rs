@@ -39,8 +39,7 @@ use crate::{
         TransactionNative,
     },
 };
-use snarkvm_algorithms::snark::varuna::VarunaVersion;
-use snarkvm_console::prelude::Network;
+use snarkvm_console::{network::varuna_version_from_consensus, prelude::Network};
 use snarkvm_ledger_query::QueryTrait;
 use snarkvm_synthesizer::prelude::{InclusionVersion, execution_cost};
 use snarkvm_synthesizer_program::StackTrait;
@@ -196,15 +195,18 @@ impl ProgramManager {
             q.current_block_height_async().await.map_err(|e| e.to_string())?
         };
 
+        // Determine the consensus and Varuna versions from the latest block height.
+        let consensus_version =
+            <CurrentNetwork as Network>::CONSENSUS_VERSION(latest_height).map_err(|err| err.to_string())?;
+        let varuna_version = varuna_version_from_consensus(consensus_version);
+
         log("Proving the transfer execution");
         let locator = format!("credits.aleo/{transfer_type}");
         let execution =
-            trace.prove_execution::<CurrentAleo, _>(&locator, VarunaVersion::V2, rng).map_err(|e| e.to_string())?;
+            trace.prove_execution::<CurrentAleo, _>(&locator, varuna_version, rng).map_err(|e| e.to_string())?;
         let execution_id = execution.to_execution_id().map_err(|e| e.to_string())?;
 
         log("Verifying the transfer execution");
-        let consensus_version =
-            <CurrentNetwork as Network>::CONSENSUS_VERSION(latest_height).map_err(|err| err.to_string())?;
         let inclusion_upgrade_height =
             <CurrentNetwork as Network>::INCLUSION_UPGRADE_HEIGHT().map_err(|err| err.to_string())?;
         let inclusion_version =
@@ -212,7 +214,7 @@ impl ProgramManager {
         let execution_stacks = execution_stacks_for_execution(process, &execution)?;
         ProcessNative::verify_execution(
             consensus_version,
-            VarunaVersion::V2,
+            varuna_version,
             inclusion_version,
             &execution,
             &execution_stacks,
