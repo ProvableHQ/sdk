@@ -148,11 +148,53 @@ describe("RecordScanner auth modes", () => {
         expect(scanCall.headers["x-provable-api-key"]).to.equal("legacy-key");
     });
 
+    it("throws at construction when explicit auth is combined with a legacy apiKey", () => {
+        expect(() => new RecordScanner({
+            url: "https://edge.example/api/scanner",
+            auth: { mode: "none" },
+            apiKey: "leftover-key",
+        })).to.throw(/not both/);
+    });
+
+    it("rejects legacy mutators once an explicit auth mode is set", () => {
+        const scanner = new RecordScanner({
+            url: "https://edge.example/api/scanner",
+            auth: { mode: "api-key", value: "edge-key" },
+        });
+        expect(() => scanner.setConsumerId("cid")).to.throw(/setAuth/);
+        expect(() => scanner.setApiKey("k")).to.throw(/setAuth/);
+    });
+
     it("throws at construction for api-key auth combined with a consumerId", () => {
         expect(() => new RecordScanner({
             url: "https://edge.example/api/scanner",
             apiKey: { header: "X-API-Key", value: "edge-key" },
             consumerId: "cid",
         })).to.throw(/consumerId/);
+    });
+});
+
+describe("AleoNetworkClient explicit jwt auth", () => {
+    it("reuses the cached JWT across proving submissions instead of re-minting", async () => {
+        const { AleoNetworkClient } = await import("../src/node");
+        const calls: Call[] = [];
+        const exp = Math.floor(Date.now() / 1000) + 3600;
+        const transport = stubTransport(calls, (url) =>
+            url.includes("/jwts/") ? jwtMintResponse("Bearer minted", exp) : new Response("{}", { status: 200 }));
+        const client = new AleoNetworkClient("https://api.example/v2", {
+            transport,
+            auth: { mode: "jwt", apiKey: "key", consumerId: "cid" },
+        });
+        // The proving request is garbage on purpose: parsing happens after the
+        // auth headers resolve, so each attempt still exercises one auth cycle.
+        for (let attempt = 0; attempt < 2; attempt++) {
+            try {
+                await client.submitProvingRequestSafe({ provingRequest: "not-a-proving-request" });
+            } catch {
+                // parse failure expected
+            }
+        }
+        const mints = calls.filter((c) => c.url.includes("/jwts/"));
+        expect(mints).to.have.length(1);
     });
 });

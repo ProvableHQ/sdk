@@ -162,7 +162,10 @@ class RecordScanner implements RecordProvider {
             this.addViewKey(this.account.viewKey());
         }
 
-        // Configure authentication options.
+        // Configure authentication options. Validated up front so an explicit
+        // auth combined with the legacy fields throws instead of the legacy key
+        // leaking onto requests the explicit mode should own.
+        normalizeAuthConfig(options);
         this.explicitAuth = options.auth;
         this.legacyApiKey = options.apiKey;
         this.consumerId = options.consumerId;
@@ -208,7 +211,9 @@ class RecordScanner implements RecordProvider {
      * @param {string | { header: string, value: string }} apiKey The API key to use for the record scanner.
      */
     setApiKey(apiKey: string | { header: string, value: string }) {
-        this.explicitAuth = undefined;
+        if (this.explicitAuth) {
+            throw new Error("This scanner uses an explicit auth mode — replace it with setAuth instead of the legacy setApiKey");
+        }
         this.legacyApiKey = apiKey;
         this.auth = this.buildAuth(this.auth.getJwtData());
     }
@@ -231,7 +236,9 @@ class RecordScanner implements RecordProvider {
      * @param {string} consumerId The consumer ID to use for JWT refresh.
      */
     setConsumerId(consumerId: string) {
-        this.explicitAuth = undefined;
+        if (this.explicitAuth) {
+            throw new Error("This scanner uses an explicit auth mode — replace it with setAuth instead of the legacy setConsumerId");
+        }
         this.consumerId = consumerId;
         this.auth = this.buildAuth(this.auth.getJwtData());
     }

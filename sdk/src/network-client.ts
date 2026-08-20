@@ -1879,6 +1879,11 @@ class AleoNetworkClient {
             jwtData: options.jwtData ?? this.jwtData,
         });
         const auth = new ApiAuth(config, this.baseUrl, this.transport, this.method("refreshJwt"));
+        // Seed the cached token so an explicit jwt config reuses it until the
+        // refresh window instead of minting on every request.
+        if (config.mode === "jwt" && !config.jwtData && this.jwtData) {
+            auth.setJwtData(this.jwtData);
+        }
 
         // Resolves the auth headers, which refreshes the JWT when it is stale. Runs before
         // parsing the proving request so JWT refresh errors propagate as they always have.
