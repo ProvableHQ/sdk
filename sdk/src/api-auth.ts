@@ -59,21 +59,37 @@ export function normalizeAuthConfig(options: LegacyAuthOptions): ApiAuthConfig {
         if (options.apiKey !== undefined || options.consumerId !== undefined || options.jwtData !== undefined) {
             throw new Error("Pass either `auth` or the legacy apiKey/consumerId/jwtData options, not both");
         }
-        if (options.auth.mode === "api-key" && !options.auth.value) {
-            throw new Error("api-key auth mode requires a key value. Keys are provisioned, not registered — supply one.");
-        }
+        validateKeyed(options.auth);
         return options.auth;
     }
     if (typeof options.apiKey === "object" && options.apiKey !== null) {
         if (options.consumerId !== undefined) {
             throw new Error("A custom-header apiKey cannot be combined with consumerId — keyed auth has no consumer. Use a string apiKey for JWT auth.");
         }
-        return { mode: "api-key", value: options.apiKey.value, header: options.apiKey.header };
+        const config: ApiAuthConfig = { mode: "api-key", value: options.apiKey.value, header: options.apiKey.header };
+        validateKeyed(config);
+        return config;
     }
     if (options.apiKey !== undefined || options.consumerId !== undefined || options.jwtData !== undefined) {
         return { mode: "jwt", apiKey: options.apiKey, consumerId: options.consumerId, jwtData: options.jwtData };
     }
     return { mode: "none" };
+}
+
+/**
+ * Rejects api-key configurations that would emit an empty or nameless header.
+ *
+ * @param config Any auth configuration; only the api-key mode has anything to check.
+ * @throws When the key value is empty, or a custom header name is given but empty.
+ */
+function validateKeyed(config: ApiAuthConfig): void {
+    if (config.mode !== "api-key") return;
+    if (!config.value) {
+        throw new Error("api-key auth mode requires a key value. Keys are provisioned, not registered — supply one.");
+    }
+    if (config.header !== undefined && !config.header) {
+        throw new Error("api-key auth header must be a non-empty header name when given.");
+    }
 }
 
 /**

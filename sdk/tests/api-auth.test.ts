@@ -51,6 +51,11 @@ describe("normalizeAuthConfig", () => {
         })).to.throw(/not both/);
     });
 
+    it("throws for a legacy custom-header apiKey with an empty value or header", () => {
+        expect(() => normalizeAuthConfig({ apiKey: { header: "X-API-Key", value: "" } })).to.throw(/provisioned/);
+        expect(() => normalizeAuthConfig({ apiKey: { header: "", value: "edge-key" } })).to.throw(/non-empty header/);
+    });
+
     it("throws when api-key mode has no value", () => {
         expect(() => normalizeAuthConfig({ auth: { mode: "api-key", value: "" } })).to.throw(/provisioned/);
     });
@@ -148,6 +153,11 @@ describe("RecordScanner auth modes", () => {
         expect(scanCall.headers["x-provable-api-key"]).to.equal("legacy-key");
     });
 
+    it("setAuth rejects an api-key config with an empty value", () => {
+        const scanner = new RecordScanner({ url: "https://edge.example/api/scanner" });
+        expect(() => scanner.setAuth({ mode: "api-key", value: "" })).to.throw(/provisioned/);
+    });
+
     it("throws at construction when explicit auth is combined with a legacy apiKey", () => {
         expect(() => new RecordScanner({
             url: "https://edge.example/api/scanner",
@@ -222,5 +232,28 @@ describe("AleoNetworkClient explicit jwt auth", () => {
             "https://api.example/jwts/consumer-a",
             "https://api.example/jwts/consumer-b",
         ]);
+    });
+
+    it("rejects an empty api-key value at construction", async () => {
+        const { AleoNetworkClient } = await import("../src/node");
+        expect(() => new AleoNetworkClient("https://api.example/v2", {
+            auth: { mode: "api-key", value: "" },
+        })).to.throw(/provisioned/);
+    });
+
+    it("rejects per-request auth mixed with per-request legacy fields", async () => {
+        const { AleoNetworkClient } = await import("../src/node");
+        const client = new AleoNetworkClient("https://api.example/v2", { transport: stubTransport([]) });
+        let error: unknown;
+        try {
+            await client.submitProvingRequestSafe({
+                provingRequest: "not-a-proving-request",
+                auth: { mode: "api-key", value: "edge-key" },
+                apiKey: "legacy-key",
+            });
+        } catch (e) {
+            error = e;
+        }
+        expect(String(error)).to.match(/not both/);
     });
 });

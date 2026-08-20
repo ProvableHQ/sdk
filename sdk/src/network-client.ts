@@ -149,8 +149,10 @@ class AleoNetworkClient {
                 this.recordScannerUri = options.recordScannerUri + "/%%NETWORK%%";
             }
 
-            // If an explicit auth mode was specified, set it.
+            // If an explicit auth mode was specified, validate and set it, so a
+            // bad key fails here rather than on the first proving request.
             if (options.auth) {
+                normalizeAuthConfig({ auth: options.auth });
                 this.auth = options.auth;
             }
         } else {
@@ -1876,6 +1878,11 @@ class AleoNetworkClient {
         const proverUri = (options.url ?? this.proverUri) ?? this.host;
 
         // Resolve the auth mode: per-request, then client-wide, then the legacy fields.
+        // Mixing an explicit per-request auth with per-request legacy fields is
+        // ambiguous, so it throws — matching normalizeAuthConfig and RecordScanner.
+        if (options.auth && (options.apiKey !== undefined || options.consumerId !== undefined || options.jwtData !== undefined)) {
+            throw new Error("Pass either `auth` or the legacy apiKey/consumerId/jwtData options, not both");
+        }
         const config = options.auth ?? this.auth ?? normalizeAuthConfig({
             apiKey: options.apiKey ?? this.apiKey,
             consumerId: options.consumerId ?? this.consumerId,

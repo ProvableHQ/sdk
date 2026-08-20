@@ -224,6 +224,7 @@ class RecordScanner implements RecordProvider {
      * @param {ApiAuthConfig} auth The auth mode and its material.
      */
     setAuth(auth: ApiAuthConfig) {
+        normalizeAuthConfig({ auth });
         this.explicitAuth = auth;
         this.legacyApiKey = undefined;
         this.consumerId = undefined;
