@@ -1,4 +1,5 @@
 import { logger } from "./utils/logger.js";
+import { ApiAuth, ApiAuthConfig, normalizeAuthConfig } from "./api-auth.js";
 import { get, post, parseJSON, logAndThrow, retryWithBackoff, environment, isNode, TransportFunction, defaultTransport } from "./utils/utils.js";
 import { Account } from "./account.js";
 import { BlockJSON } from "./models/blockJSON.js";
@@ -25,7 +26,6 @@ import {
 import { CryptoBoxPubKey } from "./models/cryptoBoxPubkey.js";
 import { EncryptedProvingRequest } from "./models/encryptedProvingRequest.js";
 import { encryptProvingRequest } from "./security.js"
-import { FIVE_MINUTES } from "./constants.js";
 
 type ProgramImports = { [key: string]: string | Program };
 
@@ -34,6 +34,11 @@ interface AleoNetworkClientOptions {
     proverUri?: string;
     recordScannerUri?: string;
     transport?: TransportFunction;
+    /**
+     * Explicit auth mode: `jwt` (api.provable.com), `api-key` (edge.provable.com), or `none`.
+     * Wins over the legacy apiKey/consumerId/jwtData fields.
+     */
+    auth?: ApiAuthConfig;
 }
 
 /**
@@ -59,6 +64,8 @@ interface JWTData {
 interface DelegatedProvingParams {
   provingRequest: ProvingRequest | string;
   url?: string;
+  /** Explicit auth mode for this request. Wins over the legacy fields below and the client's. */
+  auth?: ApiAuthConfig;
   apiKey?: string;
   consumerId?: string;
   jwtData?: JWTData;
@@ -100,9 +107,13 @@ class AleoNetworkClient {
     readonly network: string;
     transport: TransportFunction;
     hasCustomTransport: boolean;
+    auth?: ApiAuthConfig;
     apiKey?: string;
     consumerId?: string;
     jwtData?: JWTData;
+    // The consumer the cached jwtData was minted for, so the cache is never
+    // reused for a different identity on a shared client.
+    private jwtConsumerId?: string;
     proverUri?: string;
     recordScannerUri?: string;
 
@@ -136,6 +147,13 @@ class AleoNetworkClient {
             // If a record scanner uri was specified, set the record scanner uri.
             if (options.recordScannerUri) {
                 this.recordScannerUri = options.recordScannerUri + "/%%NETWORK%%";
+            }
+
+            // If an explicit auth mode was specified, validate and set it, so a
+            // bad key fails here rather than on the first proving request.
+            if (options.auth) {
+                normalizeAuthConfig({ auth: options.auth });
+                this.auth = options.auth;
             }
         } else {
             this.headers = {
@@ -1793,40 +1811,6 @@ class AleoNetworkClient {
     }
 
     /**
-     * Refreshes the JWT by making a POST request to /jwts/{consumer_id}
-     * 
-     * @param {string} apiKey - The API key for authentication.
-     * @param {string} consumerId - The consumer ID associated with the API key.
-     * @returns {Promise<JwtData>} The JWT token and expiration time
-     */
-    private async refreshJwt(apiKey: string, consumerId: string): Promise<JWTData> {
-        if (!apiKey || !consumerId) {
-            throw new Error('API key and consumer ID are required to refresh JWT');
-        }
-        const response = await post(
-            `${this.baseUrl}/jwts/${consumerId}`,
-            {
-                headers: {
-                    ...this.method("refreshJwt"),
-                    'X-Provable-API-Key': apiKey,
-                }
-            },
-            this.transport,
-        );
-        const authHeader = response.headers.get('authorization');
-        if (!authHeader) {
-            throw new Error('No authorization header in JWT refresh response');
-        }
-        const body = await response.json();
-        
-        return {
-            jwt: authHeader,
-            expiration: body.exp * 1000 // Convert to milliseconds
-        };
-    }
-
-
-    /**
      * Parses a /prove/authorization or /prove/request response. Returns a result object (never throws for 200/400/500/503).
      */
     private async handleProvingResponse(response: Response): Promise<ProvingResult> {
@@ -1893,32 +1877,42 @@ class AleoNetworkClient {
         // Attempt to get the Prover URI first from the options, then from any configured globally, or third try the main configured host.
         const proverUri = (options.url ?? this.proverUri) ?? this.host;
 
-        // Try to get JWT data to access the Provable API.
-        const apiKey = options.apiKey ?? this.apiKey;
-        const consumerId = options.consumerId ?? this.consumerId;
-        let jwtData = options.jwtData ?? this.jwtData;
+        // Resolve the auth mode: per-request, then client-wide, then the legacy fields.
+        // Mixing an explicit per-request auth with per-request legacy fields is
+        // ambiguous, so it throws — matching normalizeAuthConfig and RecordScanner.
+        if (options.auth && (options.apiKey !== undefined || options.consumerId !== undefined || options.jwtData !== undefined)) {
+            throw new Error("Pass either `auth` or the legacy apiKey/consumerId/jwtData options, not both");
+        }
+        const config = options.auth ?? this.auth ?? normalizeAuthConfig({
+            apiKey: options.apiKey ?? this.apiKey,
+            consumerId: options.consumerId ?? this.consumerId,
+            jwtData: options.jwtData ?? this.jwtData,
+        });
+        const auth = new ApiAuth(config, this.baseUrl, this.transport, this.method("refreshJwt"));
+        // Seed the cached token so an explicit jwt config reuses it until the
+        // refresh window instead of minting on every request — but only for the
+        // consumer that minted it, so per-request credentials on a shared
+        // client never ride another identity's token.
+        if (config.mode === "jwt" && !config.jwtData && this.jwtData && config.consumerId === this.jwtConsumerId) {
+            auth.setJwtData(this.jwtData);
+        }
 
-        // Check to see if the JWT needs refreshing. Runs before parsing the
-        // proving request so JWT refresh errors propagate as they always have.
-        const isExpired = jwtData && Date.now() >= jwtData.expiration - FIVE_MINUTES;
-        if (!jwtData || isExpired) {
-            if (apiKey && consumerId) {
-                jwtData = await this.refreshJwt(apiKey!, consumerId!);
-                this.jwtData = jwtData;
-                options.jwtData = jwtData;
-            } else {
-                logger.warn('JWT or both apiKey and consumerId are required when using the Provable API');
-            }
+        // Resolves the auth headers, which refreshes the JWT when it is stale. Runs before
+        // parsing the proving request so JWT refresh errors propagate as they always have.
+        const authHeaders = await auth.headers();
+        const jwtData = auth.getJwtData();
+        if (config.mode === "jwt" && jwtData) {
+            this.jwtData = jwtData;
+            this.jwtConsumerId = config.consumerId;
+            options.jwtData = jwtData;
         }
 
         // Create the necessary headers to hit the provable api.
         const headers: Record<string, string> = {
             ...this.method("submitProvingRequest"),
             "Content-Type": "application/json",
+            ...authHeaders,
         };
-        if (jwtData?.jwt) {
-            headers["Authorization"] = jwtData.jwt;
-        }
 
         // Send the proving request encrypted (libsodium-compatible sealed box).
         // Used by both `/prove/authorization` (Authorization variant) and

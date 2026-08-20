@@ -1,4 +1,5 @@
 import { logger } from "./utils/logger.js";
+import { ApiAuth, ApiAuthConfig, normalizeAuthConfig } from "./api-auth.js";
 import { parseJSON, post, TransportFunction, defaultTransport } from "./utils/utils.js";
 import { EncryptedRecord } from "./models/record-provider/encryptedRecord.js";
 import { CryptoBoxPubKey } from "./models/cryptoBoxPubkey.js";
@@ -24,7 +25,7 @@ import { SerialNumbersResult } from "./models/record-scanner/serialNumbersResult
 import { StatusResult } from "./models/record-scanner/statusResult.js";
 import { OwnedRecordsResult } from "./models/record-scanner/ownedRecordsResult.js";
 import { EncryptedRecordsResult } from "./models/record-scanner/encryptedRecordsResult.js";
-import { RECORD_DOMAIN, FIVE_MINUTES } from "./constants.js";
+import { RECORD_DOMAIN } from "./constants.js";
 import { encryptRegistrationRequest } from "./security.js";
 import { Account } from "./account.js";
 
@@ -43,9 +44,10 @@ export interface RecordScannerJWTData {
  * Configuration for the record scanner.
  *
  * @property {string} url Base URL of the record scanning service (network path is appended by the SDK).
- * @property {string | { header: string, value: string }} [apiKey] API key as a string or as a custom header name and value.
- * @property {string} [consumerId] Required for JWT refresh when using authenticated record scanner (e.g. Provable API).
- * @property {RecordScannerJWTData} [jwtData] Optional JWT for auth. If omitted and apiKey + consumerId are set, JWT is refreshed when needed.
+ * @property {ApiAuthConfig} [auth] Explicit auth mode: `jwt` (api.provable.com), `api-key` (edge.provable.com), or `none`. Wins over the legacy fields below, which cannot be combined with it.
+ * @property {string | { header: string, value: string }} [apiKey] Legacy: API key as a string (JWT auth) or as a custom header name and value (keyed auth).
+ * @property {string} [consumerId] Legacy: required for JWT refresh when using authenticated record scanner (e.g. Provable API).
+ * @property {RecordScannerJWTData} [jwtData] Legacy: optional JWT for auth. If omitted and apiKey + consumerId are set, JWT is refreshed when needed.
  * @property {ViewKey[]} [viewKeys] Optional view keys to use for local scanning and decryption.
  * @property {Account} [account] Optional account to use for local scanning and decryption.
  * @property {boolean} [cacheViewKeysOnRegister] Cache view keys in memory for faster scanning upon register.
@@ -54,6 +56,7 @@ export interface RecordScannerJWTData {
  */
 export interface RecordScannerOptions {
     url: string;
+    auth?: ApiAuthConfig;
     apiKey?: string | { header: string, value: string };
     consumerId?: string;
     jwtData?: RecordScannerJWTData;
@@ -112,9 +115,10 @@ class RecordScanner implements RecordProvider {
     readonly cacheViewKeysOnRegister?: boolean;
     readonly url: string;
     private readonly baseUrl: string;
-    private apiKey?: { header: string, value: string };
+    private auth: ApiAuth;
+    private explicitAuth?: ApiAuthConfig;
+    private legacyApiKey?: string | { header: string, value: string };
     private consumerId?: string;
-    private jwtData?: RecordScannerJWTData;
     private uuid?: Field;
     private viewKeys?: { [key: string]: ViewKey };
     private autoReRegister?: boolean;
@@ -158,15 +162,47 @@ class RecordScanner implements RecordProvider {
             this.addViewKey(this.account.viewKey());
         }
 
-        // Configure authentication options.
-        this.apiKey = typeof options.apiKey === "string" ? {
-            header: "X-Provable-API-Key",
-            value: options.apiKey
-        } : options.apiKey;
+        // Configure authentication options. Validated up front so an explicit
+        // auth combined with the legacy fields throws instead of the legacy key
+        // leaking onto requests the explicit mode should own.
+        normalizeAuthConfig(options);
+        this.explicitAuth = options.auth;
+        this.legacyApiKey = options.apiKey;
         this.consumerId = options.consumerId;
-        this.jwtData = options.jwtData;
+        this.auth = this.buildAuth(options.jwtData);
         this.autoReRegister = options.autoReRegister;
         this.decryptEnabled = options.decryptEnabled;
+    }
+
+    /**
+     * Builds the ApiAuth for the current auth configuration. An explicit `auth` option wins;
+     * the legacy apiKey/consumerId fields normalize onto a mode otherwise.
+     *
+     * @param {RecordScannerJWTData} [jwtData] JWT to carry into the rebuilt auth.
+     * @returns {ApiAuth} The auth for the current configuration.
+     */
+    private buildAuth(jwtData?: RecordScannerJWTData): ApiAuth {
+        const config = this.explicitAuth ?? normalizeAuthConfig({
+            apiKey: this.legacyApiKey,
+            consumerId: this.consumerId,
+            jwtData,
+        });
+        const auth = new ApiAuth(config, this.baseUrl, this.transport);
+        if (jwtData) auth.setJwtData(jwtData);
+        return auth;
+    }
+
+    /**
+     * Legacy raw-key header echoed on every request alongside the mode's own headers, matching
+     * the pre-mode wire behavior when the legacy apiKey option is used.
+     *
+     * @returns {{ header: string, value: string } | undefined} The raw key header, when a legacy apiKey is set.
+     */
+    private rawKeyHeader(): { header: string, value: string } | undefined {
+        if (this.legacyApiKey === undefined) return undefined;
+        return typeof this.legacyApiKey === "string"
+            ? { header: "X-Provable-API-Key", value: this.legacyApiKey }
+            : this.legacyApiKey;
     }
 
     /**
@@ -175,7 +211,24 @@ class RecordScanner implements RecordProvider {
      * @param {string | { header: string, value: string }} apiKey The API key to use for the record scanner.
      */
     setApiKey(apiKey: string | { header: string, value: string }) {
-        this.apiKey = typeof apiKey === "string" ? { header: "X-Provable-API-Key", value: apiKey } : apiKey;
+        if (this.explicitAuth) {
+            throw new Error("This scanner uses an explicit auth mode — replace it with setAuth instead of the legacy setApiKey");
+        }
+        this.legacyApiKey = apiKey;
+        this.auth = this.buildAuth(this.auth.getJwtData());
+    }
+
+    /**
+     * Set the explicit auth mode, replacing any legacy apiKey/consumerId configuration.
+     *
+     * @param {ApiAuthConfig} auth The auth mode and its material.
+     */
+    setAuth(auth: ApiAuthConfig) {
+        normalizeAuthConfig({ auth });
+        this.explicitAuth = auth;
+        this.legacyApiKey = undefined;
+        this.consumerId = undefined;
+        this.auth = this.buildAuth();
     }
 
     /**
@@ -184,7 +237,11 @@ class RecordScanner implements RecordProvider {
      * @param {string} consumerId The consumer ID to use for JWT refresh.
      */
     setConsumerId(consumerId: string) {
+        if (this.explicitAuth) {
+            throw new Error("This scanner uses an explicit auth mode — replace it with setAuth instead of the legacy setConsumerId");
+        }
         this.consumerId = consumerId;
+        this.auth = this.buildAuth(this.auth.getJwtData());
     }
 
     /**
@@ -193,7 +250,7 @@ class RecordScanner implements RecordProvider {
      * @param {RecordScannerJWTData | undefined} jwtData The JWT data to use, or undefined to clear.
      */
     setJwtData(jwtData: RecordScannerJWTData | undefined) {
-        this.jwtData = jwtData;
+        this.auth.setJwtData(jwtData);
     }
 
     /**
@@ -271,57 +328,6 @@ class RecordScanner implements RecordProvider {
         }
     }
 
-    /**
-     * Refreshes the JWT by making a POST request to /jwts/{consumer_id}. Used when authentication is required.
-     *
-     * @param {string} apiKey The API key to use for the refresh request.
-     * @param {string} consumerId The consumer ID for the JWT endpoint.
-     * @returns {Promise<RecordScannerJWTData>} The new JWT data.
-     */
-    private async refreshJwt(apiKey: string, consumerId: string): Promise<RecordScannerJWTData> {
-        const response = await post(
-            `${this.baseUrl}/jwts/${consumerId}`,
-            {
-                headers: {
-                    "X-Provable-API-Key": apiKey,
-                },
-            },
-            this.transport,
-        );
-        const authHeader = response.headers.get("authorization");
-        if (!authHeader) {
-            throw new Error("No authorization header in JWT refresh response");
-        }
-        const body = await response.json();
-        return {
-            jwt: authHeader,
-            expiration: body.exp * 1000, // Convert to milliseconds
-        };
-    }
-
-    /**
-     * Returns auth headers (e.g. Authorization with JWT). Refreshes JWT if expired and apiKey + consumerId are set. Empty when auth is not configured.
-     *
-     * @returns {Promise<Record<string, string>>} Auth headers to add to requests, or empty object when not configured.
-     */
-    private async getAuthHeaders(): Promise<Record<string, string>> {
-        let jwtData = this.jwtData;
-        // Consider JWT expired a few minutes early to avoid race at boundary.
-        const isExpired = jwtData && Date.now() >= jwtData.expiration - FIVE_MINUTES;
-        if (!jwtData || isExpired) {
-            const apiKey = this.apiKey?.value;
-            if (apiKey && this.consumerId) {
-                jwtData = await this.refreshJwt(apiKey, this.consumerId);
-                this.jwtData = jwtData;
-            } else if (jwtData?.jwt) {
-                // Use existing JWT even if expired when refresh is not possible.
-                return { Authorization: jwtData.jwt };
-            } else {
-                return {};
-            }
-        }
-        return jwtData?.jwt ? { Authorization: jwtData.jwt } : {};
-    }
 
     /**
      * Set the UUID for the record scanner.
@@ -878,13 +884,15 @@ class RecordScanner implements RecordProvider {
      */
     private async request(req: Request): Promise<Response> {
         try {
-            // Attach JWT (if configured) and API key before sending.
-            const authHeaders = await this.getAuthHeaders();
+            // Attach the mode's auth headers before sending.
+            const authHeaders = await this.auth.headers();
             for (const [key, value] of Object.entries(authHeaders)) {
                 req.headers.set(key, value);
             }
-            if (this.apiKey) {
-                req.headers.set(this.apiKey.header, this.apiKey.value);
+            // Legacy apiKey callers also got their raw key echoed on every request.
+            const rawKey = this.rawKeyHeader();
+            if (rawKey) {
+                req.headers.set(rawKey.header, rawKey.value);
             }
             const body = req.body ? await req.text() : undefined;
             const plainHeaders: Record<string, string> = {};

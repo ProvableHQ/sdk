@@ -101,6 +101,7 @@ import {
     RecordProvider,
 } from "./record-provider.js";
 import { RecordScanner, RecordScannerJWTData, RecordScannerOptions } from "./record-scanner.js";
+import { ApiAuth, ApiAuthConfig, DEFAULT_API_KEY_HEADER, normalizeAuthConfig } from "./api-auth.js";
 import { SealanceMerkleTree } from "./integrations/sealance/merkle-tree.js";
 import { generateHookData } from "./integrations/circle/hook-data.js";
 
@@ -277,6 +278,10 @@ export {
     ProvingResult,
     ProvingSuccess,
     ProvingResponse,
+    ApiAuth,
+    ApiAuthConfig,
+    DEFAULT_API_KEY_HEADER,
+    normalizeAuthConfig,
     RatificationJSON,
     RecordsFilter,
     RecordsResponseFilter,
