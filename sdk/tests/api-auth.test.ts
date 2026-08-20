@@ -75,9 +75,11 @@ describe("ApiAuth", () => {
         expect(await auth.headers()).to.deep.equal({ "X-Edge-Key": "k" });
     });
 
-    it("none mode sends nothing", async () => {
+    it("none mode sends nothing until a token is injected, then sends it", async () => {
         const auth = new ApiAuth({ mode: "none" }, "https://api.example", stubTransport([]));
         expect(await auth.headers()).to.deep.equal({});
+        auth.setJwtData({ jwt: "Bearer injected", expiration: Date.now() + 3600_000 });
+        expect(await auth.headers()).to.deep.equal({ Authorization: "Bearer injected" });
     });
 
     it("jwt mode mints once at /jwts/{consumerId} and reuses the fresh token", async () => {
@@ -151,6 +153,19 @@ describe("RecordScanner auth modes", () => {
         const scanCall = calls[1];
         expect(scanCall.headers["authorization"]).to.equal("Bearer minted");
         expect(scanCall.headers["x-provable-api-key"]).to.equal("legacy-key");
+    });
+
+    it("a credential-less scanner sends a session-injected JWT and never mints", async () => {
+        const calls: Call[] = [];
+        const scanner = new RecordScanner({
+            url: "https://api.example/scanner",
+            transport: stubTransport(calls, () => new Response(JSON.stringify({ height: 1 }), { status: 200 })),
+        });
+        scanner.setJwtData({ jwt: "Bearer session-token", expiration: Date.now() + 3600_000 });
+        await scanner.status("123field");
+        expect(calls).to.have.length(1);
+        expect(calls[0].headers["authorization"]).to.equal("Bearer session-token");
+        expect(calls[0].url).to.not.include("/jwts/");
     });
 
     it("setAuth rejects an api-key config with an empty value", () => {

@@ -25,7 +25,9 @@ export const DEFAULT_API_KEY_HEADER = "X-API-Key";
  * - `api-key` (edge.provable.com): a provisioned key is sent verbatim on every request in a
  *   header (default `X-API-Key`). There is no registration, minting, or refresh in this mode;
  *   a 401 means the key is invalid or revoked and retrying cannot help.
- * - `none`: requests carry no auth headers.
+ * - `none`: requests carry no auth headers of their own. A token injected via
+ *   `setJwtData` is still sent — the session-driven pattern, where an external
+ *   session owns minting and hands a fresh token in before each request.
  */
 export type ApiAuthConfig =
     | { mode: "jwt"; apiKey?: string; consumerId?: string; jwtData?: JWTData }
@@ -147,9 +149,13 @@ export class ApiAuth {
      * both a usable token and the material to mint one.
      */
     async headers(): Promise<Record<string, string>> {
-        if (this.config.mode === "none") return {};
         if (this.config.mode === "api-key") {
             return { [this.config.header ?? DEFAULT_API_KEY_HEADER]: this.config.value };
+        }
+        if (this.config.mode === "none") {
+            // A token injected via setJwtData authenticates even without mint
+            // material: an external session owns minting and hands tokens in.
+            return this.jwtData?.jwt ? { Authorization: this.jwtData.jwt } : {};
         }
         const stale = !this.jwtData || Date.now() >= this.jwtData.expiration - FIVE_MINUTES;
         if (stale) {
