@@ -111,6 +111,9 @@ class AleoNetworkClient {
     apiKey?: string;
     consumerId?: string;
     jwtData?: JWTData;
+    // The consumer the cached jwtData was minted for, so the cache is never
+    // reused for a different identity on a shared client.
+    private jwtConsumerId?: string;
     proverUri?: string;
     recordScannerUri?: string;
 
@@ -1880,8 +1883,10 @@ class AleoNetworkClient {
         });
         const auth = new ApiAuth(config, this.baseUrl, this.transport, this.method("refreshJwt"));
         // Seed the cached token so an explicit jwt config reuses it until the
-        // refresh window instead of minting on every request.
-        if (config.mode === "jwt" && !config.jwtData && this.jwtData) {
+        // refresh window instead of minting on every request — but only for the
+        // consumer that minted it, so per-request credentials on a shared
+        // client never ride another identity's token.
+        if (config.mode === "jwt" && !config.jwtData && this.jwtData && config.consumerId === this.jwtConsumerId) {
             auth.setJwtData(this.jwtData);
         }
 
@@ -1891,6 +1896,7 @@ class AleoNetworkClient {
         const jwtData = auth.getJwtData();
         if (config.mode === "jwt" && jwtData) {
             this.jwtData = jwtData;
+            this.jwtConsumerId = config.consumerId;
             options.jwtData = jwtData;
         }
 

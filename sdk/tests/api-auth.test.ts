@@ -197,4 +197,30 @@ describe("AleoNetworkClient explicit jwt auth", () => {
         const mints = calls.filter((c) => c.url.includes("/jwts/"));
         expect(mints).to.have.length(1);
     });
+
+    it("mints a fresh JWT when per-request auth names a different consumer", async () => {
+        const { AleoNetworkClient } = await import("../src/node");
+        const calls: Call[] = [];
+        const exp = Math.floor(Date.now() / 1000) + 3600;
+        const transport = stubTransport(calls, (url) =>
+            url.includes("/jwts/") ? jwtMintResponse("Bearer minted", exp) : new Response("{}", { status: 200 }));
+        const client = new AleoNetworkClient("https://api.example/v2", {
+            transport,
+            auth: { mode: "jwt", apiKey: "key-a", consumerId: "consumer-a" },
+        });
+        const submit = async (auth?: any) => {
+            try {
+                await client.submitProvingRequestSafe({ provingRequest: "not-a-proving-request", ...(auth ? { auth } : {}) });
+            } catch {
+                // parse failure expected
+            }
+        };
+        await submit();
+        await submit({ mode: "jwt", apiKey: "key-b", consumerId: "consumer-b" });
+        const mints = calls.filter((c) => c.url.includes("/jwts/")).map((c) => c.url);
+        expect(mints).to.deep.equal([
+            "https://api.example/jwts/consumer-a",
+            "https://api.example/jwts/consumer-b",
+        ]);
+    });
 });
