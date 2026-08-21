@@ -7,7 +7,7 @@
     "build": "rimraf static/js && rollup --config"
   },
   "devDependencies": {
-    "@provablehq/sdk": "^0.11.8",
+    "@provablehq/sdk": "^0.11.9",
     "@rollup/plugin-node-resolve": "^16.0.0",
     "@web/rollup-plugin-import-meta-assets": "^2.2.1",
     "rimraf": "^6.0.1",
