@@ -14,13 +14,13 @@ env:
 jobs:
   update-snarkvm-staging:
     name: Update snarkVM to latest staging
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-latest
     permissions:
       contents: write
       pull-requests: write
     steps:
       - name: Checkout SDK
-        uses: actions/checkout@v5
+        uses: actions/checkout@v6
         with:
           ref: mainnet
           token: ${{ secrets.GITHUB_TOKEN }}
@@ -35,7 +35,7 @@ jobs:
 
       - name: Get latest snarkVM staging commit
         id: snarkvm-commit
-        uses: actions/github-script@v7
+        uses: actions/github-script@v9
         with:
           script: |
             // Get the latest commit hash from snarkVM staging branch
@@ -44,7 +44,7 @@ jobs:
               repo: 'snarkVM',
               branch: 'staging'
             });
-            
+
             const latestCommit = branch.commit.sha;
             console.log('Latest snarkVM staging commit:', latestCommit);
             core.setOutput('latest_commit', latestCommit);
@@ -74,7 +74,7 @@ jobs:
             echo "Error: Invalid commit hash format: $LATEST_COMMIT"
             exit 1
           fi
-          
+
           # First, update the rev in Cargo.toml to point to the new commit
           cd wasm
           cargo add snarkvm-algorithms --git https://github.com/ProvableHQ/snarkVM --rev $LATEST_COMMIT
@@ -98,7 +98,7 @@ jobs:
 
           Previous commit: ${{ steps.snarkvm-commit.outputs.current_commit }}
           Latest commit: ${{ steps.snarkvm-commit.outputs.latest_commit }}
-          
+
           This update was performed automatically by the snarkVM update workflow."
 
           # Make sure the remote branch exists and is up to date
@@ -109,7 +109,7 @@ jobs:
 
       - name: Create or update PR
         if: steps.snarkvm-commit.outputs.update_needed == 'true'
-        uses: actions/github-script@v7
+        uses: actions/github-script@v9
         with:
           script: |
             // Check if a PR already exists from update-snarkvm-staging to staging
@@ -120,7 +120,7 @@ jobs:
               base: 'staging',
               state: 'open'
             });
-            
+
             if (prs.length === 0) {
               // No PR exists, create one
               const { data: pr } = await github.rest.pulls.create({
