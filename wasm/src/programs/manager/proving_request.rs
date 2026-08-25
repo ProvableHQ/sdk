@@ -29,6 +29,8 @@ use crate::{
 };
 
 use js_sys::{Array, Object};
+use snarkvm_console::network::ConsensusVersion;
+use snarkvm_synthesizer::prelude::execution_cost_for_authorization;
 use std::str::FromStr;
 
 fn requires_fee_authorization(program_id: &str, function_name: &str, use_fee_master: bool) -> bool {
@@ -74,7 +76,7 @@ impl ProgramManager {
         log(&format!("Creating proving request for {function_name}"));
         let edition = edition.unwrap_or(1);
 
-        let mut resolved = ResolvedProcess::resolve(&program_imports, program, edition, imports.clone())?;
+        let mut resolved = ResolvedProcess::resolve(&program_imports, program, edition, imports)?;
         let should_authorize_fee =
             requires_fee_authorization(&resolved.program().id().to_string(), function_name, use_fee_master);
         let process = resolved.process_mut();
@@ -94,18 +96,12 @@ impl ProgramManager {
 
         let fee_authorization = if should_authorize_fee {
             // Estimate the base fee only when this request will include a fee
-            // authorization. Fee-master requests omit it entirely.
-            //
-            // We intentionally pass None for program_imports here to avoid a
-            // RefCell double-borrow panic. The inner guard still holds a mutable
-            // borrow on the builder, so the legacy imports Object path is used.
-            let base_fee_microcredits = ProgramManager::estimate_fee_for_authorization(
-                &crate::Authorization::from(&authorization),
-                program,
-                imports,
-                Some(edition),
-                None,
-            )?;
+            // authorization. Reuse the already-resolved process directly so a
+            // prepared context never needs to copy all import sources through
+            // JavaScript and build a second process for fee estimation.
+            let (base_fee_microcredits, _) =
+                execution_cost_for_authorization(process, &authorization, ConsensusVersion::latest())
+                    .map_err(|e| e.to_string())?;
             let execution_id = authorization.to_execution_id().map_err(|e| e.to_string())?;
 
             Some(authorize_fee!(
