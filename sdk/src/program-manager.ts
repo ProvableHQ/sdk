@@ -805,10 +805,22 @@ class ProgramManager {
             editions.set(program.programName, program.edition);
         }
 
+        // Treat every explicitly requested program as already known while
+        // resolving imports for its siblings. Otherwise, a requested program
+        // that statically imports another requested program would fetch that
+        // sibling from the network again and could conflict with the source
+        // supplied by the caller.
+        const knownProgramSources: ProgramImports = {
+            ...Object.fromEntries(requestedPrograms.map((program) => [
+                program.programName,
+                program.programSource,
+            ])),
+            ...(options.programImports ?? {}),
+        };
         const collectedImports = await Promise.all(requestedPrograms.map((program) =>
             this.collectProgramImports(
                 program.programSource,
-                options.programImports,
+                knownProgramSources,
                 true,
             )
         ));

@@ -1539,6 +1539,38 @@ describe("ProgramImportsBuilder", () => {
             }
         });
 
+        it("should not refetch an explicitly requested sibling import", async () => {
+            const keyProvider = createMockKeyProvider();
+            const pm = new ProgramManager("https://api.provable.com/v2", keyProvider);
+            const getProgramStub = sinon.stub(pm.networkClient, "getProgram");
+            getProgramStub.withArgs("multiply_test.aleo").resolves(ADD_PROGRAM);
+
+            const preparedProcess = await pm.prepareProcess({
+                programs: [
+                    {
+                        programName: "double_test.aleo",
+                        programSource: DOUBLE_PROGRAM,
+                        edition: 1,
+                    },
+                    {
+                        programName: "multiply_test.aleo",
+                        programSource: MULTIPLY_PROGRAM,
+                        edition: 1,
+                    },
+                ],
+            });
+
+            try {
+                expect(getProgramStub.called).to.equal(false);
+                expect(preparedProcess.supports({
+                    programName: "multiply_test.aleo",
+                    programSource: MULTIPLY_PROGRAM,
+                })).to.equal(true);
+            } finally {
+                preparedProcess.free();
+            }
+        });
+
         it("should serve import subsets and allow a preloaded import as an entry program", async () => {
             const keyProvider = createMockKeyProvider();
             const pm = new ProgramManager("https://api.provable.com/v2", keyProvider);
