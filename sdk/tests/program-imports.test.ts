@@ -1576,7 +1576,9 @@ describe("ProgramImportsBuilder", () => {
             const pm = new ProgramManager("https://api.provable.com/v2", keyProvider);
             const privateKey = new PrivateKey();
             const creditsProgram = Program.getCreditsProgram();
-            const creditsSource = creditsProgram.toString();
+            // Network responses may contain non-canonical whitespace even
+            // though they parse to the canonical built-in program.
+            const creditsSource = `\n${creditsProgram.toString()}\n`;
             creditsProgram.free();
 
             const preparedProcess = await pm.prepareProcess({
@@ -1596,6 +1598,12 @@ describe("ProgramImportsBuilder", () => {
 
             expect(preparedProcess.programNames).not.to.include("credits.aleo");
             expect(preparedProcess.supports(call)).to.equal(true);
+            expect(preparedProcess.supports({
+                ...call,
+                programImports: {
+                    "credits.aleo": MULTIPLY_PROGRAM,
+                },
+            })).to.equal(false);
 
             try {
                 const authorization = await pm.buildAuthorizationUnchecked({
@@ -1606,6 +1614,24 @@ describe("ProgramImportsBuilder", () => {
                 });
                 expect(authorization.transitions()).to.have.length(1);
                 authorization.free();
+
+                let error: Error | undefined;
+                try {
+                    await pm.buildAuthorizationUnchecked({
+                        ...call,
+                        inputs: ["2u32", "3u32"],
+                        privateKey,
+                        programImports: {
+                            "credits.aleo": MULTIPLY_PROGRAM,
+                        },
+                        preparedProcess,
+                    });
+                } catch (e) {
+                    error = e as Error;
+                }
+                expect(error?.message).to.equal(
+                    "Prepared process import 'credits.aleo' does not match a loaded program",
+                );
             } finally {
                 preparedProcess.free();
             }

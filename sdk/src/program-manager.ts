@@ -200,9 +200,40 @@ const preparedProcessPrograms = new WeakMap<object, Map<string, PreparedProcessP
 const preparedProgramImports = new WeakMap<object, Map<string, string>>();
 const preparedContextQueues = new WeakMap<object, Promise<void>>();
 const CREDITS_PROGRAM_ID = "credits.aleo";
+let canonicalCreditsProgramSource: string | undefined;
 
 function normalizeProgramSource(program: string | Program): string {
     return program instanceof Program ? program.toString() : program;
+}
+
+function getCanonicalCreditsProgramSource(): string {
+    if (canonicalCreditsProgramSource === undefined) {
+        const creditsProgram = Program.getCreditsProgram();
+        try {
+            canonicalCreditsProgramSource = creditsProgram.toString();
+        } finally {
+            creditsProgram.free();
+        }
+    }
+    return canonicalCreditsProgramSource;
+}
+
+function isCanonicalCreditsProgramSource(source: string | Program): boolean {
+    if (source instanceof Program) {
+        return source.toString() === getCanonicalCreditsProgramSource();
+    }
+
+    // API responses may format the same program differently (for example,
+    // numeric separators), so compare snarkVM's canonical serialization.
+    let parsed: Program | undefined;
+    try {
+        parsed = Program.fromString(source);
+        return parsed.toString() === getCanonicalCreditsProgramSource();
+    } catch {
+        return false;
+    } finally {
+        parsed?.free();
+    }
 }
 
 function preparedProcessHasCompatibleImport(
@@ -212,8 +243,10 @@ function preparedProcessHasCompatibleImport(
 ): boolean {
     // Every snarkVM process already contains credits.aleo, and the imports
     // builder intentionally does not retain that built-in in its metadata.
-    return name === CREDITS_PROGRAM_ID
-        || programs.get(name)?.programSource === normalizeProgramSource(source);
+    if (name === CREDITS_PROGRAM_ID) {
+        return isCanonicalCreditsProgramSource(source);
+    }
+    return programs.get(name)?.programSource === normalizeProgramSource(source);
 }
 
 function preparedProcessSupports(
