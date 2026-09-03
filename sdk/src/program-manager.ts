@@ -199,9 +199,21 @@ const preparedContextBuilders = new WeakMap<object, ProgramImportsBuilder>();
 const preparedProcessPrograms = new WeakMap<object, Map<string, PreparedProcessProgram>>();
 const preparedProgramImports = new WeakMap<object, Map<string, string>>();
 const preparedContextQueues = new WeakMap<object, Promise<void>>();
+const CREDITS_PROGRAM_ID = "credits.aleo";
 
 function normalizeProgramSource(program: string | Program): string {
     return program instanceof Program ? program.toString() : program;
+}
+
+function preparedProcessHasCompatibleImport(
+    programs: Map<string, PreparedProcessProgram>,
+    name: string,
+    source: string | Program,
+): boolean {
+    // Every snarkVM process already contains credits.aleo, and the imports
+    // builder intentionally does not retain that built-in in its metadata.
+    return name === CREDITS_PROGRAM_ID
+        || programs.get(name)?.programSource === normalizeProgramSource(source);
 }
 
 function preparedProcessSupports(
@@ -231,7 +243,7 @@ function preparedProcessSupports(
     }
     if (options.programImports) {
         for (const [name, source] of Object.entries(options.programImports)) {
-            if (programs.get(name)?.programSource !== normalizeProgramSource(source)) {
+            if (!preparedProcessHasCompatibleImport(programs, name, source)) {
                 return false;
             }
         }
@@ -866,7 +878,7 @@ class ProgramManager {
 
         for (const [name, imports] of staticImports) {
             for (const importedName of imports) {
-                if (importedName !== "credits.aleo" && !sources.has(importedName)) {
+                if (importedName !== CREDITS_PROGRAM_ID && !sources.has(importedName)) {
                     throw new Error(`Missing import '${importedName}' required by program '${name}'`);
                 }
             }
@@ -1006,7 +1018,7 @@ class ProgramManager {
         }
         if (options.programImports) {
             for (const [name, source] of Object.entries(options.programImports)) {
-                if (programs.get(name)?.programSource !== normalizeProgramSource(source)) {
+                if (!preparedProcessHasCompatibleImport(programs, name, source)) {
                     throw new Error(
                         `Prepared process import '${name}' does not match a loaded program`,
                     );

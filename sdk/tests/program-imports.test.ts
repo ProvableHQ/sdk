@@ -1571,6 +1571,46 @@ describe("ProgramImportsBuilder", () => {
             }
         });
 
+        it("should accept the built-in credits program when it is absent from process metadata", async () => {
+            const keyProvider = createMockKeyProvider();
+            const pm = new ProgramManager("https://api.provable.com/v2", keyProvider);
+            const privateKey = new PrivateKey();
+            const creditsProgram = Program.getCreditsProgram();
+            const creditsSource = creditsProgram.toString();
+            creditsProgram.free();
+
+            const preparedProcess = await pm.prepareProcess({
+                programs: [{
+                    programName: "multiply_test.aleo",
+                    programSource: MULTIPLY_PROGRAM,
+                    edition: 1,
+                }],
+            });
+            const call = {
+                programName: "multiply_test.aleo",
+                functionName: "multiply",
+                programImports: {
+                    "credits.aleo": creditsSource,
+                },
+            };
+
+            expect(preparedProcess.programNames).not.to.include("credits.aleo");
+            expect(preparedProcess.supports(call)).to.equal(true);
+
+            try {
+                const authorization = await pm.buildAuthorizationUnchecked({
+                    ...call,
+                    inputs: ["2u32", "3u32"],
+                    privateKey,
+                    preparedProcess,
+                });
+                expect(authorization.transitions()).to.have.length(1);
+                authorization.free();
+            } finally {
+                preparedProcess.free();
+            }
+        });
+
         it("should serve import subsets and allow a preloaded import as an entry program", async () => {
             const keyProvider = createMockKeyProvider();
             const pm = new ProgramManager("https://api.provable.com/v2", keyProvider);
