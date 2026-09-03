@@ -197,7 +197,8 @@ interface PreparedCallContext {
 
 const preparedContextBuilders = new WeakMap<object, ProgramImportsBuilder>();
 const preparedProcessPrograms = new WeakMap<object, Map<string, PreparedProcessProgram>>();
-const busyPreparedContexts = new WeakSet<object>();
+const preparedProgramImports = new WeakMap<object, Map<string, string>>();
+const preparedContextQueues = new WeakMap<object, Promise<unknown>>();
 
 function normalizeProgramSource(program: string | Program): string {
     return program instanceof Program ? program.toString() : program;
@@ -249,28 +250,29 @@ function selectedPreparedContext(options: {
 }
 
 /**
- * Run an action while holding exclusive use of a prepared context.
+ * Serialize WASM calls that borrow a prepared context's snarkVM process.
  *
  * WASM builder clones are reference-counted handles to one mutable snarkVM
- * process. Concurrent calls would otherwise cause a RefCell borrow panic and
- * abort the WASM module, so reject them with a catchable error instead.
+ * process guarded by a RefCell. Overlapping borrows would panic and abort the
+ * WASM module, so calls sharing a context are queued behind one another at the
+ * WASM boundary. Only the WASM call itself is queued: network resolution and
+ * fee record lookup still run concurrently across calls.
+ *
+ * The entry points that accept a prepared context currently complete their
+ * borrow without yielding, so the queue never waits in practice. It exists to
+ * turn a future borrow-across-await into a delayed call rather than a panic.
  */
-async function withPreparedContext<T>(
+function withPreparedContextWasm<T>(
     preparedContext: PreparedContext | undefined,
-    action: () => Promise<T>,
+    call: () => Promise<T>,
 ): Promise<T> {
-    if (!preparedContext) return action();
-    if (busyPreparedContexts.has(preparedContext)) {
-        throw new Error(
-            "Prepared context is already in use; calls sharing a prepared context must be sequential",
-        );
-    }
-    busyPreparedContexts.add(preparedContext);
-    try {
-        return await action();
-    } finally {
-        busyPreparedContexts.delete(preparedContext);
-    }
+    if (!preparedContext) return call();
+    const previous = preparedContextQueues.get(preparedContext) ?? Promise.resolve();
+    const next = previous.then(call, call);
+    // Keep the queue alive regardless of how this call settles so one failure
+    // does not block later calls on the same context.
+    preparedContextQueues.set(preparedContext, next.catch(() => undefined));
+    return next;
 }
 
 function clonePreparedContextBuilder(
@@ -292,9 +294,9 @@ function clonePreparedContextBuilder(
 /**
  * A reusable program context created by {@link ProgramManager.prepareProgram}.
  *
- * The context is scoped to one program function. Calls using it must be
- * sequential. The caller owns the context and should call {@link free} when it
- * is no longer needed.
+ * The context is scoped to one program function. Concurrent calls sharing it
+ * are serialized at the WASM boundary. The caller owns the context and should
+ * call {@link free} when it is no longer needed.
  */
 class PreparedProgram {
     readonly programName: string;
@@ -323,6 +325,7 @@ class PreparedProgram {
     free(): void {
         preparedContextBuilders.get(this)?.free();
         preparedContextBuilders.delete(this);
+        preparedProgramImports.delete(this);
     }
 }
 
@@ -331,7 +334,8 @@ class PreparedProgram {
  *
  * Unlike {@link PreparedProgram}, a prepared process can authorize any
  * function in any loaded program. Extra loaded programs remain idle when a
- * call only needs a subset. Calls sharing the process must be sequential.
+ * call only needs a subset. Concurrent calls sharing the process are
+ * serialized at the WASM boundary.
  */
 class PreparedProcess {
     readonly programs: readonly PreparedProcessProgram[];
@@ -722,6 +726,15 @@ class ProgramManager {
         // fully initialized before an authorization is requested.
         builder.addProgram(options.programName, program, edition);
 
+        // Snapshot the import sources once so later validation is answered from
+        // JavaScript and never borrows the shared WASM process.
+        const importSources = new Map<string, string>();
+        for (const name of Array.from(builder.programNames())) {
+            if (name === options.programName) continue;
+            const source = builder.getProgram(name);
+            if (source !== undefined) importSources.set(name, source);
+        }
+
         const preparedProgram = new PreparedProgram(
             options.programName,
             options.functionName,
@@ -729,6 +742,7 @@ class ProgramManager {
             edition,
         );
         preparedContextBuilders.set(preparedProgram, builder);
+        preparedProgramImports.set(preparedProgram, importSources);
         return preparedProgram;
     }
 
@@ -939,17 +953,16 @@ class ProgramManager {
         }
 
         if (options.programImports) {
-            const builder = clonePreparedContextBuilder(preparedProgram);
-            try {
-                for (const [name, source] of Object.entries(options.programImports)) {
-                    if (builder.getProgram(name) !== normalizeProgramSource(source)) {
-                        throw new Error(
-                            `Prepared program import '${name}' does not match the supplied import`,
-                        );
-                    }
+            const importSources = preparedProgramImports.get(preparedProgram);
+            if (!importSources || !preparedContextBuilders.has(preparedProgram)) {
+                throw new Error("Prepared program has already been freed");
+            }
+            for (const [name, source] of Object.entries(options.programImports)) {
+                if (importSources.get(name) !== normalizeProgramSource(source)) {
+                    throw new Error(
+                        `Prepared program import '${name}' does not match the supplied import`,
+                    );
                 }
-            } finally {
-                builder.free();
             }
         }
     }
@@ -2238,13 +2251,6 @@ class ProgramManager {
     async buildAuthorization(
         options: AuthorizationOptions,
     ): Promise<Authorization> {
-        return withPreparedContext(selectedPreparedContext(options), () =>
-            this.buildAuthorizationInner(options));
-    }
-
-    private async buildAuthorizationInner(
-        options: AuthorizationOptions,
-    ): Promise<Authorization> {
         // Destructure the options object to access the parameters.
         const {
             functionName,
@@ -2309,15 +2315,16 @@ class ProgramManager {
         const hasImports = !builder.isEmpty();
 
         // Build and return an `Authorization` for the desired function.
-        const authorization = await WasmProgramManager.authorize(
-            executionPrivateKey,
-            program,
-            functionName,
-            preparedInputs,
-            hasPreparedContext || hasImports ? undefined : imports,
-            edition,
-            hasPreparedContext ? builder : hasImports ? builder.clone() : undefined,
-        );
+        const authorization = await withPreparedContextWasm(preparedCall?.context, () =>
+            WasmProgramManager.authorize(
+                executionPrivateKey,
+                program,
+                functionName,
+                preparedInputs,
+                hasPreparedContext || hasImports ? undefined : imports,
+                edition,
+                hasPreparedContext ? builder : hasImports ? builder.clone() : undefined,
+            ));
 
         return authorization;
     }
@@ -2353,13 +2360,6 @@ class ProgramManager {
     async buildAuthorizationUnchecked(
         options: AuthorizationOptions,
     ): Promise<Authorization> {
-        return withPreparedContext(selectedPreparedContext(options), () =>
-            this.buildAuthorizationUncheckedInner(options));
-    }
-
-    private async buildAuthorizationUncheckedInner(
-        options: AuthorizationOptions,
-    ): Promise<Authorization> {
         // Destructure the options object to access the parameters.
         const {
             functionName,
@@ -2424,15 +2424,16 @@ class ProgramManager {
         const hasImports = !builder.isEmpty();
 
         // Build and return an `Authorization` for the desired function.
-        const authorization = await WasmProgramManager.buildAuthorizationUnchecked(
-            executionPrivateKey,
-            program,
-            functionName,
-            preparedInputs,
-            hasPreparedContext || hasImports ? undefined : imports,
-            edition,
-            hasPreparedContext ? builder : hasImports ? builder.clone() : undefined,
-        );
+        const authorization = await withPreparedContextWasm(preparedCall?.context, () =>
+            WasmProgramManager.buildAuthorizationUnchecked(
+                executionPrivateKey,
+                program,
+                functionName,
+                preparedInputs,
+                hasPreparedContext || hasImports ? undefined : imports,
+                edition,
+                hasPreparedContext ? builder : hasImports ? builder.clone() : undefined,
+            ));
 
         return authorization;
     }
@@ -2469,13 +2470,6 @@ class ProgramManager {
      * });
      */
     async provingRequest(
-        options: ProvingRequestOptions,
-    ): Promise<ProvingRequest> {
-        return withPreparedContext(selectedPreparedContext(options), () =>
-            this.provingRequestInner(options));
-    }
-
-    private async provingRequestInner(
         options: ProvingRequestOptions,
     ): Promise<ProvingRequest> {
         // Destructure the options object to access the parameters.
@@ -2568,13 +2562,14 @@ class ProgramManager {
                 let fee = priorityFee;
                 // If a fee record wasn't provided, estimate the fee that needs to be paid.
                 if (!feeRecord) {
-                    const baseFee = Number(await WasmProgramManager.estimateExecutionFee(
-                        program,
-                        functionName,
-                        hasProcessBuilder ? undefined : imports,
-                        edition,
-                        hasProcessBuilder ? builder.clone() : undefined,
-                    ));
+                    const baseFee = Number(await withPreparedContextWasm(preparedCall?.context, async () =>
+                        WasmProgramManager.estimateExecutionFee(
+                            program,
+                            functionName,
+                            hasProcessBuilder ? undefined : imports,
+                            edition,
+                            hasProcessBuilder ? builder.clone() : undefined,
+                        )));
                     fee = baseFee + priorityFee;
                 }
 
@@ -2596,16 +2591,17 @@ class ProgramManager {
         }
 
         if (options.executionRequest instanceof ExecutionRequest) {
-            return await WasmProgramManager.buildProvingRequestFromExecutionRequest(
-                options.executionRequest,
-                program,
-                unchecked,
-                broadcast,
-                edition,
-                hasProcessBuilder ? undefined : imports,
-                executionPrivateKey,
-                hasPreparedContext ? builder : hasImports ? builder.clone() : undefined,
-            );
+            return await withPreparedContextWasm(preparedCall?.context, () =>
+                WasmProgramManager.buildProvingRequestFromExecutionRequest(
+                    options.executionRequest as ExecutionRequest,
+                    program,
+                    unchecked,
+                    broadcast,
+                    edition,
+                    hasProcessBuilder ? undefined : imports,
+                    executionPrivateKey,
+                    hasPreparedContext ? builder : hasImports ? builder.clone() : undefined,
+                ));
         } else {
             // Ensure the private key exists.
             if (!executionPrivateKey) {
@@ -2621,21 +2617,22 @@ class ProgramManager {
             const preparedInputs = this.prepareInputs(program, functionName, inputs);
 
             // Build and return the `ProvingRequest`.
-            return await WasmProgramManager.buildProvingRequest(
-                executionPrivateKey,
-                program,
-                functionName,
-                preparedInputs,
-                baseFee,
-                priorityFee,
-                feeRecord,
-                hasProcessBuilder ? undefined : imports,
-                broadcast,
-                unchecked,
-                edition,
-                useFeeMaster,
-                hasPreparedContext ? builder : hasImports ? builder.clone() : undefined,
-            );
+            return await withPreparedContextWasm(preparedCall?.context, () =>
+                WasmProgramManager.buildProvingRequest(
+                    executionPrivateKey,
+                    program,
+                    functionName,
+                    preparedInputs,
+                    baseFee,
+                    priorityFee,
+                    feeRecord,
+                    hasProcessBuilder ? undefined : imports,
+                    broadcast,
+                    unchecked,
+                    edition,
+                    useFeeMaster,
+                    hasPreparedContext ? builder : hasImports ? builder.clone() : undefined,
+                ));
         }
     }
 
