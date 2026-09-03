@@ -198,7 +198,7 @@ interface PreparedCallContext {
 const preparedContextBuilders = new WeakMap<object, ProgramImportsBuilder>();
 const preparedProcessPrograms = new WeakMap<object, Map<string, PreparedProcessProgram>>();
 const preparedProgramImports = new WeakMap<object, Map<string, string>>();
-const preparedContextQueues = new WeakMap<object, Promise<unknown>>();
+const preparedContextQueues = new WeakMap<object, Promise<void>>();
 
 function normalizeProgramSource(program: string | Program): string {
     return program instanceof Program ? program.toString() : program;
@@ -270,8 +270,13 @@ function withPreparedContextWasm<T>(
     const previous = preparedContextQueues.get(preparedContext) ?? Promise.resolve();
     const next = previous.then(call, call);
     // Keep the queue alive regardless of how this call settles so one failure
-    // does not block later calls on the same context.
-    preparedContextQueues.set(preparedContext, next.catch(() => undefined));
+    // does not block later calls on the same context. Normalize both outcomes
+    // so the queue does not retain a successful WASM result.
+    const tail = next.then(
+        () => undefined,
+        () => undefined,
+    );
+    preparedContextQueues.set(preparedContext, tail);
     return next;
 }
 
@@ -2312,7 +2317,7 @@ class ProgramManager {
             ? clonePreparedContextBuilder(preparedCall.context)
             : (await this.buildProgramImports(program, imports, false, functionName)).builder;
         const hasPreparedContext = preparedCall !== undefined;
-        const hasImports = !builder.isEmpty();
+        const hasImports = !hasPreparedContext && !builder.isEmpty();
 
         // Build and return an `Authorization` for the desired function.
         const authorization = await withPreparedContextWasm(preparedCall?.context, () =>
@@ -2421,7 +2426,7 @@ class ProgramManager {
             ? clonePreparedContextBuilder(preparedCall.context)
             : (await this.buildProgramImports(program, imports, false, functionName)).builder;
         const hasPreparedContext = preparedCall !== undefined;
-        const hasImports = !builder.isEmpty();
+        const hasImports = !hasPreparedContext && !builder.isEmpty();
 
         // Build and return an `Authorization` for the desired function.
         const authorization = await withPreparedContextWasm(preparedCall?.context, () =>
@@ -2553,7 +2558,7 @@ class ProgramManager {
             ? clonePreparedContextBuilder(preparedCall.context)
             : (await this.buildProgramImports(program, imports, false, functionName)).builder;
         const hasPreparedContext = preparedCall !== undefined;
-        const hasImports = !builder.isEmpty();
+        const hasImports = !hasPreparedContext && !builder.isEmpty();
         const hasProcessBuilder = hasPreparedContext || hasImports;
 
         // Get the fee record from the account if it is not provided in the parameters

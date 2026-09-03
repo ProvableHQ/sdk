@@ -2040,6 +2040,7 @@ describe("ProgramImportsBuilder", () => {
             });
             sinon.stub(ProgramManagerBase, "buildAuthorizationUnchecked").resolves({} as any);
             const getProgramSpy = sinon.spy(ProgramImportsBuilder.prototype, "getProgram");
+            const isEmptySpy = sinon.spy(ProgramImportsBuilder.prototype, "isEmpty");
             const cloneSpy = sinon.spy(ProgramImportsBuilder.prototype, "clone");
 
             try {
@@ -2076,9 +2077,11 @@ describe("ProgramImportsBuilder", () => {
                 // Import validation is answered from JavaScript-side metadata, so
                 // the only WASM handle created is the one handed to the call itself.
                 expect(getProgramSpy.callCount).to.equal(0);
+                expect(isEmptySpy.callCount).to.equal(0);
                 expect(cloneSpy.callCount).to.equal(1);
             } finally {
                 getProgramSpy.restore();
+                isEmptySpy.restore();
                 cloneSpy.restore();
                 preparedProgram.free();
             }
