@@ -1936,7 +1936,7 @@ describe("ProgramImportsBuilder", () => {
             expect(error?.message).to.equal("Prepared process has already been freed");
         });
 
-        it("should reject concurrent use of one prepared context and release it afterwards", async () => {
+        it("should serialize concurrent WASM access to one prepared context instead of rejecting", async () => {
             const keyProvider = createMockKeyProvider();
             const pm = new ProgramManager("https://api.provable.com/v2", keyProvider);
             const preparedProcess = await pm.prepareProcess({
@@ -1960,27 +1960,130 @@ describe("ProgramImportsBuilder", () => {
             });
             const authorizationStub = sinon.stub(ProgramManagerBase, "buildAuthorizationUnchecked");
             authorizationStub.onFirstCall().returns(firstResult as any);
-            authorizationStub.onSecondCall().resolves({} as any);
+            authorizationStub.onSecondCall().resolves({ order: "second" } as any);
+            authorizationStub.onThirdCall().resolves({ order: "third" } as any);
 
             try {
                 const firstCall = pm.buildAuthorizationUnchecked(options);
+                const secondCall = pm.buildAuthorizationUnchecked(options);
+                const thirdCall = pm.buildAuthorizationUnchecked(options);
+
+                // Let all three calls progress up to the WASM boundary. Only the
+                // first may enter WASM while it is still pending; the others are
+                // queued behind it rather than rejected.
+                await new Promise((resolve) => setTimeout(resolve, 20));
+                expect(authorizationStub.callCount).to.equal(1);
+
+                resolveFirst({ order: "first" });
+                const results = await Promise.all([firstCall, secondCall, thirdCall]);
+                expect(results.map((result: any) => result.order)).to.deep.equal([
+                    "first",
+                    "second",
+                    "third",
+                ]);
+                expect(authorizationStub.callCount).to.equal(3);
+            } finally {
+                preparedProcess.free();
+            }
+        });
+
+        it("should keep serving a prepared context after a queued call fails", async () => {
+            const keyProvider = createMockKeyProvider();
+            const pm = new ProgramManager("https://api.provable.com/v2", keyProvider);
+            const preparedProcess = await pm.prepareProcess({
+                programs: [{
+                    programName: "multiply_test.aleo",
+                    programSource: MULTIPLY_PROGRAM,
+                    edition: 1,
+                }],
+            });
+            const options = {
+                programName: "multiply_test.aleo",
+                functionName: "multiply",
+                inputs: ["2u32", "3u32"],
+                privateKey: new PrivateKey(),
+                preparedProcess,
+            };
+
+            const authorizationStub = sinon.stub(ProgramManagerBase, "buildAuthorizationUnchecked");
+            authorizationStub.onFirstCall().rejects(new Error("wasm failure"));
+            authorizationStub.onSecondCall().resolves({} as any);
+
+            try {
+                const [failed, succeeded] = await Promise.allSettled([
+                    pm.buildAuthorizationUnchecked(options),
+                    pm.buildAuthorizationUnchecked(options),
+                ]);
+                expect(failed.status).to.equal("rejected");
+                expect((failed as PromiseRejectedResult).reason.message).to.equal("wasm failure");
+                expect(succeeded.status).to.equal("fulfilled");
+                expect(authorizationStub.callCount).to.equal(2);
+            } finally {
+                preparedProcess.free();
+            }
+        });
+
+        it("should not touch WASM while validating prepared program imports", async () => {
+            const keyProvider = createMockKeyProvider();
+            const pm = new ProgramManager("https://api.provable.com/v2", keyProvider);
+            sinon.stub(pm.networkClient, "getProgramImports").resolves({
+                "multiply_test.aleo": MULTIPLY_PROGRAM,
+            });
+            const preparedProgram = await pm.prepareProgram({
+                programName: "double_test.aleo",
+                functionName: "double_it",
+                programSource: DOUBLE_PROGRAM,
+                programImports: {
+                    "multiply_test.aleo": MULTIPLY_PROGRAM,
+                },
+                edition: 1,
+            });
+            sinon.stub(ProgramManagerBase, "buildAuthorizationUnchecked").resolves({} as any);
+            const getProgramSpy = sinon.spy(ProgramImportsBuilder.prototype, "getProgram");
+            const isEmptySpy = sinon.spy(ProgramImportsBuilder.prototype, "isEmpty");
+            const cloneSpy = sinon.spy(ProgramImportsBuilder.prototype, "clone");
+
+            try {
+                await pm.buildAuthorizationUnchecked({
+                    programName: "double_test.aleo",
+                    functionName: "double_it",
+                    inputs: ["5u32"],
+                    privateKey: new PrivateKey(),
+                    programImports: {
+                        "multiply_test.aleo": MULTIPLY_PROGRAM,
+                    },
+                    preparedProgram,
+                });
 
                 let error: Error | undefined;
                 try {
-                    await pm.buildAuthorizationUnchecked(options);
+                    await pm.buildAuthorizationUnchecked({
+                        programName: "double_test.aleo",
+                        functionName: "double_it",
+                        inputs: ["5u32"],
+                        privateKey: new PrivateKey(),
+                        programImports: {
+                            "multiply_test.aleo": ADD_PROGRAM,
+                        },
+                        preparedProgram,
+                    });
                 } catch (e) {
                     error = e as Error;
                 }
                 expect(error?.message).to.equal(
-                    "Prepared context is already in use; calls sharing a prepared context must be sequential",
+                    "Prepared program import 'multiply_test.aleo' does not match the supplied import",
                 );
 
-                resolveFirst({});
-                await firstCall;
-                await pm.buildAuthorizationUnchecked(options);
-                expect(authorizationStub.callCount).to.equal(2);
+                // Import validation is answered from JavaScript-side metadata, so
+                // the only WASM handle created is the one handed to the call itself.
+                expect(getProgramSpy.callCount).to.equal(0);
+                expect(isEmptySpy.callCount).to.equal(0);
+                expect(cloneSpy.callCount).to.equal(1);
             } finally {
-                preparedProcess.free();
+                getProgramSpy.restore();
+                isEmptySpy.restore();
+                cloneSpy.restore();
+                preparedProgram.free();
             }
         });
     });
