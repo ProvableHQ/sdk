@@ -110,7 +110,7 @@ async function initializeWasm() {
     logger.warn("initializeWasm is deprecated, you no longer need to use it");
 }
 
-export { ProgramManager, PreparedProgram, PrepareProgramOptions, ProvingRequestOptions, ExecuteOptions, FeeAuthorizationOptions, AuthorizationOptions, VerificationOptions, BatchVerificationOptions, inputsToFields, verifyProof, verifyBatchProof, programChecksum } from "./program-manager.js";
+export { ProgramManager, PreparedProgram, PreparedProcess, PrepareProgramOptions, ProgramPreparationOptions, PrepareProcessOptions, PreparedProcessProgram, PreparedProcessSupportsOptions, ProvingRequestOptions, ExecuteOptions, FeeAuthorizationOptions, AuthorizationOptions, VerificationOptions, BatchVerificationOptions, inputsToFields, verifyProof, verifyBatchProof, programChecksum } from "./program-manager.js";
 
 export { logAndThrow, TransportFunction, defaultTransport, cookieAffinityTransport } from "./utils/utils.js";
 
