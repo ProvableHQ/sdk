@@ -183,6 +183,10 @@ describe("RecordScanner auth modes", () => {
         expect(calls[0].url).to.not.include("/jwts/");
         expect(calls[0].headers["x-api-key"]).to.equal("edge-key");
         expect(calls[0].headers["authorization"]).to.equal(undefined);
+        // The legacy raw-key echo is kept on purpose: api.provable.com honors a bare
+        // key in X-Provable-API-Key, and edge ignores that header, so one legacy
+        // configuration keeps working against both gateways.
+        expect(calls[0].headers["x-provable-api-key"]).to.equal("edge-key");
     });
 
     it("a credential-less scanner sends a session-injected JWT and never mints", async () => {
