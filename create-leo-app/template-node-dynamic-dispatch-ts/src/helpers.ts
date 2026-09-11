@@ -25,7 +25,7 @@ export function createProgramManager(keyStoreDir: string): {
 } {
     const keyStore = new LocalFileKeyStore(keyStoreDir);
     const keyProvider = new AleoKeyProvider();
-    const networkClient = new AleoNetworkClient("https://api.provable.com/v2");
+    const networkClient = new AleoNetworkClient("https://edge.provable.com/api/v2");
 
     // Stub network methods — we run entirely offline.
     networkClient.getProgramImports = async () => ({});
@@ -37,7 +37,7 @@ export function createProgramManager(keyStoreDir: string): {
     });
 
     const pm = new ProgramManager(
-        "https://api.provable.com/v2",
+        "https://edge.provable.com/api/v2",
         keyProvider,
     );
     pm.setAccount(new Account());

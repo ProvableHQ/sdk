@@ -10,7 +10,7 @@ export const GetLatestBlockHeight = () => {
         setLatestHeight(null);
         try {
             axios
-                .get(`https://api.provable.com/v2/testnet/block/height/latest`)
+                .get(`https://edge.provable.com/api/v2/testnet/block/height/latest`)
                 .then((response) =>
                     setLatestHeight(JSON.stringify(response.data, null, 2)),
                 );

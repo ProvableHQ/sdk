@@ -30,7 +30,7 @@ import {
     stringToField,
 } from "@provablehq/sdk/testnet.js";
 
-const API_URL = "https://api.provable.com/v2";
+const API_URL = "https://edge.provable.com/api/v2";
 
 // ============================================================================
 // Test Account (testnet — funded via faucet)

@@ -146,7 +146,7 @@ describe("ProgramImportsBuilder", () => {
     describe("buildProgramImports", () => {
         it("should return an empty builder for a program with no imports", async () => {
             const keyProvider = createMockKeyProvider();
-            const pm = new ProgramManager("https://api.provable.com/v2", keyProvider);
+            const pm = new ProgramManager("https://edge.provable.com/api/v2", keyProvider);
 
             // Access private method via bracket notation
             const { builder } = await (pm as any).buildProgramImports(MULTIPLY_PROGRAM, undefined, true, "multiply");
@@ -155,7 +155,7 @@ describe("ProgramImportsBuilder", () => {
 
         it("should add user-provided imports to the builder", async () => {
             const keyProvider = createMockKeyProvider();
-            const pm = new ProgramManager("https://api.provable.com/v2", keyProvider);
+            const pm = new ProgramManager("https://edge.provable.com/api/v2", keyProvider);
 
             // Stub network client to avoid actual network calls
             sinon.stub(pm.networkClient, "getProgramImports").resolves({});
@@ -167,7 +167,7 @@ describe("ProgramImportsBuilder", () => {
 
         it("should fetch imports from the network when not provided", async () => {
             const keyProvider = createMockKeyProvider();
-            const pm = new ProgramManager("https://api.provable.com/v2", keyProvider);
+            const pm = new ProgramManager("https://edge.provable.com/api/v2", keyProvider);
 
             const networkStub = sinon.stub(pm.networkClient, "getProgramImports").resolves({
                 "multiply_test.aleo": MULTIPLY_PROGRAM,
@@ -180,7 +180,7 @@ describe("ProgramImportsBuilder", () => {
 
         it("should merge network imports with user imports", async () => {
             const keyProvider = createMockKeyProvider();
-            const pm = new ProgramManager("https://api.provable.com/v2", keyProvider);
+            const pm = new ProgramManager("https://edge.provable.com/api/v2", keyProvider);
 
             const networkSource = MULTIPLY_PROGRAM;
             sinon.stub(pm.networkClient, "getProgramImports").resolves({
@@ -195,7 +195,7 @@ describe("ProgramImportsBuilder", () => {
 
         it("should merge entry imports with additional caller-provided imports", async () => {
             const keyProvider = createMockKeyProvider();
-            const pm = new ProgramManager("https://api.provable.com/v2", keyProvider);
+            const pm = new ProgramManager("https://edge.provable.com/api/v2", keyProvider);
             const imports = { "sum_double_test.aleo": ADD_DOUBLE_PROGRAM };
 
             const networkStub = sinon.stub(pm.networkClient, "getProgramImports").callsFake(
@@ -231,7 +231,7 @@ describe("ProgramImportsBuilder", () => {
 
         it("should not fail when network fetch errors", async () => {
             const keyProvider = createMockKeyProvider();
-            const pm = new ProgramManager("https://api.provable.com/v2", keyProvider);
+            const pm = new ProgramManager("https://edge.provable.com/api/v2", keyProvider);
 
             sinon.stub(pm.networkClient, "getProgramImports").rejects(new Error("Network error"));
 
@@ -243,7 +243,7 @@ describe("ProgramImportsBuilder", () => {
 
         it("should resolve transitive imports to any depth", async () => {
             const keyProvider = createMockKeyProvider();
-            const pm = new ProgramManager("https://api.provable.com/v2", keyProvider);
+            const pm = new ProgramManager("https://edge.provable.com/api/v2", keyProvider);
 
             // Stub getProgramImports to return direct imports of the top-level program.
             // quadruple_test.aleo imports double_test.aleo
@@ -268,7 +268,7 @@ describe("ProgramImportsBuilder", () => {
     describe("fee estimation import resolution", () => {
         it("should merge entry imports with caller imports for both fee estimators", async () => {
             const keyProvider = createMockKeyProvider();
-            const pm = new ProgramManager("https://api.provable.com/v2", keyProvider);
+            const pm = new ProgramManager("https://edge.provable.com/api/v2", keyProvider);
             const imports = { "sum_double_test.aleo": ADD_DOUBLE_PROGRAM };
 
             sinon.stub(pm.networkClient, "getProgramImports").callsFake(
@@ -314,7 +314,7 @@ describe("ProgramImportsBuilder", () => {
             (mockStore.getVerifyingKey as sinon.SinonStub).resolves(null);
 
             const keyProvider = createMockKeyProvider(mockStore);
-            const pm = new ProgramManager("https://api.provable.com/v2", keyProvider);
+            const pm = new ProgramManager("https://edge.provable.com/api/v2", keyProvider);
 
             const builder = new ProgramImportsBuilder();
             builder.addProgram("multiply_test.aleo", MULTIPLY_PROGRAM);
@@ -329,7 +329,7 @@ describe("ProgramImportsBuilder", () => {
 
         it("should be a no-op when no KeyStore is available", async () => {
             const keyProvider = createMockKeyProvider(undefined);
-            const pm = new ProgramManager("https://api.provable.com/v2", keyProvider);
+            const pm = new ProgramManager("https://edge.provable.com/api/v2", keyProvider);
 
             const builder = new ProgramImportsBuilder();
             builder.addProgram("multiply_test.aleo", MULTIPLY_PROGRAM);
@@ -348,7 +348,7 @@ describe("ProgramImportsBuilder", () => {
             (providerStore.getVerifyingKey as sinon.SinonStub).resolves(null);
 
             const keyProvider = createMockKeyProvider(providerStore);
-            const pm = new ProgramManager("https://api.provable.com/v2", keyProvider);
+            const pm = new ProgramManager("https://edge.provable.com/api/v2", keyProvider);
             pm.setKeyStore(directStore);
 
             const builder = new ProgramImportsBuilder();
@@ -366,7 +366,7 @@ describe("ProgramImportsBuilder", () => {
             (mockStore.getProvingKey as sinon.SinonStub).rejects(new Error("Store error"));
 
             const keyProvider = createMockKeyProvider(mockStore);
-            const pm = new ProgramManager("https://api.provable.com/v2", keyProvider);
+            const pm = new ProgramManager("https://edge.provable.com/api/v2", keyProvider);
 
             const builder = new ProgramImportsBuilder();
             builder.addProgram("multiply_test.aleo", MULTIPLY_PROGRAM);
@@ -381,7 +381,7 @@ describe("ProgramImportsBuilder", () => {
             (mockStore.getVerifyingKey as sinon.SinonStub).resolves(null);
 
             const keyProvider = createMockKeyProvider(mockStore);
-            const pm = new ProgramManager("https://api.provable.com/v2", keyProvider);
+            const pm = new ProgramManager("https://edge.provable.com/api/v2", keyProvider);
 
             // Stub amendment endpoint — edition 3 with amendment 2
             sinon.stub(pm.networkClient, "getProgramAmendmentCount").resolves({
@@ -416,7 +416,7 @@ describe("ProgramImportsBuilder", () => {
             (mockStore.getVerifyingKey as sinon.SinonStub).resolves(null);
 
             const keyProvider = createMockKeyProvider(mockStore);
-            const pm = new ProgramManager("https://api.provable.com/v2", keyProvider);
+            const pm = new ProgramManager("https://edge.provable.com/api/v2", keyProvider);
 
             // Stub amendment endpoint to return default edition 1
             sinon.stub(pm.networkClient, "getProgramAmendmentCount").resolves({
@@ -450,7 +450,7 @@ describe("ProgramImportsBuilder", () => {
             (mockStore.has as sinon.SinonStub).resolves(false);
 
             const keyProvider = createMockKeyProvider(mockStore);
-            const pm = new ProgramManager("https://api.provable.com/v2", keyProvider);
+            const pm = new ProgramManager("https://edge.provable.com/api/v2", keyProvider);
 
             // Create a builder with a program added
             const builder = new ProgramImportsBuilder();
@@ -483,7 +483,7 @@ describe("ProgramImportsBuilder", () => {
             (mockStore.has as sinon.SinonStub).resolves(true);
 
             const keyProvider = createMockKeyProvider(mockStore);
-            const pm = new ProgramManager("https://api.provable.com/v2", keyProvider);
+            const pm = new ProgramManager("https://edge.provable.com/api/v2", keyProvider);
 
             const builder = new ProgramImportsBuilder();
             builder.addProgram("multiply_test.aleo", MULTIPLY_PROGRAM);
@@ -500,7 +500,7 @@ describe("ProgramImportsBuilder", () => {
 
         it("should be a no-op when no KeyStore is available", async () => {
             const keyProvider = createMockKeyProvider(undefined);
-            const pm = new ProgramManager("https://api.provable.com/v2", keyProvider);
+            const pm = new ProgramManager("https://edge.provable.com/api/v2", keyProvider);
 
             const builder = new ProgramImportsBuilder();
             builder.addProgram("multiply_test.aleo", MULTIPLY_PROGRAM);
@@ -515,7 +515,7 @@ describe("ProgramImportsBuilder", () => {
             (mockStore.setKeys as sinon.SinonStub).rejects(new Error("Storage full"));
 
             const keyProvider = createMockKeyProvider(mockStore);
-            const pm = new ProgramManager("https://api.provable.com/v2", keyProvider);
+            const pm = new ProgramManager("https://edge.provable.com/api/v2", keyProvider);
 
             const builder = new ProgramImportsBuilder();
             builder.addProgram("multiply_test.aleo", MULTIPLY_PROGRAM);
@@ -533,7 +533,7 @@ describe("ProgramImportsBuilder", () => {
             (mockStore.has as sinon.SinonStub).resolves(false);
 
             const keyProvider = createMockKeyProvider(mockStore);
-            const pm = new ProgramManager("https://api.provable.com/v2", keyProvider);
+            const pm = new ProgramManager("https://edge.provable.com/api/v2", keyProvider);
 
             // Stub the amendment endpoint to return edition 5
             sinon.stub(pm.networkClient, "getProgramAmendmentCount").resolves({
@@ -563,7 +563,7 @@ describe("ProgramImportsBuilder", () => {
             (mockStore.has as sinon.SinonStub).resolves(false);
 
             const keyProvider = createMockKeyProvider(mockStore);
-            const pm = new ProgramManager("https://api.provable.com/v2", keyProvider);
+            const pm = new ProgramManager("https://edge.provable.com/api/v2", keyProvider);
 
             // Stub the amendment endpoint — should NOT be called.
             const amendmentStub = sinon.stub(pm.networkClient, "getProgramAmendmentCount");
@@ -603,7 +603,7 @@ describe("ProgramImportsBuilder", () => {
             (mockStore.getVerifyingKey as sinon.SinonStub).resolves(mockVk);
 
             const keyProvider = createMockKeyProvider(mockStore);
-            const pm = new ProgramManager("https://api.provable.com/v2", keyProvider);
+            const pm = new ProgramManager("https://edge.provable.com/api/v2", keyProvider);
 
             const keys = await (pm as any).resolveTopLevelKeys("multiply_test.aleo", "multiply");
             expect(keys).to.not.be.undefined;
@@ -621,7 +621,7 @@ describe("ProgramImportsBuilder", () => {
             const mockVk = {} as VerifyingKey;
             (keyProvider.functionKeys as sinon.SinonStub).resolves([mockPk, mockVk]);
 
-            const pm = new ProgramManager("https://api.provable.com/v2", keyProvider);
+            const pm = new ProgramManager("https://edge.provable.com/api/v2", keyProvider);
 
             const keys = await (pm as any).resolveTopLevelKeys("multiply_test.aleo", "multiply");
             expect(keys).to.not.be.undefined;
@@ -632,7 +632,7 @@ describe("ProgramImportsBuilder", () => {
         it("should return undefined when both KeyStore and KeyProvider fail", async () => {
             const keyProvider = createMockKeyProvider(undefined);
             // functionKeys already stubs to reject
-            const pm = new ProgramManager("https://api.provable.com/v2", keyProvider);
+            const pm = new ProgramManager("https://edge.provable.com/api/v2", keyProvider);
 
             const keys = await (pm as any).resolveTopLevelKeys("multiply_test.aleo", "multiply");
             expect(keys).to.be.undefined;
@@ -645,7 +645,7 @@ describe("ProgramImportsBuilder", () => {
             (mockStore.getVerifyingKey as sinon.SinonStub).resolves({} as VerifyingKey);
 
             const keyProvider = createMockKeyProvider(mockStore);
-            const pm = new ProgramManager("https://api.provable.com/v2", keyProvider);
+            const pm = new ProgramManager("https://edge.provable.com/api/v2", keyProvider);
 
             await (pm as any).resolveTopLevelKeys("multiply_test.aleo", "multiply", undefined, 7, 3);
 
@@ -660,7 +660,7 @@ describe("ProgramImportsBuilder", () => {
 
     describe("setKeyStore", () => {
         it("should set the internal _keyStore field", () => {
-            const pm = new ProgramManager("https://api.provable.com/v2");
+            const pm = new ProgramManager("https://edge.provable.com/api/v2");
             const mockStore = createMockKeyStore();
             pm.setKeyStore(mockStore);
 
@@ -680,7 +680,7 @@ describe("ProgramImportsBuilder", () => {
             (providerStore.getVerifyingKey as sinon.SinonStub).resolves({} as VerifyingKey);
 
             const keyProvider = createMockKeyProvider(providerStore);
-            const pm = new ProgramManager("https://api.provable.com/v2", keyProvider);
+            const pm = new ProgramManager("https://edge.provable.com/api/v2", keyProvider);
             pm.setKeyStore(directStore);
 
             const keys = await (pm as any).resolveTopLevelKeys("test.aleo", "main");
@@ -764,7 +764,7 @@ describe("ProgramImportsBuilder", () => {
             const entryProgram = `import lvl_1.aleo;\n\nprogram lvl_0.aleo;\n\nfunction entry:\n    input r0 as u64.public;\n    call lvl_1.aleo/call_next r0 into r1;\n    output r1 as u64.public;\n`;
 
             const keyProvider = createMockKeyProvider();
-            const pm = new ProgramManager("https://api.provable.com/v2", keyProvider);
+            const pm = new ProgramManager("https://edge.provable.com/api/v2", keyProvider);
 
             const networkStub = sinon.stub(pm.networkClient, "getProgramImports");
             networkStub.resolves({});
@@ -784,7 +784,7 @@ describe("ProgramImportsBuilder", () => {
             // double_test.aleo/double_it calls multiply_test.aleo/multiply
             // With entryFunction="quadruple_it", both should be discovered.
             const keyProvider = createMockKeyProvider();
-            const pm = new ProgramManager("https://api.provable.com/v2", keyProvider);
+            const pm = new ProgramManager("https://edge.provable.com/api/v2", keyProvider);
 
             const imports = {
                 "double_test.aleo": DOUBLE_PROGRAM,
@@ -811,7 +811,7 @@ describe("ProgramImportsBuilder", () => {
             // multiply_test.aleo should have keys loaded.
             const mockStore = createMockKeyStore();
             const keyProvider = createMockKeyProvider(mockStore);
-            const pm = new ProgramManager("https://api.provable.com/v2", keyProvider);
+            const pm = new ProgramManager("https://edge.provable.com/api/v2", keyProvider);
 
             const imports = {
                 "multiply_test.aleo": MULTIPLY_PROGRAM,
@@ -893,7 +893,7 @@ describe("ProgramImportsBuilder", () => {
             // correctly propagates calledFunctions even when getProgramImports
             // returns imports in leaf-first order (multiply before double).
             const keyProvider = createMockKeyProvider();
-            const pm = new ProgramManager("https://api.provable.com/v2", keyProvider);
+            const pm = new ProgramManager("https://edge.provable.com/api/v2", keyProvider);
 
             // Provide imports in leaf-first order (multiply before double)
             // — this is the order that triggers the BFS ordering bug.
@@ -934,7 +934,7 @@ describe("ProgramImportsBuilder", () => {
             (mockStore.getVerifyingKey as sinon.SinonStub).resolves(null);
 
             const keyProvider = createMockKeyProvider(mockStore);
-            const pm = new ProgramManager("https://api.provable.com/v2", keyProvider);
+            const pm = new ProgramManager("https://edge.provable.com/api/v2", keyProvider);
 
             const builder = new ProgramImportsBuilder();
             builder.addProgram("multiply_test.aleo", MULTIPLY_PROGRAM);
@@ -956,7 +956,7 @@ describe("ProgramImportsBuilder", () => {
             const mockStore = createMockKeyStore();
 
             const keyProvider = createMockKeyProvider(mockStore);
-            const pm = new ProgramManager("https://api.provable.com/v2", keyProvider);
+            const pm = new ProgramManager("https://edge.provable.com/api/v2", keyProvider);
 
             const builder = new ProgramImportsBuilder();
             builder.addProgram("multiply_test.aleo", MULTIPLY_PROGRAM);
@@ -975,7 +975,7 @@ describe("ProgramImportsBuilder", () => {
             (mockStore.has as sinon.SinonStub).resolves(false);
 
             const keyProvider = createMockKeyProvider(mockStore);
-            const pm = new ProgramManager("https://api.provable.com/v2", keyProvider);
+            const pm = new ProgramManager("https://edge.provable.com/api/v2", keyProvider);
 
             const builder = new ProgramImportsBuilder();
             builder.addProgram("multiply_test.aleo", MULTIPLY_PROGRAM);
@@ -1004,7 +1004,7 @@ describe("ProgramImportsBuilder", () => {
             (mockStore.getVerifyingKey as sinon.SinonStub).resolves(null);
 
             const keyProvider = createMockKeyProvider(mockStore);
-            const pm = new ProgramManager("https://api.provable.com/v2", keyProvider);
+            const pm = new ProgramManager("https://edge.provable.com/api/v2", keyProvider);
 
             // Stub amendment endpoint — edition 0 (constructor program)
             sinon.stub(pm.networkClient, "getProgramAmendmentCount").resolves({
@@ -1035,7 +1035,7 @@ describe("ProgramImportsBuilder", () => {
         // User-provided imports should override network imports
         it("should prefer user-provided imports over network imports", async () => {
             const keyProvider = createMockKeyProvider();
-            const pm = new ProgramManager("https://api.provable.com/v2", keyProvider);
+            const pm = new ProgramManager("https://edge.provable.com/api/v2", keyProvider);
 
             // Network returns one version of multiply_test.aleo
             sinon.stub(pm.networkClient, "getProgramImports").resolves({
@@ -1068,7 +1068,7 @@ describe("ProgramImportsBuilder", () => {
             });
 
             const keyProvider = createMockKeyProvider(mockStore);
-            const pm = new ProgramManager("https://api.provable.com/v2", keyProvider);
+            const pm = new ProgramManager("https://edge.provable.com/api/v2", keyProvider);
 
             const builder = new ProgramImportsBuilder();
             builder.addProgram("multiply_test.aleo", MULTIPLY_PROGRAM);
@@ -1104,7 +1104,7 @@ describe("ProgramImportsBuilder", () => {
             (mockStore.getVerifyingKey as sinon.SinonStub).resolves(null);
 
             const keyProvider = createMockKeyProvider(mockStore);
-            const pm = new ProgramManager("https://api.provable.com/v2", keyProvider);
+            const pm = new ProgramManager("https://edge.provable.com/api/v2", keyProvider);
 
             const builder = new ProgramImportsBuilder();
             builder.addProgram("multi_fn_test.aleo", MULTI_FN_PROGRAM);
@@ -1131,7 +1131,7 @@ describe("ProgramImportsBuilder", () => {
             const keyProvider = createMockKeyProvider(mockStore);
             (keyProvider.functionKeys as sinon.SinonStub).resolves([fallbackPk, fallbackVk]);
 
-            const pm = new ProgramManager("https://api.provable.com/v2", keyProvider);
+            const pm = new ProgramManager("https://edge.provable.com/api/v2", keyProvider);
 
             const keys = await (pm as any).resolveTopLevelKeys("multiply_test.aleo", "multiply");
 
@@ -1146,7 +1146,7 @@ describe("ProgramImportsBuilder", () => {
         // Network returns empty object for transitive imports
         it("should handle empty transitive imports without crashing", async () => {
             const keyProvider = createMockKeyProvider();
-            const pm = new ProgramManager("https://api.provable.com/v2", keyProvider);
+            const pm = new ProgramManager("https://edge.provable.com/api/v2", keyProvider);
 
             const networkStub = sinon.stub(pm.networkClient, "getProgramImports");
             networkStub.withArgs(DOUBLE_PROGRAM).resolves({
@@ -1164,7 +1164,7 @@ describe("ProgramImportsBuilder", () => {
         // Program that would import itself — BFS dedup handles it
         it("should handle duplicate program in import chain via BFS dedup", async () => {
             const keyProvider = createMockKeyProvider();
-            const pm = new ProgramManager("https://api.provable.com/v2", keyProvider);
+            const pm = new ProgramManager("https://edge.provable.com/api/v2", keyProvider);
 
             const networkStub = sinon.stub(pm.networkClient, "getProgramImports");
             // quadruple imports double — initial call returns direct imports only
@@ -1187,7 +1187,7 @@ describe("ProgramImportsBuilder", () => {
         // Deep chain (A→B→C→D) — all collected in correct dependency order
         it("should resolve deep transitive chain (3 levels) in dependency order", async () => {
             const keyProvider = createMockKeyProvider();
-            const pm = new ProgramManager("https://api.provable.com/v2", keyProvider);
+            const pm = new ProgramManager("https://edge.provable.com/api/v2", keyProvider);
 
             const networkStub = sinon.stub(pm.networkClient, "getProgramImports");
             // Initial call returns direct imports only
@@ -1216,7 +1216,7 @@ describe("ProgramImportsBuilder", () => {
             (mockStore.getVerifyingKey as sinon.SinonStub).resolves(null);
 
             const keyProvider = createMockKeyProvider(mockStore);
-            const pm = new ProgramManager("https://api.provable.com/v2", keyProvider);
+            const pm = new ProgramManager("https://edge.provable.com/api/v2", keyProvider);
 
             const networkStub = sinon.stub(pm.networkClient, "getProgramImports");
             networkStub.withArgs(CALLS_ALPHA_PROGRAM).resolves({
@@ -1267,7 +1267,7 @@ describe("ProgramImportsBuilder", () => {
     describe("buildProgramImports — BFS optimization", () => {
         it("should not call getProgram when initial getProgramImports returns full closure", async () => {
             const keyProvider = createMockKeyProvider();
-            const pm = new ProgramManager("https://api.provable.com/v2", keyProvider);
+            const pm = new ProgramManager("https://edge.provable.com/api/v2", keyProvider);
 
             // getProgramImports returns the full transitive closure (realistic behavior)
             sinon.stub(pm.networkClient, "getProgramImports").withArgs(QUADRUPLE_PROGRAM).resolves({
@@ -1286,7 +1286,7 @@ describe("ProgramImportsBuilder", () => {
 
         it("should skip fetching siblings already in resolvedImports", async () => {
             const keyProvider = createMockKeyProvider();
-            const pm = new ProgramManager("https://api.provable.com/v2", keyProvider);
+            const pm = new ProgramManager("https://edge.provable.com/api/v2", keyProvider);
 
             const networkStub = sinon.stub(pm.networkClient, "getProgramImports");
             networkStub.withArgs(MULTI_IMPORT_PROGRAM).resolves({});
@@ -1309,7 +1309,7 @@ describe("ProgramImportsBuilder", () => {
 
         it("should fetch multiple unknown siblings in parallel via getProgram", async () => {
             const keyProvider = createMockKeyProvider();
-            const pm = new ProgramManager("https://api.provable.com/v2", keyProvider);
+            const pm = new ProgramManager("https://edge.provable.com/api/v2", keyProvider);
 
             // getProgramImports returns multi_import_test source but NOT its sub-imports
             const networkStub = sinon.stub(pm.networkClient, "getProgramImports");
@@ -1334,7 +1334,7 @@ describe("ProgramImportsBuilder", () => {
 
         it("should handle getProgram failures gracefully during BFS discovery", async () => {
             const keyProvider = createMockKeyProvider();
-            const pm = new ProgramManager("https://api.provable.com/v2", keyProvider);
+            const pm = new ProgramManager("https://edge.provable.com/api/v2", keyProvider);
 
             // Initial call returns direct import only
             const networkStub = sinon.stub(pm.networkClient, "getProgramImports");
@@ -1386,7 +1386,7 @@ describe("ProgramImportsBuilder", () => {
 
         it("should reuse a prepared process for fee-master and direct-fee proving requests", async () => {
             const keyProvider = createMockKeyProvider();
-            const pm = new ProgramManager("https://api.provable.com/v2", keyProvider);
+            const pm = new ProgramManager("https://edge.provable.com/api/v2", keyProvider);
             const privateKey = new PrivateKey();
 
             sinon.stub(pm.networkClient, "getProgramImports").resolves({
@@ -1713,7 +1713,7 @@ describe("ProgramImportsBuilder", () => {
 
         it("should use prepared imports when estimating a private fee record", async () => {
             const keyProvider = createMockKeyProvider();
-            const pm = new ProgramManager("https://api.provable.com/v2", keyProvider);
+            const pm = new ProgramManager("https://edge.provable.com/api/v2", keyProvider);
 
             sinon.stub(pm.networkClient, "getProgramImports").resolves({
                 "multiply_test.aleo": MULTIPLY_PROGRAM,
@@ -1764,7 +1764,7 @@ describe("ProgramImportsBuilder", () => {
 
         it("should not materialize prepared imports during proving requests", async () => {
             const keyProvider = createMockKeyProvider();
-            const pm = new ProgramManager("https://api.provable.com/v2", keyProvider);
+            const pm = new ProgramManager("https://edge.provable.com/api/v2", keyProvider);
 
             sinon.stub(pm.networkClient, "getProgramImports").resolves({
                 "multiply_test.aleo": MULTIPLY_PROGRAM,
@@ -1818,7 +1818,7 @@ describe("ProgramImportsBuilder", () => {
 
         it("should reject preparing a function that does not exist", async () => {
             const keyProvider = createMockKeyProvider();
-            const pm = new ProgramManager("https://api.provable.com/v2", keyProvider);
+            const pm = new ProgramManager("https://edge.provable.com/api/v2", keyProvider);
 
             let error: Error | undefined;
             try {
@@ -1839,7 +1839,7 @@ describe("ProgramImportsBuilder", () => {
 
         it("should reject a prepared context for a different function", async () => {
             const keyProvider = createMockKeyProvider();
-            const pm = new ProgramManager("https://api.provable.com/v2", keyProvider);
+            const pm = new ProgramManager("https://edge.provable.com/api/v2", keyProvider);
             const preparedProgram = await pm.prepareProgram({
                 programName: "multiply_test.aleo",
                 functionName: "multiply",
@@ -1871,7 +1871,7 @@ describe("ProgramImportsBuilder", () => {
 
         it("should reject source, edition, and import mismatches", async () => {
             const keyProvider = createMockKeyProvider();
-            const pm = new ProgramManager("https://api.provable.com/v2", keyProvider);
+            const pm = new ProgramManager("https://edge.provable.com/api/v2", keyProvider);
             const privateKey = new PrivateKey();
             const preparedProgram = await pm.prepareProgram({
                 programName: "double_test.aleo",
@@ -1941,7 +1941,7 @@ describe("ProgramImportsBuilder", () => {
 
         it("should fail clearly after a prepared context is freed", async () => {
             const keyProvider = createMockKeyProvider();
-            const pm = new ProgramManager("https://api.provable.com/v2", keyProvider);
+            const pm = new ProgramManager("https://edge.provable.com/api/v2", keyProvider);
             const preparedProgram = await pm.prepareProgram({
                 programName: "multiply_test.aleo",
                 functionName: "multiply",
@@ -2326,7 +2326,7 @@ describe("ProgramImportsBuilder", () => {
             (mockStore.getVerifyingKey as sinon.SinonStub).resolves(null);
 
             const keyProvider = createMockKeyProvider(mockStore);
-            const pm = new ProgramManager("https://api.provable.com/v2", keyProvider);
+            const pm = new ProgramManager("https://edge.provable.com/api/v2", keyProvider);
 
             // Stub network: top-level program is edition 2, import is edition 5
             sinon.stub(pm.networkClient, "getProgramImports").resolves({});
@@ -2366,7 +2366,7 @@ describe("ProgramImportsBuilder", () => {
         it("should invoke buildProgramImports when building authorization", async () => {
             const mockStore = createMockKeyStore();
             const keyProvider = createMockKeyProvider(mockStore);
-            const pm = new ProgramManager("https://api.provable.com/v2", keyProvider);
+            const pm = new ProgramManager("https://edge.provable.com/api/v2", keyProvider);
             pm.setAccount(new Account());
 
             sinon.stub(pm.networkClient, "getProgramImports").resolves({});

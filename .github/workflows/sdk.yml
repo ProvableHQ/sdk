@@ -11,9 +11,9 @@ env:
   CARGO_TERM_COLOR: always
   PUZZLE_PK: ${{ secrets.PUZZLE_PK }}
   PUZZLE_VK: ${{ secrets.PUZZLE_VK }}
-  RECORD_SCANNER_URL: ${{ secrets.RECORD_SCANNER_URL }}
-  KONG_API_KEY: ${{ secrets.ALEO_DPS_API_KEY }}
-  CONSUMER_ID: ${{ secrets.ALEO_CONSUMER_ID }}
+  # edge.provable.com/api is unauthenticated and has no JWT route, so the live
+  # scanner suites run in the default `none` auth mode with no key or consumer ID.
+  RECORD_SCANNER_URL: https://edge.provable.com/api/scanner
 
 
 jobs:
@@ -255,13 +255,13 @@ jobs:
     runs-on: ubuntu-latest-m
     needs: build
     env:
-      # Consumer ID (used for both DPS and RSS)
-      ALEO_CONSUMER_ID: ${{ secrets.ALEO_CONSUMER_ID }}
+      # edge.provable.com/api is unauthenticated and has no JWT route, so no
+      # consumer ID or API key is passed: the job exercises the default `none`
+      # auth mode end to end.
       # DPS configuration
-      ALEO_DPS_URL: https://api.provable.com/prove/testnet
-      ALEO_DPS_API_KEY: ${{ secrets.ALEO_DPS_API_KEY }}
+      ALEO_DPS_URL: https://edge.provable.com/api/prove/testnet
       # RSS configuration
-      ALEO_RSS_URL: https://api.provable.com/scanner
+      ALEO_RSS_URL: https://edge.provable.com/api/scanner
     steps:
       - uses: actions/checkout@v4
       - uses: ./.github/actions/setup-yarn

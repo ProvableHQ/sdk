@@ -21,7 +21,7 @@ export const GetBlockByHash = () => {
         try {
             if (hash) {
                 axios
-                    .get(`https://api.provable.com/v2/testnet/block/${hash}`)
+                    .get(`https://edge.provable.com/api/v2/testnet/block/${hash}`)
                     .then((response) => {
                         setBlockByHash(JSON.stringify(response.data, null, 2));
                         setStatus("success");

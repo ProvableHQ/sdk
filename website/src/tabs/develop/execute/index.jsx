@@ -343,7 +343,7 @@ export const Execute = () => {
                                 <Form.Item
                                     label="Peer URL"
                                     name="peer_url"
-                                    initialValue="https://api.provable.com/v2"
+                                    initialValue="https://edge.provable.com/api/v2"
                                     hidden={!getFieldValue("execute_onchain")}
                                 >
                                     <Input />

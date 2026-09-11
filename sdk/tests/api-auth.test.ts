@@ -1,6 +1,9 @@
 import { expect } from "chai";
+import { cryptoBoxKeyPair } from "@serenity-kit/noble-sodium";
+import { base64 } from "@scure/base";
 import { ApiAuth, normalizeAuthConfig } from "../src/api-auth";
 import { RecordScanner } from "../src/record-scanner";
+import { beaconPrivateKeyString } from "./data/account-data.js";
 
 type Call = { url: string; headers: Record<string, string>; method?: string };
 
@@ -26,6 +29,19 @@ describe("normalizeAuthConfig", () => {
     it("selects jwt mode from a string apiKey and consumerId", () => {
         const config = normalizeAuthConfig({ apiKey: "key", consumerId: "cid" });
         expect(config).to.deep.equal({ mode: "jwt", apiKey: "key", consumerId: "cid", jwtData: undefined });
+    });
+
+    it("selects api-key mode from a bare string apiKey with no consumerId", () => {
+        // Nothing can mint a JWT without a consumerId, so a lone key is a
+        // provisioned gateway key (edge.provable.com) sent verbatim.
+        const config = normalizeAuthConfig({ apiKey: "edge-key" });
+        expect(config).to.deep.equal({ mode: "api-key", value: "edge-key" });
+    });
+
+    it("keeps jwt mode for a bare jwtData with no apiKey", () => {
+        const jwtData = { jwt: "Bearer t", expiration: Date.now() + 3600_000 };
+        const config = normalizeAuthConfig({ jwtData });
+        expect(config).to.deep.equal({ mode: "jwt", apiKey: undefined, consumerId: undefined, jwtData });
     });
 
     it("selects api-key mode from a custom-header apiKey", () => {
@@ -155,6 +171,24 @@ describe("RecordScanner auth modes", () => {
         expect(scanCall.headers["x-provable-api-key"]).to.equal("legacy-key");
     });
 
+    it("legacy string apiKey alone sends X-API-Key and never mints", async () => {
+        const calls: Call[] = [];
+        const scanner = new RecordScanner({
+            url: "https://edge.example/api/scanner",
+            apiKey: "edge-key",
+            transport: stubTransport(calls, () => new Response(JSON.stringify({ height: 1 }), { status: 200 })),
+        });
+        await scanner.status("123field");
+        expect(calls).to.have.length(1);
+        expect(calls[0].url).to.not.include("/jwts/");
+        expect(calls[0].headers["x-api-key"]).to.equal("edge-key");
+        expect(calls[0].headers["authorization"]).to.equal(undefined);
+        // The legacy raw-key echo is kept on purpose: api.provable.com honors a bare
+        // key in X-Provable-API-Key, and edge ignores that header, so one legacy
+        // configuration keeps working against both gateways.
+        expect(calls[0].headers["x-provable-api-key"]).to.equal("edge-key");
+    });
+
     it("a credential-less scanner sends a session-injected JWT and never mints", async () => {
         const calls: Call[] = [];
         const scanner = new RecordScanner({
@@ -247,6 +281,44 @@ describe("AleoNetworkClient explicit jwt auth", () => {
             "https://api.example/jwts/consumer-a",
             "https://api.example/jwts/consumer-b",
         ]);
+    });
+
+    it("legacy string apiKey alone sends X-API-Key on every prover call and never mints", async () => {
+        const { AleoNetworkClient, ExecutionRequest, PrivateKey, ProvingRequest } = await import("../src/node");
+        const calls: Call[] = [];
+        // A real /pubkey body so encryption succeeds and the prove POST is reached.
+        const { publicKey } = cryptoBoxKeyPair();
+        const pubkeyBody = JSON.stringify({ key_id: "test-key", public_key: base64.encode(publicKey) });
+        const transport = stubTransport(calls, (url) =>
+            url.endsWith("/pubkey")
+                ? new Response(pubkeyBody, { status: 200 })
+                : new Response(JSON.stringify({ transaction: "stub", broadcast: null }), { status: 200 }));
+        const client = new AleoNetworkClient("https://edge.example/api/v2", { transport });
+        client.apiKey = "edge-key";
+
+        const executionRequest = ExecutionRequest.sign(
+            PrivateKey.from_string(beaconPrivateKeyString),
+            "credits.aleo",
+            "transfer_public",
+            ["aleo1rhgdu77hgyqd3xjj8ucu3jj9r2krwz6mnzyd80gncr5fxcwlh5rsvzp9px", "100u64"],
+            ["address.public", "u64.public"],
+            undefined,
+            undefined,
+            true,
+            false,
+        );
+        const provingRequest = ProvingRequest.fromRequest(executionRequest, undefined, false);
+        await client.submitProvingRequestSafe({ provingRequest });
+
+        expect(calls.filter((c) => c.url.includes("/jwts/"))).to.have.length(0);
+        expect(calls.map((c) => c.url)).to.deep.equal([
+            `${client.host}/pubkey`,
+            `${client.host}/prove/request`,
+        ]);
+        for (const call of calls) {
+            expect(call.headers["x-api-key"]).to.equal("edge-key");
+            expect(call.headers["authorization"]).to.equal(undefined);
+        }
     });
 
     it("rejects an empty api-key value at construction", async () => {

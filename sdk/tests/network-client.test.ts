@@ -45,7 +45,7 @@ describe("NodeConnection", () => {
     let windowFetchSpy: sinon.SinonSpy;
 
     beforeEach(() => {
-        connection = new AleoNetworkClient("https://api.provable.com/v2");
+        connection = new AleoNetworkClient("https://edge.provable.com/api/v2");
         windowFetchSpy = sinon.spy(globalThis, 'fetch');
     });
 
@@ -135,7 +135,7 @@ describe("NodeConnection", () => {
 
             expect(windowFetchSpy.args).deep.equal([
                 [
-                    "https://api.provable.com/v2/%%NETWORK%%/block/latest",
+                    "https://edge.provable.com/api/v2/%%NETWORK%%/block/latest",
                     {
                         headers: {
                             // @TODO: Run the Jest tests on the compiled Rollup code,
@@ -330,7 +330,7 @@ describe("NodeConnection", () => {
         const invalidTx =
             "at1dl9lze8wscct0dee8x9tjnfmpj12345678jcnp5f0ywjn5552yrsperzl9";
 
-        const host = "https://api.provable.com/v2";
+        const host = "https://edge.provable.com/api/v2";
 
         function getTxId(
             connection: AleoNetworkClient,
@@ -818,6 +818,85 @@ describe("AleoNetworkClient JWT refresh URL", () => {
             const firstCallUrl = fetchStub.firstCall.args[0]?.toString() ?? fetchStub.firstCall.args[0]?.url;
             expect(firstCallUrl).to.equal(`${expectedOrigin}/jwts/test-consumer-id`);
         });
+    });
+
+    it("mints the JWT at the effective prover origin, not the client host origin", async () => {
+        // Default client on edge, but the proving request is routed to the legacy
+        // gateway via setProverUri. The JWT must mint where the request lands.
+        const client = new AleoNetworkClient("https://edge.provable.com/api/v2");
+        client.setProverUri("https://api.provable.com/prove");
+        client.apiKey = "test-api-key";
+        client.consumerId = "test-consumer-id";
+
+        fetchStub.resolves({
+            ok: true,
+            status: 200,
+            headers: new Headers({ authorization: "Bearer test-jwt-token" }),
+            json: () => Promise.resolve({ exp: Math.floor(Date.now() / 1000) + 3600 }),
+            text: () => Promise.resolve(JSON.stringify({ status: "ok" })),
+        });
+
+        try {
+            await client.submitProvingRequestSafe({ provingRequest: "test-request" });
+        } catch { }
+
+        const firstCallUrl = fetchStub.firstCall.args[0]?.toString() ?? fetchStub.firstCall.args[0]?.url;
+        expect(firstCallUrl).to.equal("https://api.provable.com/jwts/test-consumer-id");
+    });
+
+    it("re-mints when the prover origin changes even though the consumer matches", async () => {
+        // The cached token is scoped to the origin that minted it. Switching the
+        // prover to a different gateway must mint a fresh token there, not reuse
+        // the first gateway's still-fresh token.
+        const client = new AleoNetworkClient("https://gateway-a.example/v2");
+        client.apiKey = "test-api-key";
+        client.consumerId = "test-consumer-id";
+
+        const mintUrls: string[] = [];
+        fetchStub.callsFake(async (url: any) => {
+            const u = String(url);
+            if (u.includes("/jwts/")) mintUrls.push(u);
+            return {
+                ok: true,
+                status: 200,
+                headers: new Headers({ authorization: "Bearer test-jwt-token" }),
+                json: () => Promise.resolve({ exp: Math.floor(Date.now() / 1000) + 3600 }),
+                text: () => Promise.resolve(JSON.stringify({ status: "ok" })),
+            };
+        });
+
+        try { await client.submitProvingRequestSafe({ provingRequest: "test-request" }); } catch { }
+        client.setProverUri("https://gateway-b.example/prove");
+        try { await client.submitProvingRequestSafe({ provingRequest: "test-request" }); } catch { }
+
+        expect(mintUrls).to.deep.equal([
+            "https://gateway-a.example/jwts/test-consumer-id",
+            "https://gateway-b.example/jwts/test-consumer-id",
+        ]);
+    });
+
+    it("mints the JWT at a per-request prover origin", async () => {
+        const client = new AleoNetworkClient("https://edge.provable.com/api/v2");
+        client.apiKey = "test-api-key";
+        client.consumerId = "test-consumer-id";
+
+        fetchStub.resolves({
+            ok: true,
+            status: 200,
+            headers: new Headers({ authorization: "Bearer test-jwt-token" }),
+            json: () => Promise.resolve({ exp: Math.floor(Date.now() / 1000) + 3600 }),
+            text: () => Promise.resolve(JSON.stringify({ status: "ok" })),
+        });
+
+        try {
+            await client.submitProvingRequestSafe({
+                provingRequest: "test-request",
+                url: "https://api.provable.com/prove/testnet",
+            });
+        } catch { }
+
+        const firstCallUrl = fetchStub.firstCall.args[0]?.toString() ?? fetchStub.firstCall.args[0]?.url;
+        expect(firstCallUrl).to.equal("https://api.provable.com/jwts/test-consumer-id");
     });
 });
 

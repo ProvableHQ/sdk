@@ -4,7 +4,7 @@ import axios from "axios";
 
 export const Split = () => {
     const [amountRecord, setAmountRecord] = useState(null);
-    const [splitUrl, setSplitUrl] = useState("https://api.provable.com/v2");
+    const [splitUrl, setSplitUrl] = useState("https://edge.provable.com/api/v2");
     const [splitAmount, setSplitAmount] = useState("1.0");
     const [loading, setLoading] = useState(false);
     const [privateKey, setPrivateKey] = useState(null);

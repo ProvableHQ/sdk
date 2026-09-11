@@ -5,20 +5,22 @@
 // Mirrors the ESM loyalty template's `mint_card` path but uses `require()`
 // throughout. Validates the full CJS → DPS → on-chain round-trip end to end.
 //
-// Required env: ALEO_CONSUMER_ID, ALEO_DPS_API_KEY, ALEO_DPS_URL.
+// Env: ALEO_DPS_URL (defaults to edge, which is unauthenticated), optional
+// ALEO_DPS_API_KEY (sent as X-API-Key on its own, or used to mint a JWT when
+// ALEO_CONSUMER_ID is also set for the legacy api.provable.com gateway).
 
 const path = require("node:path");
 const fs = require("node:fs");
 
 const sdk = require(path.resolve(__dirname, "../../dist/testnet/node.cjs"));
 
-const DPS_URL = process.env.ALEO_DPS_URL || "https://api.provable.com/prove/testnet";
+const DPS_URL = process.env.ALEO_DPS_URL || "https://edge.provable.com/api/prove/testnet";
 const DPS_API_KEY = process.env.ALEO_DPS_API_KEY;
 const CONSUMER_ID = process.env.ALEO_CONSUMER_ID;
-const API_URL = "https://api.provable.com/v2";
+const API_URL = "https://edge.provable.com/api/v2";
 
-if (!DPS_API_KEY || !CONSUMER_ID) {
-    console.error("SKIP: ALEO_DPS_API_KEY and ALEO_CONSUMER_ID required for CJS DPS test.");
+if (CONSUMER_ID && !DPS_API_KEY) {
+    console.error("SKIP: ALEO_CONSUMER_ID needs ALEO_DPS_API_KEY to mint a JWT.");
     process.exit(0);
 }
 
@@ -83,8 +85,8 @@ async function main() {
     const response = await dpsClient.submitProvingRequest({
         provingRequest,
         url: DPS_URL,
-        apiKey: DPS_API_KEY,
-        consumerId: CONSUMER_ID,
+        ...(DPS_API_KEY ? { apiKey: DPS_API_KEY } : {}),
+        ...(CONSUMER_ID ? { consumerId: CONSUMER_ID } : {}),
         dpsPrivacy: true,
     });
 

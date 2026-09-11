@@ -23,7 +23,7 @@ export const LoadProgram = ({ onResponse }) => {
         }
 
         setIsLoading(true);
-        const url = `https://api.provable.com/v2/testnet/program/${value}`;
+        const url = `https://edge.provable.com/api/v2/testnet/program/${value}`;
 
         axios
             .get(url)

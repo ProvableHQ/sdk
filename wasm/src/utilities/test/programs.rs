@@ -739,7 +739,7 @@ view symbol:
 /// The Circle test USDCx stablecoin deployed on testnet. It matches the IARC22 function
 /// and record signatures but declares none of the required view functions, so it is NOT
 /// ARC-22 compliant — a realistic near-miss vector.
-/// Source: https://api.provable.com/v2/testnet/programs/test_usdcx_stablecoin.aleo
+/// Source: https://edge.provable.com/api/v2/testnet/programs/test_usdcx_stablecoin.aleo
 pub const TEST_USDCX_STABLECOIN: &str = include_str!("test_usdcx_stablecoin.aleo");
 
 /// The ARC-22 compliant token template compiled from source with Leo (branch

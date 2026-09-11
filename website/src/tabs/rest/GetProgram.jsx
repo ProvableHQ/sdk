@@ -31,7 +31,7 @@ export const GetProgram = () => {
         try {
             if (id) {
                 axios
-                    .get(`https://api.provable.com/v2/testnet/program/${id}`)
+                    .get(`https://edge.provable.com/api/v2/testnet/program/${id}`)
                     .then((response) => {
                         setStatus("success");
                         setProgram(response.data);

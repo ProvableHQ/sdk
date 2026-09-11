@@ -9,7 +9,7 @@ describe.skip('RecordProvider', () => {
 
     beforeEach(() => {
         account = new Account({privateKey: beaconPrivateKeyString});
-        networkClient = new AleoNetworkClient("https://api.provable.com/v2");
+        networkClient = new AleoNetworkClient("https://edge.provable.com/api/v2");
         recordProvider = new NetworkRecordProvider(account, networkClient);
     });
 
