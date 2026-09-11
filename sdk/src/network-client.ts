@@ -115,6 +115,9 @@ class AleoNetworkClient {
     // The consumer the cached jwtData was minted for, so the cache is never
     // reused for a different identity on a shared client.
     private jwtConsumerId?: string;
+    // The origin the cached jwtData was minted at, so a token is never reused
+    // for a proving request routed to a different gateway.
+    private jwtMintOrigin?: string;
     proverUri?: string;
     recordScannerUri?: string;
 
@@ -1884,11 +1887,6 @@ class AleoNetworkClient {
         if (options.auth && (options.apiKey !== undefined || options.consumerId !== undefined || options.jwtData !== undefined)) {
             throw new Error("Pass either `auth` or the legacy apiKey/consumerId/jwtData options, not both");
         }
-        const config = options.auth ?? this.auth ?? normalizeAuthConfig({
-            apiKey: options.apiKey ?? this.apiKey,
-            consumerId: options.consumerId ?? this.consumerId,
-            jwtData: options.jwtData ?? this.jwtData,
-        });
         // Mint the JWT at the origin the proving request actually lands on, not the
         // client's main host: a caller can route proving to a different gateway via
         // setProverUri or a per-request `url`, and the JWT is validated there.
@@ -1899,12 +1897,21 @@ class AleoNetworkClient {
             // proverUri may carry the unsubstituted %%NETWORK%% placeholder in tests;
             // fall back to the client host origin.
         }
+        // Resolve the config without pulling in the cached client token; the
+        // cache is applied below through one origin-and-consumer-scoped path.
+        const config = options.auth ?? this.auth ?? normalizeAuthConfig({
+            apiKey: options.apiKey ?? this.apiKey,
+            consumerId: options.consumerId ?? this.consumerId,
+            jwtData: options.jwtData,
+        });
         const auth = new ApiAuth(config, mintOrigin, this.transport, this.method("refreshJwt"));
-        // Seed the cached token so an explicit jwt config reuses it until the
-        // refresh window instead of minting on every request — but only for the
-        // consumer that minted it, so per-request credentials on a shared
-        // client never ride another identity's token.
-        if (config.mode === "jwt" && !config.jwtData && this.jwtData && config.consumerId === this.jwtConsumerId) {
+        // Reuse the cached client token until the refresh window instead of
+        // minting on every request, but only when this submission targets the
+        // same consumer AND the same gateway origin that minted it — so a shared
+        // client never rides another identity's token or sends one gateway's
+        // token to a different gateway. A per-request jwtData in the config wins.
+        if (config.mode === "jwt" && !config.jwtData && this.jwtData
+            && config.consumerId === this.jwtConsumerId && mintOrigin === this.jwtMintOrigin) {
             auth.setJwtData(this.jwtData);
         }
 
@@ -1915,6 +1922,7 @@ class AleoNetworkClient {
         if (config.mode === "jwt" && jwtData) {
             this.jwtData = jwtData;
             this.jwtConsumerId = config.consumerId;
+            this.jwtMintOrigin = mintOrigin;
             options.jwtData = jwtData;
         }
 
