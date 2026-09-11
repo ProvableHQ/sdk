@@ -819,6 +819,54 @@ describe("AleoNetworkClient JWT refresh URL", () => {
             expect(firstCallUrl).to.equal(`${expectedOrigin}/jwts/test-consumer-id`);
         });
     });
+
+    it("mints the JWT at the effective prover origin, not the client host origin", async () => {
+        // Default client on edge, but the proving request is routed to the legacy
+        // gateway via setProverUri. The JWT must mint where the request lands.
+        const client = new AleoNetworkClient("https://edge.provable.com/api/v2");
+        client.setProverUri("https://api.provable.com/prove");
+        client.apiKey = "test-api-key";
+        client.consumerId = "test-consumer-id";
+
+        fetchStub.resolves({
+            ok: true,
+            status: 200,
+            headers: new Headers({ authorization: "Bearer test-jwt-token" }),
+            json: () => Promise.resolve({ exp: Math.floor(Date.now() / 1000) + 3600 }),
+            text: () => Promise.resolve(JSON.stringify({ status: "ok" })),
+        });
+
+        try {
+            await client.submitProvingRequestSafe({ provingRequest: "test-request" });
+        } catch { }
+
+        const firstCallUrl = fetchStub.firstCall.args[0]?.toString() ?? fetchStub.firstCall.args[0]?.url;
+        expect(firstCallUrl).to.equal("https://api.provable.com/jwts/test-consumer-id");
+    });
+
+    it("mints the JWT at a per-request prover origin", async () => {
+        const client = new AleoNetworkClient("https://edge.provable.com/api/v2");
+        client.apiKey = "test-api-key";
+        client.consumerId = "test-consumer-id";
+
+        fetchStub.resolves({
+            ok: true,
+            status: 200,
+            headers: new Headers({ authorization: "Bearer test-jwt-token" }),
+            json: () => Promise.resolve({ exp: Math.floor(Date.now() / 1000) + 3600 }),
+            text: () => Promise.resolve(JSON.stringify({ status: "ok" })),
+        });
+
+        try {
+            await client.submitProvingRequestSafe({
+                provingRequest: "test-request",
+                url: "https://api.provable.com/prove/testnet",
+            });
+        } catch { }
+
+        const firstCallUrl = fetchStub.firstCall.args[0]?.toString() ?? fetchStub.firstCall.args[0]?.url;
+        expect(firstCallUrl).to.equal("https://api.provable.com/jwts/test-consumer-id");
+    });
 });
 
 describe("submitProvingRequestSafe variant routing", () => {

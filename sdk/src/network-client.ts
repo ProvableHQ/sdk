@@ -1889,7 +1889,17 @@ class AleoNetworkClient {
             consumerId: options.consumerId ?? this.consumerId,
             jwtData: options.jwtData ?? this.jwtData,
         });
-        const auth = new ApiAuth(config, this.baseUrl, this.transport, this.method("refreshJwt"));
+        // Mint the JWT at the origin the proving request actually lands on, not the
+        // client's main host: a caller can route proving to a different gateway via
+        // setProverUri or a per-request `url`, and the JWT is validated there.
+        let mintOrigin = this.baseUrl;
+        try {
+            mintOrigin = new URL(proverUri).origin;
+        } catch {
+            // proverUri may carry the unsubstituted %%NETWORK%% placeholder in tests;
+            // fall back to the client host origin.
+        }
+        const auth = new ApiAuth(config, mintOrigin, this.transport, this.method("refreshJwt"));
         // Seed the cached token so an explicit jwt config reuses it until the
         // refresh window instead of minting on every request — but only for the
         // consumer that minted it, so per-request credentials on a shared
