@@ -43,7 +43,7 @@ const privateKey = "APrivateKey1zkp8CZNn3yeCseEtxuVPbDCwSyhGW6yZKUYKfgXmcpoGPWH"
 const account = new Account({ privateKey });
 const address = account.address().to_string();
 
-const pm = new ProgramManager("https://api.provable.com/v2", undefined, undefined, {
+const pm = new ProgramManager("https://edge.provable.com/api/v2", undefined, undefined, {
     transport: mtlsTransport,
 });
 const kp = new AleoKeyProvider({ transport: mtlsTransport });
@@ -113,7 +113,7 @@ log("State paths fetched via transport", t2StatePaths.length > 0, `${t2StatePath
 console.log("\nTest 3: dynamic_transfer_pub_to_priv (call.dynamic)");
 
 // Fetch the deployed program source via transport
-const nc = new AleoNetworkClient("https://api.provable.com/v2", { transport: mtlsTransport });
+const nc = new AleoNetworkClient("https://edge.provable.com/api/v2", { transport: mtlsTransport });
 const programSource = await nc.getProgram("test_dcall_sdk.aleo");
 log("Fetched test_dcall_sdk.aleo via transport", !!programSource);
 

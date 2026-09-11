@@ -167,12 +167,12 @@ class AleoKeyProvider implements FunctionKeyProvider {
      *
      * @example
      * // Create a new object which implements the KeyProvider interface
-     * const networkClient = new AleoNetworkClient("https://api.provable.com/v2");
+     * const networkClient = new AleoNetworkClient("https://edge.provable.com/api/v2");
      * const keyProvider = new AleoKeyProvider();
      * const recordProvider = new NetworkRecordProvider(account, networkClient);
      *
      * // Initialize a program manager with the key provider to automatically fetch keys for value transfers
-     * const programManager = new ProgramManager("https://api.provable.com/v2", keyProvider, recordProvider);
+     * const programManager = new ProgramManager("https://edge.provable.com/api/v2", keyProvider, recordProvider);
      * programManager.transfer(1, "aleo166q6ww6688cug7qxwe7nhctjpymydwzy2h7rscfmatqmfwnjvggqcad0at", "public", 0.5);
      *
      * // Keys can also be fetched manually using the key provider
@@ -235,12 +235,12 @@ class AleoKeyProvider implements FunctionKeyProvider {
      *
      * @example
      * // Create a new AleoKeyProvider object
-     * const networkClient = new AleoNetworkClient("https://api.provable.com/v2");
+     * const networkClient = new AleoNetworkClient("https://edge.provable.com/api/v2");
      * const keyProvider = new AleoKeyProvider();
      * const recordProvider = new NetworkRecordProvider(account, networkClient);
      *
      * // Initialize a program manager with the key provider to automatically fetch keys for value transfers
-     * const programManager = new ProgramManager("https://api.provable.com/v2", keyProvider, recordProvider);
+     * const programManager = new ProgramManager("https://edge.provable.com/api/v2", keyProvider, recordProvider);
      * programManager.transfer(1, "aleo166q6ww6688cug7qxwe7nhctjpymydwzy2h7rscfmatqmfwnjvggqcad0at", "public", 0.5);
      *
      * // Keys can also be fetched manually
@@ -390,12 +390,12 @@ class AleoKeyProvider implements FunctionKeyProvider {
      *
      * @example
      * // Create a new AleoKeyProvider
-     * const networkClient = new AleoNetworkClient("https://api.provable.com/v2");
+     * const networkClient = new AleoNetworkClient("https://edge.provable.com/api/v2");
      * const keyProvider = new AleoKeyProvider();
      * const recordProvider = new NetworkRecordProvider(account, networkClient);
      *
      * // Initialize a program manager with the key provider to automatically fetch keys for value transfers
-     * const programManager = new ProgramManager("https://api.provable.com/v2", keyProvider, recordProvider);
+     * const programManager = new ProgramManager("https://edge.provable.com/api/v2", keyProvider, recordProvider);
      * programManager.transfer(1, "aleo166q6ww6688cug7qxwe7nhctjpymydwzy2h7rscfmatqmfwnjvggqcad0at", "public", 0.5);
      *
      * // Keys can also be fetched manually

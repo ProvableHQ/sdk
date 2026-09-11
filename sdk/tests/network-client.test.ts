@@ -45,7 +45,7 @@ describe("NodeConnection", () => {
     let windowFetchSpy: sinon.SinonSpy;
 
     beforeEach(() => {
-        connection = new AleoNetworkClient("https://api.provable.com/v2");
+        connection = new AleoNetworkClient("https://edge.provable.com/api/v2");
         windowFetchSpy = sinon.spy(globalThis, 'fetch');
     });
 
@@ -135,7 +135,7 @@ describe("NodeConnection", () => {
 
             expect(windowFetchSpy.args).deep.equal([
                 [
-                    "https://api.provable.com/v2/%%NETWORK%%/block/latest",
+                    "https://edge.provable.com/api/v2/%%NETWORK%%/block/latest",
                     {
                         headers: {
                             // @TODO: Run the Jest tests on the compiled Rollup code,
@@ -330,7 +330,7 @@ describe("NodeConnection", () => {
         const invalidTx =
             "at1dl9lze8wscct0dee8x9tjnfmpj12345678jcnp5f0ywjn5552yrsperzl9";
 
-        const host = "https://api.provable.com/v2";
+        const host = "https://edge.provable.com/api/v2";
 
         function getTxId(
             connection: AleoNetworkClient,

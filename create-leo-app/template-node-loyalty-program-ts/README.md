@@ -41,16 +41,16 @@ npm run start:redeem       # Redeem points for a voucher
 Copy `.env.example` to `.env` and configure:
 
 ```bash
-# Consumer ID (used for both DPS and RSS)
-ALEO_CONSUMER_ID=your-consumer-id
-
-# For delegated mode
+# For delegated mode (edge.provable.com/api is unauthenticated; an API key is optional)
 ALEO_PROVING_MODE=delegated
-ALEO_DPS_URL=https://api.provable.com/prove/testnet
-ALEO_DPS_API_KEY=your-api-key
+ALEO_DPS_URL=https://edge.provable.com/api/prove/testnet
+# ALEO_DPS_API_KEY=your-api-key
 
 # For record scanning
-ALEO_RSS_URL=https://api.provable.com/scanner
+ALEO_RSS_URL=https://edge.provable.com/api/scanner
+
+# Only for the legacy api.provable.com gateway, which mints JWTs from key + consumer ID
+# ALEO_CONSUMER_ID=your-consumer-id
 ```
 
 ## API Overview

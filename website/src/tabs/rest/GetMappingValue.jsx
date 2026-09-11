@@ -55,7 +55,7 @@ export const GetMappingValue = () => {
             if (programID && mappingName && mappingKey) {
                 axios
                     .get(
-                        `https://api.provable.com/v2/testnet/program/${programID}/mapping/${mappingName}/${mappingKey}`,
+                        `https://edge.provable.com/api/v2/testnet/program/${programID}/mapping/${mappingName}/${mappingKey}`,
                     )
                     .then((response) => {
                         if (response.data === null) {

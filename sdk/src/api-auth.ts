@@ -19,15 +19,18 @@ export const DEFAULT_API_KEY_HEADER = "X-API-Key";
 /**
  * Authentication configuration for Provable API services.
  *
- * Two live modes exist, matching the two gateways:
- * - `jwt` (api.provable.com): the apiKey + consumerId pair mints a short-lived JWT at
- *   `/jwts/{consumerId}` which is sent as an `Authorization` header and refreshed near expiry.
- * - `api-key` (edge.provable.com): a provisioned key is sent verbatim on every request in a
+ * The SDK targets edge.provable.com/api by default. That gateway is unauthenticated: it never
+ * mints or accepts JWTs, and a provisioned key is optional. The legacy api.provable.com gateway
+ * authenticates with JWTs. The modes map onto the gateways as follows:
+ * - `none`: requests carry no auth headers of their own. This is the default for edge, and
+ *   nothing ever calls `/jwts`. A token injected via `setJwtData` is still sent — the
+ *   session-driven pattern, where an external session owns minting and hands a fresh token in.
+ * - `api-key`: edge with a provisioned key. The key is sent verbatim on every request in a
  *   header (default `X-API-Key`). There is no registration, minting, or refresh in this mode;
  *   a 401 means the key is invalid or revoked and retrying cannot help.
- * - `none`: requests carry no auth headers of their own. A token injected via
- *   `setJwtData` is still sent — the session-driven pattern, where an external
- *   session owns minting and hands a fresh token in before each request.
+ * - `jwt`: api.provable.com. The apiKey + consumerId pair mints a short-lived JWT at
+ *   `/jwts/{consumerId}` which is sent as an `Authorization` header and refreshed near expiry.
+ *   Edge has no `/jwts` route, so do not point a `jwt` configuration at it.
  */
 export type ApiAuthConfig =
     | { mode: "jwt"; apiKey?: string; consumerId?: string; jwtData?: JWTData }
@@ -48,10 +51,12 @@ export interface LegacyAuthOptions {
 /**
  * Normalize legacy auth options into an explicit {@link ApiAuthConfig}.
  *
- * Rules, preserving the pre-mode behavior of both clients:
+ * Rules:
  * - An explicit `auth` wins. Combining it with legacy fields throws — the caller's intent
  *   is ambiguous and guessing hides misconfiguration.
- * - A string `apiKey` (with or without `consumerId`) or a bare `jwtData` selects `jwt` mode.
+ * - A string `apiKey` on its own selects `api-key` mode with the default header: nothing can
+ *   mint a JWT without a `consumerId`, so a lone key is a provisioned edge key.
+ * - A string `apiKey` with a `consumerId`, or a bare `jwtData`, selects `jwt` mode.
  * - An `{ header, value }` apiKey selects `api-key` mode with that header. Combining it with
  *   a `consumerId` throws: keyed auth has no consumer and the pair would silently pick one.
  * - Nothing configured selects `none`.
@@ -71,6 +76,11 @@ export function normalizeAuthConfig(options: LegacyAuthOptions): ApiAuthConfig {
         const config: ApiAuthConfig = { mode: "api-key", value: options.apiKey.value, header: options.apiKey.header };
         validateKeyed(config);
         return config;
+    }
+    if (typeof options.apiKey === "string" && options.apiKey !== "" && options.consumerId === undefined && options.jwtData === undefined) {
+        // Nothing can mint a JWT without a consumerId, so a lone key is a provisioned
+        // gateway key (edge.provable.com) and is sent verbatim.
+        return { mode: "api-key", value: options.apiKey };
     }
     if (options.apiKey !== undefined || options.consumerId !== undefined || options.jwtData !== undefined) {
         return { mode: "jwt", apiKey: options.apiKey, consumerId: options.consumerId, jwtData: options.jwtData };

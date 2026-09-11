@@ -53,13 +53,14 @@ import sodium from "libsodium-wrappers";
 describe('Program Manager', async () => {
     const keyProvider = new AleoKeyProvider();
     keyProvider.useCache(true);
-    const programManager = new ProgramManager("https://api.provable.com/v2", keyProvider);
+    const programManager = new ProgramManager("https://edge.provable.com/api/v2", keyProvider);
     programManager.setAccount(new Account({ privateKey: statePathv0RecordOwnerPrivateKey }));
     const network = programManager.networkClient.network;
-    programManager.networkClient.setProverUri("https://accelerate.provable.com");
+    // setProverUri appends the network segment itself.
+    programManager.networkClient.setProverUri("https://edge.provable.com/api/prove");
     describe('Instantiate with AleoNetworkClientOptions', () => {
         it('should have the specified headers when instantiated', async () => {
-            const newProgramManager = new ProgramManager("https://api.provable.com/v2", undefined, undefined, { headers: { 'X-Test-Header': 'programManager' } });
+            const newProgramManager = new ProgramManager("https://edge.provable.com/api/v2", undefined, undefined, { headers: { 'X-Test-Header': 'programManager' } });
             expect(Object.keys(newProgramManager.networkClient.headers).length).equal(1);
             expect(newProgramManager.networkClient.headers['X-Test-Header']).equal('programManager');
             expect(newProgramManager.networkClient.headers['X-Aleo-SDK-Version']).undefined;
