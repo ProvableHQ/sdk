@@ -44,9 +44,9 @@ export interface RecordScannerJWTData {
  * Configuration for the record scanner.
  *
  * @property {string} url Base URL of the record scanning service (network path is appended by the SDK).
- * @property {ApiAuthConfig} [auth] Explicit auth mode: `jwt` (api.provable.com), `api-key` (edge.provable.com), or `none`. Wins over the legacy fields below, which cannot be combined with it.
- * @property {string | { header: string, value: string }} [apiKey] Legacy: API key as a string (JWT auth) or as a custom header name and value (keyed auth).
- * @property {string} [consumerId] Legacy: required for JWT refresh when using authenticated record scanner (e.g. Provable API).
+ * @property {ApiAuthConfig} [auth] Explicit auth mode. edge.provable.com/api is unauthenticated and never uses JWTs: use `none` (default) or `api-key` with an optional provisioned key. `jwt` is for the legacy api.provable.com gateway. Wins over the legacy fields below, which cannot be combined with it.
+ * @property {string | { header: string, value: string }} [apiKey] Legacy: API key as a string (sent as `X-API-Key` on its own, or used to mint a JWT when paired with `consumerId`) or as a custom header name and value (keyed auth).
+ * @property {string} [consumerId] Legacy: pairs with a string `apiKey` to mint JWTs against api.provable.com. Do not set it for edge.provable.com, which has no JWT route.
  * @property {RecordScannerJWTData} [jwtData] Legacy: optional JWT for auth. If omitted and apiKey + consumerId are set, JWT is refreshed when needed.
  * @property {ViewKey[]} [viewKeys] Optional view keys to use for local scanning and decryption.
  * @property {Account} [account] Optional account to use for local scanning and decryption.

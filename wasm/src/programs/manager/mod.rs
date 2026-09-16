@@ -26,7 +26,7 @@ mod transfer;
 pub use imports::ProgramImports;
 use imports::{ResolvedProcess, extract_source};
 
-pub const DEFAULT_URL: &str = "https://api.provable.com/v2";
+pub const DEFAULT_URL: &str = "https://edge.provable.com/api/v2";
 pub const LOCAL_URL: &str = "http://localhost:3030";
 
 // Dummy verifying key for devnode deployments. Encodes num_public_inputs=64 to accommodate

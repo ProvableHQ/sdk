@@ -18,7 +18,10 @@ import { ViewKey } from "../src/node";
 import { encryptRegistrationRequest } from "../src/security";
 import sinon from "sinon";
 
-const sandboxUrl = process.env.RECORD_SCANNER_URL ?? "";
+// edge.provable.com/api is unauthenticated, so the live scanner suites run without
+// credentials by default. KONG_API_KEY alone is sent as X-API-Key; adding CONSUMER_ID
+// selects JWT minting for the legacy api.provable.com gateway.
+const sandboxUrl = process.env.RECORD_SCANNER_URL ?? "https://edge.provable.com/api/scanner";
 const viewKeyStr = process.env.PUZZLE_VK as string;
 const apiKey = process.env.KONG_API_KEY as string;
 const consumerId = process.env.CONSUMER_ID as string | undefined;

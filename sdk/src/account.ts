@@ -267,7 +267,7 @@ export class Account {
    * import { AleoNetworkClient, Account } from "@provablehq/sdk/testnet.js";
    *
    * // Create a connection to the Aleo network and an account
-   * const networkClient = new AleoNetworkClient("https://api.provable.com/v2");
+   * const networkClient = new AleoNetworkClient("https://edge.provable.com/api/v2");
    * const account = Account.fromCiphertext(process.env.ciphertext!, process.env.password!);
    *
    * // Get the record ciphertexts from a transaction.
@@ -298,7 +298,7 @@ export class Account {
    * import { AleoNetworkClient, Account } from "@provablehq/sdk/testnet.js";
    *
    * // Create a connection to the Aleo network and an account
-   * const networkClient = new AleoNetworkClient("https://api.provable.com/v2");
+   * const networkClient = new AleoNetworkClient("https://edge.provable.com/api/v2");
    * const account = Account.fromCiphertext(process.env.ciphertext!, process.env.password!);
    *
    * // Get the record ciphertexts from a transaction.
@@ -375,7 +375,7 @@ export class Account {
    * import { AleoNetworkClient, Account } from "@provablehq/sdk/testnet.js";
    *
    * // Create a connection to the Aleo network and an account
-   * const networkClient = new AleoNetworkClient("https://api.provable.com/v2");
+   * const networkClient = new AleoNetworkClient("https://edge.provable.com/api/v2");
    * const account = Account.fromCiphertext(process.env.ciphertext!, process.env.password!);
    *
    * // Get the record ciphertexts from a transaction and check ownership of them.

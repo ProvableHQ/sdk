@@ -39,9 +39,9 @@ class Credits {
      * Create a new Credits instance.
      *
      * @param account - The Aleo account to use for transactions
-     * @param apiUrl - The API endpoint (defaults to https://api.provable.com/v2)
+     * @param apiUrl - The API endpoint (defaults to https://edge.provable.com/api/v2)
      */
-    constructor(account: Account, apiUrl: string = "https://api.provable.com/v2") {
+    constructor(account: Account, apiUrl: string = "https://edge.provable.com/api/v2") {
         this._account = account;
         this.programManager = new ProgramManager(apiUrl);
         this.programManager.setAccount(account);

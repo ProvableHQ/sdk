@@ -29,7 +29,7 @@ class Credits {
     private creditsProgram: string;
     private _account: Account;
 
-    constructor(account: Account, apiUrl: string = "https://api.provable.com/v2") {
+    constructor(account: Account, apiUrl: string = "https://edge.provable.com/api/v2") {
         this._account = account;
         this.programManager = new ProgramManager(apiUrl);
         this.programManager.setAccount(account);

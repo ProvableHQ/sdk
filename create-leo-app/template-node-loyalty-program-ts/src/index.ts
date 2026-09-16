@@ -93,9 +93,9 @@ export interface ProgramConfig {
     provingMode?: ProvingMode;
     /** RecordScanner service URL. */
     recordScannerUrl?: string;
-    /** API key or JWT for RecordScanner (for RSS scanner). */
+    /** API key or JWT for RecordScanner (for RSS scanner). Falls back to dpsApiKey. */
     recordScannerApiKey?: string;
-    /** Provable API consumer ID (used for both DPS and RSS). */
+    /** Legacy api.provable.com consumer ID; pairs with the API key to mint JWTs. Unused on edge. */
     consumerId?: string;
     dpsUrl?: string;
     dpsApiKey?: string;
@@ -255,7 +255,7 @@ class LoyaltyProgram {
         // (edition lookups, inclusion proofs, etc.). The DPS URL is only needed for
         // submitProvingRequest() — passing it here doubles the /testnet/ path segment.
         this.programManager = new ProgramManager(
-            "https://api.provable.com/v2",
+            "https://edge.provable.com/api/v2",
             this.keyProvider,
             undefined,
             undefined,
@@ -277,9 +277,13 @@ class LoyaltyProgram {
             const apiKeyConfig = config.recordScannerApiKey?.startsWith("eyJ")
                 ? { header: "Authorization", value: `Bearer ${config.recordScannerApiKey}` }
                 : config.recordScannerApiKey;
+            // A lone string key is sent as X-API-Key (edge); paired with a consumer
+            // ID the SDK mints JWTs against the legacy api.provable.com gateway.
+            const apiKey = apiKeyConfig ?? config.dpsApiKey;
             this._recordScanner = new RecordScanner({
                 url: config.recordScannerUrl,
-                apiKey: apiKeyConfig,
+                apiKey,
+                ...(typeof apiKey === "string" && config.consumerId ? { consumerId: config.consumerId } : {}),
             });
         }
 
@@ -966,14 +970,15 @@ try {
 
 // Read configuration from environment.
 // Environment variables:
-//   ALEO_CONSUMER_ID     - Provable API consumer ID (used for both DPS and RSS)
+//   ALEO_CONSUMER_ID     - Legacy api.provable.com consumer ID; pairs with ALEO_DPS_API_KEY to
+//                          mint JWTs. Leave unset for edge.provable.com, which has no JWT route.
 //   ALEO_PROVING_MODE    - "local" (default) or "delegated"
-//   ALEO_DPS_URL         - Delegated Proving Service URL (e.g., "https://api.provable.com/prove/testnet")
-//   ALEO_DPS_API_KEY     - API key for DPS authentication
+//   ALEO_DPS_URL         - Delegated Proving Service URL (e.g., "https://edge.provable.com/api/prove/testnet")
+//   ALEO_DPS_API_KEY     - Optional API key, sent as X-API-Key (edge is otherwise unauthenticated)
 //   ALEO_DPS_PRIVACY     - "true" to enable encrypted DPS flow (TEE-protected)
 //   ALEO_SCAN_START_HEIGHT - Block height to start scanning from (default: 0)
-//   ALEO_RSS_URL         - Record Scanning Service URL (e.g., "https://api.provable.com/scanner")
-//   ALEO_RSS_API_KEY     - JWT token for RSS authentication (optional if using ALEO_CONSUMER_ID)
+//   ALEO_RSS_URL         - Record Scanning Service URL (e.g., "https://edge.provable.com/api/scanner")
+//   ALEO_RSS_API_KEY     - Optional API key or JWT for RSS (falls back to ALEO_DPS_API_KEY)
 const consumerId = process.env.ALEO_CONSUMER_ID;
 const provingMode = process.env.ALEO_PROVING_MODE === "delegated"
     ? ProvingMode.Delegated
@@ -982,76 +987,13 @@ const dpsUrl = process.env.ALEO_DPS_URL;
 const dpsApiKey = process.env.ALEO_DPS_API_KEY;
 const dpsPrivacy = process.env.ALEO_DPS_PRIVACY === "true";
 const recordScannerUrl = process.env.ALEO_RSS_URL;
-let recordScannerApiKey = process.env.ALEO_RSS_API_KEY;
+const recordScannerApiKey = process.env.ALEO_RSS_API_KEY;
 const scanStartHeight = parseInt(process.env.ALEO_SCAN_START_HEIGHT ?? "0", 10);
-
-// Derive JWT endpoint from DPS URL base (e.g., "https://api.provable.com/prove/testnet" -> "https://api.provable.com")
-function getApiBaseUrl(): string {
-    if (dpsUrl) {
-        try {
-            const url = new URL(dpsUrl);
-            return `${url.protocol}//${url.host}`;
-        } catch {
-            // Fall back to default if URL parsing fails.
-        }
-    }
-    return "https://api.provable.com";
-}
-
-// If we have a consumer ID but no JWT, fetch the JWT from the Provable API.
-async function fetchRssJwt(): Promise<string | undefined> {
-    // Skip if no consumer ID or API key.
-    if (!consumerId || !dpsApiKey) return recordScannerApiKey;
-    // Skip if already have a JWT token.
-    if (recordScannerApiKey?.startsWith("eyJ")) return recordScannerApiKey;
-
-    const baseUrl = getApiBaseUrl();
-    try {
-        const response = await fetch(`${baseUrl}/jwts/${consumerId}`, {
-            method: "POST",
-            headers: {
-                "Content-Type": "application/json",
-                "X-Provable-API-Key": dpsApiKey,
-            },
-        });
-        if (!response.ok) {
-            const status = response.status;
-            if (status === 401 || status === 403) {
-                console.error(`${COLORS.yellow}⚠${COLORS.reset}  Failed to fetch RSS JWT: Invalid API key`);
-                console.error(`   ${COLORS.dim}Check that ALEO_DPS_API_KEY is correct${COLORS.reset}`);
-            } else if (status === 404) {
-                console.error(`${COLORS.yellow}⚠${COLORS.reset}  Failed to fetch RSS JWT: Consumer ID not found`);
-                console.error(`   ${COLORS.dim}Check that ALEO_CONSUMER_ID is correct${COLORS.reset}`);
-            } else {
-                console.error(`${COLORS.yellow}⚠${COLORS.reset}  Failed to fetch RSS JWT: HTTP ${status}`);
-            }
-            return recordScannerApiKey;
-        }
-        // JWT is returned in the Authorization header as "Bearer <token>".
-        const authHeader = response.headers.get("authorization");
-        if (!authHeader) {
-            console.error(`${COLORS.yellow}⚠${COLORS.reset}  Failed to fetch RSS JWT: No token in response`);
-            return recordScannerApiKey;
-        }
-        const jwt = authHeader.replace(/^Bearer\s+/i, "");
-        console.log(`${COLORS.green}✓${COLORS.reset} Fetched RSS JWT token`);
-        return jwt;
-    } catch (error) {
-        console.error(`${COLORS.yellow}⚠${COLORS.reset}  Failed to fetch RSS JWT: ${error}`);
-        console.error(`   ${COLORS.dim}Check your network connection${COLORS.reset}`);
-        return recordScannerApiKey;
-    }
-}
 
 // Use demo account - this account has existing records on-chain for demonstration.
 const accountCiphertext =
     "ciphertext1qvq283j7ujnhz59d4rnu772rfmvf94039x9ekhk2lzuutteqzlghsr3g9824qgw97a79mmdymqdt0ulqdkahq39vnerw2tl7thvvnnunq386jzjnw29e0ghnq7unphgdzw637q3fgvvlkrcywsc5jukkdhss5qq3njp";
 const account = Account.fromCiphertext(accountCiphertext, "provablealeo1");
-
-// Fetch RSS JWT if consumer ID is provided.
-if (consumerId) {
-    recordScannerApiKey = await fetchRssJwt();
-}
 
 // Create the LoyaltyProgram instance with configuration.
 const loyalty = new LoyaltyProgram(account, {
@@ -1277,16 +1219,16 @@ const functions: Record<string, () => Promise<void>> = {
     },
 
     // Run full_flow with delegated proving.
-    // Requires: ALEO_DPS_URL, ALEO_DPS_API_KEY
+    // Requires: ALEO_DPS_URL. ALEO_DPS_API_KEY is optional on edge.provable.com.
     delegated: async () => {
         if (!dpsUrl) {
             console.error(`\n${COLORS.yellow}⚠${COLORS.reset}  Delegated proving requires ALEO_DPS_URL`);
-            console.error(`   Example: ALEO_DPS_URL=https://api.provable.com/prove/testnet npm run delegated\n`);
+            console.error(`   Example: ALEO_DPS_URL=https://edge.provable.com/api/prove/testnet npm run delegated\n`);
             process.exit(1);
         }
-        if (!dpsApiKey) {
-            console.error(`\n${COLORS.yellow}⚠${COLORS.reset}  Delegated proving requires ALEO_DPS_API_KEY`);
-            console.error(`   Get an API key from https://provable.com\n`);
+        if (consumerId && !dpsApiKey) {
+            console.error(`\n${COLORS.yellow}⚠${COLORS.reset}  ALEO_CONSUMER_ID needs ALEO_DPS_API_KEY to mint a JWT`);
+            console.error(`   Unset ALEO_CONSUMER_ID for edge.provable.com, which does not use JWTs\n`);
             process.exit(1);
         }
         loyalty.setProvingMode(ProvingMode.Delegated);
@@ -1294,16 +1236,11 @@ const functions: Record<string, () => Promise<void>> = {
     },
 
     // Alias for demo_scanner using RSS (RecordScanner service).
-    // Requires: ALEO_RSS_URL + (ALEO_CONSUMER_ID or ALEO_RSS_API_KEY)
+    // Requires: ALEO_RSS_URL. Auth is optional on edge.provable.com.
     scanner: async () => {
         if (!recordScannerUrl) {
             console.error(`\n${COLORS.yellow}⚠${COLORS.reset}  RSS scanner requires ALEO_RSS_URL`);
-            console.error(`   Example: ALEO_RSS_URL=https://api.provable.com/scanner npm run scanner\n`);
-            process.exit(1);
-        }
-        if (!recordScannerApiKey && !consumerId) {
-            console.error(`\n${COLORS.yellow}⚠${COLORS.reset}  RSS scanner requires ALEO_CONSUMER_ID or ALEO_RSS_API_KEY`);
-            console.error(`   Set ALEO_CONSUMER_ID to fetch JWT automatically\n`);
+            console.error(`   Example: ALEO_RSS_URL=https://edge.provable.com/api/scanner npm run scanner\n`);
             process.exit(1);
         }
         await functions.demo_scanner();

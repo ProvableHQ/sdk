@@ -185,7 +185,7 @@ export interface StatusEvent {
  * // With delegated proving
  * const loyalty = new LoyaltyProgram(account, {
  *   provingMode: ProvingMode.Delegated,
- *   dpsUrl: "https://api.provable.com/prove/testnet"  // Include network suffix in URL
+ *   dpsUrl: "https://edge.provable.com/api/prove/testnet"  // Include network suffix in URL
  * });
  */
 class LoyaltyProgram {
@@ -227,7 +227,7 @@ class LoyaltyProgram {
     // Always use the standard API endpoint for ProgramManager state queries
     // (edition lookups, inclusion proofs, etc.). The DPS URL is only needed for
     // submitProvingRequest() — passing it here doubles the /testnet/ path segment.
-    const hostUrl = "https://api.provable.com/v2";
+    const hostUrl = "https://edge.provable.com/api/v2";
     this.programManager = new ProgramManager(hostUrl);
 
     this.keyProvider = new AleoKeyProvider();
@@ -331,7 +331,7 @@ class LoyaltyProgram {
    */
   setRecordScanner(url: string, apiKey?: string): void {
     // JWT tokens (start with "eyJ") use Authorization header.
-    // Plain API keys use X-Provable-API-Key header.
+    // Plain API keys are sent as X-API-Key (edge.provable.com; the key is optional there).
     const apiKeyConfig = apiKey?.startsWith("eyJ")
       ? { header: "Authorization", value: `Bearer ${apiKey}` }
       : apiKey;

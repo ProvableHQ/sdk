@@ -21,7 +21,7 @@ export const Deploy = () => {
     const [form] = Form.useForm();
     const [aleoWASM] = useAleoWASM();
     const [deploymentFeeRecord, setDeploymentFeeRecord] = useState(null);
-    const [deployUrl, setDeployUrl] = useState("https://api.provable.com/v2");
+    const [deployUrl, setDeployUrl] = useState("https://edge.provable.com/api/v2");
     const [deploymentFeeEstimate, setDeploymentFeeEstimate] = useState("");
     const [loading, setLoading] = useState(false);
     const [feeLoading, setFeeLoading] = useState(false);
