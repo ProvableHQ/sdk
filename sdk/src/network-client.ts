@@ -1897,12 +1897,14 @@ class AleoNetworkClient {
             // proverUri may carry the unsubstituted %%NETWORK%% placeholder in tests;
             // fall back to the client host origin.
         }
-        // Resolve the config without pulling in the cached client token; the
-        // cache is applied below through one origin-and-consumer-scoped path.
+        // A token assigned directly to `jwtData` carries no mint scope: the caller
+        // injected it (an external session owns minting) and it is honored as-is.
+        // A token this client minted is scoped to its consumer and origin below.
+        const injectedJwt = this.jwtMintOrigin === undefined ? this.jwtData : undefined;
         const config = options.auth ?? this.auth ?? normalizeAuthConfig({
             apiKey: options.apiKey ?? this.apiKey,
             consumerId: options.consumerId ?? this.consumerId,
-            jwtData: options.jwtData,
+            jwtData: options.jwtData ?? injectedJwt,
         });
         const auth = new ApiAuth(config, mintOrigin, this.transport, this.method("refreshJwt"));
         // Reuse the cached client token until the refresh window instead of
