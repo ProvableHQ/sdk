@@ -233,6 +233,232 @@ describe("RecordScanner auth modes", () => {
     });
 });
 
+// The legacy api.provable.com gateway authenticates with JWTs. These pin the wire behavior
+// each pre-edge configuration produced against it, so an existing caller who has not
+// migrated keeps working when they upgrade the SDK.
+describe("api.provable.com legacy compatibility", () => {
+    const LEGACY_HOST = "https://api.provable.com/v2";
+    const LEGACY_SCANNER = "https://api.provable.com/scanner";
+
+    async function buildProvingRequest() {
+        const { ExecutionRequest, PrivateKey, ProvingRequest } = await import("../src/node");
+        const executionRequest = ExecutionRequest.sign(
+            PrivateKey.from_string(beaconPrivateKeyString),
+            "credits.aleo",
+            "transfer_public",
+            ["aleo1rhgdu77hgyqd3xjj8ucu3jj9r2krwz6mnzyd80gncr5fxcwlh5rsvzp9px", "100u64"],
+            ["address.public", "u64.public"],
+            undefined,
+            undefined,
+            true,
+            false,
+        );
+        return ProvingRequest.fromRequest(executionRequest, undefined, false);
+    }
+
+    // A transport that mints on /jwts, hands out a real ephemeral key on /pubkey so the
+    // proving request encrypts, and accepts the prove POST.
+    function proverTransport(calls: Call[], mintedJwt = "Bearer minted") {
+        const exp = Math.floor(Date.now() / 1000) + 3600;
+        const { publicKey } = cryptoBoxKeyPair();
+        const pubkeyBody = JSON.stringify({ key_id: "test-key", public_key: base64.encode(publicKey) });
+        return stubTransport(calls, (url) => {
+            if (url.includes("/jwts/")) return jwtMintResponse(mintedJwt, exp);
+            if (url.endsWith("/pubkey")) return new Response(pubkeyBody, { status: 200 });
+            return new Response(JSON.stringify({ transaction: "stub", broadcast: null }), { status: 200 });
+        });
+    }
+
+    function proverCalls(calls: Call[]): Call[] {
+        return calls.filter((c) => !c.url.includes("/jwts/"));
+    }
+
+    it("apiKey + consumerId mints at api.provable.com and sends the JWT on every prover call", async () => {
+        const { AleoNetworkClient } = await import("../src/node");
+        const calls: Call[] = [];
+        const client = new AleoNetworkClient(LEGACY_HOST, { transport: proverTransport(calls) });
+        client.apiKey = "legacy-key";
+        client.consumerId = "cid";
+
+        await client.submitProvingRequestSafe({ provingRequest: await buildProvingRequest() });
+
+        expect(calls[0].url).to.equal("https://api.provable.com/jwts/cid");
+        expect(calls[0].headers["x-provable-api-key"]).to.equal("legacy-key");
+        const prover = proverCalls(calls);
+        expect(prover.map((c) => c.url)).to.deep.equal([`${client.host}/pubkey`, `${client.host}/prove/request`]);
+        for (const call of prover) {
+            expect(call.headers["authorization"]).to.equal("Bearer minted");
+        }
+    });
+
+    it("a JWT assigned to client.jwtData authenticates prover calls without mint material", async () => {
+        // The session-driven pattern: an external session mints and hands the token in.
+        const { AleoNetworkClient } = await import("../src/node");
+        const calls: Call[] = [];
+        const client = new AleoNetworkClient(LEGACY_HOST, { transport: proverTransport(calls) });
+        client.jwtData = { jwt: "Bearer external", expiration: Date.now() + 3600_000 };
+
+        await client.submitProvingRequestSafe({ provingRequest: await buildProvingRequest() });
+
+        expect(calls.filter((c) => c.url.includes("/jwts/"))).to.have.length(0);
+        expect(calls).to.have.length(2);
+        for (const call of calls) {
+            expect(call.headers["authorization"]).to.equal("Bearer external");
+        }
+    });
+
+    it("a JWT assigned to client.jwtData keeps authenticating on later prover calls", async () => {
+        // Passing the injected token through must not record a mint scope, or the
+        // second submission would see a scoped cache it cannot match and send nothing.
+        const { AleoNetworkClient } = await import("../src/node");
+        const calls: Call[] = [];
+        const client = new AleoNetworkClient(LEGACY_HOST, { transport: proverTransport(calls) });
+        client.jwtData = { jwt: "Bearer external", expiration: Date.now() + 3600_000 };
+
+        await client.submitProvingRequestSafe({ provingRequest: await buildProvingRequest() });
+        await client.submitProvingRequestSafe({ provingRequest: await buildProvingRequest() });
+
+        expect(calls.filter((c) => c.url.includes("/jwts/"))).to.have.length(0);
+        expect(calls).to.have.length(4);
+        for (const call of calls) {
+            expect(call.headers["authorization"]).to.equal("Bearer external");
+        }
+    });
+
+    it("a lone apiKey plus an assigned JWT keeps sending the JWT on later prover calls", async () => {
+        const { AleoNetworkClient } = await import("../src/node");
+        const calls: Call[] = [];
+        const client = new AleoNetworkClient(LEGACY_HOST, { transport: proverTransport(calls) });
+        client.apiKey = "legacy-key";
+        client.jwtData = { jwt: "Bearer external", expiration: Date.now() + 3600_000 };
+
+        await client.submitProvingRequestSafe({ provingRequest: await buildProvingRequest() });
+        await client.submitProvingRequestSafe({ provingRequest: await buildProvingRequest() });
+
+        expect(calls).to.have.length(4);
+        for (const call of calls) {
+            expect(call.headers["authorization"]).to.equal("Bearer external");
+            expect(call.headers["x-api-key"]).to.equal(undefined);
+        }
+    });
+
+    it("a fresh JWT assigned to client.jwtData is used instead of minting when apiKey + consumerId are set", async () => {
+        const { AleoNetworkClient } = await import("../src/node");
+        const calls: Call[] = [];
+        const client = new AleoNetworkClient(LEGACY_HOST, { transport: proverTransport(calls) });
+        client.apiKey = "legacy-key";
+        client.consumerId = "cid";
+        client.jwtData = { jwt: "Bearer external", expiration: Date.now() + 3600_000 };
+
+        await client.submitProvingRequestSafe({ provingRequest: await buildProvingRequest() });
+
+        expect(calls.filter((c) => c.url.includes("/jwts/"))).to.have.length(0);
+        for (const call of calls) {
+            expect(call.headers["authorization"]).to.equal("Bearer external");
+        }
+    });
+
+    it("a stale JWT assigned to client.jwtData is refreshed with apiKey + consumerId", async () => {
+        const { AleoNetworkClient } = await import("../src/node");
+        const calls: Call[] = [];
+        const client = new AleoNetworkClient(LEGACY_HOST, { transport: proverTransport(calls) });
+        client.apiKey = "legacy-key";
+        client.consumerId = "cid";
+        client.jwtData = { jwt: "Bearer stale", expiration: Date.now() - 1000 };
+
+        await client.submitProvingRequestSafe({ provingRequest: await buildProvingRequest() });
+
+        expect(calls[0].url).to.equal("https://api.provable.com/jwts/cid");
+        for (const call of proverCalls(calls)) {
+            expect(call.headers["authorization"]).to.equal("Bearer minted");
+        }
+        expect(client.jwtData?.jwt).to.equal("Bearer minted");
+    });
+
+    it("a lone apiKey plus an assigned JWT sends the JWT, not an X-API-Key header", async () => {
+        // Before edge, a lone string apiKey selected jwt mode; with a token present the
+        // gateway saw an Authorization header. That pairing must still produce one.
+        const { AleoNetworkClient } = await import("../src/node");
+        const calls: Call[] = [];
+        const client = new AleoNetworkClient(LEGACY_HOST, { transport: proverTransport(calls) });
+        client.apiKey = "legacy-key";
+        client.jwtData = { jwt: "Bearer external", expiration: Date.now() + 3600_000 };
+
+        await client.submitProvingRequestSafe({ provingRequest: await buildProvingRequest() });
+
+        expect(calls.filter((c) => c.url.includes("/jwts/"))).to.have.length(0);
+        for (const call of calls) {
+            expect(call.headers["authorization"]).to.equal("Bearer external");
+            expect(call.headers["x-api-key"]).to.equal(undefined);
+        }
+    });
+
+    it("scanner with a lone apiKey sends a JWT supplied via setJwtData", async () => {
+        const calls: Call[] = [];
+        const scanner = new RecordScanner({
+            url: LEGACY_SCANNER,
+            apiKey: "legacy-key",
+            transport: stubTransport(calls, () => new Response(JSON.stringify({ height: 1 }), { status: 200 })),
+        });
+        scanner.setJwtData({ jwt: "Bearer session-token", expiration: Date.now() + 3600_000 });
+        await scanner.status("123field");
+
+        expect(calls).to.have.length(1);
+        expect(calls[0].url).to.not.include("/jwts/");
+        expect(calls[0].headers["authorization"]).to.equal("Bearer session-token");
+        expect(calls[0].headers["x-provable-api-key"]).to.equal("legacy-key");
+    });
+
+    it("scanner with a lone apiKey sends a JWT supplied at construction", async () => {
+        const calls: Call[] = [];
+        const scanner = new RecordScanner({
+            url: LEGACY_SCANNER,
+            apiKey: "legacy-key",
+            jwtData: { jwt: "Bearer session-token", expiration: Date.now() + 3600_000 },
+            transport: stubTransport(calls, () => new Response(JSON.stringify({ height: 1 }), { status: 200 })),
+        });
+        await scanner.status("123field");
+
+        expect(calls).to.have.length(1);
+        expect(calls[0].headers["authorization"]).to.equal("Bearer session-token");
+    });
+
+    it("scanner clearing the JWT via setJwtData(undefined) falls back to the lone key", async () => {
+        const calls: Call[] = [];
+        const scanner = new RecordScanner({
+            url: LEGACY_SCANNER,
+            apiKey: "legacy-key",
+            transport: stubTransport(calls, () => new Response(JSON.stringify({ height: 1 }), { status: 200 })),
+        });
+        scanner.setJwtData({ jwt: "Bearer session-token", expiration: Date.now() + 3600_000 });
+        scanner.setJwtData(undefined);
+        await scanner.status("123field");
+
+        expect(calls).to.have.length(1);
+        expect(calls[0].headers["authorization"]).to.equal(undefined);
+        expect(calls[0].headers["x-provable-api-key"]).to.equal("legacy-key");
+    });
+
+    it("scanner with apiKey + consumerId refreshes a stale JWT supplied via setJwtData", async () => {
+        const calls: Call[] = [];
+        const exp = Math.floor(Date.now() / 1000) + 3600;
+        const scanner = new RecordScanner({
+            url: LEGACY_SCANNER,
+            apiKey: "legacy-key",
+            consumerId: "cid",
+            transport: stubTransport(calls, (url) =>
+                url.includes("/jwts/")
+                    ? jwtMintResponse("Bearer minted", exp)
+                    : new Response(JSON.stringify({ height: 1 }), { status: 200 })),
+        });
+        scanner.setJwtData({ jwt: "Bearer stale", expiration: Date.now() - 1000 });
+        await scanner.status("123field");
+
+        expect(calls[0].url).to.equal("https://api.provable.com/jwts/cid");
+        expect(calls[1].headers["authorization"]).to.equal("Bearer minted");
+    });
+});
+
 describe("AleoNetworkClient explicit jwt auth", () => {
     it("reuses the cached JWT across proving submissions instead of re-minting", async () => {
         const { AleoNetworkClient } = await import("../src/node");

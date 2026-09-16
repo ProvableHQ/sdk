@@ -250,7 +250,9 @@ class RecordScanner implements RecordProvider {
      * @param {RecordScannerJWTData | undefined} jwtData The JWT data to use, or undefined to clear.
      */
     setJwtData(jwtData: RecordScannerJWTData | undefined) {
-        this.auth.setJwtData(jwtData);
+        // Rebuild rather than store: with a lone legacy apiKey the mode is api-key
+        // until a JWT exists, and a JWT is only sent from jwt mode.
+        this.auth = this.buildAuth(jwtData);
     }
 
     /**
