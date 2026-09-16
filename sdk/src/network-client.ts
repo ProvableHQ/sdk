@@ -1923,8 +1923,12 @@ class AleoNetworkClient {
         const jwtData = auth.getJwtData();
         if (config.mode === "jwt" && jwtData) {
             this.jwtData = jwtData;
-            this.jwtConsumerId = config.consumerId;
-            this.jwtMintOrigin = mintOrigin;
+            // Only a token this client minted gets a scope. An injected token that
+            // passed through unchanged stays unscoped so later calls keep honoring it.
+            if (jwtData !== config.jwtData) {
+                this.jwtConsumerId = config.consumerId;
+                this.jwtMintOrigin = mintOrigin;
+            }
             options.jwtData = jwtData;
         }
 

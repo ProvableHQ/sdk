@@ -307,6 +307,41 @@ describe("api.provable.com legacy compatibility", () => {
         }
     });
 
+    it("a JWT assigned to client.jwtData keeps authenticating on later prover calls", async () => {
+        // Passing the injected token through must not record a mint scope, or the
+        // second submission would see a scoped cache it cannot match and send nothing.
+        const { AleoNetworkClient } = await import("../src/node");
+        const calls: Call[] = [];
+        const client = new AleoNetworkClient(LEGACY_HOST, { transport: proverTransport(calls) });
+        client.jwtData = { jwt: "Bearer external", expiration: Date.now() + 3600_000 };
+
+        await client.submitProvingRequestSafe({ provingRequest: await buildProvingRequest() });
+        await client.submitProvingRequestSafe({ provingRequest: await buildProvingRequest() });
+
+        expect(calls.filter((c) => c.url.includes("/jwts/"))).to.have.length(0);
+        expect(calls).to.have.length(4);
+        for (const call of calls) {
+            expect(call.headers["authorization"]).to.equal("Bearer external");
+        }
+    });
+
+    it("a lone apiKey plus an assigned JWT keeps sending the JWT on later prover calls", async () => {
+        const { AleoNetworkClient } = await import("../src/node");
+        const calls: Call[] = [];
+        const client = new AleoNetworkClient(LEGACY_HOST, { transport: proverTransport(calls) });
+        client.apiKey = "legacy-key";
+        client.jwtData = { jwt: "Bearer external", expiration: Date.now() + 3600_000 };
+
+        await client.submitProvingRequestSafe({ provingRequest: await buildProvingRequest() });
+        await client.submitProvingRequestSafe({ provingRequest: await buildProvingRequest() });
+
+        expect(calls).to.have.length(4);
+        for (const call of calls) {
+            expect(call.headers["authorization"]).to.equal("Bearer external");
+            expect(call.headers["x-api-key"]).to.equal(undefined);
+        }
+    });
+
     it("a fresh JWT assigned to client.jwtData is used instead of minting when apiKey + consumerId are set", async () => {
         const { AleoNetworkClient } = await import("../src/node");
         const calls: Call[] = [];
