@@ -33,7 +33,7 @@ use crate::{
 };
 use snarkvm_algorithms::snark::varuna::VarunaVersion;
 use snarkvm_console::{
-    network::{Network, varuna_version_from_consensus},
+    network::{ConsensusVersion, Network, varuna_version_from_consensus},
     prelude::Environment,
 };
 use snarkvm_synthesizer::prelude::InclusionVersion;
@@ -217,10 +217,21 @@ pub fn verify_function_execution(
         .map_or(Ok(false), |_| Ok(true))
 }
 
+/// Returns the Varuna version that the latest consensus version requires for `snark_verify`.
+///
+/// This mirrors how snarkVM's `snark_verify` instruction validates the Varuna version operand:
+/// from `ConsensusVersion::V21` onward only Varuna V3 proofs are accepted on chain, so the
+/// off-chain verifiers below assume the latest consensus rules rather than a specific block height.
+fn latest_varuna_version() -> VarunaVersion {
+    varuna_version_from_consensus(ConsensusVersion::latest())
+}
+
 /// Verify a SNARK proof against a verifying key and public inputs.
 ///
 /// This function verifies a proof produced by an Aleo program that may not be deployed on chain.
-/// It directly invokes the Varuna proof verification from snarkVM.
+/// It directly invokes the Varuna proof verification from snarkVM, using the Varuna version required
+/// by the latest consensus version (Varuna V3 as of `ConsensusVersion::V21`). Proofs generated with
+/// an older Varuna version will fail verification.
 ///
 /// @param {VerifyingKey} verifying_key The verifying key for the circuit
 /// @param {Array<string>} inputs Array of field element strings representing public inputs (e.g. ["1field", "2field"])
@@ -229,7 +240,8 @@ pub fn verify_function_execution(
 #[wasm_bindgen(js_name = "snarkVerify")]
 pub fn snark_verify(verifying_key: &VerifyingKey, inputs: Array, proof: &Proof) -> Result<bool, String> {
     let raw_inputs = parse_field_inputs(&inputs)?;
-    let is_valid = VerifyingKeyNative::verify(verifying_key, "snark_verify", VarunaVersion::V2, &raw_inputs, proof);
+    let is_valid =
+        VerifyingKeyNative::verify(verifying_key, "snark_verify", latest_varuna_version(), &raw_inputs, proof);
     Ok(is_valid)
 }
 
@@ -274,7 +286,7 @@ pub fn snark_verify_batch(verifying_keys: Array, inputs: Array, proof: &Proof) -
         vks_with_inputs.push((vk_native, instances));
     }
 
-    VerifyingKeyNative::verify_batch("snark_verify_batch", VarunaVersion::V2, vks_with_inputs, proof)
+    VerifyingKeyNative::verify_batch("snark_verify_batch", latest_varuna_version(), vks_with_inputs, proof)
         .map_or(Ok(false), |_| Ok(true))
 }
 

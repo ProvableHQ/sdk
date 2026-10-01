@@ -32,7 +32,9 @@ __*return*__ | `Array.<string>` | *Array of field element strings*
 Verify an Aleo zkSnark proof against a verifying key and public inputs.
 
 This verifies a proof produced by an Aleo program that may not be deployed on chain.
-It directly invokes the Varuna proof verification from snarkVM.
+It directly invokes the Varuna proof verification from snarkVM, using the Varuna version
+required by the latest consensus version (Varuna V3 as of ConsensusVersion::V21). Proofs
+generated with an older Varuna version will fail verification.
 
 **Note:** The proof must have been generated with the Fiat-Shamir domain separator
 &quot;snark_verify&quot;. Proofs generated via snarkVM with a different function name will fail
@@ -77,7 +79,9 @@ Verify a batch Aleo zkSnark proof against multiple verifying keys and their corr
 
 Each verifying key is paired with one or more sets of public inputs (instances).
 Inputs can be raw field element strings or Aleo type strings — non-field inputs
-are automatically converted to their field representation.
+are automatically converted to their field representation. Verification uses the
+Varuna version required by the latest consensus version (Varuna V3 as of
+ConsensusVersion::V21); batch proofs generated with an older Varuna version will fail.
 
 **Note:** The proof must have been generated with the Fiat-Shamir domain separator
 &quot;snark_verify_batch&quot;. Proofs generated with a different function name will fail
@@ -1826,7 +1830,7 @@ __*return*__ | `Promise.<Transaction>` | *- A promise that resolves to the trans
 import { AleoKeyProvider, getOrInitConsensusVersionTestHeights, ProgramManager, NetworkRecordProvider } from "@provablehq/sdk/mainnet.js";
 
 // Initialize the development consensus heights in order to work with devnode.
-getOrInitConsensusVersionTestHeights("0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20");
+getOrInitConsensusVersionTestHeights("0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21");
 
 // Create a new NetworkClient and RecordProvider.
 const recordProvider = new NetworkRecordProvider(account, networkClient);
@@ -1876,7 +1880,7 @@ __*return*__ | `string` | *The transaction id of the deployed program or a failu
 import { ProgramManager, NetworkRecordProvider, getOrInitConsensusVersionTestHeights } from "@provablehq/sdk/mainnet.js";
 
 // Initialize the development consensus heights in order to work with a local devnode.
-getOrInitConsensusVersionTestHeights("0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20");
+getOrInitConsensusVersionTestHeights("0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21");
 
 // Create a new NetworkClient, and RecordProvider
 const recordProvider = new NetworkRecordProvider(account, networkClient);
@@ -3519,7 +3523,7 @@ __*return*__ | `Promise.<Transaction>` | *- A promise that resolves to the trans
 import { AleoKeyProvider, getOrInitConsensusVersionTestHeights, ProgramManager, NetworkRecordProvider } from "@provablehq/sdk/mainnet.js";
 
 // Initialize the development consensus heights in order to work with devnode.
-getOrInitConsensusVersionTestHeights("0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20");
+getOrInitConsensusVersionTestHeights("0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21");
 
 // Create a new NetworkClient and RecordProvider.
 const recordProvider = new NetworkRecordProvider(account, networkClient);
@@ -3569,7 +3573,7 @@ __*return*__ | `string` | *The transaction id of the deployed program or a failu
 import { ProgramManager, NetworkRecordProvider, getOrInitConsensusVersionTestHeights } from "@provablehq/sdk/mainnet.js";
 
 // Initialize the development consensus heights in order to work with a local devnode.
-getOrInitConsensusVersionTestHeights("0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20");
+getOrInitConsensusVersionTestHeights("0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21");
 
 // Create a new NetworkClient, and RecordProvider
 const recordProvider = new NetworkRecordProvider(account, networkClient);
