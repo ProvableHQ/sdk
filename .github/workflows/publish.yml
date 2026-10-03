@@ -1,0 +1,257 @@
+name: Publish
+
+on:
+  workflow_dispatch:
+    inputs:
+      build_mode:
+        description: 'Build mode: standard = same SnarkVM on testnet+mainnet; split = testnet is ahead'
+        type: choice
+        options: [standard, split]
+        required: true
+      dry_run:
+        description: 'Dry run: skip npm publish, git tag, and GitHub release'
+        type: boolean
+        default: true
+
+jobs:
+  # ── STANDARD MODE ─────────────────────────────────────────────────────────
+  # Used when testnet and mainnet are on the same SnarkVM version.
+  # Runs yarn build:all, tests, publishes all three packages, then tags.
+
+  build-standard:
+    name: Build (standard)
+    if: inputs.build_mode == 'standard'
+    runs-on: ubuntu-latest-m
+    steps:
+      - uses: actions/checkout@v4
+      - uses: ./.github/actions/setup-yarn
+      - uses: ./.github/actions/setup-rust
+
+      - name: Build
+        run: yarn build:all
+
+      - name: Upload build artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: build
+          path: |
+            sdk/dist/
+            wasm/dist/
+            create-leo-app/dist/
+
+  test-standard:
+    name: Test (standard)
+    if: inputs.build_mode == 'standard'
+    needs: build-standard
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: ./.github/actions/setup-yarn
+      - uses: ./.github/actions/use-build
+
+      - name: Test SDK
+        run: yarn test:sdk
+
+  publish-standard:
+    name: Publish (standard)
+    if: inputs.build_mode == 'standard'
+    needs: test-standard
+    runs-on: ubuntu-latest
+    environment: production
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+      - uses: actions/setup-node@v4
+        with:
+          registry-url: https://registry.npmjs.org
+
+      - uses: ./.github/actions/use-build
+
+      - name: Read version
+        id: version
+        run: |
+          VERSION=$(node -p "require('./wasm/package.json').version")
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
+          echo "tag=v$VERSION" >> $GITHUB_OUTPUT
+
+      - name: Publish @provablehq/wasm
+        if: ${{ !inputs.dry_run }}
+        working-directory: wasm
+        run: npm publish --access public
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+
+      - name: Publish @provablehq/sdk
+        if: ${{ !inputs.dry_run }}
+        working-directory: sdk
+        run: npm publish --access public
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+
+      - name: Publish create-leo-app
+        if: ${{ !inputs.dry_run }}
+        working-directory: create-leo-app
+        run: npm publish --access public
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+
+      - name: Tag and release
+        if: ${{ !inputs.dry_run }}
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git tag ${{ steps.version.outputs.tag }}
+          git push origin ${{ steps.version.outputs.tag }}
+          gh release create "${{ steps.version.outputs.tag }}" --generate-notes
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Dry run summary
+        if: ${{ inputs.dry_run }}
+        run: |
+          echo "## Dry run — nothing was published" >> $GITHUB_STEP_SUMMARY
+          echo "Would have published version **${{ steps.version.outputs.version }}**:" >> $GITHUB_STEP_SUMMARY
+          echo "- \`@provablehq/wasm\`" >> $GITHUB_STEP_SUMMARY
+          echo "- \`@provablehq/sdk\`" >> $GITHUB_STEP_SUMMARY
+          echo "- \`create-leo-app\`" >> $GITHUB_STEP_SUMMARY
+          echo "- Git tag: \`${{ steps.version.outputs.tag }}\`" >> $GITHUB_STEP_SUMMARY
+
+
+  # ── SPLIT MODE ────────────────────────────────────────────────────────────
+  # Used when the testnet SnarkVM version is ahead of mainnet.
+  # Builds testnet WASM from the testnet branch, mainnet WASM from mainnet,
+  # combines them, then builds the SDK and publishes.
+
+  build-testnet-wasm:
+    name: Build testnet WASM (split)
+    if: inputs.build_mode == 'split'
+    runs-on: ubuntu-latest-m
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: testnet
+      - uses: ./.github/actions/setup-yarn
+      - uses: ./.github/actions/setup-rust
+
+      - name: Build testnet WASM
+        run: yarn build:wasm
+
+      - name: Upload testnet WASM artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: testnet-wasm
+          path: wasm/dist/testnet/
+
+  build-split:
+    name: Build (split)
+    if: inputs.build_mode == 'split'
+    needs: build-testnet-wasm
+    runs-on: ubuntu-latest-m
+    steps:
+      - uses: actions/checkout@v4
+      - uses: ./.github/actions/setup-yarn
+      - uses: ./.github/actions/setup-rust
+
+      - name: Build mainnet WASM
+        run: yarn build:wasm
+
+      - name: Download testnet WASM artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: testnet-wasm
+          path: wasm/dist/testnet/
+
+      - name: Build SDK and create-leo-app
+        run: yarn build:sdk && yarn build:create-leo-app
+
+      - name: Upload build artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: build
+          path: |
+            sdk/dist/
+            wasm/dist/
+            create-leo-app/dist/
+
+  test-split:
+    name: Test (split)
+    if: inputs.build_mode == 'split'
+    needs: build-split
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: ./.github/actions/setup-yarn
+      - uses: ./.github/actions/use-build
+
+      - name: Test SDK
+        run: yarn test:sdk
+
+  publish-split:
+    name: Publish (split)
+    if: inputs.build_mode == 'split'
+    needs: test-split
+    runs-on: ubuntu-latest
+    environment: production
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+      - uses: actions/setup-node@v4
+        with:
+          registry-url: https://registry.npmjs.org
+
+      - uses: ./.github/actions/use-build
+
+      - name: Read version
+        id: version
+        run: |
+          VERSION=$(node -p "require('./wasm/package.json').version")
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
+          echo "tag=v$VERSION" >> $GITHUB_OUTPUT
+
+      - name: Publish @provablehq/wasm
+        if: ${{ !inputs.dry_run }}
+        working-directory: wasm
+        run: npm publish --access public
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+
+      - name: Publish @provablehq/sdk
+        if: ${{ !inputs.dry_run }}
+        working-directory: sdk
+        run: npm publish --access public
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+
+      - name: Publish create-leo-app
+        if: ${{ !inputs.dry_run }}
+        working-directory: create-leo-app
+        run: npm publish --access public
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+
+      - name: Tag and release
+        if: ${{ !inputs.dry_run }}
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git tag ${{ steps.version.outputs.tag }}
+          git push origin ${{ steps.version.outputs.tag }}
+          gh release create "${{ steps.version.outputs.tag }}" --generate-notes
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Dry run summary
+        if: ${{ inputs.dry_run }}
+        run: |
+          echo "## Dry run — nothing was published" >> $GITHUB_STEP_SUMMARY
+          echo "Would have published version **${{ steps.version.outputs.version }}**:" >> $GITHUB_STEP_SUMMARY
+          echo "- \`@provablehq/wasm\`" >> $GITHUB_STEP_SUMMARY
+          echo "- \`@provablehq/sdk\`" >> $GITHUB_STEP_SUMMARY
+          echo "- \`create-leo-app\`" >> $GITHUB_STEP_SUMMARY
+          echo "- Git tag: \`${{ steps.version.outputs.tag }}\`" >> $GITHUB_STEP_SUMMARY
