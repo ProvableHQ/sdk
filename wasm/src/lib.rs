@@ -304,6 +304,16 @@ impl Credits for RecordPlaintextNative {
 pub use thread_pool::run_rayon_thread;
 use types::native;
 
+// Installed at module instantiation so every consumer gets readable panics.
+// Hooked only in `initThreadPool`, single-threaded consumers (e.g. an MV3
+// extension service worker, which cannot spawn workers) surface Rust panics as
+// a bare `RuntimeError: unreachable` with the "panicked at ..." message lost.
+#[cfg(not(test))]
+#[wasm_bindgen(start)]
+pub fn install_panic_hook() {
+    console_error_panic_hook::set_once();
+}
+
 #[cfg(not(test))]
 #[wasm_bindgen(js_name = "initThreadPool")]
 pub async fn init_thread_pool(url: web_sys::Url, num_threads: usize) -> Result<(), JsValue> {
