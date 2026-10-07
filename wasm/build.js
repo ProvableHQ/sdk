@@ -36,7 +36,29 @@ async function buildWasm(network) {
                     ],
                     wasmOpt: ["-O", "--enable-threads", "--enable-bulk-memory", "--enable-bulk-memory-opt", "--enable-nontrapping-float-to-int"],
                 },
-                optimize: isDebugBuild ? { release: false, wasmOpt: false, rustc: false } : undefined,
+                // Keep panic diagnostics in release builds: the plugin's
+                // defaults inject `-Z location-detail=none` (panics report
+                // `<redacted>:0:0`) and `-Z fmt-debug=none` (unwrap()/expect()
+                // lose the inner error). With the panic hook installed at
+                // module start, disabling both turns a bare
+                // `RuntimeError: unreachable` into
+                // `panicked at src/...:N:M: ... Err value: "<detail>"` for
+                // ~+1.1% binary size (+0.22 MB per network, measured).
+                // NOTE: a toolchain newer than nightly-2025-10-04 makes the
+                // plugin enable `-Z panic-immediate-abort`, which removes
+                // panic strings entirely and silently undoes this — revisit
+                // when bumping rust-toolchain.toml.
+                optimize: isDebugBuild
+                    ? { release: false, wasmOpt: false, rustc: false }
+                    : {
+                        release: true,
+                        wasmOpt: true,
+                        rustc: true,
+                        strip: {
+                            location: false,
+                            formatDebug: false,
+                        },
+                    },
 
                 experimental: {
                     atomics: true,
