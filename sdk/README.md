@@ -17,16 +17,18 @@ The [Provable SDK](https://github.com/ProvableHQ/sdk) provides low level tools f
 
 ## Veil
 
-[Veil](https://github.com/ProvableHQ/veil#readme) is a TypeScript toolkit for building Aleo applications, with a higher-level API inspired by viem. It connects browser apps to Aleo wallets and wraps this SDK for scripts, servers, and AI agents.
+Developers desiring more developer friendly tools for building on Aleo should choose [Veil](https://github.com/ProvableHQ/veil#readme). Veil provides a Viem like interface providing familiar semantics such as clients, actions, and transport configurations.
 
-| Package                                                                                           | Purpose                                                                   | Documentation                                                                            |
-| ------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------- |
-| 🧩 [veil-core](https://www.npmjs.com/package/@provablehq/veil-core)                               | Viem-like clients, actions, transports, and types.                        | [README](https://github.com/ProvableHQ/veil/blob/main/packages/core/README.md)           |
-| 🔑 [veil-aleo-sdk](https://www.npmjs.com/package/@provablehq/veil-aleo-sdk)                       | Accounts, signing, proving, and records through the Provable SDK.         | [README](https://github.com/ProvableHQ/veil/blob/main/packages/provable-sdk/README.md)   |
-| 👛 [veil-aleo-wallet-adapter](https://www.npmjs.com/package/@provablehq/veil-aleo-wallet-adapter) | Connect Aleo wallets to Veil clients for signing, proving, and records.   | [README](https://github.com/ProvableHQ/veil/blob/main/packages/wallet-adapter/README.md) |
-| 🌉 [aleo-bridge-sdk](https://www.npmjs.com/package/@provablehq/aleo-bridge-sdk)                   | Bridge assets into and out of Aleo.                                       | [README](https://github.com/ProvableHQ/veil/blob/main/packages/bridge/README.md)         |
-| 🦁 [veil-leo](https://www.npmjs.com/package/@provablehq/veil-leo)                                 | Build and deploy Leo programs from JavaScript/TypeScript.                 | [README](https://github.com/ProvableHQ/veil/blob/main/packages/leo/README.md)            |
-| 🧪 [veil-aleo-devnode](https://www.npmjs.com/package/@provablehq/veil-aleo-devnode)               | Local nodes, block mining, and snapshots for Foundry-like test harnesses. | [README](https://github.com/ProvableHQ/veil/blob/main/packages/devnode/README.md)        |
+It can be used to build both browser and mobile dapps as well as server-side applications, scripts, and AI agents.
+
+| Package                                                                                           | Purpose                                                                                     | Documentation                                                                            |
+| ------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------- |
+| 🧩 [veil-core](https://www.npmjs.com/package/@provablehq/veil-core)                               | Viem-like clients, actions, transports, and types for building Aleo applications            | [README](https://github.com/ProvableHQ/veil/blob/main/packages/core/README.md)           |
+| 🤖 [veil-aleo-sdk](https://www.npmjs.com/package/@provablehq/veil-aleo-sdk)                       | Adapter for the Provable SDK for building server side apps, scripts, wallets, and AI agents | [README](https://github.com/ProvableHQ/veil/blob/main/packages/provable-sdk/README.md)   |
+| 🌐 [veil-aleo-wallet-adapter](https://www.npmjs.com/package/@provablehq/veil-aleo-wallet-adapter) | Build Aleo browser and mobile dapps using a viem-like interface                             | [README](https://github.com/ProvableHQ/veil/blob/main/packages/wallet-adapter/README.md) |
+| 🪙 [aleo-bridge-sdk](https://www.npmjs.com/package/@provablehq/aleo-bridge-sdk)                   | Bridge assets into and out of Aleo.                                                         | [README](https://github.com/ProvableHQ/veil/blob/main/packages/bridge/README.md)         |
+| 🦁 [veil-leo](https://www.npmjs.com/package/@provablehq/veil-leo)                                 | Build and deploy Leo programs from JavaScript/TypeScript.                                   | [README](https://github.com/ProvableHQ/veil/blob/main/packages/leo/README.md)            |
+| 🧪 [veil-aleo-devnode](https://www.npmjs.com/package/@provablehq/veil-aleo-devnode)               | Local nodes, block mining, and snapshots for Foundry-like test harnesses.                   | [README](https://github.com/ProvableHQ/veil/blob/main/packages/devnode/README.md)        |
 
 ## Applications
 
