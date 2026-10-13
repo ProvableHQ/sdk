@@ -1,4 +1,5 @@
 import * as $fs from "node:fs/promises";
+import * as $os from "node:os";
 import * as $path from "node:path";
 import { rollup } from "rollup";
 import virtual from "@rollup/plugin-virtual";
@@ -18,6 +19,15 @@ async function buildRollup(input, output) {
 
 const isDebugBuild = process.env.BUILD_DEBUG === "1";
 
+// Panic locations (kept below) embed absolute source paths for dependencies
+// and the rebuilt std, which would publish the builder's home directory and
+// make the binary differ per machine. Rewrite them to stable prefixes.
+const remapPathPrefixes = [
+    [process.env.CARGO_HOME ?? $path.join($os.homedir(), ".cargo"), "cargo"],
+    [process.env.RUSTUP_HOME ?? $path.join($os.homedir(), ".rustup"), "rustup"],
+    [process.cwd(), "."],
+].flatMap(([from, to]) => ["--remap-path-prefix", `${from}=${to}`]);
+
 async function buildWasm(network) {
     await buildRollup({
         input: {
@@ -33,10 +43,33 @@ async function buildWasm(network) {
                     ],
                     rustc: [
                         "-C", "link-arg=--max-memory=4294967296",
+                        ...remapPathPrefixes,
                     ],
                     wasmOpt: ["-O", "--enable-threads", "--enable-bulk-memory", "--enable-bulk-memory-opt", "--enable-nontrapping-float-to-int"],
                 },
-                optimize: isDebugBuild ? { release: false, wasmOpt: false, rustc: false } : undefined,
+                // Keep panic diagnostics in release builds: the plugin's
+                // defaults inject `-Z location-detail=none` (panics report
+                // `<redacted>:0:0`) and `-Z fmt-debug=none` (unwrap()/expect()
+                // lose the inner error). With the panic hook installed at
+                // module start, disabling both turns a bare
+                // `RuntimeError: unreachable` into
+                // `panicked at src/...:N:M: ... Err value: "<detail>"` for
+                // ~+1.1% binary size (+0.22 MB per network, measured).
+                // NOTE: a toolchain newer than nightly-2025-10-04 makes the
+                // plugin enable `-Z panic-immediate-abort`, which removes
+                // panic strings entirely and silently undoes this — revisit
+                // when bumping rust-toolchain.toml.
+                optimize: isDebugBuild
+                    ? { release: false, wasmOpt: false, rustc: false }
+                    : {
+                        release: true,
+                        wasmOpt: true,
+                        rustc: true,
+                        strip: {
+                            location: false,
+                            formatDebug: false,
+                        },
+                    },
 
                 experimental: {
                     atomics: true,
