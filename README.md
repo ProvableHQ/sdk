@@ -28,13 +28,13 @@ queries, plus tools for Foundry-like test harnesses and bridging assets into and
 out of Aleo. Veil's client libraries run in browsers and server-side JavaScript;
 its Leo CLI and devnode tools run in Node.js.
 
-| Package                                                                                      | Purpose                                                                      | Documentation                                                                          |
-| -------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------- | -------------------------------------------------------------------------------------- |
-| [@provablehq/veil-core](https://www.npmjs.com/package/@provablehq/veil-core)                 | Viem-like clients, actions, transports, and types.                           | [README](https://github.com/ProvableHQ/veil/blob/main/packages/core/README.md)         |
-| [@provablehq/veil-aleo-sdk](https://www.npmjs.com/package/@provablehq/veil-aleo-sdk)         | Accounts, signing, proving, and records through the Provable SDK.            | [README](https://github.com/ProvableHQ/veil/blob/main/packages/provable-sdk/README.md) |
-| [@provablehq/aleo-bridge-sdk](https://www.npmjs.com/package/@provablehq/aleo-bridge-sdk)     | Bridge assets into and out of Aleo (preview).                                | [README](https://github.com/ProvableHQ/veil/blob/main/packages/bridge/README.md)       |
-| [@provablehq/veil-leo](https://www.npmjs.com/package/@provablehq/veil-leo)                   | Build and deploy Leo programs from JavaScript/TypeScript.                    | [README](https://github.com/ProvableHQ/veil/blob/main/packages/leo/README.md)          |
-| [@provablehq/veil-aleo-devnode](https://www.npmjs.com/package/@provablehq/veil-aleo-devnode) | Run local test nodes, mine blocks, and restore snapshots for test harnesses. | [README](https://github.com/ProvableHQ/veil/blob/main/packages/devnode/README.md)      |
+| Package                                                                             | Purpose                                                                      | Documentation                                                                          |
+| ----------------------------------------------------------------------------------- | ---------------------------------------------------------------------------- | -------------------------------------------------------------------------------------- |
+| 🧩 [veil-core](https://www.npmjs.com/package/@provablehq/veil-core)                 | Viem-like clients, actions, transports, and types.                           | [README](https://github.com/ProvableHQ/veil/blob/main/packages/core/README.md)         |
+| 🔑 [veil-aleo-sdk](https://www.npmjs.com/package/@provablehq/veil-aleo-sdk)         | Accounts, signing, proving, and records through the Provable SDK.            | [README](https://github.com/ProvableHQ/veil/blob/main/packages/provable-sdk/README.md) |
+| 🌉 [aleo-bridge-sdk](https://www.npmjs.com/package/@provablehq/aleo-bridge-sdk)     | Bridge assets into and out of Aleo (preview).                                | [README](https://github.com/ProvableHQ/veil/blob/main/packages/bridge/README.md)       |
+| 🦁 [veil-leo](https://www.npmjs.com/package/@provablehq/veil-leo)                   | Build and deploy Leo programs from JavaScript/TypeScript.                    | [README](https://github.com/ProvableHQ/veil/blob/main/packages/leo/README.md)          |
+| 🧪 [veil-aleo-devnode](https://www.npmjs.com/package/@provablehq/veil-aleo-devnode) | Run local test nodes, mine blocks, and restore snapshots for test harnesses. | [README](https://github.com/ProvableHQ/veil/blob/main/packages/devnode/README.md)      |
 
 ## Table of Contents
 
