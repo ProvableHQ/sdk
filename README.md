@@ -4,17 +4,43 @@
     <a href="https://github.com/ProvableHQ/sdk#%EF%B8%8F-contributors"><img src="https://img.shields.io/badge/contributors-23-ee8449"/></a>
 </p>
 
-# Zero-Knowledge Web App SDK
+# Provable SDK
 
-The [Provable SDK](https://github.com/ProvableHQ/sdk) provides tools for building zero-knowledge applications on the
-[Aleo](https://aleo.org) blockchain. It re-exports core protocol objects from [SnarkVM](https://github.com/ProvableHQ/snarkVM)
-as TypeScript & JavaScript libraries so developers can build Aleo dApps, wallets, servers, and CLI tools entirely in JS/TS.
+The [Provable SDK](https://github.com/ProvableHQ/sdk) provides low-level
+[Aleo](https://aleo.org) protocol utilities and JavaScript/TypeScript helpers
+for developers who need direct access to cryptographic primitives, zk-SNARKs,
+accounts, records, program execution and deployment, transfers, staking, and
+network APIs. It re-exports core
+[SnarkVM](https://github.com/ProvableHQ/snarkVM) objects for building wallets,
+servers, CLI tools, and zero-knowledge applications. The SDK runs in browsers,
+scripts, and server-side JavaScript.
 
-All of this functionality is demonstrated on [Provable.tools](https://provable.tools).
+All of this functionality is demonstrated on
+[Provable.tools](https://provable.tools).
+
+## Veil
+
+For developer-friendly APIs, use
+[Veil](https://github.com/ProvableHQ/veil#readme), a viem-like toolkit for Aleo
+web dApps, wallets, scripts, servers, and CLI tools. It provides account and
+record management, program execution and deployment, transfers, and network
+queries, plus tools for Foundry-like test harnesses and bridging assets into and
+out of Aleo. Veil's client libraries run in browsers and server-side JavaScript;
+its Leo CLI and devnode tools run in Node.js.
+
+| Package                                                                                      | Purpose                                                                      | Documentation                                                                          |
+| -------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------- | -------------------------------------------------------------------------------------- |
+| [@provablehq/veil-core](https://www.npmjs.com/package/@provablehq/veil-core)                 | Viem-like clients, actions, transports, and types.                           | [README](https://github.com/ProvableHQ/veil/blob/main/packages/core/README.md)         |
+| [@provablehq/veil-aleo-sdk](https://www.npmjs.com/package/@provablehq/veil-aleo-sdk)         | Accounts, signing, proving, and records through the Provable SDK.            | [README](https://github.com/ProvableHQ/veil/blob/main/packages/provable-sdk/README.md) |
+| [@provablehq/aleo-bridge-sdk](https://www.npmjs.com/package/@provablehq/aleo-bridge-sdk)     | Bridge assets into and out of Aleo (preview).                                | [README](https://github.com/ProvableHQ/veil/blob/main/packages/bridge/README.md)       |
+| [@provablehq/veil-leo](https://www.npmjs.com/package/@provablehq/veil-leo)                   | Build and deploy Leo programs from JavaScript/TypeScript.                    | [README](https://github.com/ProvableHQ/veil/blob/main/packages/leo/README.md)          |
+| [@provablehq/veil-aleo-devnode](https://www.npmjs.com/package/@provablehq/veil-aleo-devnode) | Run local test nodes, mine blocks, and restore snapshots for test harnesses. | [README](https://github.com/ProvableHQ/veil/blob/main/packages/devnode/README.md)      |
 
 ## Table of Contents
 
-📦 [**Packages**](#packages) — [Provable SDK](#1-provable-sdk---build-zero-knowledge-web-apps) · [Create-Leo-App](#2-create-leo-app---zero-knowledge-web-app-examples) · [Aleo Wasm](#3-aleo-wasm---zero-knowledge-algorithms-in-javascript--webassembly)
+🛠️ [**Veil**](#veil) — Developer tooling and packages
+
+📦 [**Packages**](#packages) — [Provable SDK](#1-provable-sdk---aleo-protocol-utilities) · [Create-Leo-App](#2-create-leo-app---zero-knowledge-application-examples) · [Aleo Wasm](#3-aleo-wasm---zero-knowledge-algorithms-in-javascript--webassembly)
 
 ⚙️ [**Features**](#features) — [Roadmap](#roadmap) · [Core](#core-features) · [Aleo RPC](#aleo-rpc-features) · [AI Agents](#ai-agent-support) · [Networks](#networks-supported) · [Runtimes](#javascript-runtimes--frameworks)
 
@@ -28,25 +54,23 @@ All of this functionality is demonstrated on [Provable.tools](https://provable.t
 
 The Provable SDK is divided into three TypeScript/JavaScript packages:
 
-### 1. Provable SDK - Build Zero-Knowledge Web Apps
+### 1. Provable SDK - Aleo Protocol Utilities
 
 <a href="https://www.npmjs.com/package/@provablehq/sdk"> <img alt="Provable SDK" src="https://img.shields.io/npm/l/%40provablehq%2Fsdk?label=NPM%20-%20Aleo%20SDK&labelColor=green&color=blue"></a>
 
-The official Provable SDK providing JavaScript/TypeScript tools for creating zero-knowledge applications.
+The official Provable SDK providing low-level Aleo protocol utilities and JavaScript/TypeScript helpers.
 
-#### ⚡ Build your own app
+#### ⚡ Get started
 
-Start here with the [Provable SDK Readme](https://github.com/ProvableHQ/sdk#readme) to get started building your
-first zero-knowledge web app.
+Start with the [Provable SDK README](sdk/README.md) for usage and documentation.
 
 Source: [`@provablehq/sdk`](https://www.npmjs.com/package/@provablehq/sdk)
 
-### 2. Create-Leo-App - Zero-Knowledge Web App Examples
+### 2. Create-Leo-App - Zero-Knowledge Application Examples
 
 <a href="https://www.npmjs.com/package/create-leo-app"> <img alt="Create Leo App" src="https://img.shields.io/npm/l/create-leo-app?label=NPM%20-%20Create-Leo-App&labelColor=green&color=blue"></a>
 
-Create-Leo-App provides zero-knowledge web app examples in common web frameworks such as React. Developers looking to
-start with working examples should start here.
+Create-Leo-App provides runnable SDK examples for Node.js and frameworks such as React.
 
 Source: [`create-leo-app`](https://github.com/ProvableHQ/sdk/tree/mainnet/create-leo-app)
 
@@ -58,7 +82,7 @@ Aleo Wasm is a Rust crate that compiles the Aleo source code responsible for cre
 WebAssembly.
 
 When compiled with `wasm-pack`, JavaScript bindings are generated for the WebAssembly, allowing Aleo zero-knowledge programs to be used in the browser and Node.js. This package is available on NPM (linked above). The Aleo Wasm
-readme provides instructions for compiling this crate and using it in web projects for those interested in building from
+readme provides instructions for compiling this crate and using it in JavaScript projects for those interested in building from
 source.
 
 Source: [`@provablehq/wasm`](https://www.npmjs.com/package/@provablehq/wasm)
@@ -110,7 +134,7 @@ The SDK feature roadmap can be found in the repo milestones below.
   </tr>
   <tr>
     <td><b>🧮 Cryptographic Primitives</b></td>
-    <td>Field, Group, and Scalar types. Hash functions: BHP256/512/768/1024, Pedersen64/128, Poseidon2/4/8. Digital signatures over raw bytes and typed Aleo values. These primitives enable custom cryptographic schemes for Aleo dApps, wallets that support Aleo, and servers and CLI applications that interact with the Aleo network.</td>
+    <td>Field, Group, and Scalar types. Hash functions: BHP256/512/768/1024, Pedersen64/128, Poseidon2/4/8. Digital signatures over raw bytes and typed Aleo values. These primitives enable custom cryptographic schemes for Aleo applications, wallets that support Aleo, and servers and CLI applications that interact with the Aleo network.</td>
   </tr>
   <tr>
     <td><b>✅ Proof Verification</b></td>
@@ -189,7 +213,7 @@ Full **browser** support with single-threaded and multi-threaded (web worker) mo
 | Resource | Description |
 |----------|-------------|
 | [Aleo RPC / Provable API](https://docs.provable.com) | Documentation on interacting with the Aleo network via Provable's API & RPC endpoints. |
-| [SDK Guide](https://developer.aleo.org/sdk/guides/getting_started) | Core concepts for executing zero-knowledge programs on the web, with detailed examples of how to build apps using Aleo. |
+| [SDK Guide](https://developer.aleo.org/sdk/guides/getting_started) | Core concepts for executing zero-knowledge programs, with detailed examples of how to build applications using Aleo. |
 
 ---
 
