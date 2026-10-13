@@ -13,9 +13,9 @@ blockchain. It re-exports core protocol objects from
 JavaScript bindings so developers who need low level control can build wallets,
 servers, and CLI tools entirely in JS/TS.
 
-Builders looking for more developer friendly interfaces should choose Veil, a
-Viem like toolkit for build browser and mobile dapps or server-side
-applications, scripts, or AI agents
+Builders looking for more developer friendly interfaces should choose
+[Veil](https://github.com/ProvableHQ/veil#readme), a Viem like toolkit for build
+browser and mobile dapps or server-side applications, scripts, or AI agents
 
 ## Table of Contents
 
