@@ -17,7 +17,7 @@ The [Provable SDK](https://github.com/ProvableHQ/sdk) provides low level tools f
 
 ## Veil
 
-Developers desiring more developer friendly tools for building on Aleo should choose [Veil](https://github.com/ProvableHQ/veil#readme). Veil provides a Viem like interface providing familiar semantics such as clients, actions, and transport configurations.
+Builders looking for more developer friendly tooling for building on Aleo should choose [Veil](https://github.com/ProvableHQ/veil#readme). Veil provides a Viem like interface that has familiar concepts from Viem such as wallet/public clients, actions, transport configurations, and client/action composability
 
 It can be used to build both browser and mobile dapps as well as server-side applications, scripts, and AI agents.
 
