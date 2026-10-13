@@ -45,8 +45,10 @@ async function localProgramExecution(program, programName, aleoFunction, inputs)
     );
     console.log("hello_hello/hello executed - result:", executionResponse.getOutputs());
 
-    // Verify the execution using the verifying key that was generated earlier.
-    if (programManager.verifyExecution(executionResponse, 9_000_000)) {
+    // Verify the execution using the verifying key that was generated earlier. The proof is made at the live height,
+    // so verify at the live height too: a fixed height can select an older Varuna version than the one proved with.
+    const blockHeight = await programManager.networkClient.getLatestHeight();
+    if (programManager.verifyExecution(executionResponse, blockHeight)) {
         console.log("hello_hello/hello execution verified!");
     } else {
         throw("Execution failed verification!");
