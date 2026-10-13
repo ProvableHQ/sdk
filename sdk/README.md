@@ -13,11 +13,7 @@
 </p>
 
 
-The [Provable SDK](https://github.com/ProvableHQ/sdk) provides low-level [Aleo](https://aleo.org) protocol utilities and
-JavaScript/TypeScript helpers for developers who need direct access to cryptographic primitives, zk-SNARKs, accounts,
-records, program execution and deployment, transfers, staking, and network APIs. It re-exports core
-[SnarkVM](https://github.com/ProvableHQ/snarkVM) objects for building wallets, servers, CLI tools, and zero-knowledge
-applications. The SDK runs in browsers, scripts, and server-side JavaScript.
+The [Provable SDK](https://github.com/ProvableHQ/sdk) provides low level tools for building zero-knowledge applications on the [Aleo](https://aleo.org/) blockchain. It re-exports core protocol objects from [SnarkVM](https://github.com/ProvableHQ/snarkVM) via wasm with TypeScript & JavaScript bindings so developers who need low level control can build wallets, servers, and CLI tools entirely in JS/TS.
 
 ## Veil
 

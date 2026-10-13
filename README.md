@@ -6,17 +6,29 @@
 
 # Provable SDK
 
-The [Provable SDK](https://github.com/ProvableHQ/sdk) provides low-level
-[Aleo](https://aleo.org) protocol utilities and JavaScript/TypeScript helpers
-for developers who need direct access to cryptographic primitives, zk-SNARKs,
-accounts, records, program execution and deployment, transfers, staking, and
-network APIs. It re-exports core
-[SnarkVM](https://github.com/ProvableHQ/snarkVM) objects for building wallets,
-servers, CLI tools, and zero-knowledge applications. The SDK runs in browsers,
-scripts, and server-side JavaScript.
+The [Provable SDK](https://github.com/ProvableHQ/sdk) provides low level tools
+for building zero-knowledge applications on the [Aleo](https://aleo.org/)
+blockchain. It re-exports core protocol objects from
+[SnarkVM](https://github.com/ProvableHQ/snarkVM) via wasm with TypeScript &
+JavaScript bindings so developers who need low level control can build wallets,
+servers, and CLI tools entirely in JS/TS.
 
 All of this functionality is demonstrated on
 [Provable.tools](https://provable.tools).
+
+## Table of Contents
+
+🛠️ [**Veil**](#veil) — Developer tooling and packages
+
+📦 [**Packages**](#packages) — [Provable SDK](#1-provable-sdk---aleo-protocol-utilities) · [Create-Leo-App](#2-create-leo-app---zero-knowledge-application-examples) · [Aleo Wasm](#3-aleo-wasm---zero-knowledge-algorithms-in-javascript--webassembly)
+
+⚙️ [**Features**](#features) — [Roadmap](#roadmap) · [Core](#core-features) · [Aleo RPC](#aleo-rpc-features) · [AI Agents](#ai-agent-support) · [Networks](#networks-supported) · [Runtimes](#javascript-runtimes--frameworks)
+
+📚 [**Documentation**](#-documentation) — API reference, SDK guide, and tutorials
+
+❤️ [**Contributors**](#%EF%B8%8F-contributors)
+
+---
 
 ## Veil
 
@@ -31,18 +43,6 @@ browser apps, server-side JavaScript, and AI agents.
 | 🌉 [aleo-bridge-sdk](https://www.npmjs.com/package/@provablehq/aleo-bridge-sdk)                   | Bridge assets into and out of Aleo.                                       | [README](https://github.com/ProvableHQ/veil/blob/main/packages/bridge/README.md)         |
 | 🦁 [veil-leo](https://www.npmjs.com/package/@provablehq/veil-leo)                                 | Build and deploy Leo programs from JavaScript/TypeScript.                 | [README](https://github.com/ProvableHQ/veil/blob/main/packages/leo/README.md)            |
 | 🧪 [veil-aleo-devnode](https://www.npmjs.com/package/@provablehq/veil-aleo-devnode)               | Local nodes, block mining, and snapshots for Foundry-like test harnesses. | [README](https://github.com/ProvableHQ/veil/blob/main/packages/devnode/README.md)        |
-
-## Table of Contents
-
-🛠️ [**Veil**](#veil) — Developer tooling and packages
-
-📦 [**Packages**](#packages) — [Provable SDK](#1-provable-sdk---aleo-protocol-utilities) · [Create-Leo-App](#2-create-leo-app---zero-knowledge-application-examples) · [Aleo Wasm](#3-aleo-wasm---zero-knowledge-algorithms-in-javascript--webassembly)
-
-⚙️ [**Features**](#features) — [Roadmap](#roadmap) · [Core](#core-features) · [Aleo RPC](#aleo-rpc-features) · [AI Agents](#ai-agent-support) · [Networks](#networks-supported) · [Runtimes](#javascript-runtimes--frameworks)
-
-📚 [**Documentation**](#-documentation) — API reference, SDK guide, and tutorials
-
-❤️ [**Contributors**](#%EF%B8%8F-contributors)
 
 ---
 
