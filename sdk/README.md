@@ -17,7 +17,7 @@ The [Provable SDK](https://github.com/ProvableHQ/sdk) provides low level tools f
 
 ## Veil
 
-Use [Veil](https://github.com/ProvableHQ/veil#readme) for viem-like Aleo APIs in browser apps, server-side JavaScript, and AI agents.
+[Veil](https://github.com/ProvableHQ/veil#readme) is a TypeScript toolkit for building Aleo applications, with a higher-level API inspired by viem. It connects browser apps to Aleo wallets and wraps this SDK for scripts, servers, and AI agents.
 
 | Package                                                                                           | Purpose                                                                   | Documentation                                                                            |
 | ------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------- |
