@@ -1,4 +1,5 @@
 import * as $fs from "node:fs/promises";
+import * as $os from "node:os";
 import * as $path from "node:path";
 import { rollup } from "rollup";
 import virtual from "@rollup/plugin-virtual";
@@ -18,6 +19,15 @@ async function buildRollup(input, output) {
 
 const isDebugBuild = process.env.BUILD_DEBUG === "1";
 
+// Panic locations (kept below) embed absolute source paths for dependencies
+// and the rebuilt std, which would publish the builder's home directory and
+// make the binary differ per machine. Rewrite them to stable prefixes.
+const remapPathPrefixes = [
+    [process.env.CARGO_HOME ?? $path.join($os.homedir(), ".cargo"), "cargo"],
+    [process.env.RUSTUP_HOME ?? $path.join($os.homedir(), ".rustup"), "rustup"],
+    [process.cwd(), "."],
+].flatMap(([from, to]) => ["--remap-path-prefix", `${from}=${to}`]);
+
 async function buildWasm(network) {
     await buildRollup({
         input: {
@@ -33,6 +43,7 @@ async function buildWasm(network) {
                     ],
                     rustc: [
                         "-C", "link-arg=--max-memory=4294967296",
+                        ...remapPathPrefixes,
                     ],
                     wasmOpt: ["-O", "--enable-threads", "--enable-bulk-memory", "--enable-bulk-memory-opt", "--enable-nontrapping-float-to-int"],
                 },
