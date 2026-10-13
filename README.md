@@ -36,7 +36,7 @@ browser/mobile dapps or server-side applications, scripts, and AI agents
 Builders looking for more developer friendly tooling for building on Aleo should
 choose [Veil](https://github.com/ProvableHQ/veil#readme). Veil provides a Viem
 like interface that has familiar concepts from Viem such as wallet/public
-clients, actions, transport configurations, and client/action composability
+clients, actions, transport configurations, and client/action composability.
 
 It can be used to build both browser and mobile dapps as well as server-side
 applications, scripts, and AI agents.
