@@ -25,6 +25,7 @@
     "test:wasm": "cd wasm && yarn test",
     "test:sdk": "cd sdk && yarn test",
     "test": "yarn test:wasm && yarn test:sdk",
+    "bench": "cd sdk && yarn bench",
     "change-version": "node scripts/change-version.js",
     "deploy:wasm": "cd wasm && npm publish --access=public",
     "deploy:sdk": "cd sdk && npm publish --access=public",

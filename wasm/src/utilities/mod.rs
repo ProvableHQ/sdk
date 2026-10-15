@@ -45,6 +45,8 @@ pub mod test;
 ///
 /// @param {string | undefined} heights The block heights at which each consensus version applies. This input should be a simple csv list of block heights and there should be one number for each consensus version. If left undefined, the default test heights will be applied.
 ///
+/// The list is validated: the first height must be 0 and every scheduled height must be strictly greater than the one before it. A height of 4294967295 (u32::MAX) marks a version as unscheduled, and every later version must then be unscheduled too. An invalid list throws.
+///
 /// @example
 /// import { getOrInitConsensusVersionTestHeights } from '@provablehq/sdk';
 ///
