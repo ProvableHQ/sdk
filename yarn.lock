@@ -3077,6 +3077,7 @@ __metadata:
     "@rollup/plugin-virtual": "npm:^3.0.2"
     "@wasm-tool/rollup-plugin-rust": "npm:^3.1.5"
     binaryen: "npm:^120.0.0"
+    binaryen-memory64: "npm:binaryen@125.0.0"
     rimraf: "npm:^6.0.1"
     rollup: "npm:^4.59.0"
   languageName: unknown
@@ -5482,6 +5483,23 @@ __metadata:
     rimraf: "npm:^3.0.2"
     tar: "npm:^6.1.11"
   checksum: 10c0/7385d45c029abd7e0dc234679fb76725e5e59a349662192569e2c44752919ec7845d077cc77f93eb80b35329c5872b9da00ae92620673900ec1dcddf7151e3db
+  languageName: node
+  linkType: hard
+
+"binaryen-memory64@npm:binaryen@125.0.0":
+  version: 125.0.0
+  resolution: "binaryen@npm:125.0.0"
+  bin:
+    wasm-as: bin/wasm-as
+    wasm-ctor-eval: bin/wasm-ctor-eval
+    wasm-dis: bin/wasm-dis
+    wasm-merge: bin/wasm-merge
+    wasm-metadce: bin/wasm-metadce
+    wasm-opt: bin/wasm-opt
+    wasm-reduce: bin/wasm-reduce
+    wasm-shell: bin/wasm-shell
+    wasm2js: bin/wasm2js
+  checksum: 10c0/94421aa83b7fe2848baded8fd18df8fd5de375ba9707b24d309941ce05e48c3b5dabbb9914f66ed19f9e13c646cc25a7fb691973fb727250126dfea1a1a0c7df
   languageName: node
   linkType: hard
 

@@ -45,6 +45,15 @@ async function updateCargo(newVersion) {
         .replace(/(\[package\]\s+name *= *"aleo-wasm"\s+version *= *)"[^"]+"/, `$1"${newVersion}"`);
 
     await writeFile("wasm/Cargo.toml", replaced);
+
+    // Memory64 builds with --locked; keep both root package entries in sync
+    // without resolving or updating any third-party dependencies.
+    for (const path of ["wasm/Cargo.lock", "wasm/memory64/Cargo.lock"]) {
+        const lock = await readFile(path, { encoding: "utf8" });
+        const packageVersion = /(\[\[package\]\]\s+name = "aleo-wasm"\s+version = )"[^"]+"/;
+        if (!packageVersion.test(lock)) throw new Error(`Missing aleo-wasm package in ${path}`);
+        await writeFile(path, lock.replace(packageVersion, `$1"${newVersion}"`));
+    }
 }
 
 

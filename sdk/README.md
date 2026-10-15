@@ -89,6 +89,35 @@ source.
 
 Source: [`@provablehq/wasm`](https://www.npmjs.com/package/@provablehq/wasm)
 
+### Selecting the Memory64 build
+
+Existing SDK and WASM imports use wasm32. Applications that need more than 4 GiB
+of linear memory can explicitly select the separate Memory64 build:
+
+```js
+import { Account, ProgramManager, initThreadPool } from "@provablehq/sdk/wasm64/mainnet.js";
+
+await initThreadPool(6); // Choose the pool size for your application and host.
+```
+
+The corresponding testnet import is `@provablehq/sdk/wasm64/testnet.js`.
+CommonJS uses the same paths with `require()`. Network loading is available at
+`@provablehq/sdk/wasm64/dynamic.js`; low-level bindings and workers are available
+under `@provablehq/wasm/wasm64/`.
+
+Memory64 requires runtime support for 64-bit **shared** WebAssembly memory and
+atomics (Node.js 24+, or a compatible browser). Browser workers require the same
+cross-origin isolation as the wasm32 threaded build. Select a variant before
+initializing the SDK, and use its bindings and workers together. Objects created
+by one variant must not be passed to the other.
+
+The Memory64 build retains the Rayon pool and sets an 8 GiB linear-memory maximum.
+That maximum is not an upfront allocation or a guarantee that the host has enough
+memory. There is no automatic fallback or change to the existing default imports.
+
+Build both variants from source with `yarn build:all`. The additional toolchains
+and build dependencies are described in the [WASM build instructions](wasm/README.md#memory64-build).
+
 ---
 
 # Features
