@@ -1,6 +1,7 @@
 import * as $fs from "node:fs/promises";
 import * as $os from "node:os";
 import * as $path from "node:path";
+import { fileURLToPath } from "node:url";
 import { rollup } from "rollup";
 import virtual from "@rollup/plugin-virtual";
 import rust from "@wasm-tool/rollup-plugin-rust";
@@ -18,6 +19,8 @@ async function buildRollup(input, output) {
 }
 
 const isDebugBuild = process.env.BUILD_DEBUG === "1";
+// The Memory64 tool is installed separately; keep wasm32 on its own Binaryen.
+process.env.WASM_OPT_BIN ??= fileURLToPath(import.meta.resolve("binaryen/bin/wasm-opt"));
 
 // Panic locations (kept below) embed absolute source paths for dependencies
 // and the rebuilt std, which would publish the builder's home directory and
@@ -45,7 +48,7 @@ async function buildWasm(network) {
                         "-C", "link-arg=--max-memory=4294967296",
                         ...remapPathPrefixes,
                     ],
-                    wasmOpt: ["-O", "--enable-threads", "--enable-bulk-memory", "--enable-bulk-memory-opt", "--enable-nontrapping-float-to-int"],
+                    wasmOpt: ["-O", "--enable-threads", "--enable-bulk-memory", "--enable-nontrapping-float-to-int"],
                 },
                 // Keep panic diagnostics in release builds: the plugin's
                 // defaults inject `-Z location-detail=none` (panics report
@@ -146,10 +149,10 @@ module.exports = exports;`;
     await buildRollup({
         input: { "index": "entry" },
         plugins: [virtual({ "entry": js })],
+        external: ["node:fs", "node:url"],
     }, {
         dir: `dist/${network}`,
         format: "cjs",
-        external: ["node:fs", "node:url"],
         entryFileNames: "[name].cjs",
         chunkFileNames: "[name].cjs",
         sourcemap: true,

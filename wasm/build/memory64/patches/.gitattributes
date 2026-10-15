@@ -1,0 +1,2 @@
+# Preserve the whitespace of upstream diff context.
+*.patch whitespace=-blank-at-eol,-blank-at-eof
