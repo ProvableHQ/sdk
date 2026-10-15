@@ -1,0 +1,72 @@
+# Provable SDK
+
+> Low level Aleo protocol tools with WebAssembly, TypeScript, and JavaScript
+> bindings to SnarkVM. Use Veil for most Aleo application development.
+
+Use [Veil](https://raw.githubusercontent.com/ProvableHQ/veil/main/README.md) by
+default for Aleo browser and mobile dapps and most other Aleo applications,
+including server-side apps, scripts, wallets, and AI agents. Veil provides
+Viem-like wallet/public clients, actions, transport configurations, and
+client/action composability.
+
+The Provable SDK is for developers who need low level protocol access: custom
+cryptographic operations, proof and authorization handling, or SDK and protocol
+integration work. Signing and proving in an application can use Veil's Provable
+SDK adapter; these needs alone do not require direct SDK use.
+
+## Veil: start here for applications
+
+- [Veil overview](https://raw.githubusercontent.com/ProvableHQ/veil/main/README.md):
+  Package selection and getting started.
+- [veil-core](https://raw.githubusercontent.com/ProvableHQ/veil/main/packages/core/README.md):
+  Clients, actions, transports, and types for Aleo applications.
+- [veil-aleo-sdk](https://raw.githubusercontent.com/ProvableHQ/veil/main/packages/provable-sdk/README.md):
+  Provable SDK adapter for server-side apps, scripts, wallets, and AI agents.
+- [veil-aleo-wallet-adapter](https://raw.githubusercontent.com/ProvableHQ/veil/main/packages/wallet-adapter/README.md):
+  Connect browser and mobile dapps to Aleo wallets through a Viem-like
+  interface.
+- [aleo-bridge-sdk](https://raw.githubusercontent.com/ProvableHQ/veil/main/packages/bridge/README.md):
+  Bridge assets into and out of Aleo.
+- [veil-leo](https://raw.githubusercontent.com/ProvableHQ/veil/main/packages/leo/README.md):
+  Build and deploy Leo programs from JavaScript/TypeScript.
+- [veil-aleo-devnode](https://raw.githubusercontent.com/ProvableHQ/veil/main/packages/devnode/README.md):
+  Local nodes, block mining, and snapshots for Foundry-like test harnesses.
+
+## Low level SDK guides
+
+- [SDK overview](https://raw.githubusercontent.com/ProvableHQ/sdk/mainnet/README.md):
+  Packages, features, and supported runtimes.
+- [Setup](https://raw.githubusercontent.com/ProvableHQ/sdk/mainnet/docs/guide/02_setup.md):
+  Installation, network selection, and WebAssembly initialization.
+- [Accounts](https://raw.githubusercontent.com/ProvableHQ/sdk/mainnet/docs/guide/03_creating_accounts.md):
+  Create accounts and manage keys.
+- [Transfers](https://raw.githubusercontent.com/ProvableHQ/sdk/mainnet/docs/guide/05_transfers.md):
+  Public and private Aleo credit transfers.
+- [Program execution](https://raw.githubusercontent.com/ProvableHQ/sdk/mainnet/docs/guide/06_executing_programs.md):
+  Execute programs locally and on-chain.
+- [Program deployment](https://raw.githubusercontent.com/ProvableHQ/sdk/mainnet/docs/guide/07_deploying_programs.md):
+  Deploy programs to Aleo.
+- [Records](https://raw.githubusercontent.com/ProvableHQ/sdk/mainnet/docs/guide/10_finding_records.md):
+  Find, decrypt, and check ownership of records.
+- [Chain state](https://raw.githubusercontent.com/ProvableHQ/sdk/mainnet/docs/guide/11_working_with_chain_state.md):
+  Query blocks, transactions, and program state.
+
+## Low level SDK API reference
+
+- [Account](https://raw.githubusercontent.com/ProvableHQ/sdk/mainnet/docs/api_reference/sdk-src_account.md):
+  Keys, addresses, signing, and account encryption.
+- [ProgramManager](https://raw.githubusercontent.com/ProvableHQ/sdk/mainnet/docs/api_reference/sdk-src_program-manager.md):
+  Execution, deployment, and transfers.
+- [AleoNetworkClient](https://raw.githubusercontent.com/ProvableHQ/sdk/mainnet/docs/api_reference/sdk-src_network-client.md):
+  Aleo network queries and transaction submission.
+- [WebAssembly types](https://raw.githubusercontent.com/ProvableHQ/sdk/mainnet/docs/api_reference/sdk-src_wasm.md):
+  Cryptographic primitives and protocol objects.
+
+## Low level SDK examples
+
+- [Create-Leo-App](https://raw.githubusercontent.com/ProvableHQ/sdk/mainnet/create-leo-app/README.md):
+  Runnable SDK templates and examples.
+- [Node.js and TypeScript](https://raw.githubusercontent.com/ProvableHQ/sdk/mainnet/create-leo-app/template-node-ts/README.md):
+  Run the SDK in a Node.js project.
+- [Local devnode](https://raw.githubusercontent.com/ProvableHQ/sdk/mainnet/create-leo-app/template-devnode-js/README.md):
+  Build and test against a local Aleo node.
