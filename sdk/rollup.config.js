@@ -14,7 +14,9 @@ const runtimes = [
     "node",
 ];
 
-const sharedExternal = (network) => [
+const variants = ["", "wasm64/"];
+
+const sharedExternal = (network, variant = "") => [
     // Used by node-polyfill
     "node:worker_threads",
     "node:os",
@@ -28,16 +30,17 @@ const sharedExternal = (network) => [
 
     // Used by the SDK
     "comlink",
-    `@provablehq/wasm/${network}.js`,
+    `@provablehq/wasm/${variant}${network}.js`,
     "core-js/proposals/json-parse-with-source.js",
 ];
 
-function sharedPlugins(network) {
+function sharedPlugins(network, variant) {
     return [
         replace({
             preventAssignment: true,
             delimiters: ['', ''],
             values: {
+                '"@provablehq/wasm/%%NETWORK%%.js"': JSON.stringify(`@provablehq/wasm/${variant}${network}.js`),
                 '%%VERSION%%': $package.version,
                 '%%NETWORK%%': network,
             },
@@ -56,7 +59,7 @@ function sharedPlugins(network) {
 // keeps the output matrix uniform. Worker entries (wasm workers) stay ESM
 // regardless, because the Node polyfill spawns them via `eval` + dynamic
 // `import()` which works fine from a CJS parent.
-function buildNetwork(network) {
+function buildNetwork(network, variant) {
     return {
         input: {
             "node-polyfill": "./src/node-polyfill.ts",
@@ -65,20 +68,20 @@ function buildNetwork(network) {
         },
         output: [
             {
-                dir: `dist/${network}`,
+                dir: `dist/${variant}${network}`,
                 format: "es",
                 sourcemap: true,
             },
             {
-                dir: `dist/${network}`,
+                dir: `dist/${variant}${network}`,
                 format: "cjs",
                 entryFileNames: "[name].cjs",
                 chunkFileNames: "[name].cjs",
                 sourcemap: true,
             },
         ],
-        external: sharedExternal(network),
-        plugins: [...sharedPlugins(network), emitCtsDeclarations(network)],
+        external: sharedExternal(network, variant),
+        plugins: [...sharedPlugins(network, variant), emitCtsDeclarations(`${variant}${network}`)],
     };
 }
 
@@ -116,9 +119,9 @@ function emitCtsDeclarations(network) {
     };
 }
 
-async function buildRuntimes() {
+async function buildRuntimes(variant) {
     await Promise.all(runtimes.map(async (runtime) => {
-        await $fs.mkdir(`dist/dynamic`, { recursive: true });
+        await $fs.mkdir(`dist/${variant}dynamic`, { recursive: true });
 
         // Dynamic `import()` is legal in both ESM and CJS, but we point each
         // format at its format-native leaves so a CJS consumer's
@@ -129,7 +132,7 @@ async function buildRuntimes() {
 
         const typings = networks.map((network) => `"${network}": typeof import("../${network}/${runtime}.js"),`).join("\n    ");
 
-        await $fs.writeFile(`dist/dynamic/${runtime}.js`, `const networks = {
+        await $fs.writeFile(`dist/${variant}dynamic/${runtime}.js`, `const networks = {
     ${esmLeaves}
 };
 
@@ -138,7 +141,7 @@ export function loadNetwork(name) {
 }
 `);
 
-        await $fs.writeFile(`dist/dynamic/${runtime}.cjs`, `"use strict";
+        await $fs.writeFile(`dist/${variant}dynamic/${runtime}.cjs`, `"use strict";
 
 const networks = {
     ${cjsLeaves}
@@ -160,11 +163,11 @@ export { Networks };
 export declare function loadNetwork<Key extends keyof Networks>(name: Key): Promise<Networks[Key]>;
 `;
 
-        await $fs.writeFile(`dist/dynamic/${runtime}.d.ts`, dtsContent);
-        await $fs.writeFile(`dist/dynamic/${runtime}.d.cts`, dtsContent);
+        await $fs.writeFile(`dist/${variant}dynamic/${runtime}.d.ts`, dtsContent);
+        await $fs.writeFile(`dist/${variant}dynamic/${runtime}.d.cts`, dtsContent);
     }));
 }
 
-await buildRuntimes();
+await Promise.all(variants.map(buildRuntimes));
 
-export default networks.map(buildNetwork);
+export default variants.flatMap((variant) => networks.map((network) => buildNetwork(network, variant)));
