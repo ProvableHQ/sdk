@@ -10,17 +10,17 @@
         "sha256": "a0724352b96c7779dcfd3f580b9e7e29beac8f4229c9a27cd2ea53e04f1cc65a",
         "patch": "patches/wasm-bindgen-cli-support-0.2.129.patch"
     },
-    "snarkvm-console-4.11.0": {
+    "snarkvm-console-4.12.0": {
         "name": "snarkvm-console",
-        "version": "4.11.0",
-        "sha256": "6992b369b610f77283b724dc500c63c17ac8ca698ea885a049da25508a43d7dc",
-        "patch": "patches/snarkvm-console-4.11.0.patch"
+        "version": "4.12.0",
+        "sha256": "6ec0c861d670152e50b7a14d73de28f9abd8793abdaf18f3897266957f5b9542",
+        "patch": "patches/snarkvm-console-4.12.0.patch"
     },
-    "snarkvm-ledger-query-4.11.0": {
+    "snarkvm-ledger-query-4.12.0": {
         "name": "snarkvm-ledger-query",
-        "version": "4.11.0",
-        "sha256": "fdc28b884ec34f6adea2f7648bdf414fad4bb5c9075b05868398306e7eb699ea",
-        "patch": "patches/snarkvm-ledger-query-4.11.0.patch"
+        "version": "4.12.0",
+        "sha256": "c744136415e7acf8f4bea673346c8dedf44368b0be1123fa39c3aaa0c7420f67",
+        "patch": "patches/snarkvm-ledger-query-4.12.0.patch"
     },
     "reqwest-0.11.27": {
         "name": "reqwest",

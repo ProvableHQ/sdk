@@ -22,7 +22,8 @@ const wasmOpt = fileURLToPath(
     import.meta.resolve("binaryen-memory64/bin/wasm-opt"),
 );
 const target = "wasm64-unknown-unknown";
-const outputRoot = path.join(wasmRoot, "dist/wasm64");
+// The bindings are published separately as @provablehq/wasm-memory64.
+const outputRoot = path.join(wasmRoot, "../wasm-memory64/dist");
 const debug = process.env.BUILD_DEBUG === "1";
 const rustflags = [
     "-C",
@@ -32,6 +33,9 @@ const rustflags = [
     ...[
         "--shared-memory",
         "--import-memory",
+        // As in wasm32: current nightlies no longer export it implicitly, and
+        // wasm-bindgen needs it to inject the thread id.
+        "--export=__heap_base",
         "--export=__wasm_init_tls",
         "--export=__tls_size",
         "--export=__tls_align",

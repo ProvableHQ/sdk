@@ -91,8 +91,13 @@ Source: [`@provablehq/wasm`](https://www.npmjs.com/package/@provablehq/wasm)
 
 ### Selecting the Memory64 build
 
-Existing SDK and WASM imports use wasm32. Applications that need more than 4 GiB
-of linear memory can explicitly select the separate Memory64 build:
+Existing SDK and WASM imports use wasm32, which limits WebAssembly linear memory
+to 4 GiB. Applications that need more can install the separate Memory64 bindings
+and import the Memory64 entry points:
+
+```bash
+npm install @provablehq/sdk @provablehq/wasm-memory64
+```
 
 ```js
 import { Account, ProgramManager, initThreadPool } from "@provablehq/sdk/wasm64/mainnet.js";
@@ -102,21 +107,75 @@ await initThreadPool(6); // Choose the pool size for your application and host.
 
 The corresponding testnet import is `@provablehq/sdk/wasm64/testnet.js`.
 CommonJS uses the same paths with `require()`. Network loading is available at
-`@provablehq/sdk/wasm64/dynamic.js`; low-level bindings and workers are available
-under `@provablehq/wasm/wasm64/`.
+`@provablehq/sdk/wasm64/dynamic.js`. `@provablehq/wasm-memory64` is an optional
+peer dependency of the SDK, versioned in lockstep with `@provablehq/wasm`. The
+wasm32 entry points do not need it. Its low-level bindings and workers are
+`@provablehq/wasm-memory64/{mainnet,testnet}.js` and
+`@provablehq/wasm-memory64/{mainnet,testnet}/worker.js`.
 
-Memory64 requires runtime support for 64-bit **shared** WebAssembly memory and
-atomics (Node.js 24+, or a compatible browser). Browser workers require the same
-cross-origin isolation as the wasm32 threaded build. Select a variant before
-initializing the SDK, and use its bindings and workers together. Objects created
-by one variant must not be passed to the other.
+The Memory64 entry points throw on runtimes without 64-bit shared WebAssembly
+memory. There is no automatic fallback or change to the existing default imports.
+Applications that also target other runtimes can select the variant once, before
+initializing the SDK:
+
+```js
+let memory64 = false;
+try {
+    new WebAssembly.Memory({ initial: 0n, maximum: 1n, shared: true, address: "i64" });
+    memory64 = true;
+} catch {}
+const sdk = memory64
+    ? await import("@provablehq/sdk/wasm64/mainnet.js")
+    : await import("@provablehq/sdk/mainnet.js");
+```
+
+This check covers the memory model only. It does not check that the context can
+start Workers. Make the choice in one place: objects created by one variant must
+not be passed to the other, and the bindings and workers of a variant must be used
+together.
 
 The Memory64 build retains the Rayon pool and sets an 8 GiB linear-memory maximum.
-That maximum is not an upfront allocation or a guarantee that the host has enough
-memory. There is no automatic fallback or change to the existing default imports.
+Shared memory reserves address space for the full maximum when it is created. This
+reservation is virtual address space, not physical memory, but it rules out 32-bit
+hosts. It is not a guarantee that the host has enough memory.
 
-Build both variants from source with `yarn build:all`. The additional toolchains
-and build dependencies are described in the [WASM build instructions](wasm/README.md#memory64-build).
+#### Runtime support
+
+"SDK" means that the threaded build initializes and `initThreadPool` works. Both
+variants need Workers and shared memory. Browsers also need cross-origin
+isolation, as for the wasm32 threaded build. **Verified** rows were tested with
+this build: browsers in a cross-origin-isolated module worker, Node.js with the
+installed packages. Each test starts two Rayon workers, signs a message and runs a
+program offline. **Expected** rows follow from the engine's Memory64 support and
+are not yet tested.
+
+| Browser | Engine | wasm32 SDK | wasm64 SDK | Status |
+|---|---|---|---|---|
+| Chrome / Edge 133+ | V8 | Yes | Yes | Verified (Chrome 155, Chromium 140) |
+| Chrome / Edge < 133 | V8 | Yes | No | Expected |
+| Firefox 134+ | SpiderMonkey | Yes | Yes | Verified (Firefox 141) |
+| Firefox < 134 | SpiderMonkey | Yes | No | Expected |
+| Safari (all, through 26.x) | JavaScriptCore | Yes | No | Verified with WebKit 26.0 (Playwright build, not Safari): wasm64 throws the documented error |
+| iOS, any browser | JavaScriptCore | Yes | No | Expected |
+| Android WebView 133+ | V8 | Yes | Yes | Expected |
+| Chrome extension pages (MV3) | V8 | Yes, with COOP/COEP manifest keys | Yes, with COOP/COEP manifest keys | Expected |
+| Chrome extension service worker (MV3) | V8 | No thread pool: service workers cannot start Workers | No | Expected |
+
+| Runtime | Engine | wasm32 SDK | wasm64 SDK | Status |
+|---|---|---|---|---|
+| Node 24+ | V8 13.6+ | Yes | Yes | Verified (Node 24.20) |
+| Node 22 / 23 | V8 12.x | Yes | No | Verified (Node 22.16): wasm64 throws the documented error |
+| Node 20 | V8 11.x | Yes | No | Expected |
+| Deno 2.x | V8 14.x | Expected | Expected | Not tested; loads the `node` entry and its `node:worker_threads` polyfill |
+| Bun | JavaScriptCore | No | No | Not tested; shared WebAssembly memory across workers is reported broken ([oven-sh/bun#25677](https://github.com/oven-sh/bun/issues/25677)) |
+| Electron 35+ | V8 (Chromium 134+) | Yes | Yes | Expected; reports Node 22 but uses Chromium's V8, so detect the feature, not the version |
+| Tauri | Platform webview | Yes | Windows only | Expected; macOS, iOS and Linux use WebKit |
+| Capacitor / Cordova | Platform webview | Yes | Android only | Expected; iOS uses WebKit |
+| Cloudflare Workers, Vercel Edge | V8, restricted | No | No | Expected; no Workers, memory limits |
+| React Native (Hermes), LLRT, QuickJS, GraalJS | Various | No | No | Out of scope; no WebAssembly or no Workers |
+
+Build both variants from source with `yarn build:all`. The build dependencies are
+described in the [WASM build instructions](wasm/README.md#memory64-build).
 
 ---
 

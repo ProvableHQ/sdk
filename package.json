@@ -5,6 +5,7 @@
   "workspaces": [
     "sdk",
     "wasm",
+    "wasm-memory64",
     "website",
     "create-leo-app",
     "create-leo-app/*",
@@ -29,9 +30,10 @@
     "bench": "cd sdk && yarn bench",
     "change-version": "node scripts/change-version.js",
     "deploy:wasm": "cd wasm && npm publish --access=public",
+    "deploy:wasm-memory64": "cd wasm-memory64 && npm publish --access=public",
     "deploy:sdk": "cd sdk && npm publish --access=public",
     "deploy:create-leo-app": "cd create-leo-app && npm publish --access=public",
-    "deploy": "yarn build:all && yarn deploy:wasm && yarn deploy:sdk && yarn deploy:create-leo-app",
+    "deploy": "yarn build:all && yarn deploy:wasm && yarn deploy:wasm-memory64 && yarn deploy:sdk && yarn deploy:create-leo-app",
     "lint": "prettier . --check",
     "pretty": "prettier . --write"
   },
