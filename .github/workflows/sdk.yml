@@ -35,6 +35,7 @@ jobs:
           path: |
             sdk/dist/
             wasm/dist/
+            wasm-memory64/dist/
             create-leo-app/dist/
 
 
@@ -60,6 +61,23 @@ jobs:
 
       - run: |
           yarn test:sdk
+
+
+  test-sdk-wasm64:
+    name: test sdk (wasm64)
+    runs-on: ubuntu-latest
+    needs: build
+    steps:
+      - uses: actions/checkout@v4
+      # Memory64 needs Node.js 24. setup-yarn keeps the active Node.js.
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "24"
+      - uses: ./.github/actions/setup-yarn
+      - uses: ./.github/actions/use-build
+
+      - run: |
+          yarn test:sdk:wasm64
 
 
   e2e:

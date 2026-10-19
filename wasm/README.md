@@ -88,11 +88,13 @@ variants. The snarkVM patches are pinned to the snarkVM release in `Cargo.toml`
 and must be regenerated when it changes. The build itself always uses `--locked`;
 it does not resolve or upgrade dependencies during compilation.
 
-Run `yarn workspace @provablehq/sdk test:wasm64` on Node.js 24 after building.
-This packs and installs the three packages into a clean fixture, then tests ESM,
-CommonJS, Memory64 shared memory and Rayon workers on both networks. The local
-execution check downloads public SRS parameters if they are not cached. The
-Memory64 GitHub Actions workflow also checks the packages' export maps.
+Run `yarn test:sdk:wasm64` on Node.js 24 after building. It runs the SDK test
+suite against the Memory64 build instead of wasm32. Run
+`yarn workspace @provablehq/sdk test:cjs:pack:wasm64` to pack and install the
+three packages into a clean fixture, then test ESM, CommonJS, Memory64 shared
+memory and Rayon workers on both networks. The local execution check downloads
+public SRS parameters if they are not cached. The Memory64 GitHub Actions
+workflow also checks the packages' export maps.
 
 ## Testing
 
