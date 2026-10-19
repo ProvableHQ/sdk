@@ -41,10 +41,16 @@ process.on("SIGINT", () => { cleanup(); process.exit(130); });
 console.log(`[pack-install] Workspace: ${WORKDIR}`);
 
 const wasmTarball = path.join(WORKDIR, "provablehq-wasm.tgz");
+const memory64Tarball = path.join(WORKDIR, "provablehq-wasm-memory64.tgz");
 const sdkTarball = path.join(WORKDIR, "provablehq-sdk.tgz");
 
 console.log("[pack-install] Packing @provablehq/wasm...");
 pack(path.join(REPO_ROOT, "wasm"), wasmTarball);
+
+if (variant) {
+    console.log("[pack-install] Packing @provablehq/wasm-memory64...");
+    pack(path.join(REPO_ROOT, "wasm-memory64"), memory64Tarball);
+}
 
 console.log("[pack-install] Packing @provablehq/sdk...");
 pack(path.join(REPO_ROOT, "sdk"), sdkTarball);
@@ -64,6 +70,7 @@ fs.writeFileSync(
             private: true,
             dependencies: {
                 "@provablehq/wasm": `file:${wasmTarball}`,
+                ...(variant && { "@provablehq/wasm-memory64": `file:${memory64Tarball}` }),
                 "@provablehq/sdk": `file:${sdkTarball}`,
             },
         },
@@ -108,9 +115,9 @@ assert.equal(typeof dyn.loadNetwork, "function", "dynamic loadNetwork not export
 // (node-polyfill, worker.js, aleo_wasm.wasm) made it into the tarball.
 (async () => {
     ${variant ? `
-    const wasm = require("@provablehq/wasm/wasm64/testnet.js");
+    const wasm = require("@provablehq/wasm-memory64/testnet.js");
     const binary = require("node:fs").readFileSync(require("node:path").join(
-        require("node:path").dirname(require.resolve("@provablehq/wasm/wasm64/testnet/worker.js")),
+        require("node:path").dirname(require.resolve("@provablehq/wasm-memory64/testnet/worker.js")),
         "aleo_wasm.wasm",
     ));
     const instance = wasm.initSync({ module: binary });

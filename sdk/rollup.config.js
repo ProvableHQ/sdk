@@ -14,7 +14,12 @@ const runtimes = [
     "node",
 ];
 
-const variants = ["", "wasm64/"];
+// Each variant imports the bindings package built for its architecture.
+const wasmPackages = {
+    "": "@provablehq/wasm",
+    "wasm64/": "@provablehq/wasm-memory64",
+};
+const variants = Object.keys(wasmPackages);
 
 const sharedExternal = (network, variant = "") => [
     // Used by node-polyfill
@@ -30,7 +35,7 @@ const sharedExternal = (network, variant = "") => [
 
     // Used by the SDK
     "comlink",
-    `@provablehq/wasm/${variant}${network}.js`,
+    `${wasmPackages[variant]}/${network}.js`,
     "core-js/proposals/json-parse-with-source.js",
 ];
 
@@ -40,7 +45,7 @@ function sharedPlugins(network, variant) {
             preventAssignment: true,
             delimiters: ['', ''],
             values: {
-                '"@provablehq/wasm/%%NETWORK%%.js"': JSON.stringify(`@provablehq/wasm/${variant}${network}.js`),
+                '"@provablehq/wasm/%%NETWORK%%.js"': JSON.stringify(`${wasmPackages[variant]}/${network}.js`),
                 '%%VERSION%%': $package.version,
                 '%%NETWORK%%': network,
             },

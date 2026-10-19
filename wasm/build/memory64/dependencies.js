@@ -8,7 +8,13 @@ export const wasmRoot = fileURLToPath(new URL("../../", import.meta.url));
 const directory = fileURLToPath(new URL("./", import.meta.url));
 export const cache = path.join(wasmRoot, "target/memory64-build");
 export const manifestDirectory = path.join(wasmRoot, "memory64");
-export const toolchain = "nightly-2026-04-02";
+// Build Memory64 and its wasm-bindgen CLI with the toolchain pinned for wasm32.
+const toolchainFile = await fs.readFile(
+    new URL("../../../rust-toolchain.toml", import.meta.url),
+    "utf8",
+);
+export const toolchain = /^channel\s*=\s*"([^"]+)"/m.exec(toolchainFile)?.[1];
+if (!toolchain) throw new Error("Missing channel in rust-toolchain.toml");
 const dependencies = JSON.parse(
     await fs.readFile(new URL("dependencies.json", import.meta.url), "utf8"),
 );
@@ -82,30 +88,13 @@ export async function prepareDependencies() {
 
 export async function prepareManifest(sources) {
     // Build the same Rust sources and dependency requirements as wasm32. Keep a
-    // separate lockfile so newer Memory64 bindings do not update the wasm32 ABI.
+    // separate lockfile because it resolves the patched build-local crates.
     let manifest = await fs.readFile(path.join(wasmRoot, "Cargo.toml"), "utf8");
     manifest = manifest.replace(
         "[package]",
         '[package]\nbuild = "../build.rs"',
     );
     manifest = manifest.replace("[lib]", '[lib]\npath = "../src/lib.rs"');
-    const bindings = {
-        "wasm-bindgen": "0.2.129",
-        "wasm-bindgen-futures": "0.4.79",
-        "wasm-bindgen-test": "0.3.79",
-        "js-sys": "0.3.106",
-        "web-sys": "0.3.106",
-    };
-    for (const [name, version] of Object.entries(bindings)) {
-        const section =
-            name === "wasm-bindgen-test" ? "dev-dependencies" : "dependencies";
-        const pattern = new RegExp(
-            `(\\[${section}\\.${name}\\]\\s*version\\s*=\\s*)"[^"]+"`,
-        );
-        if (!pattern.test(manifest))
-            throw new Error(`Missing ${section}.${name} in wasm/Cargo.toml`);
-        manifest = manifest.replace(pattern, `$1"=${version}"`);
-    }
     manifest += "\n[workspace]\n\n[patch.crates-io]\n";
     for (const [key, dependency] of Object.entries(dependencies)) {
         if (dependency.name.startsWith("wasm-bindgen-cli")) continue;
@@ -131,6 +120,19 @@ export async function prepareManifest(sources) {
 export async function buildBindgen(sources) {
     const cli = sources["wasm-bindgen-cli-0.2.129"];
     const support = sources["wasm-bindgen-cli-support-0.2.129"];
+    // The CLI must match the wasm-bindgen crate that the module was built with.
+    const memory64Lock = await fs.readFile(
+        path.join(manifestDirectory, "Cargo.lock"),
+        "utf8",
+    );
+    const bindgenVersion =
+        /\[\[package\]\]\nname = "wasm-bindgen"\nversion = "([^"]+)"/.exec(
+            memory64Lock,
+        )?.[1];
+    if (bindgenVersion !== "0.2.129")
+        throw new Error(
+            `memory64/Cargo.lock resolves wasm-bindgen ${bindgenVersion}; the patched CLI is 0.2.129`,
+        );
     // Keep every CLI dependency pinned to its checksum-verified release lockfile;
     // only replace the cli-support registry package with the patched local copy.
     const lockPath = path.join(cli, "Cargo.lock");
@@ -144,7 +146,7 @@ export async function buildBindgen(sources) {
     run(
         "cargo",
         [
-            "+1.96.0",
+            `+${toolchain}`,
             "build",
             "--release",
             "--locked",

@@ -140,8 +140,17 @@
     "mime": "^4.0.6",
     "xmlhttprequest-ssl": "^4.0.0"
   },
+  "peerDependencies": {
+    "@provablehq/wasm-memory64": "^0.12.1"
+  },
+  "peerDependenciesMeta": {
+    "@provablehq/wasm-memory64": {
+      "optional": true
+    }
+  },
   "devDependencies": {
     "@arethetypeswrong/cli": "^0.18.2",
+    "@provablehq/wasm-memory64": "^0.12.1",
     "@rollup/plugin-replace": "^6.0.2",
     "@types/chai": "^5.0.1",
     "@types/mocha": "^10.0.10",

@@ -24,8 +24,6 @@ jobs:
       - uses: actions/checkout@v4
       - uses: ./.github/actions/setup-yarn
       - uses: ./.github/actions/setup-rust
-        with:
-          memory64: 'true'
 
       - run: |
           yarn build:all
