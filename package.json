@@ -26,6 +26,7 @@
     "start:website": "cd website && yarn dev",
     "test:wasm": "cd wasm && yarn test",
     "test:sdk": "cd sdk && yarn test",
+    "test:sdk:wasm64": "cd sdk && yarn test:wasm64",
     "test": "yarn test:wasm && yarn test:sdk",
     "bench": "cd sdk && yarn bench",
     "change-version": "node scripts/change-version.js",
