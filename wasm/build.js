@@ -19,7 +19,8 @@ async function buildRollup(input, output) {
 }
 
 const isDebugBuild = process.env.BUILD_DEBUG === "1";
-// The Memory64 tool is installed separately; keep wasm32 on its own Binaryen.
+// `wasm-opt` on PATH can resolve to the Memory64 build's Binaryen 125. Keep
+// wasm32 on its own Binaryen 120.
 process.env.WASM_OPT_BIN ??= fileURLToPath(import.meta.resolve("binaryen/bin/wasm-opt"));
 
 // Panic locations (kept below) embed absolute source paths for dependencies
@@ -61,7 +62,7 @@ async function buildWasm(network) {
                         "-C", "link-arg=--export=__heap_base",
                         ...remapPathPrefixes,
                     ],
-                    wasmOpt: ["-O", "--enable-threads", "--enable-bulk-memory", "--enable-nontrapping-float-to-int"],
+                    wasmOpt: ["-O", "--enable-threads", "--enable-bulk-memory", "--enable-bulk-memory-opt", "--enable-nontrapping-float-to-int"],
                 },
                 // Keep panic diagnostics in release builds: the plugin's
                 // defaults inject `-Z location-detail=none` (panics report
@@ -161,10 +162,10 @@ module.exports = exports;`;
     await buildRollup({
         input: { "index": "entry" },
         plugins: [virtual({ "entry": js })],
-        external: ["node:fs", "node:url"],
     }, {
         dir: `dist/${network}`,
         format: "cjs",
+        external: ["node:fs", "node:url"],
         entryFileNames: "[name].cjs",
         chunkFileNames: "[name].cjs",
         sourcemap: true,
