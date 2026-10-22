@@ -35,6 +35,7 @@ jobs:
           path: |
             sdk/dist/
             wasm/dist/
+            wasm-memory64/dist/
             create-leo-app/dist/
 
 
@@ -60,6 +61,23 @@ jobs:
 
       - run: |
           yarn test:sdk
+
+
+  test-sdk-wasm64:
+    name: test sdk (wasm64)
+    runs-on: ubuntu-latest
+    needs: build
+    steps:
+      - uses: actions/checkout@v4
+      # Memory64 needs Node.js 24. setup-yarn keeps the active Node.js.
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "24"
+      - uses: ./.github/actions/setup-yarn
+      - uses: ./.github/actions/use-build
+
+      - run: |
+          yarn test:sdk:wasm64
 
 
   e2e:
@@ -182,9 +200,9 @@ jobs:
 
   # Cheap, deterministic, no secrets. Always runs on every PR and push.
   # Exercises: CJS module load (no TLA), Account/signature WASM calls, noble
-  # encryption wire format, `initThreadPool` worker spawning from CJS, dynamic
-  # variant `require()` from CJS, and `exports`-map consistency via
-  # `arethetypeswrong`.
+  # encryption wire format, dynamic variant `require()` from CJS, and
+  # `exports`-map consistency via `arethetypeswrong`. The installed-package
+  # smoke runs per runtime in `runtime-compat` below.
   cjs-smoke:
     name: "CJS smoke + exports validation"
     runs-on: ubuntu-latest
@@ -200,6 +218,10 @@ jobs:
         working-directory: wasm
         run: yarn test:attw
 
+      - name: "arethetypeswrong exports validation (wasm-memory64)"
+        working-directory: wasm-memory64
+        run: yarn test:attw
+
       - name: "arethetypeswrong exports validation (sdk)"
         working-directory: sdk
         run: yarn test:attw
@@ -207,14 +229,57 @@ jobs:
       - name: "Pure-CJS smoke (local, resolves by file path)"
         run: node sdk/tests/cjs-smoke/smoke.cjs
 
-      # Packs both workspace packages, installs them into a pristine CJS
-      # fixture, and `require('@provablehq/sdk/testnet.js')` through the
-      # actual `exports.require` condition. Catches broken `exports` maps,
-      # missing tarball files, and wrong `main`/`module` fields that the
-      # file-path smoke above cannot see.
-      - name: "Packed-and-installed CJS smoke"
+
+  # Runtime compatibility matrix for the Node.js rows of the README's
+  # "Runtime support" table. Each cell packs the workspace packages, installs
+  # them into a pristine fixture and loads them through the real `exports`
+  # map on one Node.js line, for one WASM variant: `require()` and `import`,
+  # the dynamic entry, `initThreadPool` worker spawning and, for wasm64, a
+  # local execution on 64-bit shared memory. Catches broken `exports` maps,
+  # missing tarball files and wrong `main`/`module` fields that the file-path
+  # smoke above cannot see.
+  #
+  # Memory64 shared memory needs V8 13.6+, i.e. Node.js 24. On older lines
+  # the wasm64 cells assert that the entry points throw the documented error
+  # and that the wasm32 entry from the same installation still works, so the
+  # table's "No" cells are checked, not skipped.
+  runtime-compat:
+    name: "runtime compat (node ${{ matrix.node }}, ${{ matrix.variant }})"
+    runs-on: ubuntu-latest
+    needs: build
+    strategy:
+      fail-fast: false
+      matrix:
+        node: ["20", "22", "24", "26"]
+        variant: [wasm32, wasm64]
+        include:
+          - node: "20"
+            variant: wasm64
+            expect: unsupported
+          - node: "22"
+            variant: wasm64
+            expect: unsupported
+    steps:
+      - uses: actions/checkout@v4
+      # setup-yarn runs setup-node without a version and keeps the active
+      # Node.js, so the matrix version must be installed first.
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ matrix.node }}
+      # setup-yarn starts with `corepack enable`, and official Node.js builds
+      # stop bundling Corepack from Node.js 25 on. Install it only if missing.
+      - name: Ensure Corepack
+        run: command -v corepack >/dev/null || npm install --global corepack
+      - uses: ./.github/actions/setup-yarn
+      - uses: ./.github/actions/use-build
+
+      - name: "Packed-and-installed smoke"
         working-directory: sdk
-        run: yarn test:cjs:pack
+        timeout-minutes: 10
+        run: >-
+          node tests/cjs-smoke/pack-install.cjs
+          ${{ matrix.variant == 'wasm64' && '--wasm64' || '' }}
+          ${{ matrix.expect == 'unsupported' && '--expect-unsupported' || '' }}
 
 
   # Verifies that buildExecutionTransaction routes all network calls through

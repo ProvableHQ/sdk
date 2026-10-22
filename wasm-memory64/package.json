@@ -1,0 +1,61 @@
+{
+  "name": "@provablehq/wasm-memory64",
+  "version": "0.12.1",
+  "type": "module",
+  "description": "Threaded Memory64 SnarkVM WASM binaries with javascript bindings",
+  "collaborators": [
+    "The Provable Team"
+  ],
+  "license": "GPL-3.0",
+  "exports": {
+    "./testnet.js": {
+      "types": {
+        "import": "./dist/testnet/index.d.ts",
+        "require": "./dist/testnet/index.d.cts"
+      },
+      "import": "./dist/testnet/index.js",
+      "require": "./dist/testnet/index.cjs",
+      "default": "./dist/testnet/index.js"
+    },
+    "./testnet/worker.js": "./dist/testnet/worker.js",
+    "./mainnet.js": {
+      "types": {
+        "import": "./dist/mainnet/index.d.ts",
+        "require": "./dist/mainnet/index.d.cts"
+      },
+      "import": "./dist/mainnet/index.js",
+      "require": "./dist/mainnet/index.cjs",
+      "default": "./dist/mainnet/index.js"
+    },
+    "./mainnet/worker.js": "./dist/mainnet/worker.js"
+  },
+  "files": [
+    "dist",
+    "LICENSE.md",
+    "README.md"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/ProvableHQ/sdk.git",
+    "directory": "wasm-memory64"
+  },
+  "keywords": [
+    "Aleo",
+    "Blockchain",
+    "Zero-Knowledge",
+    "ZK",
+    "Memory64"
+  ],
+  "bugs": {
+    "url": "https://github.com/ProvableHQ/sdk/issues"
+  },
+  "homepage": "https://github.com/ProvableHQ/sdk/tree/mainnet/wasm-memory64#readme",
+  "scripts": {
+    "build": "cd ../wasm && yarn build:wasm64",
+    "_comment:test:attw": "cjs-resolves-to-esm is ignored because the worker subpaths are ESM-only by design, as in @provablehq/wasm.",
+    "test:attw": "yarn pack --filename /tmp/provablehq-wasm-memory64-attw.tgz && attw /tmp/provablehq-wasm-memory64-attw.tgz --profile=node16 --ignore-rules=cjs-resolves-to-esm"
+  },
+  "devDependencies": {
+    "@arethetypeswrong/cli": "^0.18.2"
+  }
+}

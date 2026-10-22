@@ -1,0 +1,28 @@
+--- a/src/lib.rs
++++ b/src/lib.rs
+@@ -25,21 +25,21 @@
+ #[cfg(any(target_os = "macos", target_os = "ios"))]
+ use mac as sys;
+ 
+-#[cfg(target_arch = "wasm32")]
++#[cfg(any(target_arch = "wasm32", target_arch = "wasm64"))]
+ mod wasm;
+-#[cfg(target_arch = "wasm32")]
++#[cfg(any(target_arch = "wasm32", target_arch = "wasm64"))]
+ use wasm as sys;
+ 
+ #[cfg(not(any(
+     target_os = "windows",
+     target_os = "macos", target_os = "ios",
+-    target_arch = "wasm32"
++    any(target_arch = "wasm32", target_arch = "wasm64")
+ )))]
+ mod lin;
+ #[cfg(not(any(
+     target_os = "windows",
+     target_os = "macos", target_os = "ios",
+-    target_arch = "wasm32"
++    any(target_arch = "wasm32", target_arch = "wasm64")
+ )))]
+ use lin as sys;
+ 

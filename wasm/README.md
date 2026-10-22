@@ -41,6 +41,65 @@ yarn build
 
 This will produce `.js` and `.wasm` files inside of the `dist` folder.
 
+### Memory64 build
+
+The separate Memory64 build compiles the same Rust sources and snarkVM version as
+wasm32 for `wasm64-unknown-unknown`, with an 8 GiB maximum, shared memory, atomics
+and the existing Rayon pool. The caller still selects the thread count through
+`initThreadPool(threads)`. Its bindings are published as
+[`@provablehq/wasm-memory64`](../wasm-memory64/README.md), versioned in lockstep
+with `@provablehq/wasm`.
+
+From the repository root:
+
+```bash
+yarn install --immutable
+yarn build:wasm
+yarn build:wasm64
+yarn build:sdk
+```
+
+Both builds use the toolchain in `rust-toolchain.toml`; the Memory64 build also
+needs its `rust-src` component for `-Zbuild-std`. `yarn build:all` includes both
+WASM variants and the SDK. The Memory64 artifacts are written to
+`wasm-memory64/dist/{testnet,mainnet}/` and `sdk/dist/wasm64/{testnet,mainnet}/`.
+Development builds can set `BUILD_DEBUG=1` for the Memory64 build.
+
+The Memory64 build uses Binaryen 125 instead of the wasm32 Binaryen 120, and a
+wasm-bindgen CLI built from source with the same toolchain. It explicitly enables
+the multivalue binding ABI, including for stripped release modules. Set
+`WASM_OPT_BIN` to use a native Binaryen 125 `wasm-opt` executable instead of the
+pinned npm tool.
+Until upstream dependencies support threaded Memory64, the build applies the
+compatibility patches in `build/memory64/patches/` to checksum-verified crate
+archives under `target/`. These patches implement 64-bit thread/TLS/stack
+addresses and select browser backends in the dependencies. They contain no
+proving diagnostics or changes to proof algorithms. Cargo's shared registry
+sources are never modified. The first build needs network access; subsequent
+builds reuse the prepared dependencies and compiled tools.
+
+`build/memory64/dependencies.js` generates `memory64/Cargo.toml` from the current
+SDK manifest, pointing at the same library and license-check sources. The
+separate, tracked `memory64/Cargo.lock` matches `Cargo.lock` except for the
+patched crates, which resolve to the build-local copies. When updating SDK
+dependencies, prepare the manifest with `node wasm/build/memory64.js --prepare-only`
+from the repository root, update that lockfile intentionally, and test both
+variants. The snarkVM patches are pinned to the snarkVM release in `Cargo.toml`
+and must be regenerated when it changes. The build itself always uses `--locked`;
+it does not resolve or upgrade dependencies during compilation.
+
+Run `yarn test:sdk:wasm64` on Node.js 24 after building. It runs the SDK test
+suite against the Memory64 build instead of wasm32. Run
+`yarn workspace @provablehq/sdk test:cjs:pack:wasm64` to pack and install the
+three packages into a clean fixture, then test ESM, CommonJS, Memory64 shared
+memory and Rayon workers on both networks. The local execution check downloads
+public SRS parameters if they are not cached. On a Node.js line without Memory64
+shared memory (before 24), add `--expect-unsupported` to assert instead that the
+wasm64 entry points throw the documented error while the wasm32 entry still
+works. The `runtime compat` jobs in `.github/workflows/sdk.yml` run both forms
+on Node.js 20, 22, 24 and 26 for every pull request. The Memory64 GitHub Actions
+workflow also checks the packages' export maps.
+
 ## Testing
 
 Run tests in Node.js
