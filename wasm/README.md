@@ -93,7 +93,11 @@ suite against the Memory64 build instead of wasm32. Run
 `yarn workspace @provablehq/sdk test:cjs:pack:wasm64` to pack and install the
 three packages into a clean fixture, then test ESM, CommonJS, Memory64 shared
 memory and Rayon workers on both networks. The local execution check downloads
-public SRS parameters if they are not cached. The Memory64 GitHub Actions
+public SRS parameters if they are not cached. On a Node.js line without Memory64
+shared memory (before 24), add `--expect-unsupported` to assert instead that the
+wasm64 entry points throw the documented error while the wasm32 entry still
+works. The `runtime compat` jobs in `.github/workflows/sdk.yml` run both forms
+on Node.js 20, 22, 24 and 26 for every pull request. The Memory64 GitHub Actions
 workflow also checks the packages' export maps.
 
 ## Testing

@@ -147,7 +147,10 @@ isolation, as for the wasm32 threaded build. **Verified** rows were tested with
 this build: browsers in a cross-origin-isolated module worker, Node.js with the
 installed packages. Each test starts two Rayon workers, signs a message and runs a
 program offline. **Expected** rows follow from the engine's Memory64 support and
-are not yet tested.
+are not yet tested. The Node.js rows are asserted on every pull request by the
+`runtime compat` jobs in `.github/workflows/sdk.yml`, which install the packed
+packages on each Node.js line and, where the table says No, check that the wasm64
+entry points throw the documented error.
 
 | Browser | Engine | wasm32 SDK | wasm64 SDK | Status |
 |---|---|---|---|---|
@@ -163,9 +166,9 @@ are not yet tested.
 
 | Runtime | Engine | wasm32 SDK | wasm64 SDK | Status |
 |---|---|---|---|---|
-| Node 24+ | V8 13.6+ | Yes | Yes | Verified (Node 24.20) |
-| Node 22 / 23 | V8 12.x | Yes | No | Verified (Node 22.16): wasm64 throws the documented error |
-| Node 20 | V8 11.x | Yes | No | Expected |
+| Node 24+ | V8 13.6+ | Yes | Yes | Verified in CI (Node 24 and 26) |
+| Node 22 / 23 | V8 12.x | Yes | No | Verified in CI (Node 22): wasm64 throws the documented error |
+| Node 20 | V8 11.x | Yes | No | Verified in CI (Node 20): wasm64 throws the documented error |
 | Deno 2.x | V8 14.x | Expected | Expected | Not tested; loads the `node` entry and its `node:worker_threads` polyfill |
 | Bun | JavaScriptCore | No | No | Not tested; shared WebAssembly memory across workers is reported broken ([oven-sh/bun#25677](https://github.com/oven-sh/bun/issues/25677)) |
 | Electron 35+ | V8 (Chromium 134+) | Yes | Yes | Expected; reports Node 22 but uses Chromium's V8, so detect the feature, not the version |
