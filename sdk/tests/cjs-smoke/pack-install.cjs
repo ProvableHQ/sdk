@@ -8,6 +8,16 @@
 // `require('@provablehq/sdk/testnet.js')` — the exact code path a downstream
 // CJS consumer runs. A broken `exports.require` entry, a missing tarball
 // file, or a wrong `main` field all fail here.
+//
+// Flags:
+//   --wasm64              also pack `@provablehq/wasm-memory64` and exercise
+//                         the `wasm64/` entry points (ESM and CJS).
+//   --expect-unsupported  with `--wasm64`, on a runtime without Memory64
+//                         shared memory (Node.js < 24): assert that the
+//                         wasm64 entry points throw the documented error and
+//                         that the wasm32 entry from the same installation
+//                         still works. The CI runtime matrix uses this for
+//                         the "No" cells of the README's runtime table.
 
 const fs = require("node:fs");
 const os = require("node:os");
@@ -17,6 +27,14 @@ const { spawnSync } = require("node:child_process");
 const REPO_ROOT = path.resolve(__dirname, "../../..");
 const WORKDIR = fs.mkdtempSync(path.join(os.tmpdir(), "provablehq-cjs-pack-"));
 const variant = process.argv.includes("--wasm64") ? "wasm64/" : "";
+const expectUnsupported = process.argv.includes("--expect-unsupported");
+if (expectUnsupported && !variant) {
+    throw new Error("--expect-unsupported requires --wasm64");
+}
+
+// Substring of the error thrown by `@provablehq/wasm-memory64` when the
+// runtime lacks 64-bit shared WebAssembly memory (wasm/build/memory64/bindings.js).
+const UNSUPPORTED_MESSAGE = "requires Memory64 shared-memory support";
 
 function run(cmd, args, opts = {}) {
     const result = spawnSync(cmd, args, { stdio: "inherit", ...opts });
@@ -81,6 +99,77 @@ fs.writeFileSync(
 
 console.log("[pack-install] Installing tarballs into fixture...");
 run("npm", ["install", "--no-audit", "--no-fund", "--loglevel=error"], { cwd: fixtureDir });
+
+if (expectUnsupported) {
+    // The wasm64 entry points must fail with the documented error, not with a
+    // module-resolution or WebAssembly compile error, and the wasm32 entry
+    // installed next to them must be unaffected. The static entries throw at
+    // load time. The dynamic entry loads on any runtime and fails from
+    // `loadNetwork`: synchronously in the CJS bundle, which `require`s the
+    // network lazily, and as a rejection in the ESM bundle. Wrapping the call
+    // in a resolved promise accepts both.
+    const cjsScript = path.join(fixtureDir, "expect-unsupported.cjs");
+    fs.writeFileSync(
+        cjsScript,
+        `
+const assert = require("node:assert/strict");
+const expected = { message: /${UNSUPPORTED_MESSAGE}/ };
+
+for (const entry of ["@provablehq/sdk/wasm64/testnet.js", "@provablehq/wasm-memory64/testnet.js"]) {
+    assert.throws(() => require(entry), expected, entry + " should throw the Memory64 error");
+}
+
+const sdk = require("@provablehq/sdk/testnet.js");
+const account = new sdk.Account();
+const message = new TextEncoder().encode("expect-unsupported smoke");
+assert.ok(account.verify(message, account.sign(message)), "wasm32 signature round-trip failed");
+
+(async () => {
+    const dyn = require("@provablehq/sdk/wasm64/dynamic.js");
+    await assert.rejects(
+        Promise.resolve().then(() => dyn.loadNetwork("mainnet")),
+        expected,
+        "wasm64 loadNetwork should fail with the Memory64 error",
+    );
+    await sdk.initThreadPool(2);
+    console.log("wasm64 entry points rejected as expected on " + process.version);
+    process.exit(0);
+})().catch((err) => {
+    console.error(err);
+    process.exit(1);
+});
+`,
+    );
+    console.log("[pack-install] Asserting the wasm64 entry points throw on this runtime (CJS)...");
+    run("node", [cjsScript], { cwd: fixtureDir });
+
+    const esmScript = path.join(fixtureDir, "expect-unsupported.mjs");
+    fs.writeFileSync(
+        esmScript,
+        `
+import assert from "node:assert/strict";
+const expected = { message: /${UNSUPPORTED_MESSAGE}/ };
+await assert.rejects(import("@provablehq/sdk/wasm64/testnet.js"), expected, "wasm64 ESM entry should throw");
+const dyn = await import("@provablehq/sdk/wasm64/dynamic.js");
+await assert.rejects(
+    Promise.resolve().then(() => dyn.loadNetwork("testnet")),
+    expected,
+    "wasm64 ESM loadNetwork should fail with the Memory64 error",
+);
+const { Account } = await import("@provablehq/sdk/testnet.js");
+const message = new TextEncoder().encode("expect-unsupported ESM smoke");
+const account = new Account();
+assert.ok(account.verify(message, account.sign(message)), "wasm32 ESM signature round-trip failed");
+console.log("wasm64 ESM entry points rejected as expected on " + process.version);
+process.exit(0);
+`,
+    );
+    console.log("[pack-install] Asserting the wasm64 entry points throw on this runtime (ESM)...");
+    run("node", [esmScript], { cwd: fixtureDir });
+
+    console.log(`\x1b[32m✓ wasm64 entry points unsupported on ${process.version} as expected; wasm32 works.\x1b[0m`);
+    process.exit(0);
+}
 
 const assertionsScript = path.join(fixtureDir, "run-smoke.cjs");
 fs.writeFileSync(
