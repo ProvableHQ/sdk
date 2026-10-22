@@ -47,9 +47,10 @@ function log(label, ok, detail = "") {
     log("Execution produced output", outputs.length > 0, outputs[0]);
     log("Output is 10u32", outputs[0] === "10u32", `got ${outputs[0]}`);
 
-    // 5. Verify proof
-    programManager.verifyExecution(result, 10_300_000);
-    log("Proof verified", true);
+    // 5. Verify proof at the current height, so the verifier uses the same
+    //    proof system version the prover did.
+    const latestHeight = await programManager.networkClient.getLatestHeight();
+    log("Proof verified", programManager.verifyExecution(result, latestHeight), `height ${latestHeight}`);
 
     const totalMs = (performance.now() - t0).toFixed(0);
     console.log(`\nProving: ${proveMs}ms | Total: ${totalMs}ms`);
