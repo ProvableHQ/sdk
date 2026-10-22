@@ -1,0 +1,86 @@
+name: Benchmarks
+
+# Proving and memory benchmarks on the production Shield Swap and bridge
+# programs, plus the hello-program micro benchmark. Each run takes about an
+# hour, so this is manual and weekly rather than per pull request. When the
+# checkout builds a Memory64 variant (sdk/dist/wasm64), the program benchmark
+# compares it against wasm32 and reports any out-of-memory failure.
+on:
+    workflow_dispatch:
+        inputs:
+            cases:
+                description:
+                    "Comma-separated program cases (empty = all; see `node
+                    sdk/benchmarks/programs.mjs --list`)"
+                required: false
+                default: ""
+            reps:
+                description: "Repetitions per build and case"
+                required: false
+                default: "1"
+    schedule:
+        - cron: "0 6 * * 1"
+
+permissions:
+    contents: read
+
+jobs:
+    bench:
+        name: program + proving benchmarks
+        runs-on: ubuntu-latest-m
+        timeout-minutes: 240
+        steps:
+            - uses: actions/checkout@v4
+            - uses: actions/setup-node@v4
+              with:
+                  node-version: "24"
+            - uses: ./.github/actions/setup-yarn
+            - uses: ./.github/actions/setup-rust
+
+            - name: Build
+              run: yarn build:all
+
+            - name: Hello-program micro benchmark (wasm32)
+              working-directory: sdk
+              run: |
+                  node benchmarks/bench.mjs --reps 3 | tee ../bench-hello.txt
+
+            - name: Program benchmark (wasm32, and wasm64 when built)
+              working-directory: sdk
+              # Inputs go through the environment so they are never
+              # interpolated into the shell script.
+              env:
+                  BENCH_CASES: ${{ github.event.inputs.cases }}
+                  BENCH_REPS: ${{ github.event.inputs.reps }}
+              run: |
+                  args=(--reps "${BENCH_REPS:-1}" --timeout 60 --out ../bench-programs.json)
+                  if [ -n "$BENCH_CASES" ]; then
+                    args+=(--case "$BENCH_CASES")
+                  fi
+                  if [ -f dist/wasm64/mainnet/node.js ]; then
+                    args+=(--compare dist/wasm64/mainnet/node.js)
+                  fi
+                  node benchmarks/programs.mjs "${args[@]}" | tee ../bench-programs.txt
+
+            - name: Summary
+              if: always()
+              run: |
+                  {
+                    echo '## Program benchmark'
+                    echo '```'
+                    cat bench-programs.txt 2>/dev/null || echo 'no output'
+                    echo '```'
+                    echo '## Hello-program micro benchmark'
+                    echo '```'
+                    cat bench-hello.txt 2>/dev/null || echo 'no output'
+                    echo '```'
+                  } >> "$GITHUB_STEP_SUMMARY"
+
+            - uses: actions/upload-artifact@v4
+              if: always()
+              with:
+                  name: benchmarks
+                  path: |
+                      bench-hello.txt
+                      bench-programs.txt
+                      bench-programs.json
