@@ -73,8 +73,11 @@ async function localProgramExecution(program: string, programName: string, aleoF
     );
     console.log("hello_hello/hello executed - result:", executionResponse.getOutputs());
 
-    // Verify the execution using the verifying key that was generated earlier.
-    if (programManager.verifyExecution(executionResponse, 9_000_000)) {
+    // Verify the execution using the verifying key that was generated earlier. The proof was made for
+    // the network's current consensus version, so verify at the current block height: a stale height
+    // selects an older proof system version and the verification fails.
+    const latestHeight = await programManager.networkClient.getLatestHeight();
+    if (programManager.verifyExecution(executionResponse, latestHeight)) {
         console.log("hello_hello/hello execution verified!");
     } else {
         throw("Execution failed verification!");
