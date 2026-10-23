@@ -328,15 +328,27 @@ class AleoNetworkClient {
      */
     async fetchRaw(url = "/"): Promise<string> {
         try {
-            const ctx = {...this.ctx};
-            return await retryWithBackoff(async () => {
-                const response = await get(this.host + url, {
-                    headers: this.hasCustomTransport
-                        ? this.userHeaders()
-                        : { ...this.headers, ...ctx },
-                }, this.transport);
-                return await response.text();
-            });
+            const ctx = { ...this.ctx };
+            // `get` attaches the HTTP status, so 5xx responses are retried with
+            // backoff; 429 is added so bursts of parallel reads (e.g. import
+            // resolution) back off instead of failing. 4xx responses other than
+            // 429 fail on the first attempt, which callers that probe for
+            // existence (e.g. "is this program deployed?") rely on.
+            return await retryWithBackoff(
+                async () => {
+                    const response = await get(
+                        this.host + url,
+                        {
+                            headers: this.hasCustomTransport
+                                ? this.userHeaders()
+                                : { ...this.headers, ...ctx },
+                        },
+                        this.transport,
+                    );
+                    return await response.text();
+                },
+                { retryOnStatus: [429] },
+            );
         } catch (error) {
             throw new Error(`Error fetching data: ${error}`);
         }
@@ -1218,9 +1230,23 @@ class AleoNetworkClient {
     }
 
     /**
-     *  Returns an object containing the source code of a program and the source code of all programs it imports
+     * Returns an object containing the source code of all programs that a program imports, directly or transitively.
      *
-     * @param {Program | string} inputProgram The program ID or program source code of a program deployed to the Aleo Network
+     * Import sources are fetched from the network with up to four requests in flight at a time, and each program is
+     * fetched at most once per call. Entries already present in `imports` are kept as-is and are not re-fetched or
+     * expanded. Fetched entries are appended in dependency order (leaves first). The returned object is the same
+     * `imports` object that was passed in.
+     *
+     * On any failure the method stops issuing new requests, waits for requests already in flight, and rejects with
+     * the first error; `imports` is left unmodified in that case. A cycle among the imports rejects with
+     * `Cyclic program import: <program_id>`. Individual source requests are retried with backoff on 429 and 5xx
+     * responses (see `fetchRaw`).
+     *
+     * A `Program` object passed as `inputProgram` remains owned by the caller and is not freed.
+     *
+     * @param {Program | string} inputProgram The program ID, program source code, or Program object of a program
+     *   deployed to the Aleo Network
+     * @param {ProgramImports} imports Optional object of already-resolved imports to seed and populate
      * @returns {Promise<ProgramImports>} Object of the form { "program_id": "program_source", .. } containing program id & source code for all program imports
      *
      * @example
@@ -1285,10 +1311,19 @@ class AleoNetworkClient {
             const hasImport = (id: string) =>
                 Object.prototype.hasOwnProperty.call(imports, id);
 
-            const discover = async (id: string): Promise<void> => {
-                if (hasImport(id) || seen.has(id)) return;
-                seen.add(id);
+            // Once any branch fails, no further source requests are issued.
+            // Requests already in flight are allowed to finish so nothing is
+            // left dangling, and the first failure is the one reported.
+            let failure: unknown = undefined;
+            let failed = false;
+            const fail = (error: unknown) => {
+                if (!failed) {
+                    failed = true;
+                    failure = error;
+                }
+            };
 
+            const acquireSlot = async (): Promise<void> => {
                 if (activeRequests >= maxConcurrentRequests) {
                     await new Promise<void>((resolve) => {
                         waitingRequests.push(resolve);
@@ -1296,32 +1331,48 @@ class AleoNetworkClient {
                 } else {
                     activeRequests++;
                 }
+            };
+            const releaseSlot = (): void => {
+                const next = waitingRequests.shift();
+                if (next) next();
+                else activeRequests--;
+            };
 
-                let source: string;
-                try {
-                    source = await this.getProgram(id);
-                } finally {
-                    const next = waitingRequests.shift();
-                    if (next) next();
-                    else activeRequests--;
-                }
+            const discover = async (id: string): Promise<void> => {
+                if (failed || hasImport(id) || seen.has(id)) return;
+                seen.add(id);
 
-                const dependency = Program.fromString(source);
-                let children: string[];
                 try {
-                    children = dependency.getImports();
-                } finally {
-                    dependency.free();
+                    await acquireSlot();
+                    let source: string;
+                    try {
+                        // A failure may have landed while this request waited for a slot.
+                        if (failed) return;
+                        source = await this.getProgram(id);
+                    } finally {
+                        releaseSlot();
+                    }
+
+                    const dependency = Program.fromString(source);
+                    let children: string[];
+                    try {
+                        children = dependency.getImports();
+                    } finally {
+                        dependency.free();
+                    }
+                    sources.set(id, source);
+                    dependencies.set(id, children);
+                    await discoverAll(children);
+                } catch (error) {
+                    fail(error);
+                    throw error;
                 }
-                sources.set(id, source);
-                dependencies.set(id, children);
-                await discoverAll(children);
             };
 
             const discoverAll = async (ids: string[]): Promise<void> => {
                 const results = await Promise.allSettled(ids.map(discover));
-                for (const result of results) {
-                    if (result.status === "rejected") throw result.reason;
+                if (results.some((result) => result.status === "rejected")) {
+                    throw failure;
                 }
             };
 

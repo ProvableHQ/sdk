@@ -284,6 +284,41 @@ describe("AleoNetworkClient static import resolution", () => {
         });
     });
 
+    it("stops issuing source requests after the first failure", async () => {
+        const gate = deferred();
+        const programs: Record<string, string> = {};
+        const slow = ["slow_0.aleo", "slow_1.aleo", "slow_2.aleo"];
+        for (const id of slow) {
+            const leaf = id.replace("slow", "leaf");
+            programs[id] = source(id, [leaf]);
+            programs[leaf] = source(leaf);
+        }
+        programs["queued.aleo"] = source("queued.aleo");
+        const fetch = sinon.stub(client, "getProgram").callsFake(async (id) => {
+            if (id === "missing.aleo") throw new Error("Source unavailable.");
+            if (slow.includes(id)) await gate.promise;
+            return programs[id];
+        });
+        const result = rejection(
+            client.getProgramImports(
+                source("root.aleo", [...slow, "missing.aleo", "queued.aleo"]),
+            ),
+        );
+        await Promise.resolve();
+        gate.resolve();
+        expect(await result).to.include("Source unavailable.");
+        // The queued direct import and every transitive leaf were still
+        // undiscovered when the failure landed, so none of them is fetched.
+        expect(fetch.withArgs("queued.aleo").callCount).to.equal(0);
+        for (const id of slow) {
+            expect(fetch.withArgs(id).callCount).to.equal(1);
+            expect(
+                fetch.withArgs(id.replace("slow", "leaf")).callCount,
+            ).to.equal(0);
+        }
+        expect(fetch.callCount).to.equal(4);
+    });
+
     it("retains the source method header for concurrent requests", async () => {
         const fetch = sinon
             .stub(globalThis, "fetch")
