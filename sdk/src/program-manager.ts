@@ -1187,9 +1187,9 @@ class ProgramManager {
 
         // Build a map of which functions each import actually calls,
         // so we only load keys for functions in the call chain.
-        const calledFunctions = ProgramManager.callGraphToMap(
-            programObj.getCallGraph(entryFunction),
-        );
+        const calledFunctions = loadKeys
+            ? ProgramManager.callGraphToMap(programObj.getCallGraph(entryFunction))
+            : new Map<string, Set<string>>();
 
         // Add programs in topological order (leaves first).
         // A simple DFS post-order ensures dependencies are added before
@@ -1211,7 +1211,7 @@ class ProgramManager {
         // When scoped, trace call graphs in reverse topological order
         // (dependents before leaves) so parent calls propagate before
         // children are traced. sorted is leaves-first, so reverse it.
-        if (entryFunction) {
+        if (loadKeys && entryFunction) {
             for (let i = sorted.length - 1; i >= 0; i--) {
                 const [name, source] = sorted[i];
                 const functionsNeeded = calledFunctions.get(name);

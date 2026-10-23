@@ -265,6 +265,128 @@ describe("ProgramImportsBuilder", () => {
         });
     });
 
+    describe("imports without keys", function () {
+        this.timeout(60_000);
+
+        let pm: ProgramManager;
+
+        beforeEach(() => {
+            pm = new ProgramManager("https://api.provable.com/v2", createMockKeyProvider());
+            sinon.stub(pm.networkClient, "getProgramImports").resolves({});
+            sinon.stub(pm.networkClient, "getProgram").rejects(new Error("Program unavailable"));
+            sinon.stub(pm.networkClient, "getProgramAmendmentCount").callsFake(async (name) => ({
+                program_id: name,
+                edition: name === "multiply_test.aleo" ? 2 : 1,
+                amendment_count: 3,
+            }));
+        });
+
+        for (const method of ["buildAuthorization", "buildAuthorizationUnchecked", "provingRequest"] as const) {
+            it(`should retain cold and prepared imported authorizations through ${method} without call graphs`, async () => {
+                const callGraphSpy = sinon.spy(Program.prototype, "getCallGraph");
+                const options = {
+                    programName: "double_test.aleo",
+                    functionName: "double_it",
+                    programSource: DOUBLE_PROGRAM,
+                    programImports: { "multiply_test.aleo": MULTIPLY_PROGRAM },
+                    inputs: ["5u32"],
+                    privateKey: new PrivateKey(),
+                    edition: 1,
+                    priorityFee: 0,
+                    privateFee: false,
+                    broadcast: false,
+                    unchecked: true,
+                    useFeeMaster: true,
+                };
+                const preparedProgram = await pm.prepareProgram(options);
+                try {
+                    for (const prepared of [undefined, preparedProgram]) {
+                        const result = await pm[method]({ ...options, preparedProgram: prepared });
+                        const authorization = "authorization" in result ? result.authorization() : result;
+                        expect(authorization.transitions()).to.have.length(2);
+                        if (authorization !== result) authorization.free();
+                        result.free();
+                    }
+                    expect(callGraphSpy.called).to.equal(false);
+                } finally {
+                    preparedProgram.free();
+                }
+            });
+        }
+
+        it("should retain a caller-provided dynamic target without call graphs", async () => {
+            const source = `program dynamic_caller_test.aleo;
+
+function dispatch:
+    input r0 as field.public;
+    input r1 as field.public;
+    input r2 as field.public;
+    input r3 as u32.public;
+    input r4 as u32.private;
+    call.dynamic r0 r1 r2 with r3 r4 (as u32.public u32.private) into r5 (as u32.private);
+    output r5 as u32.private;
+
+constructor:
+    assert.eq true true;
+`;
+            const options = {
+                programName: "dynamic_caller_test.aleo",
+                functionName: "dispatch",
+                programSource: source,
+                programImports: { "multiply_test.aleo": MULTIPLY_PROGRAM },
+                inputs: ["multiply_test", "aleo", "multiply", "2u32", "5u32"],
+                privateKey: new PrivateKey(),
+                edition: 1,
+            };
+            const callGraphSpy = sinon.spy(Program.prototype, "getCallGraph");
+            const preparedProgram = await pm.prepareProgram(options);
+            try {
+                for (const prepared of [undefined, preparedProgram]) {
+                    const authorization = await pm.buildAuthorizationUnchecked({
+                        ...options, preparedProgram: prepared,
+                    });
+                    expect(authorization.transitions()).to.have.length(2);
+                    authorization.free();
+                }
+                expect(callGraphSpy.called).to.equal(false);
+            } finally {
+                preparedProgram.free();
+            }
+        });
+
+        for (const invalid of ["a missing function", "an invalid source", "an invalid import source", "a missing import"]) {
+            it(`should reject ${invalid} without key selection`, async () => {
+                const imports: Record<string, string> = invalid === "a missing import" ? {} : {
+                    "multiply_test.aleo": invalid === "an invalid import source" ? "invalid program" : MULTIPLY_PROGRAM,
+                };
+                const options = {
+                    programName: "double_test.aleo",
+                    functionName: invalid === "a missing function" ? "missing" : "double_it",
+                    programSource: invalid === "an invalid source" ? "invalid program" : DOUBLE_PROGRAM,
+                    programImports: imports,
+                    inputs: ["5u32"],
+                    privateKey: new PrivateKey(),
+                    edition: 1,
+                    priorityFee: 0,
+                    privateFee: false,
+                    broadcast: false,
+                    unchecked: true,
+                    useFeeMaster: true,
+                };
+                for (const method of ["prepareProgram", "buildAuthorization", "buildAuthorizationUnchecked", "provingRequest"] as const) {
+                    let error: unknown;
+                    try {
+                        const result = await pm[method](options);
+                        result.free();
+                    } catch (e) {
+                        error = e;
+                    }
+                    expect(error, `${method} must reject ${invalid}`).to.not.equal(undefined);
+                }
+            });
+        }
+    });
+
     describe("fee estimation import resolution", () => {
         it("should merge entry imports with caller imports for both fee estimators", async () => {
             const keyProvider = createMockKeyProvider();
