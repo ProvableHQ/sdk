@@ -317,7 +317,11 @@ export async function get(
     const response = await transport(url, options);
 
     if (!response.ok) {
-        throw new Error(response.status + " could not get URL " + url);
+        // Carry the status so retryWithBackoff can decide whether to retry.
+        throw Object.assign(
+            new Error(response.status + " could not get URL " + url),
+            { status: response.status },
+        );
     }
 
     return response;
@@ -372,7 +376,10 @@ export async function retryWithBackoff<T>(
             let retryable = false;
 
             if (typeof error.status === "number") {
-                if (error.status >= 500) {
+                if (
+                    error.status >= 500 ||
+                    retryOnStatus.includes(error.status)
+                ) {
                     retryable = true;
                 } else if (error.status >= 400 && shouldRetry) {
                     retryable = shouldRetry(error);

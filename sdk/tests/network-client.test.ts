@@ -237,6 +237,22 @@ describe("NodeConnection", () => {
             }
         });
 
+        it("should retry statuses listed in retryOnStatus even below 500", async () => {
+            let attemptCount = 0;
+            const result = await retryWithBackoff(
+                async () => {
+                    attemptCount++;
+                    if (attemptCount < 3) {
+                        throw Object.assign(new Error("429 Too Many Requests"), { status: 429 });
+                    }
+                    return "ok";
+                },
+                { retryOnStatus: [429], baseDelay: 10 },
+            );
+            expect(result).to.equal("ok");
+            expect(attemptCount).to.equal(3);
+        });
+
         it("should retry failed transaction submissions and eventually give up", async () => {
             const client = new AleoNetworkClient("http://localhost:1234");
 
@@ -294,6 +310,44 @@ describe("NodeConnection", () => {
                 expect(err.message).to.include("Network error");
                 expect(attemptCount).to.be.greaterThan(1);
             }
+        });
+    });
+
+    describe("fetchRaw retries", () => {
+        let fetchStub: sinon.SinonStub;
+
+        beforeEach(() => {
+            // The outer hook wraps fetch in a spy; swap it for a stub here.
+            sinon.restore();
+            fetchStub = sinon.stub(globalThis, "fetch");
+        });
+
+        const respond = (status: number, body = "") =>
+            new Response(body, { status });
+
+        it("retries a 429 response and returns the eventual body", async () => {
+            fetchStub.onCall(0).resolves(respond(429));
+            fetchStub.onCall(1).resolves(respond(429));
+            fetchStub.onCall(2).resolves(respond(200, '"program ok.aleo;"'));
+            const client = new AleoNetworkClient("https://first.example/v2");
+            expect(await client.fetchRaw("/program/ok.aleo")).to.equal('"program ok.aleo;"');
+            expect(fetchStub.callCount).to.equal(3);
+        });
+
+        it("retries a 503 response", async () => {
+            fetchStub.onCall(0).resolves(respond(503));
+            fetchStub.onCall(1).resolves(respond(200, "42"));
+            const client = new AleoNetworkClient("https://first.example/v2");
+            expect(await client.fetchRaw("/block/height/latest")).to.equal("42");
+            expect(fetchStub.callCount).to.equal(2);
+        });
+
+        it("does not retry a 404 response", async () => {
+            fetchStub.resolves(respond(404));
+            const client = new AleoNetworkClient("https://first.example/v2");
+            const error = await catchError(() => client.fetchRaw("/program/nope.aleo"));
+            expect(error?.message).to.include("404");
+            expect(fetchStub.callCount).to.equal(1);
         });
     });
 
