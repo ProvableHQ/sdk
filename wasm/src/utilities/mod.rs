@@ -45,7 +45,9 @@ pub mod test;
 ///
 /// @param {string | undefined} heights The block heights at which each consensus version applies. This input should be a simple csv list of block heights and there should be one number for each consensus version. If left undefined, the default test heights will be applied.
 ///
-/// The list is validated: the first height must be 0 and every scheduled height must be strictly greater than the one before it. A height of 4294967295 (u32::MAX) marks a version as unscheduled, and every later version must then be unscheduled too. An invalid list throws.
+/// The list is validated on every call: it must contain exactly one entry per consensus version, every entry must parse as a u32, the first height must be 0, and every scheduled height must be strictly greater than the one before it. A height of 4294967295 (u32::MAX) marks a version as unscheduled, and every later version must then be unscheduled too. The heights are stored only by the first call; later calls are validated but return the heights already in effect.
+///
+/// An invalid list does not throw a JavaScript Error. It panics inside the wasm module: the reason is printed to the console by the panic hook and the call fails with `RuntimeError: unreachable`, leaving the module in an undefined state. Validate the list before passing it in.
 ///
 /// @example
 /// import { getOrInitConsensusVersionTestHeights } from '@provablehq/sdk';
