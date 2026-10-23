@@ -1249,10 +1249,8 @@ class AleoNetworkClient {
      */
     async getProgramImports(inputProgram: Program | string, imports: ProgramImports = {}): Promise<ProgramImports> {
         try {
-            this.ctx = { "X-ALEO-METHOD": "getProgramImports" };
-
-            // Normalize input to a Program object
             let program: Program;
+            const ownsProgram = !(inputProgram instanceof Program);
             if (inputProgram instanceof Program) {
                 program = inputProgram;
             } else {
@@ -1261,39 +1259,95 @@ class AleoNetworkClient {
                 } catch {
                     try {
                         program = await this.getProgramObject(inputProgram);
-                    } catch (error2) {
+                    } catch (error) {
                         throw new Error(
-                            `${inputProgram} is neither a program name nor a valid program: ${error2}`,
+                            `${inputProgram} is neither a program name nor a valid program: ${error}`,
                         );
                     }
                 }
             }
 
-            // Get the list of programs that the program imports
-            const importList = program.getImports();
-
-            // Recursively get any imports that the imported programs have in a depth-first search
-            for (let i = 0; i < importList.length; i++) {
-                const import_id = importList[i];
-                if (!imports.hasOwnProperty(import_id)) {
-                    const programSource = <string>await this.getProgram(import_id);
-                    const nestedImports = <ProgramImports>await this.getProgramImports(programSource, imports);
-
-                    for (const key in nestedImports) {
-                        if (!imports.hasOwnProperty(key)) {
-                            imports[key] = nestedImports[key];
-                        }
-                    }
-
-                    imports[import_id] = programSource;
-                }
+            let rootId: string;
+            let importList: string[];
+            try {
+                rootId = program.id();
+                importList = program.getImports();
+            } finally {
+                if (ownsProgram) program.free();
             }
 
+            const maxConcurrentRequests = 4;
+            let activeRequests = 0;
+            const waitingRequests: Array<() => void> = [];
+            const seen = new Set([rootId]);
+            const sources = new Map<string, string>();
+            const dependencies = new Map<string, string[]>();
+            const hasImport = (id: string) =>
+                Object.prototype.hasOwnProperty.call(imports, id);
+
+            const discover = async (id: string): Promise<void> => {
+                if (hasImport(id) || seen.has(id)) return;
+                seen.add(id);
+
+                if (activeRequests >= maxConcurrentRequests) {
+                    await new Promise<void>((resolve) => {
+                        waitingRequests.push(resolve);
+                    });
+                } else {
+                    activeRequests++;
+                }
+
+                let source: string;
+                try {
+                    source = await this.getProgram(id);
+                } finally {
+                    const next = waitingRequests.shift();
+                    if (next) next();
+                    else activeRequests--;
+                }
+
+                const dependency = Program.fromString(source);
+                let children: string[];
+                try {
+                    children = dependency.getImports();
+                } finally {
+                    dependency.free();
+                }
+                sources.set(id, source);
+                dependencies.set(id, children);
+                await discoverAll(children);
+            };
+
+            const discoverAll = async (ids: string[]): Promise<void> => {
+                const results = await Promise.allSettled(ids.map(discover));
+                for (const result of results) {
+                    if (result.status === "rejected") throw result.reason;
+                }
+            };
+
+            await discoverAll(importList);
+
+            const visited = new Set<string>();
+            const visiting = new Set<string>();
+            const ordered: string[] = [];
+            const visit = (id: string): void => {
+                if (hasImport(id) || visited.has(id)) return;
+                if (visiting.has(id)) {
+                    throw new Error(`Cyclic program import: ${id}`);
+                }
+                visiting.add(id);
+                for (const child of dependencies.get(id)!) visit(child);
+                visiting.delete(id);
+                visited.add(id);
+                ordered.push(id);
+            };
+            visiting.add(rootId);
+            for (const id of importList) visit(id);
+            for (const id of ordered) imports[id] = sources.get(id)!;
             return imports;
-        } catch (error: any) {
-            logAndThrow("Error fetching program imports: " + error.message);
-        } finally {
-            this.ctx = {};
+        } catch (error) {
+            const message = error instanceof Error ? error.message : String(error);
+            logAndThrow("Error fetching program imports: " + message);
         }
     }
 
