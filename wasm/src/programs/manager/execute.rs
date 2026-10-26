@@ -178,7 +178,7 @@ impl ProgramManager {
         let program_native = resolved.program().clone();
         let process = resolved.process_mut();
 
-        let (response, trace) = execute_program!(
+        let (response, mut trace) = execute_program!(
             process,
             process_inputs!(inputs),
             program,
@@ -190,92 +190,47 @@ impl ProgramManager {
             edition
         );
 
-        Self::finish_offline_execution(
-            process,
-            response,
-            trace,
-            private_key,
-            program,
-            &program_native,
-            function,
-            &inputs,
-            prove_execution,
-            cache,
-            node_url,
-            query,
-        )
-        .await
-    }
+        let mut execution_response = if prove_execution {
+            log("Preparing inclusion proofs for execution");
+            let latest_height = if let Some(ref query) = query {
+                trace.prepare_async(query).await.map_err(|err| err.to_string())?;
+                query.current_block_height_async().await.map_err(|e| e.to_string())?
+            } else {
+                let function_name = IdentifierNative::from_str(function).map_err(|err| err.to_string())?;
+                let view_key =
+                    ViewKeyNative::try_from(PrivateKeyNative::from(private_key)).map_err(|err| err.to_string())?;
+                let query = SnapshotQuery::try_from_inputs(
+                    node_url,
+                    &program_native,
+                    &function_name,
+                    &view_key,
+                    &inputs.to_vec(),
+                )
+                .await
+                .map_err(|err| err.to_string())?;
+                trace.prepare_async(&query).await.map_err(|err| err.to_string())?;
+                query.current_block_height_async().await.map_err(|e| e.to_string())?
+            };
 
-    /// Execute a function locally from an `Authorization` built in advance, for example by
-    /// `buildAuthorizationUnchecked` to learn the targets of `call.dynamic`, instead of
-    /// authorizing the inputs a second time. Behaves like `executeFunctionOffline` otherwise.
-    ///
-    /// @param {PrivateKey} private_key The private key of the sender
-    /// @param {Authorization} authorization The authorization to execute. It is consumed.
-    /// @param {string} program The source code of the program being executed
-    /// @param {Array} inputs The inputs the authorization was built from. They are only used to
-    /// build the inclusion query when proving without a `query`.
-    /// @param {boolean} prove_execution If true, the execution will be proven and an execution object
-    /// containing the proof and the encrypted inputs and outputs needed to verify the proof offline
-    /// will be returned.
-    /// @param {boolean} cache Cache the proving and verifying keys in the Execution response.
-    /// @param {Object | undefined} imports (optional) Provide a list of imports to use for the function execution in the
-    /// form of a javascript object where the keys are a string of the program name and the values
-    /// are a string representing the program source code \{ "hello.aleo": "hello.aleo source code" \}
-    /// @param {ProvingKey | undefined} proving_key (optional) Provide a proving key to use for the function execution
-    /// @param {VerifyingKey | undefined} verifying_key (optional) Provide a verifying key to use for the function execution
-    #[wasm_bindgen(js_name = executeFunctionOfflineFromAuthorization)]
-    #[allow(clippy::too_many_arguments)]
-    pub async fn execute_function_offline_from_authorization(
-        private_key: &PrivateKey,
-        authorization: Authorization,
-        program: &str,
-        inputs: Array,
-        prove_execution: bool,
-        cache: bool,
-        imports: Option<Object>,
-        proving_key: Option<ProvingKey>,
-        verifying_key: Option<VerifyingKey>,
-        url: Option<String>,
-        query: Option<QueryOption>,
-        edition: Option<u16>,
-        program_imports: Option<ProgramImports>,
-    ) -> Result<ExecutionResponse, String> {
-        let node_url = url.as_deref().unwrap_or(DEFAULT_URL);
-        let inputs = inputs.to_vec();
-        let edition = edition.unwrap_or(1);
+            // Determine the consensus and Varuna versions from the latest block height.
+            let consensus_version =
+                <CurrentNetwork as Network>::CONSENSUS_VERSION(latest_height).map_err(|err| err.to_string())?;
+            let varuna_version = varuna_version_from_consensus(consensus_version);
 
-        let mut resolved = ResolvedProcess::resolve(&program_imports, program, edition, imports)?;
-        let program_native = resolved.program().clone();
-        let process = resolved.process_mut();
+            log("Proving execution");
+            let locator = program_native.id().to_string().add("/").add(function);
+            let execution =
+                trace.prove_execution::<CurrentAleo, _>(&locator, varuna_version, rng).map_err(|e| e.to_string())?;
+            ExecutionResponse::new(Some(execution), function, response, process, program)?
+        } else {
+            ExecutionResponse::new(None, function, response, process, program)?
+        };
 
-        let function = authorization.function_name()?;
-        let (response, trace) = Self::execute_authorized(
-            process,
-            AuthorizationNative::from(authorization),
-            &program_native,
-            &function,
-            proving_key,
-            verifying_key,
-            edition,
-        )?;
+        if cache {
+            execution_response.add_proving_key(process, function, program_native.id())?;
+        }
 
-        Self::finish_offline_execution(
-            process,
-            response,
-            trace,
-            private_key,
-            program,
-            &program_native,
-            &function,
-            &inputs,
-            prove_execution,
-            cache,
-            node_url,
-            query,
-        )
-        .await
+        Ok(execution_response)
     }
 
     /// Execute Aleo function and create an Aleo execution transaction
@@ -781,61 +736,6 @@ impl ProgramManager {
 
 // Internal (non-wasm_bindgen) implementation details.
 impl ProgramManager {
-    /// What `executeFunctionOffline` does once the authorization has been executed: prove the
-    /// trace if asked, and wrap the response.
-    #[allow(clippy::too_many_arguments)]
-    async fn finish_offline_execution(
-        process: &mut ProcessNative,
-        response: ResponseNative,
-        mut trace: TraceNative,
-        private_key: &PrivateKey,
-        program: &str,
-        program_native: &ProgramNative,
-        function: &str,
-        inputs: &[JsValue],
-        prove_execution: bool,
-        cache: bool,
-        node_url: &str,
-        query: Option<QueryOption>,
-    ) -> Result<ExecutionResponse, String> {
-        let mut execution_response = if prove_execution {
-            log("Preparing inclusion proofs for execution");
-            let latest_height = if let Some(ref query) = query {
-                trace.prepare_async(query).await.map_err(|err| err.to_string())?;
-                query.current_block_height_async().await.map_err(|e| e.to_string())?
-            } else {
-                let function_name = IdentifierNative::from_str(function).map_err(|err| err.to_string())?;
-                let view_key =
-                    ViewKeyNative::try_from(PrivateKeyNative::from(private_key)).map_err(|err| err.to_string())?;
-                let query = SnapshotQuery::try_from_inputs(node_url, program_native, &function_name, &view_key, inputs)
-                    .await
-                    .map_err(|err| err.to_string())?;
-                trace.prepare_async(&query).await.map_err(|err| err.to_string())?;
-                query.current_block_height_async().await.map_err(|e| e.to_string())?
-            };
-
-            // Determine the consensus and Varuna versions from the latest block height.
-            let consensus_version =
-                <CurrentNetwork as Network>::CONSENSUS_VERSION(latest_height).map_err(|err| err.to_string())?;
-            let varuna_version = varuna_version_from_consensus(consensus_version);
-
-            log("Proving execution");
-            let locator = program_native.id().to_string().add("/").add(function);
-            let execution = trace
-                .prove_execution::<CurrentAleo, _>(&locator, varuna_version, &mut rand::rng())
-                .map_err(|e| e.to_string())?;
-            ExecutionResponse::new(Some(execution), function, response, process, program)?
-        } else {
-            ExecutionResponse::new(None, function, response, process, program)?
-        };
-
-        if cache {
-            execution_response.add_proving_key(process, function, program_native.id())?;
-        }
-
-        Ok(execution_response)
-    }
-
     /// Add `program` to `process` unless it is already there (credits.aleo always is).
     fn ensure_program(process: &mut ProcessNative, program_native: &ProgramNative, edition: u16) -> Result<(), String> {
         if program_native.id().to_string() != "credits.aleo" && !process.contains_program(program_native.id()) {

@@ -2778,29 +2778,6 @@ describe("keys for dynamic calls", function () {
         expect(loaded).to.have.members(["multi_fn_test.aleo/alpha", "multiply_test.aleo/multiply"]);
     });
 
-    it("should execute a dynamic call from its preflight authorization", async function () {
-        // Real WASM: synthesizes keys for dispatch, alpha and multiply.
-        this.timeout(300_000);
-        const pm = new ProgramManager("https://api.provable.com/v2", createMockKeyProvider(createMockKeyStore()));
-        sinon.stub(pm.networkClient, "getProgramImports").resolves({});
-        sinon.stub(pm.networkClient, "getProgram").rejects(new Error("Program unavailable"));
-        sinon.stub(pm.networkClient, "getProgramAmendmentCount").callsFake(async (name) => ({
-            program_id: name,
-            edition: 1,
-            amendment_count: 0,
-        }));
-        const authorize = sinon.spy(ProgramManagerBase, "buildAuthorizationUnchecked");
-        const fromScratch = sinon.spy(ProgramManagerBase, "executeFunctionOffline");
-
-        const response = await pm.run(DYNAMIC_KEY_PROGRAM, "dispatch", DYNAMIC_KEY_INPUTS, false, DYNAMIC_KEY_IMPORTS,
-            undefined, undefined, undefined, new PrivateKey(), undefined, 1);
-
-        // alpha(5) = 6, then the dynamic call multiply(2, 6).
-        expect(response.getOutputs()).to.deep.equal(["12u32"]);
-        expect(authorize.calledOnce).to.equal(true);
-        expect(fromScratch.called).to.equal(false);
-    });
-
     it("should authorize once and build the transaction from that authorization", async () => {
         const { pm, buildFromAuthorization } = setup();
         const authorize = sinon.spy(ProgramManagerBase, "buildAuthorizationUnchecked");
@@ -2816,18 +2793,16 @@ describe("keys for dynamic calls", function () {
         }
     });
 
-    it("should load the same keys for an offline run", async () => {
+    it("should only load the static call graph's keys for an offline run", async () => {
+        // run() does not look for dynamic call targets; their keys are synthesized.
         const { pm, loaded } = setup();
         const run = sinon.stub(ProgramManagerBase, "executeFunctionOffline").resolves({} as any);
-        const runFromAuthorization = sinon
-            .stub(ProgramManagerBase, "executeFunctionOfflineFromAuthorization")
-            .resolves({} as any);
+        const authorize = sinon.spy(ProgramManagerBase, "buildAuthorizationUnchecked");
         await pm.run(DYNAMIC_KEY_PROGRAM, "dispatch", DYNAMIC_KEY_INPUTS, false, DYNAMIC_KEY_IMPORTS,
             undefined, undefined, undefined, new PrivateKey(), undefined, 1);
-        expect(runFromAuthorization.calledOnce).to.equal(true);
-        expect(run.called).to.equal(false);
-        expect(loaded).to.have.members(["multi_fn_test.aleo/alpha", "multiply_test.aleo/multiply"]);
-        (runFromAuthorization.firstCall.args[1] as Authorization).free();
+        expect(run.calledOnce).to.equal(true);
+        expect(authorize.called).to.equal(false);
+        expect(loaded).to.deep.equal(["multi_fn_test.aleo/alpha"]);
     });
 
     it("should load keys from the authorization when building from it", async () => {

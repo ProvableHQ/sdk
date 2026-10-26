@@ -3115,81 +3115,49 @@ class ProgramManager {
         }
 
         // Build the ProgramImportsBuilder for import resolution and key caching.
-        const { builder, importEditions, hasDynamicCalls, staticCalls } = await this.buildProgramImports(program, imports, true, function_name);
+        // Only the static call graph's keys are loaded here. Dynamic call
+        // targets are not looked up for an offline run; they are synthesized.
+        const { builder, importEditions } = await this.buildProgramImports(program, imports, true, function_name);
         importEditions.set(programName, { edition: edition!, amendment });
 
         // Auto-convert bare string inputs to field elements where the function expects field type.
         const preparedInputs = this.prepareInputs(program, function_name, inputs);
 
-        // See buildExecutionTransaction: the preflight authorization for a
-        // program with dynamic calls is executed rather than thrown away.
-        const authorization = hasDynamicCalls
-            ? await this.loadDynamicCallKeys(builder, importEditions, {
-                privateKey: executionPrivateKey,
-                program,
-                programName,
-                functionName: function_name,
-                inputs: preparedInputs,
-                edition,
-            }, staticCalls)
-            : undefined;
-
-        return await ProgramManager.withOwnedAuthorization(authorization, async (consume) => {
-            if (!provingKey || !verifyingKey) {
-                const keys = await this.resolveTopLevelKeys(programName, function_name, keySearchParams, edition, amendment);
-                if (keys) {
-                    [provingKey, verifyingKey] = keys;
-                } else {
-                    logger.log(
-                        "Function keys not found in KeyStore or KeyProvider. The function keys will be synthesized",
-                    );
-                }
-            }
-
-            const query = offlineQuery
-                ? QueryOption.offlineQuery(offlineQuery)
-                : this.networkClient.hasCustomTransport
-                  ? QueryOption.callbackQuery(this.buildCallbackQuery())
-                  : undefined;
-
-            await this.ensureInclusionKeys(!!offlineQuery);
-
-            return await this.buildWithPersistedKeys(builder, importEditions, () => {
-                if (authorization) {
-                    consume();
-                    return WasmProgramManager.executeFunctionOfflineFromAuthorization(
-                        executionPrivateKey,
-                        authorization,
-                        program,
-                        preparedInputs,
-                        proveExecution,
-                        false,
-                        undefined, // imports (legacy Object path — builder handles resolution)
-                        provingKey,
-                        verifyingKey,
-                        this.host,
-                        query,
-                        edition,
-                        builder?.clone(),
-                    );
-                }
-                return WasmProgramManager.executeFunctionOffline(
-                    executionPrivateKey,
-                    program,
-                    function_name,
-                    preparedInputs,
-                    proveExecution,
-                    false,
-                    undefined, // imports (legacy Object path — builder handles resolution)
-                    provingKey,
-                    verifyingKey,
-                    this.host,
-                    query,
-                    edition,
-                    builder?.clone(),
+        if (!provingKey || !verifyingKey) {
+            const keys = await this.resolveTopLevelKeys(programName, function_name, keySearchParams, edition, amendment);
+            if (keys) {
+                [provingKey, verifyingKey] = keys;
+            } else {
+                logger.log(
+                    "Function keys not found in KeyStore or KeyProvider. The function keys will be synthesized",
                 );
-            });
-        });
+            }
+        }
+
+        const query = offlineQuery
+            ? QueryOption.offlineQuery(offlineQuery)
+            : this.networkClient.hasCustomTransport
+              ? QueryOption.callbackQuery(this.buildCallbackQuery())
+              : undefined;
+
+        await this.ensureInclusionKeys(!!offlineQuery);
+
+        return await this.buildWithPersistedKeys(builder, importEditions, () =>
+            WasmProgramManager.executeFunctionOffline(
+                executionPrivateKey,
+                program,
+                function_name,
+                preparedInputs,
+                proveExecution,
+                false,
+                undefined, // imports (legacy Object path — builder handles resolution)
+                provingKey,
+                verifyingKey,
+                this.host,
+                query,
+                edition,
+                builder?.clone(),
+            ));
     }
 
     /**
