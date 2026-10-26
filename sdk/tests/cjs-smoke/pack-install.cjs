@@ -12,7 +12,7 @@
 // Flags:
 //   --wasm64              also pack `@provablehq/wasm64` and exercise
 //                         the `wasm64/` entry points (ESM and CJS).
-//   --expect-unsupported  with `--wasm64`, on a runtime without Memory64
+//   --expect-unsupported  with `--wasm64`, on a runtime without wasm64
 //                         shared memory (Node.js < 24): assert that the
 //                         wasm64 entry points throw the documented error and
 //                         that the wasm32 entry from the same installation
@@ -33,8 +33,8 @@ if (expectUnsupported && !variant) {
 }
 
 // Substring of the error thrown by `@provablehq/wasm64` when the
-// runtime lacks 64-bit shared WebAssembly memory (wasm/build/memory64/bindings.js).
-const UNSUPPORTED_MESSAGE = "requires Memory64 shared-memory support";
+// runtime lacks 64-bit shared WebAssembly memory (wasm/build/wasm64/bindings.js).
+const UNSUPPORTED_MESSAGE = "requires wasm64 shared-memory support";
 
 function run(cmd, args, opts = {}) {
     const result = spawnSync(cmd, args, { stdio: "inherit", ...opts });
@@ -59,7 +59,7 @@ process.on("SIGINT", () => { cleanup(); process.exit(130); });
 console.log(`[pack-install] Workspace: ${WORKDIR}`);
 
 const wasmTarball = path.join(WORKDIR, "provablehq-wasm.tgz");
-const memory64Tarball = path.join(WORKDIR, "provablehq-wasm64.tgz");
+const wasm64Tarball = path.join(WORKDIR, "provablehq-wasm64.tgz");
 const sdkTarball = path.join(WORKDIR, "provablehq-sdk.tgz");
 
 console.log("[pack-install] Packing @provablehq/wasm...");
@@ -67,7 +67,7 @@ pack(path.join(REPO_ROOT, "wasm"), wasmTarball);
 
 if (variant) {
     console.log("[pack-install] Packing @provablehq/wasm64...");
-    pack(path.join(REPO_ROOT, "wasm64"), memory64Tarball);
+    pack(path.join(REPO_ROOT, "wasm64"), wasm64Tarball);
 }
 
 console.log("[pack-install] Packing @provablehq/sdk...");
@@ -88,7 +88,7 @@ fs.writeFileSync(
             private: true,
             dependencies: {
                 "@provablehq/wasm": `file:${wasmTarball}`,
-                ...(variant && { "@provablehq/wasm64": `file:${memory64Tarball}` }),
+                ...(variant && { "@provablehq/wasm64": `file:${wasm64Tarball}` }),
                 "@provablehq/sdk": `file:${sdkTarball}`,
             },
         },
@@ -116,7 +116,7 @@ const assert = require("node:assert/strict");
 const expected = { message: /${UNSUPPORTED_MESSAGE}/ };
 
 for (const entry of ["@provablehq/sdk/wasm64/testnet.js", "@provablehq/wasm64/testnet.js"]) {
-    assert.throws(() => require(entry), expected, entry + " should throw the Memory64 error");
+    assert.throws(() => require(entry), expected, entry + " should throw the wasm64 error");
 }
 
 const sdk = require("@provablehq/sdk/testnet.js");
@@ -129,7 +129,7 @@ assert.ok(account.verify(message, account.sign(message)), "wasm32 signature roun
     await assert.rejects(
         Promise.resolve().then(() => dyn.loadNetwork("mainnet")),
         expected,
-        "wasm64 loadNetwork should fail with the Memory64 error",
+        "wasm64 loadNetwork should fail with the wasm64 error",
     );
     await sdk.initThreadPool(2);
     console.log("wasm64 entry points rejected as expected on " + process.version);
@@ -154,7 +154,7 @@ const dyn = await import("@provablehq/sdk/wasm64/dynamic.js");
 await assert.rejects(
     Promise.resolve().then(() => dyn.loadNetwork("testnet")),
     expected,
-    "wasm64 ESM loadNetwork should fail with the Memory64 error",
+    "wasm64 ESM loadNetwork should fail with the wasm64 error",
 );
 const { Account } = await import("@provablehq/sdk/testnet.js");
 const message = new TextEncoder().encode("expect-unsupported ESM smoke");
@@ -210,17 +210,17 @@ assert.equal(typeof dyn.loadNetwork, "function", "dynamic loadNetwork not export
         "aleo_wasm.wasm",
     ));
     const instance = wasm.initSync({ module: binary });
-    assert.equal(typeof instance.memory.grow(0n), "bigint", "Expected Memory64 linear memory");
+    assert.equal(typeof instance.memory.grow(0n), "bigint", "Expected wasm64 linear memory");
     assert.ok(instance.memory.buffer instanceof SharedArrayBuffer, "Expected shared memory");
     ` : ""}
     await sdk.initThreadPool(2);
     ${variant ? `
     const response = await wasm.ProgramManager.executeFunctionOffline(
         account.privateKey(),
-        "program memory64_smoke.aleo;\\nfunction sum:\\n    input r0 as u32.public;\\n    input r1 as u32.private;\\n    add r0 r1 into r2;\\n    output r2 as u32.private;\\n",
+        "program wasm64_smoke.aleo;\\nfunction sum:\\n    input r0 as u32.public;\\n    input r1 as u32.private;\\n    add r0 r1 into r2;\\n    output r2 as u32.private;\\n",
         "sum", ["5u32", "5u32"], false, false,
     );
-    assert.deepEqual(response.getOutputs(), ["10u32"], "Memory64 execution failed");
+    assert.deepEqual(response.getOutputs(), ["10u32"], "wasm64 execution failed");
     ` : ""}
     const mainnet = await dyn.loadNetwork("mainnet");
     assert.equal(new mainnet.AleoNetworkClient("https://example.invalid").host,
@@ -247,7 +247,7 @@ if (variant) {
 import assert from "node:assert/strict";
 import { Account, initThreadPool } from "@provablehq/sdk/wasm64/testnet.js";
 import { loadNetwork } from "@provablehq/sdk/wasm64/dynamic.js";
-const message = new TextEncoder().encode("Memory64 ESM smoke");
+const message = new TextEncoder().encode("wasm64 ESM smoke");
 const account = new Account();
 assert.ok(account.verify(message, account.sign(message)));
 await initThreadPool(2);
@@ -255,10 +255,10 @@ const mainnet = await loadNetwork("mainnet");
 const mainnetAccount = new mainnet.Account();
 assert.ok(mainnetAccount.verify(message, mainnetAccount.sign(message)));
 await mainnet.initThreadPool(2);
-console.log("Memory64 ESM pack-install smoke passed");
+console.log("wasm64 ESM pack-install smoke passed");
 process.exit(0);
 `);
     run("node", [esmScript], { cwd: fixtureDir });
 }
 
-console.log(`\x1b[32m✓ ${variant ? "Memory64 ESM + CJS" : "CJS"} pack-install smoke passed.\x1b[0m`);
+console.log(`\x1b[32m✓ ${variant ? "wasm64 ESM + CJS" : "CJS"} pack-install smoke passed.\x1b[0m`);

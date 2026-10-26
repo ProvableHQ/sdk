@@ -6,9 +6,9 @@ import { spawnSync } from "node:child_process";
 
 export const wasmRoot = fileURLToPath(new URL("../../", import.meta.url));
 const directory = fileURLToPath(new URL("./", import.meta.url));
-export const cache = path.join(wasmRoot, "target/memory64-build");
-export const manifestDirectory = path.join(wasmRoot, "memory64");
-// Build Memory64 and its wasm-bindgen CLI with the toolchain pinned for wasm32.
+export const cache = path.join(wasmRoot, "target/wasm64-build");
+export const manifestDirectory = path.join(wasmRoot, "wasm64");
+// Build wasm64 and its wasm-bindgen CLI with the toolchain pinned for wasm32.
 const toolchainFile = await fs.readFile(
     new URL("../../../rust-toolchain.toml", import.meta.url),
     "utf8",
@@ -28,7 +28,7 @@ export function run(command, args, options = {}) {
 }
 
 // These browser-target and threading patches are build dependencies until their
-// upstream releases support Memory64. Never modify Cargo's shared registry.
+// upstream releases support wasm64. Never modify Cargo's shared registry.
 async function prepareDependency(key, dependency) {
     const destination = path.join(cache, "dependencies", key);
     const patch =
@@ -121,17 +121,17 @@ export async function buildBindgen(sources) {
     const cli = sources["wasm-bindgen-cli-0.2.129"];
     const support = sources["wasm-bindgen-cli-support-0.2.129"];
     // The CLI must match the wasm-bindgen crate that the module was built with.
-    const memory64Lock = await fs.readFile(
+    const wasm64Lock = await fs.readFile(
         path.join(manifestDirectory, "Cargo.lock"),
         "utf8",
     );
     const bindgenVersion =
         /\[\[package\]\]\nname = "wasm-bindgen"\nversion = "([^"]+)"/.exec(
-            memory64Lock,
+            wasm64Lock,
         )?.[1];
     if (bindgenVersion !== "0.2.129")
         throw new Error(
-            `memory64/Cargo.lock resolves wasm-bindgen ${bindgenVersion}; the patched CLI is 0.2.129`,
+            `wasm64/Cargo.lock resolves wasm-bindgen ${bindgenVersion}; the patched CLI is 0.2.129`,
         );
     // Keep every CLI dependency pinned to its checksum-verified release lockfile;
     // only replace the cli-support registry package with the patched local copy.

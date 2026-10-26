@@ -69,7 +69,7 @@ jobs:
     needs: build
     steps:
       - uses: actions/checkout@v4
-      # Memory64 needs Node.js 24. setup-yarn keeps the active Node.js.
+      # wasm64 needs Node.js 24. setup-yarn keeps the active Node.js.
       - uses: actions/setup-node@v4
         with:
           node-version: "24"
@@ -239,7 +239,7 @@ jobs:
   # missing tarball files and wrong `main`/`module` fields that the file-path
   # smoke above cannot see.
   #
-  # Memory64 shared memory needs V8 13.6+, i.e. Node.js 24. On older lines
+  # wasm64 shared memory needs V8 13.6+, i.e. Node.js 24. On older lines
   # the wasm64 cells assert that the entry points throw the documented error
   # and that the wasm32 entry from the same installation still works, so the
   # table's "No" cells are checked, not skipped.

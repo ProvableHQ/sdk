@@ -2,7 +2,7 @@
   "name": "@provablehq/wasm64",
   "version": "0.12.1",
   "type": "module",
-  "description": "Threaded Memory64 SnarkVM WASM binaries with javascript bindings",
+  "description": "Threaded wasm64 SnarkVM WASM binaries with javascript bindings",
   "collaborators": [
     "The Provable Team"
   ],
@@ -44,6 +44,7 @@
     "Blockchain",
     "Zero-Knowledge",
     "ZK",
+    "wasm64",
     "Memory64"
   ],
   "bugs": {

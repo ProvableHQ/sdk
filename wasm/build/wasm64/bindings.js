@@ -22,7 +22,7 @@ export async function emitBindings(output) {
 try {
     new WebAssembly.Memory({ initial: 0n, maximum: 1n, shared: true, address: "i64" });
 } catch (cause) {
-    throw new Error("This SDK build requires Memory64 shared-memory support. Select the wasm32 import on unsupported runtimes.", { cause });
+    throw new Error("This SDK build requires wasm64 shared-memory support. Select the wasm32 import on unsupported runtimes.", { cause });
 }
 `;
     await bundle(

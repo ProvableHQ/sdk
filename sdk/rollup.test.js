@@ -8,14 +8,14 @@ const networks = [
     "mainnet",
 ];
 
-// `SDK_TEST_VARIANT=wasm64` runs the same tests against the Memory64 build.
+// `SDK_TEST_VARIANT=wasm64` runs the same tests against the wasm64 build.
 const wasm64 = process.env.SDK_TEST_VARIANT === "wasm64";
 
 // Points each SDK and WASM import of the tests and sources at the matching
-// Memory64 entry, so that no wasm32 instance is loaded.
-function memory64Imports() {
+// wasm64 entry, so that no wasm32 instance is loaded.
+function wasm64Imports() {
     return {
-        name: "memory64-imports",
+        name: "wasm64-imports",
         resolveId(source) {
             const sdk = /^@provablehq\/sdk(?:\/(testnet|mainnet)\.js)?$/.exec(source);
             if (sdk) {
@@ -26,7 +26,7 @@ function memory64Imports() {
                 return { id: `@provablehq/wasm64/${wasm[1] ?? "testnet"}.js`, external: true };
             }
             if (/^@provablehq\/(sdk|wasm)(\/|$)/.test(source) && !source.startsWith("@provablehq/sdk/wasm64/")) {
-                this.error(`No Memory64 mapping for ${source}`);
+                this.error(`No wasm64 mapping for ${source}`);
             }
             return null;
         },
@@ -64,7 +64,7 @@ export default networks.map((network) => {
 
             // Used by the SDK
             "comlink",
-            // Memory64 imports are resolved by memory64Imports().
+            // wasm64 imports are resolved by wasm64Imports().
             ...(wasm64 ? [] : [`@provablehq/wasm/${network}.js`]),
             "core-js/proposals/json-parse-with-source.js",
 
@@ -73,7 +73,7 @@ export default networks.map((network) => {
             "sinon",
         ],
         plugins: [
-            ...(wasm64 ? [memory64Imports()] : []),
+            ...(wasm64 ? [wasm64Imports()] : []),
             replace({
                 preventAssignment: true,
                 delimiters: ['', ''],

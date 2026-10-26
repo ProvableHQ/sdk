@@ -89,11 +89,11 @@ source.
 
 Source: [`@provablehq/wasm`](https://www.npmjs.com/package/@provablehq/wasm)
 
-### Selecting the Memory64 build
+### Selecting the wasm64 build
 
 Existing SDK and WASM imports use wasm32, which limits WebAssembly linear memory
-to 4 GiB. Applications that need more can install the separate Memory64 bindings
-and import the Memory64 entry points:
+to 4 GiB. Applications that need more can install the separate wasm64 bindings
+and import the wasm64 entry points:
 
 ```bash
 npm install @provablehq/sdk @provablehq/wasm64
@@ -113,18 +113,18 @@ wasm32 entry points do not need it. Its low-level bindings and workers are
 `@provablehq/wasm64/{mainnet,testnet}.js` and
 `@provablehq/wasm64/{mainnet,testnet}/worker.js`.
 
-The Memory64 entry points throw on runtimes without 64-bit shared WebAssembly
+The wasm64 entry points throw on runtimes without 64-bit shared WebAssembly
 memory. There is no automatic fallback or change to the existing default imports.
 Applications that also target other runtimes can select the variant once, before
 initializing the SDK:
 
 ```js
-let memory64 = false;
+let wasm64 = false;
 try {
     new WebAssembly.Memory({ initial: 0n, maximum: 1n, shared: true, address: "i64" });
-    memory64 = true;
+    wasm64 = true;
 } catch {}
-const sdk = memory64
+const sdk = wasm64
     ? await import("@provablehq/sdk/wasm64/mainnet.js")
     : await import("@provablehq/sdk/mainnet.js");
 ```
@@ -134,7 +134,7 @@ start Workers. Make the choice in one place: objects created by one variant must
 not be passed to the other, and the bindings and workers of a variant must be used
 together.
 
-The Memory64 build retains the Rayon pool and sets an 8 GiB linear-memory maximum.
+The wasm64 build retains the Rayon pool and sets an 8 GiB linear-memory maximum.
 Shared memory reserves address space for the full maximum when it is created. This
 reservation is virtual address space, not physical memory, but it rules out 32-bit
 hosts. It is not a guarantee that the host has enough memory.
@@ -146,7 +146,7 @@ variants need Workers and shared memory. Browsers also need cross-origin
 isolation, as for the wasm32 threaded build. **Verified** rows were tested with
 this build: browsers in a cross-origin-isolated module worker, Node.js with the
 installed packages. Each test starts two Rayon workers, signs a message and runs a
-program offline. **Expected** rows follow from the engine's Memory64 support and
+program offline. **Expected** rows follow from the engine's wasm64 support and
 are not yet tested. The Node.js rows are asserted on every pull request by the
 `runtime compat` jobs in `.github/workflows/sdk.yml`, which install the packed
 packages on each Node.js line and, where the table says No, check that the wasm64
@@ -178,7 +178,7 @@ entry points throw the documented error.
 | React Native (Hermes), LLRT, QuickJS, GraalJS | Various | No | No | Out of scope; no WebAssembly or no Workers |
 
 Build both variants from source with `yarn build:all`. The build dependencies are
-described in the [WASM build instructions](wasm/README.md#memory64-build).
+described in the [WASM build instructions](wasm/README.md#wasm64-build).
 
 ---
 

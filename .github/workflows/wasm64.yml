@@ -1,4 +1,4 @@
-name: Memory64
+name: wasm64
 
 on:
     pull_request:
@@ -24,17 +24,17 @@ jobs:
             - uses: ./.github/actions/setup-rust
             - name: Build both WASM variants and the SDK
               run: yarn build:wasm && yarn build:wasm64 && yarn build:sdk
-            - name: Test wasm32 and Memory64 threading transforms
+            - name: Test wasm32 and wasm64 threading transforms
               working-directory: wasm
               run: >-
                   cargo test --locked --release --manifest-path
-                  target/memory64-build/dependencies/wasm-bindgen-cli-support-0.2.129/Cargo.toml
-                  --target-dir target/memory64-build/tools --lib
+                  target/wasm64-build/dependencies/wasm-bindgen-cli-support-0.2.129/Cargo.toml
+                  --target-dir target/wasm64-build/tools --lib
                   transforms::threads::tests
             - name: Validate WASM package exports
               working-directory: wasm
               run: yarn test:attw
-            - name: Validate Memory64 WASM package exports
+            - name: Validate wasm64 WASM package exports
               working-directory: wasm64
               run: yarn test:attw
             - name: Validate SDK package exports
@@ -45,7 +45,7 @@ jobs:
               timeout-minutes: 5
               run: yarn test:cjs:pack
             - name:
-                  Test installed Memory64 packages (ESM, CJS and Rayon workers)
+                  Test installed wasm64 packages (ESM, CJS and Rayon workers)
               working-directory: sdk
               timeout-minutes: 5
               run: yarn test:cjs:pack:wasm64

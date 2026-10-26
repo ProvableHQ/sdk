@@ -1,6 +1,6 @@
-# Aleo Wasm (Memory64)
+# Aleo Wasm (wasm64)
 
-Threaded Memory64 builds of the [`@provablehq/wasm`](https://www.npmjs.com/package/@provablehq/wasm)
+Threaded wasm64 builds of the [`@provablehq/wasm`](https://www.npmjs.com/package/@provablehq/wasm)
 bindings. They compile the same Rust sources and snarkVM version for
 `wasm64-unknown-unknown`, with shared memory, atomics, the Rayon thread pool and
 an 8 GiB linear-memory maximum. Use them when an application needs more than the
@@ -29,7 +29,7 @@ from the same build together, and do not pass objects between this package and
 The runtime needs 64-bit shared WebAssembly memory and atomics, for example
 Node.js 24+, Chrome/Edge 133+ or Firefox 134+. Safari does not support it. The
 entry points throw on unsupported runtimes. See
-[Selecting the Memory64 build](https://github.com/ProvableHQ/sdk#selecting-the-memory64-build)
+[Selecting the wasm64 build](https://github.com/ProvableHQ/sdk#selecting-the-wasm64-build)
 for runtime detection and the runtime support table, and the
-[build instructions](https://github.com/ProvableHQ/sdk/blob/mainnet/wasm/README.md#memory64-build)
+[build instructions](https://github.com/ProvableHQ/sdk/blob/mainnet/wasm/README.md#wasm64-build)
 to build from source.

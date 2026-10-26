@@ -19,7 +19,7 @@ async function buildRollup(input, output) {
 }
 
 const isDebugBuild = process.env.BUILD_DEBUG === "1";
-// `wasm-opt` on PATH can resolve to the Memory64 build's Binaryen 125. Keep
+// `wasm-opt` on PATH can resolve to the wasm64 build's Binaryen 125. Keep
 // wasm32 on its own Binaryen 120.
 process.env.WASM_OPT_BIN ??= fileURLToPath(import.meta.resolve("binaryen/bin/wasm-opt"));
 

@@ -3091,7 +3091,7 @@ __metadata:
     "@rollup/plugin-virtual": "npm:^3.0.2"
     "@wasm-tool/rollup-plugin-rust": "npm:^3.1.5"
     binaryen: "npm:^120.0.0"
-    binaryen-memory64: "npm:binaryen@125.0.0"
+    binaryen-wasm64: "npm:binaryen@125.0.0"
     rimraf: "npm:^6.0.1"
     rollup: "npm:^4.59.0"
   languageName: unknown
@@ -5500,7 +5500,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"binaryen-memory64@npm:binaryen@125.0.0":
+"binaryen-wasm64@npm:binaryen@125.0.0":
   version: 125.0.0
   resolution: "binaryen@npm:125.0.0"
   bin:

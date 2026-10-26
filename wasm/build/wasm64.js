@@ -2,7 +2,7 @@ import * as fs from "node:fs/promises";
 import path from "node:path";
 import os from "node:os";
 import { fileURLToPath } from "node:url";
-import { emitBindings } from "./memory64/bindings.js";
+import { emitBindings } from "./wasm64/bindings.js";
 import {
     buildBindgen,
     cache,
@@ -12,14 +12,14 @@ import {
     run,
     toolchain,
     wasmRoot,
-} from "./memory64/dependencies.js";
+} from "./wasm64/dependencies.js";
 
 const sources = await prepareDependencies();
 await prepareManifest(sources);
 if (process.argv.includes("--prepare-only")) process.exit(0);
 const bindgen = await buildBindgen(sources);
 const wasmOpt = fileURLToPath(
-    import.meta.resolve("binaryen-memory64/bin/wasm-opt"),
+    import.meta.resolve("binaryen-wasm64/bin/wasm-opt"),
 );
 const target = "wasm64-unknown-unknown";
 // The bindings are published separately as @provablehq/wasm64.
