@@ -1346,7 +1346,8 @@ class ProgramManager {
             calls = ProgramManager.authorizationCallGraph(authorization);
         } catch (e) {
             if (e instanceof WebAssembly.RuntimeError) throw e;
-            logger.debug(`Could not find the dynamic call targets; their keys will be synthesized: ${e}`);
+            // Not the error itself: snarkVM errors can quote private register values.
+            logger.debug("Could not find the dynamic call targets; their keys will be synthesized.");
         } finally {
             authorization?.free();
         }
