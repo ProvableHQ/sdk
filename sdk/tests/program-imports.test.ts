@@ -3,6 +3,7 @@ import { expect } from "chai";
 import {
     Account,
     AleoKeyProvider,
+    Authorization,
     ProgramImportsBuilder,
     ProgramManager,
     ProgramManagerBase,
@@ -2544,6 +2545,85 @@ const DYNAMIC_KEY_IMPORTS = {
 };
 const DYNAMIC_KEY_INPUTS = ["multiply_test", "aleo", "multiply", "2u32", "5u32"];
 
+// A library with one plain function and one that uses call.dynamic, so a
+// caller can reach the dynamic call, or not, depending on which it calls.
+const DYNAMIC_LIB_PROGRAM = `program dynamic_lib_test.aleo;
+
+function plain:
+    input r0 as u32.private;
+    add r0 1u32 into r1;
+    output r1 as u32.private;
+
+function dispatch:
+    input r0 as field.public;
+    input r1 as field.public;
+    input r2 as field.public;
+    input r3 as u32.public;
+    input r4 as u32.private;
+    call.dynamic r0 r1 r2 with r3 r4 (as u32.public u32.private) into r5 (as u32.private);
+    output r5 as u32.private;
+
+constructor:
+    assert.eq true true;
+`;
+const CALLS_PLAIN_PROGRAM = `import dynamic_lib_test.aleo;
+
+program calls_plain_test.aleo;
+
+function run_plain:
+    input r0 as u32.private;
+    call dynamic_lib_test.aleo/plain r0 into r1;
+    output r1 as u32.private;
+
+constructor:
+    assert.eq true true;
+`;
+const CALLS_DISPATCH_PROGRAM = `import dynamic_lib_test.aleo;
+
+program calls_dispatch_test.aleo;
+
+function run_dispatch:
+    input r0 as field.public;
+    input r1 as field.public;
+    input r2 as field.public;
+    input r3 as u32.public;
+    input r4 as u32.private;
+    call dynamic_lib_test.aleo/dispatch r0 r1 r2 r3 r4 into r5;
+    output r5 as u32.private;
+
+constructor:
+    assert.eq true true;
+`;
+// The entry function reaches call.dynamic only through a local closure.
+const CLOSURE_DYNAMIC_PROGRAM = `program closure_dynamic_test.aleo;
+
+closure pick:
+    input r0 as field;
+    input r1 as field;
+    input r2 as field;
+    input r3 as u32;
+    input r4 as u32;
+    call.dynamic r0 r1 r2 with r3 r4 (as u32.public u32.private) into r5 (as u32.private);
+    output r5 as u32;
+
+function go:
+    input r0 as field.public;
+    input r1 as field.public;
+    input r2 as field.public;
+    input r3 as u32.public;
+    input r4 as u32.private;
+    call pick r0 r1 r2 r3 r4 into r5;
+    output r5 as u32.private;
+
+function stay:
+    input r0 as u32.private;
+    add r0 1u32 into r1;
+    output r1 as u32.private;
+
+constructor:
+    assert.eq true true;
+`;
+
 describe("keys for dynamic calls", function () {
     this.timeout(60_000);
 
@@ -2559,6 +2639,8 @@ describe("keys for dynamic calls", function () {
             ["multi_fn_test.aleo", "alpha"],
             ["multi_fn_test.aleo", "beta"],
             ["multi_fn_test.aleo", "gamma"],
+            ["dynamic_lib_test.aleo", "plain"],
+            ["dynamic_lib_test.aleo", "dispatch"],
         ]) {
             keys.set(`${program}/${fn}/prover`, {} as ProvingKey);
         }
@@ -2578,7 +2660,10 @@ describe("keys for dynamic calls", function () {
         });
         sinon.stub(ProgramImportsBuilder.prototype, "addVerifyingKey");
         const build = sinon.stub(ProgramManagerBase, "buildExecutionTransaction").resolves({} as any);
-        return { pm, store, loaded, build };
+        const buildFromAuthorization = sinon
+            .stub(ProgramManagerBase, "buildExecutionTransactionFromAuthorization")
+            .resolves({} as any);
+        return { pm, store, loaded, build, buildFromAuthorization };
     }
 
     const executeOptions = () => ({
@@ -2593,32 +2678,117 @@ describe("keys for dynamic calls", function () {
         edition: 1,
     });
 
-    it("should report dynamic calls and load no keys while building imports", async () => {
-        const { pm, store } = setup();
+    it("should report dynamic calls and still load keys for the static call graph", async () => {
+        const { pm, loaded } = setup();
         const { hasDynamicCalls } = await (pm as any).buildProgramImports(
             DYNAMIC_KEY_PROGRAM, DYNAMIC_KEY_IMPORTS, true, "dispatch");
         expect(hasDynamicCalls).to.equal(true);
-        expect((store.getProvingKey as sinon.SinonStub).called).to.equal(false);
+        // The static graph never names dynamic targets, so loading it cannot
+        // pull in every function a dynamic call might reach.
+        expect(loaded).to.deep.equal(["multi_fn_test.aleo/alpha"]);
 
         const staticImports = await (pm as any).buildProgramImports(
             CALLS_ALPHA_PROGRAM, { "multi_fn_test.aleo": MULTI_FN_PROGRAM }, true, "run_alpha");
         expect(staticImports.hasDynamicCalls).to.equal(false);
     });
 
-    it("should load cached keys for the functions an execution actually calls", async () => {
+    it("should not report a dynamic call the entry function cannot reach", async () => {
         const { pm, loaded, build } = setup();
-        await pm.buildExecutionTransaction(executeOptions());
+        const imports = { "dynamic_lib_test.aleo": DYNAMIC_LIB_PROGRAM, "multiply_test.aleo": MULTIPLY_PROGRAM };
+        const { hasDynamicCalls } = await (pm as any).buildProgramImports(
+            CALLS_PLAIN_PROGRAM, imports, true, "run_plain");
+        expect(hasDynamicCalls).to.equal(false);
+        expect(loaded).to.deep.equal(["dynamic_lib_test.aleo/plain"]);
+
+        // So executing it needs no preflight authorization.
+        const authorize = sinon.spy(ProgramManagerBase, "buildAuthorizationUnchecked");
+        await pm.buildExecutionTransaction({
+            ...executeOptions(),
+            programName: "calls_plain_test.aleo",
+            functionName: "run_plain",
+            program: CALLS_PLAIN_PROGRAM,
+            imports,
+            inputs: ["3u32"],
+        });
+        expect(authorize.called).to.equal(false);
         expect(build.calledOnce).to.equal(true);
+    });
+
+    it("should report a dynamic call reached through a static call into an import", async () => {
+        const { pm } = setup();
+        const { hasDynamicCalls } = await (pm as any).buildProgramImports(
+            CALLS_DISPATCH_PROGRAM,
+            { "dynamic_lib_test.aleo": DYNAMIC_LIB_PROGRAM, "multiply_test.aleo": MULTIPLY_PROGRAM },
+            true,
+            "run_dispatch",
+        );
+        expect(hasDynamicCalls).to.equal(true);
+    });
+
+    it("should report a dynamic call made by a closure the entry function calls", async () => {
+        const { pm } = setup();
+        const imports = { "multiply_test.aleo": MULTIPLY_PROGRAM };
+        const go = await (pm as any).buildProgramImports(CLOSURE_DYNAMIC_PROGRAM, imports, true, "go");
+        expect(go.hasDynamicCalls).to.equal(true);
+        const stay = await (pm as any).buildProgramImports(CLOSURE_DYNAMIC_PROGRAM, imports, true, "stay");
+        expect(stay.hasDynamicCalls).to.equal(false);
+    });
+
+    it("should load cached keys for the functions an execution actually calls", async () => {
+        const { pm, loaded, build, buildFromAuthorization } = setup();
+        await pm.buildExecutionTransaction(executeOptions());
+        expect(buildFromAuthorization.calledOnce).to.equal(true);
+        expect(build.called).to.equal(false);
         expect(loaded).to.have.members(["multi_fn_test.aleo/alpha", "multiply_test.aleo/multiply"]);
+    });
+
+    it("should execute a dynamic call from its preflight authorization", async function () {
+        // Real WASM: synthesizes keys for dispatch, alpha and multiply.
+        this.timeout(300_000);
+        const pm = new ProgramManager("https://api.provable.com/v2", createMockKeyProvider(createMockKeyStore()));
+        sinon.stub(pm.networkClient, "getProgramImports").resolves({});
+        sinon.stub(pm.networkClient, "getProgram").rejects(new Error("Program unavailable"));
+        sinon.stub(pm.networkClient, "getProgramAmendmentCount").callsFake(async (name) => ({
+            program_id: name,
+            edition: 1,
+            amendment_count: 0,
+        }));
+        const authorize = sinon.spy(ProgramManagerBase, "buildAuthorizationUnchecked");
+        const fromScratch = sinon.spy(ProgramManagerBase, "executeFunctionOffline");
+
+        const response = await pm.run(DYNAMIC_KEY_PROGRAM, "dispatch", DYNAMIC_KEY_INPUTS, false, DYNAMIC_KEY_IMPORTS,
+            undefined, undefined, undefined, new PrivateKey(), undefined, 1);
+
+        // alpha(5) = 6, then the dynamic call multiply(2, 6).
+        expect(response.getOutputs()).to.deep.equal(["12u32"]);
+        expect(authorize.calledOnce).to.equal(true);
+        expect(fromScratch.called).to.equal(false);
+    });
+
+    it("should authorize once and build the transaction from that authorization", async () => {
+        const { pm, buildFromAuthorization } = setup();
+        const authorize = sinon.spy(ProgramManagerBase, "buildAuthorizationUnchecked");
+        await pm.buildExecutionTransaction(executeOptions());
+        expect(authorize.calledOnce).to.equal(true);
+        const authorization = await authorize.firstCall.returnValue;
+        expect(buildFromAuthorization.calledOnce).to.equal(true);
+        expect(buildFromAuthorization.firstCall.args[1]).to.equal(authorization);
+        // The build was stubbed, so it never consumed the authorization.
+        authorization.free();
     });
 
     it("should load the same keys for an offline run", async () => {
         const { pm, loaded } = setup();
         const run = sinon.stub(ProgramManagerBase, "executeFunctionOffline").resolves({} as any);
+        const runFromAuthorization = sinon
+            .stub(ProgramManagerBase, "executeFunctionOfflineFromAuthorization")
+            .resolves({} as any);
         await pm.run(DYNAMIC_KEY_PROGRAM, "dispatch", DYNAMIC_KEY_INPUTS, false, DYNAMIC_KEY_IMPORTS,
             undefined, undefined, undefined, new PrivateKey(), undefined, 1);
-        expect(run.calledOnce).to.equal(true);
+        expect(runFromAuthorization.calledOnce).to.equal(true);
+        expect(run.called).to.equal(false);
         expect(loaded).to.have.members(["multi_fn_test.aleo/alpha", "multiply_test.aleo/multiply"]);
+        (runFromAuthorization.firstCall.args[1] as Authorization).free();
     });
 
     it("should load keys from the authorization when building from it", async () => {
@@ -2657,39 +2827,68 @@ describe("keys for dynamic calls", function () {
         expect(build.calledOnce).to.equal(true);
     });
 
-    it("should free the authorization and every transition it reads", async () => {
-        const { pm, loaded } = setup();
+    /** A stand-in for a WASM authorization with the given transitions. */
+    function fakeAuthorization(calls: [string, string][], transitionFree: sinon.SinonSpy, free: sinon.SinonSpy) {
+        return {
+            transitions: () => calls.map(([program, fn]) => ({
+                programId: () => program,
+                functionName: () => fn,
+                free: transitionFree,
+            })),
+            free,
+        } as unknown as Authorization;
+    }
+
+    it("should free every transition it reads and hand the authorization to the build", async () => {
+        const { pm, loaded, buildFromAuthorization } = setup();
         const transitionFree = sinon.spy();
-        const transition = (program: string, fn: string) => ({
-            programId: () => program,
-            functionName: () => fn,
-            free: transitionFree,
-        });
         const authorizationFree = sinon.spy();
-        sinon.stub(ProgramManagerBase, "buildAuthorizationUnchecked").resolves({
-            transitions: () => [
-                transition("multiply_test.aleo", "multiply"),
-                transition("dynamic_key_test.aleo", "dispatch"),
-            ],
-            free: authorizationFree,
-        } as any);
+        const authorization = fakeAuthorization(
+            [["multiply_test.aleo", "multiply"], ["dynamic_key_test.aleo", "dispatch"]],
+            transitionFree,
+            authorizationFree,
+        );
+        sinon.stub(ProgramManagerBase, "buildAuthorizationUnchecked").resolves(authorization);
         await pm.buildExecutionTransaction(executeOptions());
-        expect(authorizationFree.calledOnce).to.equal(true);
         expect(transitionFree.calledTwice).to.equal(true);
+        // The build consumes the authorization, so it is not freed here.
+        expect(authorizationFree.called).to.equal(false);
+        expect(buildFromAuthorization.firstCall.args[1]).to.equal(authorization);
         // The entry program's keys come from resolveTopLevelKeys instead.
-        expect(loaded).to.deep.equal(["multiply_test.aleo/multiply"]);
+        expect(loaded).to.deep.equal(["multi_fn_test.aleo/alpha", "multiply_test.aleo/multiply"]);
+    });
+
+    it("should free the authorization when the build is never reached", async () => {
+        const { pm, buildFromAuthorization } = setup();
+        const authorizationFree = sinon.spy();
+        const authorization = fakeAuthorization([["dynamic_key_test.aleo", "dispatch"]], sinon.spy(), authorizationFree);
+        sinon.stub(ProgramManagerBase, "buildAuthorizationUnchecked").resolves(authorization);
+        const failure = new Error("inclusion keys unavailable");
+        sinon.stub(pm as any, "ensureInclusionKeys").rejects(failure);
+        let error: unknown;
+        try {
+            await pm.buildExecutionTransaction(executeOptions());
+        } catch (e) {
+            error = e;
+        }
+        expect(error).to.equal(failure);
+        expect(buildFromAuthorization.called).to.equal(false);
+        expect(authorizationFree.calledOnce).to.equal(true);
     });
 
     it("should still build when the call targets cannot be found", async () => {
-        const { pm, loaded, build } = setup();
+        const { pm, loaded, build, buildFromAuthorization } = setup();
         sinon.stub(ProgramManagerBase, "buildAuthorizationUnchecked").rejects(new Error("unknown dynamic target"));
         await pm.buildExecutionTransaction(executeOptions());
+        // Without an authorization the build authorizes the inputs itself.
         expect(build.calledOnce).to.equal(true);
-        expect(loaded).to.deep.equal([]);
+        expect(buildFromAuthorization.called).to.equal(false);
+        // The static call graph's keys were loaded before the preflight.
+        expect(loaded).to.deep.equal(["multi_fn_test.aleo/alpha"]);
     });
 
     it("should rethrow a WASM trap without building", async () => {
-        const { pm, build } = setup();
+        const { pm, build, buildFromAuthorization } = setup();
         const trap = new WebAssembly.RuntimeError("unreachable");
         sinon.stub(ProgramManagerBase, "buildAuthorizationUnchecked").rejects(trap);
         let error: unknown;
@@ -2700,12 +2899,13 @@ describe("keys for dynamic calls", function () {
         }
         expect(error).to.equal(trap);
         expect(build.called).to.equal(false);
+        expect(buildFromAuthorization.called).to.equal(false);
     });
 
     it("should keep synthesized keys when the build fails", async () => {
-        const { pm, build } = setup();
+        const { pm, buildFromAuthorization } = setup();
         const failure = new Error("proof failed");
-        build.rejects(failure);
+        buildFromAuthorization.rejects(failure);
         const persist = sinon.spy(pm as any, "persistExtractedKeys");
         let error: unknown;
         try {
@@ -2715,5 +2915,91 @@ describe("keys for dynamic calls", function () {
         }
         expect(error).to.equal(failure);
         expect(persist.calledOnce).to.equal(true);
+    });
+});
+
+describe("persisting keys around a build", function () {
+    this.timeout(60_000);
+
+    afterEach(() => {
+        sinon.restore();
+    });
+
+    const imports = { "multi_fn_test.aleo": MULTI_FN_PROGRAM };
+
+    function setup() {
+        const pm = new ProgramManager("https://api.provable.com/v2", createMockKeyProvider(createMockKeyStore()));
+        sinon.stub(pm.networkClient, "getProgramImports").resolves({});
+        sinon.stub(pm.networkClient, "getProgramAmendmentCount").callsFake(async (name) => ({
+            program_id: name,
+            edition: 1,
+            amendment_count: 0,
+        }));
+        const persist = sinon.spy(pm as any, "persistExtractedKeys");
+        return { pm, persist };
+    }
+
+    const executeOptions = () => ({
+        programName: "calls_alpha_test.aleo",
+        functionName: "run_alpha",
+        program: CALLS_ALPHA_PROGRAM,
+        imports,
+        inputs: ["3u32"],
+        priorityFee: 0,
+        privateFee: false,
+        privateKey: new PrivateKey(),
+        edition: 1,
+    });
+
+    it("should persist keys after a successful build", async () => {
+        const { pm, persist } = setup();
+        sinon.stub(ProgramManagerBase, "buildExecutionTransaction").resolves({} as any);
+        await pm.buildExecutionTransaction(executeOptions());
+        expect(persist.calledOnce).to.equal(true);
+    });
+
+    it("should persist keys when the build fails for an ordinary reason", async () => {
+        const { pm, persist } = setup();
+        const failure = new Error("inclusion query failed");
+        sinon.stub(ProgramManagerBase, "buildExecutionTransaction").rejects(failure);
+        let error: unknown;
+        try {
+            await pm.buildExecutionTransaction(executeOptions());
+        } catch (e) {
+            error = e;
+        }
+        expect(error).to.equal(failure);
+        expect(persist.calledOnce).to.equal(true);
+    });
+
+    it("should not call back into WASM after the build traps", async () => {
+        // A trap leaves the builder's state mutably borrowed, so reading
+        // keys back out of it would trap again.
+        const { pm, persist } = setup();
+        const trap = new WebAssembly.RuntimeError("unreachable");
+        sinon.stub(ProgramManagerBase, "buildExecutionTransaction").rejects(trap);
+        let error: unknown;
+        try {
+            await pm.buildExecutionTransaction(executeOptions());
+        } catch (e) {
+            error = e;
+        }
+        expect(error).to.equal(trap);
+        expect(persist.called).to.equal(false);
+    });
+
+    it("should not call back into WASM after an offline run traps", async () => {
+        const { pm, persist } = setup();
+        const trap = new WebAssembly.RuntimeError("unreachable");
+        sinon.stub(ProgramManagerBase, "executeFunctionOffline").rejects(trap);
+        let error: unknown;
+        try {
+            await pm.run(CALLS_ALPHA_PROGRAM, "run_alpha", ["3u32"], false, imports,
+                undefined, undefined, undefined, new PrivateKey(), undefined, 1);
+        } catch (e) {
+            error = e;
+        }
+        expect(error).to.equal(trap);
+        expect(persist.called).to.equal(false);
     });
 });

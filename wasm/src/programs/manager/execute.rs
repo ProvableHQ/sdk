@@ -44,6 +44,8 @@ use crate::{
         ProcessNative,
         ProgramNative,
         RecordPlaintextNative,
+        ResponseNative,
+        TraceNative,
         TransactionNative,
     },
 };
@@ -176,7 +178,7 @@ impl ProgramManager {
         let program_native = resolved.program().clone();
         let process = resolved.process_mut();
 
-        let (response, mut trace) = execute_program!(
+        let (response, trace) = execute_program!(
             process,
             process_inputs!(inputs),
             program,
@@ -188,47 +190,92 @@ impl ProgramManager {
             edition
         );
 
-        let mut execution_response = if prove_execution {
-            log("Preparing inclusion proofs for execution");
-            let latest_height = if let Some(ref query) = query {
-                trace.prepare_async(query).await.map_err(|err| err.to_string())?;
-                query.current_block_height_async().await.map_err(|e| e.to_string())?
-            } else {
-                let function_name = IdentifierNative::from_str(function).map_err(|err| err.to_string())?;
-                let view_key =
-                    ViewKeyNative::try_from(PrivateKeyNative::from(private_key)).map_err(|err| err.to_string())?;
-                let query = SnapshotQuery::try_from_inputs(
-                    node_url,
-                    &program_native,
-                    &function_name,
-                    &view_key,
-                    &inputs.to_vec(),
-                )
-                .await
-                .map_err(|err| err.to_string())?;
-                trace.prepare_async(&query).await.map_err(|err| err.to_string())?;
-                query.current_block_height_async().await.map_err(|e| e.to_string())?
-            };
+        Self::finish_offline_execution(
+            process,
+            response,
+            trace,
+            private_key,
+            program,
+            &program_native,
+            function,
+            &inputs,
+            prove_execution,
+            cache,
+            node_url,
+            query,
+        )
+        .await
+    }
 
-            // Determine the consensus and Varuna versions from the latest block height.
-            let consensus_version =
-                <CurrentNetwork as Network>::CONSENSUS_VERSION(latest_height).map_err(|err| err.to_string())?;
-            let varuna_version = varuna_version_from_consensus(consensus_version);
+    /// Execute a function locally from an `Authorization` built in advance, for example by
+    /// `buildAuthorizationUnchecked` to learn the targets of `call.dynamic`, instead of
+    /// authorizing the inputs a second time. Behaves like `executeFunctionOffline` otherwise.
+    ///
+    /// @param {PrivateKey} private_key The private key of the sender
+    /// @param {Authorization} authorization The authorization to execute. It is consumed.
+    /// @param {string} program The source code of the program being executed
+    /// @param {Array} inputs The inputs the authorization was built from. They are only used to
+    /// build the inclusion query when proving without a `query`.
+    /// @param {boolean} prove_execution If true, the execution will be proven and an execution object
+    /// containing the proof and the encrypted inputs and outputs needed to verify the proof offline
+    /// will be returned.
+    /// @param {boolean} cache Cache the proving and verifying keys in the Execution response.
+    /// @param {Object | undefined} imports (optional) Provide a list of imports to use for the function execution in the
+    /// form of a javascript object where the keys are a string of the program name and the values
+    /// are a string representing the program source code \{ "hello.aleo": "hello.aleo source code" \}
+    /// @param {ProvingKey | undefined} proving_key (optional) Provide a proving key to use for the function execution
+    /// @param {VerifyingKey | undefined} verifying_key (optional) Provide a verifying key to use for the function execution
+    #[wasm_bindgen(js_name = executeFunctionOfflineFromAuthorization)]
+    #[allow(clippy::too_many_arguments)]
+    pub async fn execute_function_offline_from_authorization(
+        private_key: &PrivateKey,
+        authorization: Authorization,
+        program: &str,
+        inputs: Array,
+        prove_execution: bool,
+        cache: bool,
+        imports: Option<Object>,
+        proving_key: Option<ProvingKey>,
+        verifying_key: Option<VerifyingKey>,
+        url: Option<String>,
+        query: Option<QueryOption>,
+        edition: Option<u16>,
+        program_imports: Option<ProgramImports>,
+    ) -> Result<ExecutionResponse, String> {
+        let node_url = url.as_deref().unwrap_or(DEFAULT_URL);
+        let inputs = inputs.to_vec();
+        let edition = edition.unwrap_or(1);
 
-            log("Proving execution");
-            let locator = program_native.id().to_string().add("/").add(function);
-            let execution =
-                trace.prove_execution::<CurrentAleo, _>(&locator, varuna_version, rng).map_err(|e| e.to_string())?;
-            ExecutionResponse::new(Some(execution), function, response, process, program)?
-        } else {
-            ExecutionResponse::new(None, function, response, process, program)?
-        };
+        let mut resolved = ResolvedProcess::resolve(&program_imports, program, edition, imports)?;
+        let program_native = resolved.program().clone();
+        let process = resolved.process_mut();
 
-        if cache {
-            execution_response.add_proving_key(process, function, program_native.id())?;
-        }
+        let function = authorization.function_name()?;
+        let (response, trace) = Self::execute_authorized(
+            process,
+            AuthorizationNative::from(authorization),
+            &program_native,
+            &function,
+            proving_key,
+            verifying_key,
+            edition,
+        )?;
 
-        Ok(execution_response)
+        Self::finish_offline_execution(
+            process,
+            response,
+            trace,
+            private_key,
+            program,
+            &program_native,
+            &function,
+            &inputs,
+            prove_execution,
+            cache,
+            node_url,
+            query,
+        )
+        .await
     }
 
     /// Execute Aleo function and create an Aleo execution transaction
@@ -306,6 +353,99 @@ impl ProgramManager {
         )
         .await?;
         Ok(transaction)
+    }
+
+    /// Build an execution transaction from an `Authorization` created in advance, for example by
+    /// `buildAuthorizationUnchecked` to learn the targets of `call.dynamic`, instead of
+    /// authorizing the inputs a second time. Unlike `executeAuthorization`, the fee is computed
+    /// from the proven execution and authorized here, exactly as `buildExecutionTransaction` does.
+    ///
+    /// @param private_key The private key of the sender
+    /// @param authorization The authorization to execute. It is consumed.
+    /// @param program The source code of the program being executed
+    /// @param inputs The inputs the authorization was built from. They are only used to build the
+    /// inclusion query when no `query` is given.
+    /// @param priority_fee_credits The optional priority fee to be paid for the transaction
+    /// @param fee_record The record to spend the fee from
+    /// @param url The url of the Aleo network node to send the transaction to
+    /// @param imports (optional) Provide a list of imports to use for the function execution in the
+    /// form of a javascript object where the keys are a string of the program name and the values
+    /// are a string representing the program source code \{ "hello.aleo": "hello.aleo source code" \}
+    /// @param proving_key (optional) Provide a proving key to use for the function execution
+    /// @param verifying_key (optional) Provide a verifying key to use for the function execution
+    /// @param fee_proving_key (optional) Provide a proving key to use for the fee execution
+    /// @param fee_verifying_key (optional) Provide a verifying key to use for the fee execution
+    /// @param query An offline query object to use if building a transaction without an internet connection.
+    /// @param edition The edition of the program to execute. Defaults to 1.
+    /// @returns {Transaction}
+    #[wasm_bindgen(js_name = buildExecutionTransactionFromAuthorization)]
+    #[allow(clippy::too_many_arguments)]
+    pub async fn execute_from_authorization(
+        private_key: &PrivateKey,
+        authorization: Authorization,
+        program: &str,
+        inputs: Array,
+        priority_fee_credits: f64,
+        fee_record: Option<RecordPlaintext>,
+        url: Option<String>,
+        imports: Option<Object>,
+        proving_key: Option<ProvingKey>,
+        verifying_key: Option<VerifyingKey>,
+        fee_proving_key: Option<ProvingKey>,
+        fee_verifying_key: Option<VerifyingKey>,
+        query: Option<QueryOption>,
+        edition: Option<u16>,
+        program_imports: Option<ProgramImports>,
+    ) -> Result<Transaction, String> {
+        let edition = edition.unwrap_or(1);
+        let node_url = url.as_deref().unwrap_or(DEFAULT_URL);
+
+        let mut resolved = ResolvedProcess::resolve(&program_imports, program, edition, imports)?;
+        let program_native = resolved.program().clone();
+        let process = resolved.process_mut();
+        Self::ensure_program(process, &program_native, edition)?;
+
+        // The authorization may come from anywhere, so validate it against the
+        // current consensus rules as `executeAuthorization` does.
+        log("Checking the latest block height");
+        let latest_height = if let Some(ref query) = query {
+            query.current_block_height_async().await.map_err(|e| e.to_string())?
+        } else {
+            latest_block_height(node_url).await.map_err(|e| e.to_string())?
+        };
+        let consensus_version =
+            <CurrentNetwork as Network>::CONSENSUS_VERSION(latest_height).map_err(|e| e.to_string())?;
+        let function = authorization.function_name()?;
+        let authorization = AuthorizationNative::from(authorization);
+        authorization.check_valid_edition(process, consensus_version).map_err(|e| e.to_string())?;
+        authorization.check_valid_records(consensus_version).map_err(|e| e.to_string())?;
+
+        log(&format!("Executing function: {}/{function} on-chain", program_native.id()));
+        let (_, trace) = Self::execute_authorized(
+            process,
+            authorization,
+            &program_native,
+            &function,
+            proving_key,
+            verifying_key,
+            edition,
+        )?;
+
+        Self::finish_execution_transaction(
+            process,
+            trace,
+            private_key,
+            &program_native,
+            &function,
+            &inputs.to_vec(),
+            priority_fee_credits,
+            fee_record,
+            node_url,
+            fee_proving_key,
+            fee_verifying_key,
+            query,
+        )
+        .await
     }
 
     /// Execute an authorization.
@@ -637,6 +777,122 @@ impl ProgramManager {
 
 // Internal (non-wasm_bindgen) implementation details.
 impl ProgramManager {
+    /// What `executeFunctionOffline` does once the authorization has been executed: prove the
+    /// trace if asked, and wrap the response.
+    #[allow(clippy::too_many_arguments)]
+    async fn finish_offline_execution(
+        process: &mut ProcessNative,
+        response: ResponseNative,
+        mut trace: TraceNative,
+        private_key: &PrivateKey,
+        program: &str,
+        program_native: &ProgramNative,
+        function: &str,
+        inputs: &[JsValue],
+        prove_execution: bool,
+        cache: bool,
+        node_url: &str,
+        query: Option<QueryOption>,
+    ) -> Result<ExecutionResponse, String> {
+        let mut execution_response = if prove_execution {
+            log("Preparing inclusion proofs for execution");
+            let latest_height = if let Some(ref query) = query {
+                trace.prepare_async(query).await.map_err(|err| err.to_string())?;
+                query.current_block_height_async().await.map_err(|e| e.to_string())?
+            } else {
+                let function_name = IdentifierNative::from_str(function).map_err(|err| err.to_string())?;
+                let view_key =
+                    ViewKeyNative::try_from(PrivateKeyNative::from(private_key)).map_err(|err| err.to_string())?;
+                let query = SnapshotQuery::try_from_inputs(node_url, program_native, &function_name, &view_key, inputs)
+                    .await
+                    .map_err(|err| err.to_string())?;
+                trace.prepare_async(&query).await.map_err(|err| err.to_string())?;
+                query.current_block_height_async().await.map_err(|e| e.to_string())?
+            };
+
+            // Determine the consensus and Varuna versions from the latest block height.
+            let consensus_version =
+                <CurrentNetwork as Network>::CONSENSUS_VERSION(latest_height).map_err(|err| err.to_string())?;
+            let varuna_version = varuna_version_from_consensus(consensus_version);
+
+            log("Proving execution");
+            let locator = program_native.id().to_string().add("/").add(function);
+            let execution = trace
+                .prove_execution::<CurrentAleo, _>(&locator, varuna_version, &mut rand::rng())
+                .map_err(|e| e.to_string())?;
+            ExecutionResponse::new(Some(execution), function, response, process, program)?
+        } else {
+            ExecutionResponse::new(None, function, response, process, program)?
+        };
+
+        if cache {
+            execution_response.add_proving_key(process, function, program_native.id())?;
+        }
+
+        Ok(execution_response)
+    }
+
+    /// Add `program` to `process` unless it is already there (credits.aleo always is).
+    fn ensure_program(process: &mut ProcessNative, program_native: &ProgramNative, edition: u16) -> Result<(), String> {
+        if program_native.id().to_string() != "credits.aleo" && !process.contains_program(program_native.id()) {
+            log("Adding program to the process");
+            process.lock().add_program_with_edition(program_native, edition).map_err(|e| e.to_string())?;
+        }
+        Ok(())
+    }
+
+    /// Execute an authorization on `process`, first adding the program and any provided keys,
+    /// as `execute_program!` does before it authorizes.
+    #[allow(clippy::too_many_arguments)]
+    fn execute_authorized(
+        process: &mut ProcessNative,
+        authorization: AuthorizationNative,
+        program_native: &ProgramNative,
+        function: &str,
+        proving_key: Option<ProvingKey>,
+        verifying_key: Option<VerifyingKey>,
+        edition: u16,
+    ) -> Result<(ResponseNative, TraceNative), String> {
+        if proving_key.is_some() != verifying_key.is_some() {
+            return Err(
+                "If specifying a key for a program execution, both the proving and verifying key must be specified"
+                    .to_string(),
+            );
+        }
+
+        let function_name =
+            IdentifierNative::from_str(function).map_err(|_| "The function name provided was invalid".to_string())?;
+        let program_id = program_native.id().to_string();
+        Self::ensure_program(process, program_native, edition)?;
+
+        if let Some(proving_key) = proving_key {
+            if Self::contains_key(process, program_native.id(), &function_name) {
+                log(&format!(
+                    "Proving & verifying keys were specified for {program_id} - {function_name:?} but a key already exists in the cache. Using cached keys"
+                ));
+            } else {
+                log(&format!(
+                    "Inserting externally provided proving and verifying keys for {program_id} - {function_name:?}"
+                ));
+                process
+                    .insert_proving_key(program_native.id(), &function_name, ProvingKeyNative::from(proving_key))
+                    .map_err(|e| e.to_string())?;
+                if let Some(verifying_key) = verifying_key {
+                    process
+                        .insert_verifying_key(
+                            program_native.id(),
+                            &function_name,
+                            VerifyingKeyNative::from(verifying_key),
+                        )
+                        .map_err(|e| e.to_string())?;
+                }
+            }
+        }
+
+        log("Executing program");
+        process.execute::<CurrentAleo, _>(authorization, &mut rand::rng()).map_err(|err| err.to_string())
+    }
+
     /// Shared execution logic for `execute`.
     ///
     /// The caller is responsible for setting up the process (loading programs,
@@ -664,7 +920,7 @@ impl ProgramManager {
         let rng = &mut rand::rng();
 
         log(&format!("Executing function: {program_id}/{function} on-chain"));
-        let (_, mut trace) = execute_program!(
+        let (_, trace) = execute_program!(
             process,
             process_inputs!(inputs),
             program,
@@ -676,6 +932,43 @@ impl ProgramManager {
             edition
         );
 
+        Self::finish_execution_transaction(
+            process,
+            trace,
+            private_key,
+            &program_native,
+            function,
+            &inputs.to_vec(),
+            priority_fee_credits,
+            fee_record,
+            node_url,
+            fee_proving_key,
+            fee_verifying_key,
+            query,
+        )
+        .await
+    }
+
+    /// What `buildExecutionTransaction` does once the authorization has been executed: prepare
+    /// and prove the trace, compute and execute the fee, verify, and assemble the transaction.
+    #[allow(clippy::too_many_arguments)]
+    async fn finish_execution_transaction(
+        process: &mut ProcessNative,
+        mut trace: TraceNative,
+        private_key: &PrivateKey,
+        program_native: &ProgramNative,
+        function: &str,
+        inputs: &[JsValue],
+        priority_fee_credits: f64,
+        fee_record: Option<RecordPlaintext>,
+        node_url: &str,
+        fee_proving_key: Option<ProvingKey>,
+        fee_verifying_key: Option<VerifyingKey>,
+        query: Option<QueryOption>,
+    ) -> Result<Transaction, String> {
+        let program_id = program_native.id().to_string();
+        let rng = &mut rand::rng();
+
         log("Preparing inclusion proofs for execution");
         let latest_height = if let Some(ref query) = query {
             trace.prepare_async(query).await.map_err(|err| err.to_string())?;
@@ -684,10 +977,9 @@ impl ProgramManager {
             let function_name = IdentifierNative::from_str(function).map_err(|err| err.to_string())?;
             let view_key =
                 ViewKeyNative::try_from(PrivateKeyNative::from(private_key)).map_err(|err| err.to_string())?;
-            let query =
-                SnapshotQuery::try_from_inputs(node_url, &program_native, &function_name, &view_key, &inputs.to_vec())
-                    .await
-                    .map_err(|err| err.to_string())?;
+            let query = SnapshotQuery::try_from_inputs(node_url, program_native, &function_name, &view_key, inputs)
+                .await
+                .map_err(|err| err.to_string())?;
             trace.prepare_async(&query).await.map_err(|err| err.to_string())?;
             query.current_block_height_async().await.map_err(|e| e.to_string())?
         };

@@ -1168,10 +1168,13 @@ class ProgramManager {
      *   from the KeyStore into the builder. Set to false for authorization and
      *   proving request paths where keys are not synthesized.
      *
-     * When the program or an import uses `call.dynamic`, the static call graph
-     * cannot name the functions that will run, so no keys are loaded here and
-     * `hasDynamicCalls` is true. Callers then load keys for the functions an
-     * authorization actually calls (see {@link loadAuthorizationKeys}).
+     * The static call graph only follows `call` instructions with a locator,
+     * so it never names the targets of `call.dynamic`. Its keys are always
+     * loaded. When a function the entry function can reach uses `call.dynamic`
+     * (only checked when `loadKeys` is true), `hasDynamicCalls` is true and
+     * callers load the remaining keys from the functions an authorization
+     * actually calls (see {@link loadAuthorizationKeys}). `staticCalls` lists
+     * the imported functions whose keys were loaded here.
      */
     private async buildProgramImports(
         program: string | Program,
@@ -1182,6 +1185,7 @@ class ProgramManager {
         builder: ProgramImportsBuilder;
         importEditions: Map<string, { edition: number; amendment: number }>;
         hasDynamicCalls: boolean;
+        staticCalls: Map<string, Set<string>>;
     }> {
         const builder = new ProgramImportsBuilder();
         const programSource = typeof program === "string" ? program : program.toString();
@@ -1189,13 +1193,10 @@ class ProgramManager {
 
         const importNames = programObj.getImports();
         if (importNames.length === 0 && (!imports || Object.keys(imports).length === 0)) {
-            return { builder, importEditions: new Map(), hasDynamicCalls: false };
+            return { builder, importEditions: new Map(), hasDynamicCalls: false, staticCalls: new Map() };
         }
 
         const collected = await this.collectProgramImports(programSource, imports, true);
-        const hasDynamicCalls = [programSource, ...collected.values()].some((source) =>
-            /^\s*call\.dynamic\s/m.test(source),
-        );
 
         // Build a map of which functions each import actually calls,
         // so we only load keys for functions in the call chain.
@@ -1246,6 +1247,17 @@ class ProgramManager {
             }
         }
 
+        // A `call.dynamic` anywhere in the call graph means the static graph
+        // is incomplete. Unreachable functions are ignored: a library's
+        // unrelated dynamic call must not change how its callers load keys.
+        const hasDynamicCalls =
+            loadKeys &&
+            (ProgramManager.usesDynamicCall(programSource, entryFunction) ||
+                [...calledFunctions].some(([name, fns]) => {
+                    const source = collected.get(name);
+                    return source !== undefined && [...fns].some((fn) => ProgramManager.usesDynamicCall(source, fn));
+                }));
+
         // Resolve editions for all imports in parallel (each import may have
         // a different edition than the top-level program).
         const importEditions = new Map<string, { edition: number; amendment: number }>();
@@ -1263,16 +1275,54 @@ class ProgramManager {
                 continue;
             }
 
-            // Loading the keys of every function a dynamic call might reach
-            // can exhaust a 4 GiB WASM memory, so dynamic programs load keys
-            // from the authorization's actual call graph instead.
-            if (loadKeys && !hasDynamicCalls) {
+            if (loadKeys) {
                 const calledFns = calledFunctions.get(name);
                 await this.loadKeysFromStore(builder, name, calledFns ? [...calledFns] : [], importEdition, importAmendment);
             }
         }
 
-        return { builder, importEditions, hasDynamicCalls };
+        return { builder, importEditions, hasDynamicCalls, staticCalls: calledFunctions };
+    }
+
+    /**
+     * Whether `functionName` in `source`, or a closure it calls, contains a
+     * `call.dynamic` instruction. Aleo instructions put each block header at
+     * column 0 and indent its body, which is enough to scope the search.
+     */
+    private static usesDynamicCall(
+        source: string,
+        functionName: string,
+        kind: "function" | "closure" = "function",
+        seen = new Set<string>(),
+    ): boolean {
+        const key = `${kind} ${functionName}`;
+        if (seen.has(key)) return false;
+        seen.add(key);
+
+        const body = ProgramManager.blockBody(source, kind, functionName);
+        if (body === undefined) return false;
+        if (/^\s*call\.dynamic\s/m.test(body)) return true;
+
+        // A `call` whose operator has no `/` targets a closure in this program.
+        for (const match of body.matchAll(/^\s*call\s+([A-Za-z_][A-Za-z0-9_]*)\s/gm)) {
+            if (ProgramManager.usesDynamicCall(source, match[1], "closure", seen)) return true;
+        }
+        return false;
+    }
+
+    /** The indented body under `<kind> <name>:`, or undefined if there is no such block. */
+    private static blockBody(source: string, kind: string, name: string): string | undefined {
+        const lines = source.split("\n");
+        const header = new RegExp(`^${kind}\\s+${name}\\s*:`);
+        const start = lines.findIndex((line) => header.test(line));
+        if (start < 0) return undefined;
+        const body: string[] = [];
+        for (let i = start + 1; i < lines.length; i++) {
+            const line = lines[i];
+            if (line.trim() !== "" && !/^\s/.test(line)) break;
+            body.push(line);
+        }
+        return body.join("\n");
     }
 
     /**
@@ -1296,27 +1346,69 @@ class ProgramManager {
 
     /**
      * Load cached keys for the imported functions an authorization calls.
-     * Skips the entry program, whose keys come from resolveTopLevelKeys.
+     * Skips the entry program, whose keys come from resolveTopLevelKeys, and
+     * any function in `alreadyLoaded` (the static call graph).
      */
     private async loadAuthorizationKeys(
         builder: ProgramImportsBuilder,
         entryProgram: string,
         calls: Map<string, Set<string>>,
         importEditions: Map<string, { edition: number; amendment: number }>,
+        alreadyLoaded: Map<string, Set<string>> = new Map(),
     ): Promise<void> {
         for (const [name, functions] of calls) {
             if (name === entryProgram || !builder.contains(name)) continue;
+            const loaded = alreadyLoaded.get(name);
+            const missing = [...functions].filter((fn) => !loaded?.has(fn));
             const version = importEditions.get(name);
-            await this.loadKeysFromStore(builder, name, [...functions], version?.edition, version?.amendment);
+            await this.loadKeysFromStore(builder, name, missing, version?.edition, version?.amendment);
+        }
+    }
+
+    /**
+     * Run a WASM build that shares state with `builder` and persist any keys
+     * it synthesized, whether it succeeds or fails, so a retry reuses them.
+     * After a WASM trap the instance and the builder's borrowed state cannot
+     * be used, so nothing is read back out of it then.
+     */
+    private async buildWithPersistedKeys<T>(
+        builder: ProgramImportsBuilder,
+        importEditions: Map<string, { edition: number; amendment: number }>,
+        build: () => Promise<T>,
+    ): Promise<T> {
+        let result: T;
+        try {
+            result = await build();
+        } catch (e) {
+            if (!(e instanceof WebAssembly.RuntimeError)) {
+                await this.persistExtractedKeysQuietly(builder, importEditions);
+            }
+            throw e;
+        }
+        await this.persistExtractedKeysQuietly(builder, importEditions);
+        return result;
+    }
+
+    private async persistExtractedKeysQuietly(
+        builder: ProgramImportsBuilder,
+        importEditions: Map<string, { edition: number; amendment: number }>,
+    ): Promise<void> {
+        try {
+            await this.persistExtractedKeys(builder, importEditions);
+        } catch (e) {
+            logger.debug(`Failed to persist extracted keys: ${e}`);
         }
     }
 
     /**
      * Load cached keys for a call to a program that uses `call.dynamic`. The
-     * functions it runs come from an authorization, which needs no keys. Does
-     * nothing without a KeyStore. If the authorization fails, the keys are
-     * synthesized during the build, which also reports any input error. A WASM
-     * trap is rethrown, since it can leave the instance unusable.
+     * functions it runs come from an authorization, which needs no keys, and
+     * which is returned so the caller can execute it instead of authorizing
+     * the same inputs again. The caller owns it: pass it to WASM, which
+     * consumes it, or free it. Does nothing without a KeyStore. If the
+     * authorization fails, nothing is returned and the keys are synthesized
+     * during the build, which also reports any input error. A WASM trap is
+     * rethrown, since it can leave the instance unusable.
      */
     private async loadDynamicCallKeys(
         builder: ProgramImportsBuilder,
@@ -1329,10 +1421,11 @@ class ProgramManager {
             inputs: string[];
             edition?: number;
         },
-    ): Promise<void> {
-        if (!(await this.resolveKeyStore())) return;
+        alreadyLoaded: Map<string, Set<string>> = new Map(),
+    ): Promise<Authorization | undefined> {
+        if (!(await this.resolveKeyStore())) return undefined;
         let authorization: Authorization | undefined;
-        let calls: Map<string, Set<string>> | undefined;
+        let calls: Map<string, Set<string>>;
         try {
             authorization = await WasmProgramManager.buildAuthorizationUnchecked(
                 call.privateKey,
@@ -1348,10 +1441,33 @@ class ProgramManager {
             if (e instanceof WebAssembly.RuntimeError) throw e;
             // Not the error itself: snarkVM errors can quote private register values.
             logger.debug("Could not find the dynamic call targets; their keys will be synthesized.");
-        } finally {
             authorization?.free();
+            return undefined;
         }
-        if (calls) await this.loadAuthorizationKeys(builder, call.programName, calls, importEditions);
+        try {
+            await this.loadAuthorizationKeys(builder, call.programName, calls, importEditions, alreadyLoaded);
+        } catch (e) {
+            authorization.free();
+            throw e;
+        }
+        return authorization;
+    }
+
+    /**
+     * Run `fn` with an authorization that WASM consumes by value. If `fn`
+     * throws before the call that consumes it is reached, free it here.
+     * `consume` marks the point after which WASM owns it.
+     */
+    private static async withOwnedAuthorization<T>(
+        authorization: Authorization | undefined,
+        fn: (consume: () => void) => Promise<T>,
+    ): Promise<T> {
+        let consumed = authorization === undefined;
+        try {
+            return await fn(() => { consumed = true; });
+        } finally {
+            if (!consumed) authorization!.free();
+        }
     }
 
     /**
@@ -2109,7 +2225,7 @@ class ProgramManager {
         const [feeProvingKey, feeVerifyingKey] = feeKeys;
 
         // Build the ProgramImportsBuilder for import resolution and key caching.
-        const { builder: programImportsBuilder, importEditions, hasDynamicCalls } = await this.buildProgramImports(program, imports, true, functionName);
+        const { builder: programImportsBuilder, importEditions, hasDynamicCalls, staticCalls } = await this.buildProgramImports(program, imports, true, functionName);
         // Include the top-level program's already-resolved edition so
         // persistExtractedKeys doesn't make a redundant network call for it.
         importEditions.set(programName, { edition: edition!, amendment });
@@ -2117,95 +2233,111 @@ class ProgramManager {
         // Auto-convert bare string inputs to field elements where the function expects field type.
         const preparedInputs = this.prepareInputs(program, functionName, inputs);
 
-        if (hasDynamicCalls) {
-            await this.loadDynamicCallKeys(programImportsBuilder, importEditions, {
+        // A program with dynamic calls is authorized up front to learn which
+        // functions it calls. That authorization is then executed below
+        // instead of authorizing the same inputs a second time.
+        const authorization = hasDynamicCalls
+            ? await this.loadDynamicCallKeys(programImportsBuilder, importEditions, {
                 privateKey: executionPrivateKey,
                 program,
                 programName,
                 functionName,
                 inputs: preparedInputs,
                 edition,
-            });
-        }
+            }, staticCalls)
+            : undefined;
 
-        // If the function proving and verifying keys are not provided, attempt to find them
-        if (!provingKey || !verifyingKey) {
-            const keys = await this.resolveTopLevelKeys(programName, functionName, keySearchParams, edition, amendment);
-            if (keys) {
-                [provingKey, verifyingKey] = keys;
-            } else {
-                logger.log(
-                    "Function keys not found in KeyStore or KeyProvider. The function keys will be synthesized",
+        return await ProgramManager.withOwnedAuthorization(authorization, async (consume) => {
+            // If the function proving and verifying keys are not provided, attempt to find them
+            if (!provingKey || !verifyingKey) {
+                const keys = await this.resolveTopLevelKeys(programName, functionName, keySearchParams, edition, amendment);
+                if (keys) {
+                    [provingKey, verifyingKey] = keys;
+                } else {
+                    logger.log(
+                        "Function keys not found in KeyStore or KeyProvider. The function keys will be synthesized",
+                    );
+                }
+            }
+
+            // Get the fee record from the account if it is not provided in the parameters
+            try {
+                if (privateFee) {
+                    let fee = priorityFee;
+                    // If a fee record wasn't provided, estimate the fee that needs to be paid.
+                    if (!feeRecord) {
+                        const baseFee = Number(await this.estimateExecutionFee({programName, functionName, program, imports}));
+                        fee = baseFee + priorityFee;
+                    }
+
+                    // Get a credits.aleo record for the fee.
+                    feeRecord = await this.getCreditsRecord(
+                        fee,
+                        [],
+                        feeRecord,
+                        recordSearchParams
+                    )
+                } else {
+                    // If it's specified NOT to use a privateFee, use a public fee.
+                    feeRecord = undefined
+                }
+            } catch (e: any) {
+                logAndThrow(
+                    `Error finding fee record. Record finder response: '${e.message}'. Please ensure you're connected to a valid Aleo network and a record with enough balance exists.`,
                 );
             }
-        }
+            const resolvedFeeRecord = feeRecord;
 
-        // Get the fee record from the account if it is not provided in the parameters
-        try {
-            if (privateFee) {
-                let fee = priorityFee;
-                // If a fee record wasn't provided, estimate the fee that needs to be paid.
-                if (!feeRecord) {
-                    const baseFee = Number(await this.estimateExecutionFee({programName, functionName, program, imports}));
-                    fee = baseFee + priorityFee;
-                }
+            const query = offlineQuery
+                ? QueryOption.offlineQuery(offlineQuery)
+                : this.networkClient.hasCustomTransport
+                  ? QueryOption.callbackQuery(this.buildCallbackQuery())
+                  : undefined;
 
-                // Get a credits.aleo record for the fee.
-                feeRecord = await this.getCreditsRecord(
-                    fee,
-                    [],
-                    feeRecord,
-                    recordSearchParams
-                )
-            } else {
-                // If it's specified NOT to use a privateFee, use a public fee.
-                feeRecord = undefined
-            }
-        } catch (e: any) {
-            logAndThrow(
-                `Error finding fee record. Record finder response: '${e.message}'. Please ensure you're connected to a valid Aleo network and a record with enough balance exists.`,
-            );
-        }
+            await this.ensureInclusionKeys(!!offlineQuery);
 
-        const query = offlineQuery
-            ? QueryOption.offlineQuery(offlineQuery)
-            : this.networkClient.hasCustomTransport
-              ? QueryOption.callbackQuery(this.buildCallbackQuery())
-              : undefined;
-
-        await this.ensureInclusionKeys(!!offlineQuery);
-
-        let result: Transaction;
-        try {
-            result = await WasmProgramManager.buildExecutionTransaction(
-                executionPrivateKey,
-                program,
-                functionName,
-                preparedInputs,
-                priorityFee,
-                feeRecord,
-                this.host,
-                undefined, // imports (legacy Object path — builder handles resolution)
-                provingKey,
-                verifyingKey,
-                feeProvingKey,
-                feeVerifyingKey,
-                query,
-                edition,
-                programImportsBuilder?.clone(),
-            );
-        } finally {
             // The clone passed to WASM shares state with the original via
-            // Rc<RefCell<>> — synthesized keys are already visible. Keep them
-            // when the build fails after synthesis too, so a retry reuses them.
-            try {
-                await this.persistExtractedKeys(programImportsBuilder, importEditions);
-            } catch (e) {
-                logger.debug(`Failed to persist extracted keys: ${e}`);
-            }
-        }
-
-        return result;
+            // Rc<RefCell<>>, so synthesized keys are visible for persisting.
+            return await this.buildWithPersistedKeys(programImportsBuilder, importEditions, () => {
+                if (authorization) {
+                    consume();
+                    return WasmProgramManager.buildExecutionTransactionFromAuthorization(
+                        executionPrivateKey,
+                        authorization,
+                        program,
+                        preparedInputs,
+                        priorityFee,
+                        resolvedFeeRecord,
+                        this.host,
+                        undefined, // imports (legacy Object path — builder handles resolution)
+                        provingKey,
+                        verifyingKey,
+                        feeProvingKey,
+                        feeVerifyingKey,
+                        query,
+                        edition,
+                        programImportsBuilder?.clone(),
+                    );
+                }
+                return WasmProgramManager.buildExecutionTransaction(
+                    executionPrivateKey,
+                    program,
+                    functionName,
+                    preparedInputs,
+                    priorityFee,
+                    resolvedFeeRecord,
+                    this.host,
+                    undefined, // imports (legacy Object path — builder handles resolution)
+                    provingKey,
+                    verifyingKey,
+                    feeProvingKey,
+                    feeVerifyingKey,
+                    query,
+                    edition,
+                    programImportsBuilder?.clone(),
+                );
+            });
+        });
     }
 
     /**
@@ -2329,10 +2461,16 @@ class ProgramManager {
         const [feeProvingKey, feeVerifyingKey] = feeKeys;
 
         // Build the ProgramImportsBuilder for import resolution and key caching.
-        const { builder: programImportsBuilder, importEditions, hasDynamicCalls } = await this.buildProgramImports(program, imports, true, authorization.functionName());
+        const { builder: programImportsBuilder, importEditions, hasDynamicCalls, staticCalls } = await this.buildProgramImports(program, imports, true, authorization.functionName());
         importEditions.set(programName, { edition: edition!, amendment });
         if (hasDynamicCalls) {
-            await this.loadAuthorizationKeys(programImportsBuilder, programName, ProgramManager.authorizationCallGraph(authorization), importEditions);
+            await this.loadAuthorizationKeys(
+                programImportsBuilder,
+                programName,
+                ProgramManager.authorizationCallGraph(authorization),
+                importEditions,
+                staticCalls,
+            );
         }
 
         // If the function proving and verifying keys are not provided, attempt to find them.
@@ -2358,9 +2496,8 @@ class ProgramManager {
         // Build an execution transaction from the authorization. The
         // ProgramImportsBuilder is consumed by value (ownership transfers to WASM)
         // and returned enriched with any keys synthesized during execution.
-        let result: Transaction;
-        try {
-            result = await WasmProgramManager.executeAuthorization(
+        return await this.buildWithPersistedKeys(programImportsBuilder, importEditions, () =>
+            WasmProgramManager.executeAuthorization(
                 authorization,
                 feeAuthorization,
                 program,
@@ -2373,17 +2510,7 @@ class ProgramManager {
                 query,
                 programImportsBuilder?.clone(),
                 edition,
-            );
-        } finally {
-            // Keep synthesized keys when the build fails after synthesis too.
-            try {
-                await this.persistExtractedKeys(programImportsBuilder, importEditions);
-            } catch (e) {
-                logger.debug(`Failed to persist extracted keys: ${e}`);
-            }
-        }
-
-        return result;
+            ));
     }
 
     /**
@@ -3032,71 +3159,81 @@ class ProgramManager {
         }
 
         // Build the ProgramImportsBuilder for import resolution and key caching.
-        const { builder, importEditions, hasDynamicCalls } = await this.buildProgramImports(program, imports, true, function_name);
+        const { builder, importEditions, hasDynamicCalls, staticCalls } = await this.buildProgramImports(program, imports, true, function_name);
         importEditions.set(programName, { edition: edition!, amendment });
 
         // Auto-convert bare string inputs to field elements where the function expects field type.
         const preparedInputs = this.prepareInputs(program, function_name, inputs);
 
-        if (hasDynamicCalls) {
-            await this.loadDynamicCallKeys(builder, importEditions, {
+        // See buildExecutionTransaction: the preflight authorization for a
+        // program with dynamic calls is executed rather than thrown away.
+        const authorization = hasDynamicCalls
+            ? await this.loadDynamicCallKeys(builder, importEditions, {
                 privateKey: executionPrivateKey,
                 program,
                 programName,
                 functionName: function_name,
                 inputs: preparedInputs,
                 edition,
-            });
-        }
+            }, staticCalls)
+            : undefined;
 
-        if (!provingKey || !verifyingKey) {
-            const keys = await this.resolveTopLevelKeys(programName, function_name, keySearchParams, edition, amendment);
-            if (keys) {
-                [provingKey, verifyingKey] = keys;
-            } else {
-                logger.log(
-                    "Function keys not found in KeyStore or KeyProvider. The function keys will be synthesized",
+        return await ProgramManager.withOwnedAuthorization(authorization, async (consume) => {
+            if (!provingKey || !verifyingKey) {
+                const keys = await this.resolveTopLevelKeys(programName, function_name, keySearchParams, edition, amendment);
+                if (keys) {
+                    [provingKey, verifyingKey] = keys;
+                } else {
+                    logger.log(
+                        "Function keys not found in KeyStore or KeyProvider. The function keys will be synthesized",
+                    );
+                }
+            }
+
+            const query = offlineQuery
+                ? QueryOption.offlineQuery(offlineQuery)
+                : this.networkClient.hasCustomTransport
+                  ? QueryOption.callbackQuery(this.buildCallbackQuery())
+                  : undefined;
+
+            await this.ensureInclusionKeys(!!offlineQuery);
+
+            return await this.buildWithPersistedKeys(builder, importEditions, () => {
+                if (authorization) {
+                    consume();
+                    return WasmProgramManager.executeFunctionOfflineFromAuthorization(
+                        executionPrivateKey,
+                        authorization,
+                        program,
+                        preparedInputs,
+                        proveExecution,
+                        false,
+                        undefined, // imports (legacy Object path — builder handles resolution)
+                        provingKey,
+                        verifyingKey,
+                        this.host,
+                        query,
+                        edition,
+                        builder?.clone(),
+                    );
+                }
+                return WasmProgramManager.executeFunctionOffline(
+                    executionPrivateKey,
+                    program,
+                    function_name,
+                    preparedInputs,
+                    proveExecution,
+                    false,
+                    undefined, // imports (legacy Object path — builder handles resolution)
+                    provingKey,
+                    verifyingKey,
+                    this.host,
+                    query,
+                    edition,
+                    builder?.clone(),
                 );
-            }
-        }
-
-        const query = offlineQuery
-            ? QueryOption.offlineQuery(offlineQuery)
-            : this.networkClient.hasCustomTransport
-              ? QueryOption.callbackQuery(this.buildCallbackQuery())
-              : undefined;
-
-        await this.ensureInclusionKeys(!!offlineQuery);
-
-        let result: ExecutionResponse;
-        try {
-            result = await WasmProgramManager.executeFunctionOffline(
-                executionPrivateKey,
-                program,
-                function_name,
-                preparedInputs,
-                proveExecution,
-                false,
-                undefined, // imports (legacy Object path — builder handles resolution)
-                provingKey,
-                verifyingKey,
-                this.host,
-                query,
-                edition,
-                builder?.clone(),
-            );
-        } finally {
-            // The clone passed to WASM shares state with the original via
-            // Rc<RefCell<>> — synthesized keys are already visible. Keep them
-            // when the run fails after synthesis too, so a retry reuses them.
-            try {
-                await this.persistExtractedKeys(builder, importEditions);
-            } catch (e) {
-                logger.debug(`Failed to persist extracted keys: ${e}`);
-            }
-        }
-
-        return result;
+            });
+        });
     }
 
     /**
