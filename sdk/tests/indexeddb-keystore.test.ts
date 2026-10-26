@@ -247,4 +247,54 @@ describe("IndexedDBKeyStore", () => {
             });
         });
     });
+
+    describe("schema", () => {
+        // Opens the store against a stub that runs one upgrade, then fails the
+        // open so the test can inspect what the upgrade did.
+        async function upgrade(existingStore: boolean) {
+            const createIndex = sinon.spy();
+            const keys = { indexNames: { contains: () => false }, createIndex };
+            const createObjectStore = sinon.stub().returns(keys);
+            const opened: number[] = [];
+            await withIndexedDBStub({
+                open(_name: string, version: number) {
+                    opened.push(version);
+                    const request: any = {
+                        result: {
+                            objectStoreNames: { contains: () => existingStore },
+                            createObjectStore,
+                        },
+                        transaction: { objectStore: () => keys },
+                        error: new Error("stop after upgrade"),
+                    };
+                    setTimeout(() => {
+                        request.onupgradeneeded();
+                        request.onerror();
+                    }, 0);
+                    return request;
+                },
+            }, async () => {
+                try {
+                    await new IndexedDBKeyStore("schema-test").has(locator());
+                } catch {
+                    // expected — the stub fails the open after the upgrade
+                }
+            });
+            return { opened, createObjectStore, createIndex };
+        }
+
+        it("creates the key store with a size index", async () => {
+            const { opened, createObjectStore, createIndex } = await upgrade(false);
+            expect(opened).to.deep.equal([IndexedDBKeyStore.DB_VERSION]);
+            expect(IndexedDBKeyStore.DB_VERSION).to.equal(2);
+            expect(createObjectStore.calledOnceWith("keys", { keyPath: "locator" })).to.equal(true);
+            expect(createIndex.calledOnceWith("metadata.size", "metadata.size")).to.equal(true);
+        });
+
+        it("adds the size index to a version 1 key store", async () => {
+            const { createObjectStore, createIndex } = await upgrade(true);
+            expect(createObjectStore.called).to.equal(false);
+            expect(createIndex.calledOnceWith(IndexedDBKeyStore.SIZE_INDEX, IndexedDBKeyStore.SIZE_INDEX)).to.equal(true);
+        });
+    });
 });

@@ -1167,23 +1167,35 @@ class ProgramManager {
      * @param loadKeys When true (default), loads cached proving/verifying keys
      *   from the KeyStore into the builder. Set to false for authorization and
      *   proving request paths where keys are not synthesized.
+     *
+     * When the program or an import uses `call.dynamic`, the static call graph
+     * cannot name the functions that will run, so no keys are loaded here and
+     * `hasDynamicCalls` is true. Callers then load keys for the functions an
+     * authorization actually calls (see {@link loadAuthorizationKeys}).
      */
     private async buildProgramImports(
         program: string | Program,
         imports: ProgramImports | undefined,
         loadKeys: boolean,
         entryFunction: string,
-    ): Promise<{ builder: ProgramImportsBuilder; importEditions: Map<string, { edition: number; amendment: number }> }> {
+    ): Promise<{
+        builder: ProgramImportsBuilder;
+        importEditions: Map<string, { edition: number; amendment: number }>;
+        hasDynamicCalls: boolean;
+    }> {
         const builder = new ProgramImportsBuilder();
         const programSource = typeof program === "string" ? program : program.toString();
         const programObj = Program.fromString(programSource);
 
         const importNames = programObj.getImports();
         if (importNames.length === 0 && (!imports || Object.keys(imports).length === 0)) {
-            return { builder, importEditions: new Map() };
+            return { builder, importEditions: new Map(), hasDynamicCalls: false };
         }
 
         const collected = await this.collectProgramImports(programSource, imports, true);
+        const hasDynamicCalls = [programSource, ...collected.values()].some((source) =>
+            /^\s*call\.dynamic\s/m.test(source),
+        );
 
         // Build a map of which functions each import actually calls,
         // so we only load keys for functions in the call chain.
@@ -1251,13 +1263,94 @@ class ProgramManager {
                 continue;
             }
 
-            if (loadKeys) {
+            // Loading the keys of every function a dynamic call might reach
+            // can exhaust a 4 GiB WASM memory, so dynamic programs load keys
+            // from the authorization's actual call graph instead.
+            if (loadKeys && !hasDynamicCalls) {
                 const calledFns = calledFunctions.get(name);
                 await this.loadKeysFromStore(builder, name, calledFns ? [...calledFns] : [], importEdition, importAmendment);
             }
         }
 
-        return { builder, importEditions };
+        return { builder, importEditions, hasDynamicCalls };
+    }
+
+    /**
+     * Collect the programs and functions an authorization calls, including
+     * targets of `call.dynamic`. Frees the transitions it reads.
+     */
+    private static authorizationCallGraph(authorization: Authorization): Map<string, Set<string>> {
+        const transitions = authorization.transitions();
+        const calls = new Map<string, Set<string>>();
+        try {
+            for (const transition of transitions) {
+                const name: string = transition.programId();
+                if (!calls.has(name)) calls.set(name, new Set());
+                calls.get(name)!.add(transition.functionName());
+            }
+            return calls;
+        } finally {
+            for (const transition of transitions) transition.free();
+        }
+    }
+
+    /**
+     * Load cached keys for the imported functions an authorization calls.
+     * Skips the entry program, whose keys come from resolveTopLevelKeys.
+     */
+    private async loadAuthorizationKeys(
+        builder: ProgramImportsBuilder,
+        entryProgram: string,
+        calls: Map<string, Set<string>>,
+        importEditions: Map<string, { edition: number; amendment: number }>,
+    ): Promise<void> {
+        for (const [name, functions] of calls) {
+            if (name === entryProgram || !builder.contains(name)) continue;
+            const version = importEditions.get(name);
+            await this.loadKeysFromStore(builder, name, [...functions], version?.edition, version?.amendment);
+        }
+    }
+
+    /**
+     * Load cached keys for a call to a program that uses `call.dynamic`. The
+     * functions it runs come from an authorization, which needs no keys. Does
+     * nothing without a KeyStore. If the authorization fails, the keys are
+     * synthesized during the build, which also reports any input error. A WASM
+     * trap is rethrown, since it can leave the instance unusable.
+     */
+    private async loadDynamicCallKeys(
+        builder: ProgramImportsBuilder,
+        importEditions: Map<string, { edition: number; amendment: number }>,
+        call: {
+            privateKey: PrivateKey;
+            program: string;
+            programName: string;
+            functionName: string;
+            inputs: string[];
+            edition?: number;
+        },
+    ): Promise<void> {
+        if (!(await this.resolveKeyStore())) return;
+        let authorization: Authorization | undefined;
+        let calls: Map<string, Set<string>> | undefined;
+        try {
+            authorization = await WasmProgramManager.buildAuthorizationUnchecked(
+                call.privateKey,
+                call.program,
+                call.functionName,
+                call.inputs,
+                undefined,
+                call.edition,
+                builder.clone(),
+            );
+            calls = ProgramManager.authorizationCallGraph(authorization);
+        } catch (e) {
+            if (e instanceof WebAssembly.RuntimeError) throw e;
+            logger.debug(`Could not find the dynamic call targets; their keys will be synthesized: ${e}`);
+        } finally {
+            authorization?.free();
+        }
+        if (calls) await this.loadAuthorizationKeys(builder, call.programName, calls, importEditions);
     }
 
     /**
@@ -2015,10 +2108,24 @@ class ProgramManager {
         const [feeProvingKey, feeVerifyingKey] = feeKeys;
 
         // Build the ProgramImportsBuilder for import resolution and key caching.
-        const { builder: programImportsBuilder, importEditions } = await this.buildProgramImports(program, imports, true, functionName);
+        const { builder: programImportsBuilder, importEditions, hasDynamicCalls } = await this.buildProgramImports(program, imports, true, functionName);
         // Include the top-level program's already-resolved edition so
         // persistExtractedKeys doesn't make a redundant network call for it.
         importEditions.set(programName, { edition: edition!, amendment });
+
+        // Auto-convert bare string inputs to field elements where the function expects field type.
+        const preparedInputs = this.prepareInputs(program, functionName, inputs);
+
+        if (hasDynamicCalls) {
+            await this.loadDynamicCallKeys(programImportsBuilder, importEditions, {
+                privateKey: executionPrivateKey,
+                program,
+                programName,
+                functionName,
+                inputs: preparedInputs,
+                edition,
+            });
+        }
 
         // If the function proving and verifying keys are not provided, attempt to find them
         if (!provingKey || !verifyingKey) {
@@ -2059,9 +2166,6 @@ class ProgramManager {
             );
         }
 
-        // Auto-convert bare string inputs to field elements where the function expects field type.
-        const preparedInputs = this.prepareInputs(program, functionName, inputs);
-
         const query = offlineQuery
             ? QueryOption.offlineQuery(offlineQuery)
             : this.networkClient.hasCustomTransport
@@ -2070,30 +2174,34 @@ class ProgramManager {
 
         await this.ensureInclusionKeys(!!offlineQuery);
 
-        const result = await WasmProgramManager.buildExecutionTransaction(
-            executionPrivateKey,
-            program,
-            functionName,
-            preparedInputs,
-            priorityFee,
-            feeRecord,
-            this.host,
-            undefined, // imports (legacy Object path — builder handles resolution)
-            provingKey,
-            verifyingKey,
-            feeProvingKey,
-            feeVerifyingKey,
-            query,
-            edition,
-            programImportsBuilder?.clone(),
-        );
-
-        // The clone passed to WASM shares state with the original via
-        // Rc<RefCell<>> — synthesized keys are already visible.
+        let result: Transaction;
         try {
-            await this.persistExtractedKeys(programImportsBuilder, importEditions);
-        } catch (e) {
-            logger.debug(`Failed to persist extracted keys: ${e}`);
+            result = await WasmProgramManager.buildExecutionTransaction(
+                executionPrivateKey,
+                program,
+                functionName,
+                preparedInputs,
+                priorityFee,
+                feeRecord,
+                this.host,
+                undefined, // imports (legacy Object path — builder handles resolution)
+                provingKey,
+                verifyingKey,
+                feeProvingKey,
+                feeVerifyingKey,
+                query,
+                edition,
+                programImportsBuilder?.clone(),
+            );
+        } finally {
+            // The clone passed to WASM shares state with the original via
+            // Rc<RefCell<>> — synthesized keys are already visible. Keep them
+            // when the build fails after synthesis too, so a retry reuses them.
+            try {
+                await this.persistExtractedKeys(programImportsBuilder, importEditions);
+            } catch (e) {
+                logger.debug(`Failed to persist extracted keys: ${e}`);
+            }
         }
 
         return result;
@@ -2220,8 +2328,11 @@ class ProgramManager {
         const [feeProvingKey, feeVerifyingKey] = feeKeys;
 
         // Build the ProgramImportsBuilder for import resolution and key caching.
-        const { builder: programImportsBuilder, importEditions } = await this.buildProgramImports(program, imports, true, authorization.functionName());
+        const { builder: programImportsBuilder, importEditions, hasDynamicCalls } = await this.buildProgramImports(program, imports, true, authorization.functionName());
         importEditions.set(programName, { edition: edition!, amendment });
+        if (hasDynamicCalls) {
+            await this.loadAuthorizationKeys(programImportsBuilder, programName, ProgramManager.authorizationCallGraph(authorization), importEditions);
+        }
 
         // If the function proving and verifying keys are not provided, attempt to find them.
         if (!provingKey || !verifyingKey) {
@@ -2246,25 +2357,29 @@ class ProgramManager {
         // Build an execution transaction from the authorization. The
         // ProgramImportsBuilder is consumed by value (ownership transfers to WASM)
         // and returned enriched with any keys synthesized during execution.
-        const result = await WasmProgramManager.executeAuthorization(
-            authorization,
-            feeAuthorization,
-            program,
-            provingKey,
-            verifyingKey,
-            feeProvingKey,
-            feeVerifyingKey,
-            undefined, // imports (legacy Object path — builder handles resolution)
-            this.host,
-            query,
-            programImportsBuilder?.clone(),
-            edition,
-        );
-
+        let result: Transaction;
         try {
-            await this.persistExtractedKeys(programImportsBuilder, importEditions);
-        } catch (e) {
-            logger.debug(`Failed to persist extracted keys: ${e}`);
+            result = await WasmProgramManager.executeAuthorization(
+                authorization,
+                feeAuthorization,
+                program,
+                provingKey,
+                verifyingKey,
+                feeProvingKey,
+                feeVerifyingKey,
+                undefined, // imports (legacy Object path — builder handles resolution)
+                this.host,
+                query,
+                programImportsBuilder?.clone(),
+                edition,
+            );
+        } finally {
+            // Keep synthesized keys when the build fails after synthesis too.
+            try {
+                await this.persistExtractedKeys(programImportsBuilder, importEditions);
+            } catch (e) {
+                logger.debug(`Failed to persist extracted keys: ${e}`);
+            }
         }
 
         return result;
@@ -2916,8 +3031,23 @@ class ProgramManager {
         }
 
         // Build the ProgramImportsBuilder for import resolution and key caching.
-        const { builder, importEditions } = await this.buildProgramImports(program, imports, true, function_name);
+        const { builder, importEditions, hasDynamicCalls } = await this.buildProgramImports(program, imports, true, function_name);
         importEditions.set(programName, { edition: edition!, amendment });
+
+        // Auto-convert bare string inputs to field elements where the function expects field type.
+        const preparedInputs = this.prepareInputs(program, function_name, inputs);
+
+        if (hasDynamicCalls) {
+            await this.loadDynamicCallKeys(builder, importEditions, {
+                privateKey: executionPrivateKey,
+                program,
+                programName,
+                functionName: function_name,
+                inputs: preparedInputs,
+                edition,
+            });
+        }
+
         if (!provingKey || !verifyingKey) {
             const keys = await this.resolveTopLevelKeys(programName, function_name, keySearchParams, edition, amendment);
             if (keys) {
@@ -2929,9 +3059,6 @@ class ProgramManager {
             }
         }
 
-        // Auto-convert bare string inputs to field elements where the function expects field type.
-        const preparedInputs = this.prepareInputs(program, function_name, inputs);
-
         const query = offlineQuery
             ? QueryOption.offlineQuery(offlineQuery)
             : this.networkClient.hasCustomTransport
@@ -2940,28 +3067,32 @@ class ProgramManager {
 
         await this.ensureInclusionKeys(!!offlineQuery);
 
-        const result = await WasmProgramManager.executeFunctionOffline(
-            executionPrivateKey,
-            program,
-            function_name,
-            preparedInputs,
-            proveExecution,
-            false,
-            undefined, // imports (legacy Object path — builder handles resolution)
-            provingKey,
-            verifyingKey,
-            this.host,
-            query,
-            edition,
-            builder?.clone(),
-        );
-
-        // The clone passed to WASM shares state with the original via
-        // Rc<RefCell<>> — synthesized keys are already visible.
+        let result: ExecutionResponse;
         try {
-            await this.persistExtractedKeys(builder, importEditions);
-        } catch (e) {
-            logger.debug(`Failed to persist extracted keys: ${e}`);
+            result = await WasmProgramManager.executeFunctionOffline(
+                executionPrivateKey,
+                program,
+                function_name,
+                preparedInputs,
+                proveExecution,
+                false,
+                undefined, // imports (legacy Object path — builder handles resolution)
+                provingKey,
+                verifyingKey,
+                this.host,
+                query,
+                edition,
+                builder?.clone(),
+            );
+        } finally {
+            // The clone passed to WASM shares state with the original via
+            // Rc<RefCell<>> — synthesized keys are already visible. Keep them
+            // when the run fails after synthesis too, so a retry reuses them.
+            try {
+                await this.persistExtractedKeys(builder, importEditions);
+            } catch (e) {
+                logger.debug(`Failed to persist extracted keys: ${e}`);
+            }
         }
 
         return result;

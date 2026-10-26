@@ -45,6 +45,17 @@ interface StoredKey {
  * ```
  */
 export class IndexedDBKeyStore implements KeyStore {
+    /**
+     * Schema version of the database. Version 2 adds {@link IndexedDBKeyStore.SIZE_INDEX}.
+     * Code that opens the same database directly must use this version or later.
+     */
+    static readonly DB_VERSION = 2;
+    /**
+     * Index on each key's byte size. A key cursor over it lists the cached keys and their
+     * sizes without reading the key bytes.
+     */
+    static readonly SIZE_INDEX = "metadata.size";
+
     private readonly dbName: string;
     private readonly storeName = "keys";
     private readonly keyVerifier = new MemKeyVerifier();
@@ -76,11 +87,14 @@ export class IndexedDBKeyStore implements KeyStore {
             );
         }
         this.dbPromise = new Promise<IDBDatabase>((resolve, reject) => {
-            const request = indexedDB.open(this.dbName, 1);
+            const request = indexedDB.open(this.dbName, IndexedDBKeyStore.DB_VERSION);
             request.onupgradeneeded = () => {
                 const db = request.result;
-                if (!db.objectStoreNames.contains(this.storeName)) {
-                    db.createObjectStore(this.storeName, { keyPath: "locator" });
+                const store = db.objectStoreNames.contains(this.storeName)
+                    ? request.transaction!.objectStore(this.storeName)
+                    : db.createObjectStore(this.storeName, { keyPath: "locator" });
+                if (!store.indexNames.contains(IndexedDBKeyStore.SIZE_INDEX)) {
+                    store.createIndex(IndexedDBKeyStore.SIZE_INDEX, IndexedDBKeyStore.SIZE_INDEX);
                 }
             };
             request.onsuccess = () => resolve(request.result);
