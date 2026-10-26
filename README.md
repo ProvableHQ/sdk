@@ -23,7 +23,7 @@ browser/mobile dapps or server-side applications, scripts, and AI agents
 
 📦 [**Packages**](#packages) — [Provable SDK](#1-provable-sdk---aleo-protocol-utilities) · [Create-Leo-App](#2-create-leo-app---zero-knowledge-application-examples) · [Aleo Wasm](#3-aleo-wasm---zero-knowledge-algorithms-in-javascript--webassembly)
 
-⚙️ [**Features**](#features) — [Roadmap](#roadmap) · [Core](#core-features) · [Aleo RPC](#aleo-rpc-features) · [AI Agents](#ai-agent-support) · [Networks](#networks-supported) · [Runtimes](#javascript-runtimes--frameworks)
+⚙️ [**Features**](#features) — [Roadmap](#roadmap) · [Core](#core-features) · [Aleo RPC](#aleo-rpc-features) · [AI Agents](#ai-agent-support) · [Networks](#networks-supported) · [Runtimes](#javascript-runtimes--frameworks) · [wasm64](#wasm64-build)
 
 📚 [**Documentation**](#-documentation) — API reference, SDK guide, and tutorials
 
@@ -88,97 +88,6 @@ readme provides instructions for compiling this crate and using it in JavaScript
 source.
 
 Source: [`@provablehq/wasm`](https://www.npmjs.com/package/@provablehq/wasm)
-
-### Selecting the wasm64 build
-
-Existing SDK and WASM imports use wasm32, which limits WebAssembly linear memory
-to 4 GiB. Applications that need more can install the separate wasm64 bindings
-and import the wasm64 entry points:
-
-```bash
-npm install @provablehq/sdk @provablehq/wasm64
-```
-
-```js
-import { Account, ProgramManager, initThreadPool } from "@provablehq/sdk/wasm64/mainnet.js";
-
-await initThreadPool(6); // Choose the pool size for your application and host.
-```
-
-The corresponding testnet import is `@provablehq/sdk/wasm64/testnet.js`.
-CommonJS uses the same paths with `require()`. Network loading is available at
-`@provablehq/sdk/wasm64/dynamic.js`. `@provablehq/wasm64` is an optional
-peer dependency of the SDK, versioned in lockstep with `@provablehq/wasm`. The
-wasm32 entry points do not need it. Its low-level bindings and workers are
-`@provablehq/wasm64/{mainnet,testnet}.js` and
-`@provablehq/wasm64/{mainnet,testnet}/worker.js`.
-
-The wasm64 entry points throw on runtimes without 64-bit shared WebAssembly
-memory. There is no automatic fallback or change to the existing default imports.
-Applications that also target other runtimes can select the variant once, before
-initializing the SDK:
-
-```js
-let wasm64 = false;
-try {
-    new WebAssembly.Memory({ initial: 0n, maximum: 1n, shared: true, address: "i64" });
-    wasm64 = true;
-} catch {}
-const sdk = wasm64
-    ? await import("@provablehq/sdk/wasm64/mainnet.js")
-    : await import("@provablehq/sdk/mainnet.js");
-```
-
-This check covers the memory model only. It does not check that the context can
-start Workers. Make the choice in one place: objects created by one variant must
-not be passed to the other, and the bindings and workers of a variant must be used
-together.
-
-The wasm64 build retains the Rayon pool and sets an 8 GiB linear-memory maximum.
-Shared memory reserves address space for the full maximum when it is created. This
-reservation is virtual address space, not physical memory, but it rules out 32-bit
-hosts. It is not a guarantee that the host has enough memory.
-
-#### Runtime support
-
-"SDK" means that the threaded build initializes and `initThreadPool` works. Both
-variants need Workers and shared memory. Browsers also need cross-origin
-isolation, as for the wasm32 threaded build. **Verified** rows were tested with
-this build: browsers in a cross-origin-isolated module worker, Node.js with the
-installed packages. Each test starts two Rayon workers, signs a message and runs a
-program offline. **Expected** rows follow from the engine's wasm64 support and
-are not yet tested. The Node.js rows are asserted on every pull request by the
-`runtime compat` jobs in `.github/workflows/sdk.yml`, which install the packed
-packages on each Node.js line and, where the table says No, check that the wasm64
-entry points throw the documented error.
-
-| Browser | Engine | wasm32 SDK | wasm64 SDK | Status |
-|---|---|---|---|---|
-| Chrome / Edge 133+ | V8 | Yes | Yes | Verified (Chrome 155, Chromium 140) |
-| Chrome / Edge < 133 | V8 | Yes | No | Expected |
-| Firefox 134+ | SpiderMonkey | Yes | Yes | Verified (Firefox 141) |
-| Firefox < 134 | SpiderMonkey | Yes | No | Expected |
-| Safari (all, through 26.x) | JavaScriptCore | Yes | No | Verified with WebKit 26.0 (Playwright build, not Safari): wasm64 throws the documented error |
-| iOS, any browser | JavaScriptCore | Yes | No | Expected |
-| Android WebView 133+ | V8 | Yes | Yes | Expected |
-| Chrome extension pages (MV3) | V8 | Yes, with COOP/COEP manifest keys | Yes, with COOP/COEP manifest keys | Expected |
-| Chrome extension service worker (MV3) | V8 | No thread pool: service workers cannot start Workers | No | Expected |
-
-| Runtime | Engine | wasm32 SDK | wasm64 SDK | Status |
-|---|---|---|---|---|
-| Node 24+ | V8 13.6+ | Yes | Yes | Verified in CI (Node 24 and 26) |
-| Node 22 / 23 | V8 12.x | Yes | No | Verified in CI (Node 22): wasm64 throws the documented error |
-| Node 20 | V8 11.x | Yes | No | Verified in CI (Node 20): wasm64 throws the documented error |
-| Deno 2.x | V8 14.x | Expected | Expected | Not tested; loads the `node` entry and its `node:worker_threads` polyfill |
-| Bun | JavaScriptCore | No | No | Not tested; shared WebAssembly memory across workers is reported broken ([oven-sh/bun#25677](https://github.com/oven-sh/bun/issues/25677)) |
-| Electron 35+ | V8 (Chromium 134+) | Yes | Yes | Expected; reports Node 22 but uses Chromium's V8, so detect the feature, not the version |
-| Tauri | Platform webview | Yes | Windows only | Expected; macOS, iOS and Linux use WebKit |
-| Capacitor / Cordova | Platform webview | Yes | Android only | Expected; iOS uses WebKit |
-| Cloudflare Workers, Vercel Edge | V8, restricted | No | No | Expected; no Workers, memory limits |
-| React Native (Hermes), LLRT, QuickJS, GraalJS | Various | No | No | Out of scope; no WebAssembly or no Workers |
-
-Build both variants from source with `yarn build:all`. The build dependencies are
-described in the [WASM build instructions](wasm/README.md#wasm64-build).
 
 ---
 
@@ -298,6 +207,20 @@ The Provable SDK is designed to be used by AI coding agents out of the box. The 
 </p>
 
 Full **browser** support with single-threaded and multi-threaded (web worker) modes — multi-threaded uses Rust-native threading via `rayon` for significant performance improvements during proof generation. First-class **Node.js** support for server-side Aleo applications, CLI tools, and backend services. Compatible with **Next.js**, **Bun**, and **Deno**.
+
+## wasm64 build
+
+The default build targets wasm32, so one SDK instance can address at most 4 GiB of WebAssembly memory. The separate wasm64 build raises that to 8 GiB. It applies when a workload does not fit in 4 GiB: local proving of larger functions, many proofs generated concurrently, record scanning over a large set of ciphertexts, or many cryptographic operations in flight at once in one instance. Each operation is slower than on wasm32, so the build is worth the cost only when the memory is needed.
+
+```bash
+npm install @provablehq/sdk @provablehq/wasm64
+```
+
+```js
+import { Account, ProgramManager, initThreadPool } from "@provablehq/sdk/wasm64/mainnet.js";
+```
+
+The wasm64 entry points throw on runtimes without 64-bit shared WebAssembly memory, and the default imports are unchanged. Runtime support, selecting a variant at load time, memory behavior and the build are covered in the [wasm64 guide](https://github.com/ProvableHQ/sdk/blob/mainnet/docs/guide/12_wasm64.md).
 
 ---
 

@@ -29,7 +29,7 @@ from the same build together, and do not pass objects between this package and
 The runtime needs 64-bit shared WebAssembly memory and atomics, for example
 Node.js 24+, Chrome/Edge 133+ or Firefox 134+. Safari does not support it. The
 entry points throw on unsupported runtimes. See
-[Selecting the wasm64 build](https://github.com/ProvableHQ/sdk#selecting-the-wasm64-build)
+[wasm64 guide](https://github.com/ProvableHQ/sdk/blob/mainnet/docs/guide/12_wasm64.md)
 for runtime detection and the runtime support table, and the
 [build instructions](https://github.com/ProvableHQ/sdk/blob/mainnet/wasm/README.md#wasm64-build)
 to build from source.
