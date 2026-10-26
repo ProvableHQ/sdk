@@ -9,7 +9,7 @@
     "lint": "next lint"
   },
   "dependencies": {
-    "@provablehq/sdk": "^0.12.1",
+    "@provablehq/sdk": "^0.13.0",
     "next": "15.5.28",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
