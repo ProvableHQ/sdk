@@ -17,7 +17,7 @@ const runtimes = [
 // Each variant imports the bindings package built for its architecture.
 const wasmPackages = {
     "": "@provablehq/wasm",
-    "wasm64/": "@provablehq/wasm-memory64",
+    "wasm64/": "@provablehq/wasm64",
 };
 const variants = Object.keys(wasmPackages);
 

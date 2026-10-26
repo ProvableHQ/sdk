@@ -35,7 +35,7 @@ jobs:
               working-directory: wasm
               run: yarn test:attw
             - name: Validate Memory64 WASM package exports
-              working-directory: wasm-memory64
+              working-directory: wasm64
               run: yarn test:attw
             - name: Validate SDK package exports
               working-directory: sdk
@@ -53,5 +53,5 @@ jobs:
               with:
                   name: wasm64-build
                   path: |
-                      wasm-memory64/dist/
+                      wasm64/dist/
                       sdk/dist/wasm64/

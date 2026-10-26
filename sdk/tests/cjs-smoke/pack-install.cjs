@@ -10,7 +10,7 @@
 // file, or a wrong `main` field all fail here.
 //
 // Flags:
-//   --wasm64              also pack `@provablehq/wasm-memory64` and exercise
+//   --wasm64              also pack `@provablehq/wasm64` and exercise
 //                         the `wasm64/` entry points (ESM and CJS).
 //   --expect-unsupported  with `--wasm64`, on a runtime without Memory64
 //                         shared memory (Node.js < 24): assert that the
@@ -32,7 +32,7 @@ if (expectUnsupported && !variant) {
     throw new Error("--expect-unsupported requires --wasm64");
 }
 
-// Substring of the error thrown by `@provablehq/wasm-memory64` when the
+// Substring of the error thrown by `@provablehq/wasm64` when the
 // runtime lacks 64-bit shared WebAssembly memory (wasm/build/memory64/bindings.js).
 const UNSUPPORTED_MESSAGE = "requires Memory64 shared-memory support";
 
@@ -59,15 +59,15 @@ process.on("SIGINT", () => { cleanup(); process.exit(130); });
 console.log(`[pack-install] Workspace: ${WORKDIR}`);
 
 const wasmTarball = path.join(WORKDIR, "provablehq-wasm.tgz");
-const memory64Tarball = path.join(WORKDIR, "provablehq-wasm-memory64.tgz");
+const memory64Tarball = path.join(WORKDIR, "provablehq-wasm64.tgz");
 const sdkTarball = path.join(WORKDIR, "provablehq-sdk.tgz");
 
 console.log("[pack-install] Packing @provablehq/wasm...");
 pack(path.join(REPO_ROOT, "wasm"), wasmTarball);
 
 if (variant) {
-    console.log("[pack-install] Packing @provablehq/wasm-memory64...");
-    pack(path.join(REPO_ROOT, "wasm-memory64"), memory64Tarball);
+    console.log("[pack-install] Packing @provablehq/wasm64...");
+    pack(path.join(REPO_ROOT, "wasm64"), memory64Tarball);
 }
 
 console.log("[pack-install] Packing @provablehq/sdk...");
@@ -88,7 +88,7 @@ fs.writeFileSync(
             private: true,
             dependencies: {
                 "@provablehq/wasm": `file:${wasmTarball}`,
-                ...(variant && { "@provablehq/wasm-memory64": `file:${memory64Tarball}` }),
+                ...(variant && { "@provablehq/wasm64": `file:${memory64Tarball}` }),
                 "@provablehq/sdk": `file:${sdkTarball}`,
             },
         },
@@ -115,7 +115,7 @@ if (expectUnsupported) {
 const assert = require("node:assert/strict");
 const expected = { message: /${UNSUPPORTED_MESSAGE}/ };
 
-for (const entry of ["@provablehq/sdk/wasm64/testnet.js", "@provablehq/wasm-memory64/testnet.js"]) {
+for (const entry of ["@provablehq/sdk/wasm64/testnet.js", "@provablehq/wasm64/testnet.js"]) {
     assert.throws(() => require(entry), expected, entry + " should throw the Memory64 error");
 }
 
@@ -204,9 +204,9 @@ assert.equal(typeof dyn.loadNetwork, "function", "dynamic loadNetwork not export
 // (node-polyfill, worker.js, aleo_wasm.wasm) made it into the tarball.
 (async () => {
     ${variant ? `
-    const wasm = require("@provablehq/wasm-memory64/testnet.js");
+    const wasm = require("@provablehq/wasm64/testnet.js");
     const binary = require("node:fs").readFileSync(require("node:path").join(
-        require("node:path").dirname(require.resolve("@provablehq/wasm-memory64/testnet/worker.js")),
+        require("node:path").dirname(require.resolve("@provablehq/wasm64/testnet/worker.js")),
         "aleo_wasm.wasm",
     ));
     const instance = wasm.initSync({ module: binary });

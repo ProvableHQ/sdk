@@ -47,7 +47,7 @@ The separate Memory64 build compiles the same Rust sources and snarkVM version a
 wasm32 for `wasm64-unknown-unknown`, with an 8 GiB maximum, shared memory, atomics
 and the existing Rayon pool. The caller still selects the thread count through
 `initThreadPool(threads)`. Its bindings are published as
-[`@provablehq/wasm-memory64`](../wasm-memory64/README.md), versioned in lockstep
+[`@provablehq/wasm64`](../wasm64/README.md), versioned in lockstep
 with `@provablehq/wasm`.
 
 From the repository root:
@@ -62,7 +62,7 @@ yarn build:sdk
 Both builds use the toolchain in `rust-toolchain.toml`; the Memory64 build also
 needs its `rust-src` component for `-Zbuild-std`. `yarn build:all` includes both
 WASM variants and the SDK. The Memory64 artifacts are written to
-`wasm-memory64/dist/{testnet,mainnet}/` and `sdk/dist/wasm64/{testnet,mainnet}/`.
+`wasm64/dist/{testnet,mainnet}/` and `sdk/dist/wasm64/{testnet,mainnet}/`.
 Development builds can set `BUILD_DEBUG=1` for the Memory64 build.
 
 The Memory64 build uses Binaryen 125 instead of the wasm32 Binaryen 120, and a

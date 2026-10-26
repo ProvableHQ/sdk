@@ -96,7 +96,7 @@ to 4 GiB. Applications that need more can install the separate Memory64 bindings
 and import the Memory64 entry points:
 
 ```bash
-npm install @provablehq/sdk @provablehq/wasm-memory64
+npm install @provablehq/sdk @provablehq/wasm64
 ```
 
 ```js
@@ -107,11 +107,11 @@ await initThreadPool(6); // Choose the pool size for your application and host.
 
 The corresponding testnet import is `@provablehq/sdk/wasm64/testnet.js`.
 CommonJS uses the same paths with `require()`. Network loading is available at
-`@provablehq/sdk/wasm64/dynamic.js`. `@provablehq/wasm-memory64` is an optional
+`@provablehq/sdk/wasm64/dynamic.js`. `@provablehq/wasm64` is an optional
 peer dependency of the SDK, versioned in lockstep with `@provablehq/wasm`. The
 wasm32 entry points do not need it. Its low-level bindings and workers are
-`@provablehq/wasm-memory64/{mainnet,testnet}.js` and
-`@provablehq/wasm-memory64/{mainnet,testnet}/worker.js`.
+`@provablehq/wasm64/{mainnet,testnet}.js` and
+`@provablehq/wasm64/{mainnet,testnet}/worker.js`.
 
 The Memory64 entry points throw on runtimes without 64-bit shared WebAssembly
 memory. There is no automatic fallback or change to the existing default imports.

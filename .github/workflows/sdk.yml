@@ -35,7 +35,7 @@ jobs:
           path: |
             sdk/dist/
             wasm/dist/
-            wasm-memory64/dist/
+            wasm64/dist/
             create-leo-app/dist/
 
 
@@ -218,8 +218,8 @@ jobs:
         working-directory: wasm
         run: yarn test:attw
 
-      - name: "arethetypeswrong exports validation (wasm-memory64)"
-        working-directory: wasm-memory64
+      - name: "arethetypeswrong exports validation (wasm64)"
+        working-directory: wasm64
         run: yarn test:attw
 
       - name: "arethetypeswrong exports validation (sdk)"

@@ -13,14 +13,14 @@ async function updateVersion(path, newVersion) {
 
 
 // Updates the `package.json` file so it uses the correct
-// version of `@provablehq/wasm`, `@provablehq/wasm-memory64` and `@provablehq/sdk`
+// version of `@provablehq/wasm`, `@provablehq/wasm64` and `@provablehq/sdk`
 async function updateDependency(path, newVersion) {
     const json = await readFile(path, { encoding: "utf8" });
 
     const replaced = json
         .replace(/"@provablehq\/sdk": *"[^"]+"/g, `"@provablehq/sdk": "^${newVersion}"`)
         .replace(/"@provablehq\/wasm": *"[^"]+"/g, `"@provablehq/wasm": "^${newVersion}"`)
-        .replace(/"@provablehq\/wasm-memory64": *"[^"]+"/g, `"@provablehq/wasm-memory64": "^${newVersion}"`);
+        .replace(/"@provablehq\/wasm64": *"[^"]+"/g, `"@provablehq/wasm64": "^${newVersion}"`);
 
     await writeFile(path, replaced);
 }
@@ -32,7 +32,7 @@ async function updateVersions(newVersion) {
         "create-leo-app/package.json",
         "sdk/package.json",
         "wasm/package.json",
-        "wasm-memory64/package.json",
+        "wasm64/package.json",
     ].map(async (file) => {
         await updateVersion(file, newVersion);
     }));

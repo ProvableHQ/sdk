@@ -10,7 +10,7 @@ This package is versioned in lockstep with `@provablehq/wasm`. Most applications
 use it through the SDK:
 
 ```bash
-npm install @provablehq/sdk @provablehq/wasm-memory64
+npm install @provablehq/sdk @provablehq/wasm64
 ```
 
 ```js
@@ -19,10 +19,10 @@ import { Account, initThreadPool } from "@provablehq/sdk/wasm64/mainnet.js";
 await initThreadPool(6);
 ```
 
-The low-level bindings are `@provablehq/wasm-memory64/mainnet.js` and
-`@provablehq/wasm-memory64/testnet.js`. Their workers are
-`@provablehq/wasm-memory64/mainnet/worker.js` and
-`@provablehq/wasm-memory64/testnet/worker.js`. Keep the JS, WASM and workers
+The low-level bindings are `@provablehq/wasm64/mainnet.js` and
+`@provablehq/wasm64/testnet.js`. Their workers are
+`@provablehq/wasm64/mainnet/worker.js` and
+`@provablehq/wasm64/testnet/worker.js`. Keep the JS, WASM and workers
 from the same build together, and do not pass objects between this package and
 `@provablehq/wasm`.
 

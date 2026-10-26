@@ -1,5 +1,5 @@
 {
-  "name": "@provablehq/wasm-memory64",
+  "name": "@provablehq/wasm64",
   "version": "0.12.1",
   "type": "module",
   "description": "Threaded Memory64 SnarkVM WASM binaries with javascript bindings",
@@ -37,7 +37,7 @@
   "repository": {
     "type": "git",
     "url": "git+https://github.com/ProvableHQ/sdk.git",
-    "directory": "wasm-memory64"
+    "directory": "wasm64"
   },
   "keywords": [
     "Aleo",
@@ -49,11 +49,11 @@
   "bugs": {
     "url": "https://github.com/ProvableHQ/sdk/issues"
   },
-  "homepage": "https://github.com/ProvableHQ/sdk/tree/mainnet/wasm-memory64#readme",
+  "homepage": "https://github.com/ProvableHQ/sdk/tree/mainnet/wasm64#readme",
   "scripts": {
     "build": "cd ../wasm && yarn build:wasm64",
     "_comment:test:attw": "cjs-resolves-to-esm is ignored because the worker subpaths are ESM-only by design, as in @provablehq/wasm.",
-    "test:attw": "yarn pack --filename /tmp/provablehq-wasm-memory64-attw.tgz && attw /tmp/provablehq-wasm-memory64-attw.tgz --profile=node16 --ignore-rules=cjs-resolves-to-esm"
+    "test:attw": "yarn pack --filename /tmp/provablehq-wasm64-attw.tgz && attw /tmp/provablehq-wasm64-attw.tgz --profile=node16 --ignore-rules=cjs-resolves-to-esm"
   },
   "devDependencies": {
     "@arethetypeswrong/cli": "^0.18.2"

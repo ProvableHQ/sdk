@@ -23,7 +23,7 @@ function memory64Imports() {
             }
             const wasm = /^@provablehq\/wasm(?:\/(testnet|mainnet)\.js)?$/.exec(source);
             if (wasm) {
-                return { id: `@provablehq/wasm-memory64/${wasm[1] ?? "testnet"}.js`, external: true };
+                return { id: `@provablehq/wasm64/${wasm[1] ?? "testnet"}.js`, external: true };
             }
             if (/^@provablehq\/(sdk|wasm)(\/|$)/.test(source) && !source.startsWith("@provablehq/sdk/wasm64/")) {
                 this.error(`No Memory64 mapping for ${source}`);

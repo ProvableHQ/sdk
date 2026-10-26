@@ -22,8 +22,8 @@ const wasmOpt = fileURLToPath(
     import.meta.resolve("binaryen-memory64/bin/wasm-opt"),
 );
 const target = "wasm64-unknown-unknown";
-// The bindings are published separately as @provablehq/wasm-memory64.
-const outputRoot = path.join(wasmRoot, "../wasm-memory64/dist");
+// The bindings are published separately as @provablehq/wasm64.
+const outputRoot = path.join(wasmRoot, "../wasm64/dist");
 const debug = process.env.BUILD_DEBUG === "1";
 const rustflags = [
     "-C",

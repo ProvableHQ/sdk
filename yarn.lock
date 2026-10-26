@@ -3036,7 +3036,7 @@ __metadata:
   dependencies:
     "@arethetypeswrong/cli": "npm:^0.18.2"
     "@provablehq/wasm": "npm:^0.13.0"
-    "@provablehq/wasm-memory64": "npm:^0.12.1"
+    "@provablehq/wasm64": "npm:^0.12.1"
     "@rollup/plugin-replace": "npm:^6.0.2"
     "@scure/base": "npm:^2.0.0"
     "@serenity-kit/noble-sodium": "npm:0.2.3"
@@ -3068,16 +3068,16 @@ __metadata:
     typescript: "npm:^5.7.3"
     xmlhttprequest-ssl: "npm:^4.0.0"
   peerDependencies:
-    "@provablehq/wasm-memory64": ^0.12.1
+    "@provablehq/wasm64": ^0.12.1
   peerDependenciesMeta:
-    "@provablehq/wasm-memory64":
+    "@provablehq/wasm64":
       optional: true
   languageName: unknown
   linkType: soft
 
-"@provablehq/wasm-memory64@npm:^0.12.1, @provablehq/wasm-memory64@workspace:wasm-memory64":
+"@provablehq/wasm64@npm:^0.12.1, @provablehq/wasm64@workspace:wasm64":
   version: 0.0.0-use.local
-  resolution: "@provablehq/wasm-memory64@workspace:wasm-memory64"
+  resolution: "@provablehq/wasm64@workspace:wasm64"
   dependencies:
     "@arethetypeswrong/cli": "npm:^0.18.2"
   languageName: unknown
