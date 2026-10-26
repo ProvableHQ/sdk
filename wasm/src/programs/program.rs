@@ -621,6 +621,44 @@ impl Program {
         imports
     }
 
+    /// Whether `entry_function`, or a closure it calls, contains a `call.dynamic`
+    /// instruction. Like `getCallGraph`, this follows local calls only; a dynamic
+    /// call inside an imported function must be checked on that program.
+    ///
+    /// @param {string} entry_function The name of the entry function to trace from
+    /// @returns {boolean} True if a reachable instruction is `call.dynamic`
+    #[wasm_bindgen(js_name = "callsDynamic")]
+    pub fn calls_dynamic(&self, entry_function: &str) -> Result<bool, String> {
+        use snarkvm_synthesizer_program::{CallOperator, Instruction};
+
+        let entry_id = IdentifierNative::from_str(entry_function).map_err(|e| e.to_string())?;
+        let mut visited = HashSet::new();
+        let mut queue = VecDeque::from([entry_id]);
+
+        while let Some(fn_id) = queue.pop_front() {
+            if !visited.insert(fn_id.clone()) {
+                continue;
+            }
+            let instructions: &[_] = if let Some(func) = self.0.functions().get(&fn_id) {
+                func.instructions()
+            } else if let Some(closure) = self.0.closures().get(&fn_id) {
+                closure.instructions()
+            } else {
+                continue;
+            };
+            for instruction in instructions {
+                if matches!(instruction, Instruction::CallDynamic(_)) {
+                    return Ok(true);
+                }
+                if let Some(CallOperator::Resource(local_id)) = instruction.call_operator() {
+                    queue.push_back(local_id.clone());
+                }
+            }
+        }
+
+        Ok(false)
+    }
+
     /// Get the external call graph reachable from a specific entry function.
     ///
     /// Starting from `entry_function`, traces all reachable functions and closures

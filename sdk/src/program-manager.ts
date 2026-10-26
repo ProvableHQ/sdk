@@ -1221,6 +1221,13 @@ class ProgramManager {
         };
         for (const [name] of collected) visit(name);
 
+        // A `call.dynamic` anywhere in the reachable call graph means the
+        // static graph is incomplete. Unreachable functions are ignored: a
+        // library's unrelated dynamic call must not change how its callers
+        // load keys. The parsed program is asked, since source text can
+        // carry comments or unusual whitespace.
+        let hasDynamicCalls = loadKeys && programObj.callsDynamic(entryFunction);
+
         // When scoped, trace call graphs in reverse topological order
         // (dependents before leaves) so parent calls propagate before
         // children are traced. sorted is leaves-first, so reverse it.
@@ -1232,6 +1239,7 @@ class ProgramManager {
                 try {
                     const importProgram = Program.fromString(source);
                     for (const fn of functionsNeeded) {
+                        if (importProgram.callsDynamic(fn)) hasDynamicCalls = true;
                         const reachable = ProgramManager.callGraphToMap(importProgram.getCallGraph(fn));
                         for (const [p, fns] of reachable) {
                             if (!calledFunctions.has(p)) {
@@ -1246,17 +1254,6 @@ class ProgramManager {
                 }
             }
         }
-
-        // A `call.dynamic` anywhere in the call graph means the static graph
-        // is incomplete. Unreachable functions are ignored: a library's
-        // unrelated dynamic call must not change how its callers load keys.
-        const hasDynamicCalls =
-            loadKeys &&
-            (ProgramManager.usesDynamicCall(programSource, entryFunction) ||
-                [...calledFunctions].some(([name, fns]) => {
-                    const source = collected.get(name);
-                    return source !== undefined && [...fns].some((fn) => ProgramManager.usesDynamicCall(source, fn));
-                }));
 
         // Resolve editions for all imports in parallel (each import may have
         // a different edition than the top-level program).
@@ -1282,47 +1279,6 @@ class ProgramManager {
         }
 
         return { builder, importEditions, hasDynamicCalls, staticCalls: calledFunctions };
-    }
-
-    /**
-     * Whether `functionName` in `source`, or a closure it calls, contains a
-     * `call.dynamic` instruction. Aleo instructions put each block header at
-     * column 0 and indent its body, which is enough to scope the search.
-     */
-    private static usesDynamicCall(
-        source: string,
-        functionName: string,
-        kind: "function" | "closure" = "function",
-        seen = new Set<string>(),
-    ): boolean {
-        const key = `${kind} ${functionName}`;
-        if (seen.has(key)) return false;
-        seen.add(key);
-
-        const body = ProgramManager.blockBody(source, kind, functionName);
-        if (body === undefined) return false;
-        if (/^\s*call\.dynamic\s/m.test(body)) return true;
-
-        // A `call` whose operator has no `/` targets a closure in this program.
-        for (const match of body.matchAll(/^\s*call\s+([A-Za-z_][A-Za-z0-9_]*)\s/gm)) {
-            if (ProgramManager.usesDynamicCall(source, match[1], "closure", seen)) return true;
-        }
-        return false;
-    }
-
-    /** The indented body under `<kind> <name>:`, or undefined if there is no such block. */
-    private static blockBody(source: string, kind: string, name: string): string | undefined {
-        const lines = source.split("\n");
-        const header = new RegExp(`^${kind}\\s+${name}\\s*:`);
-        const start = lines.findIndex((line) => header.test(line));
-        if (start < 0) return undefined;
-        const body: string[] = [];
-        for (let i = start + 1; i < lines.length; i++) {
-            const line = lines[i];
-            if (line.trim() !== "" && !/^\s/.test(line)) break;
-            body.push(line);
-        }
-        return body.join("\n");
     }
 
     /**

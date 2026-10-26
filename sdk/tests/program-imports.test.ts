@@ -2624,6 +2624,33 @@ constructor:
     assert.eq true true;
 `;
 
+// A plain function whose only mention of call.dynamic is a comment, which
+// snarkVM strips before parsing.
+const COMMENTED_DYNAMIC_PROGRAM = `program commented_dynamic_test.aleo;
+
+function plain:
+    input r0 as u32.private;
+    // call.dynamic r0 r0 r0 with r0 (as u32.public) into r1 (as u32.private);
+    add r0 1u32 into r1;
+    output r1 as u32.private;
+
+constructor:
+    assert.eq true true;
+`;
+// The dispatch function with no indentation, which snarkVM also accepts.
+const UNINDENTED_DYNAMIC_PROGRAM = `program unindented_dynamic_test.aleo;
+function dispatch:
+input r0 as field.public;
+input r1 as field.public;
+input r2 as field.public;
+input r3 as u32.public;
+input r4 as u32.private;
+call.dynamic r0 r1 r2 with r3 r4 (as u32.public u32.private) into r5 (as u32.private);
+output r5 as u32.private;
+constructor:
+assert.eq true true;
+`;
+
 describe("keys for dynamic calls", function () {
     this.timeout(60_000);
 
@@ -2725,6 +2752,15 @@ describe("keys for dynamic calls", function () {
         expect(hasDynamicCalls).to.equal(true);
     });
 
+    it("should judge dynamic calls by the parsed program, not its text", async () => {
+        const { pm } = setup();
+        const imports = { "multiply_test.aleo": MULTIPLY_PROGRAM };
+        const commented = await (pm as any).buildProgramImports(COMMENTED_DYNAMIC_PROGRAM, imports, true, "plain");
+        expect(commented.hasDynamicCalls).to.equal(false);
+        const unindented = await (pm as any).buildProgramImports(UNINDENTED_DYNAMIC_PROGRAM, imports, true, "dispatch");
+        expect(unindented.hasDynamicCalls).to.equal(true);
+    });
+
     it("should report a dynamic call made by a closure the entry function calls", async () => {
         const { pm } = setup();
         const imports = { "multiply_test.aleo": MULTIPLY_PROGRAM };
@@ -2771,10 +2807,13 @@ describe("keys for dynamic calls", function () {
         await pm.buildExecutionTransaction(executeOptions());
         expect(authorize.calledOnce).to.equal(true);
         const authorization = await authorize.firstCall.returnValue;
-        expect(buildFromAuthorization.calledOnce).to.equal(true);
-        expect(buildFromAuthorization.firstCall.args[1]).to.equal(authorization);
-        // The build was stubbed, so it never consumed the authorization.
-        authorization.free();
+        try {
+            expect(buildFromAuthorization.calledOnce).to.equal(true);
+            expect(buildFromAuthorization.firstCall.args[1]).to.equal(authorization);
+        } finally {
+            // The build was stubbed, so it never consumed the authorization.
+            authorization.free();
+        }
     });
 
     it("should load the same keys for an offline run", async () => {

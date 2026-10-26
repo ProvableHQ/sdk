@@ -359,6 +359,9 @@ impl ProgramManager {
     /// `buildAuthorizationUnchecked` to learn the targets of `call.dynamic`, instead of
     /// authorizing the inputs a second time. Unlike `executeAuthorization`, the fee is computed
     /// from the proven execution and authorized here, exactly as `buildExecutionTransaction` does.
+    /// Like `executeAuthorization`, and unlike `buildExecutionTransaction`, the authorization is
+    /// first checked against the current consensus rules (program edition and record format),
+    /// which needs the latest block height.
     ///
     /// @param private_key The private key of the sender
     /// @param authorization The authorization to execute. It is consumed.
@@ -403,6 +406,7 @@ impl ProgramManager {
         let mut resolved = ResolvedProcess::resolve(&program_imports, program, edition, imports)?;
         let program_native = resolved.program().clone();
         let process = resolved.process_mut();
+        // The edition check below needs the program's stack to exist already.
         Self::ensure_program(process, &program_native, edition)?;
 
         // The authorization may come from anywhere, so validate it against the
