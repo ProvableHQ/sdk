@@ -220,7 +220,7 @@ npm install @provablehq/sdk @provablehq/wasm64
 import { Account, ProgramManager, initThreadPool } from "@provablehq/sdk/wasm64/mainnet.js";
 ```
 
-The wasm64 entry points throw on runtimes without 64-bit shared WebAssembly memory, and the default imports are unchanged. Runtime support, selecting a variant at load time, memory behavior and the build are covered in the [wasm64 guide](https://github.com/ProvableHQ/sdk/blob/mainnet/docs/guide/12_wasm64.md).
+The wasm64 entry points throw on runtimes without 64-bit shared WebAssembly memory, and the default imports are unchanged. An application that runs on both kinds of runtime loads the SDK through `@provablehq/sdk/dynamic.js` with `loadNetwork("mainnet", { variant: "auto" })`, which takes wasm64 where the runtime supports it and wasm32 elsewhere. Runtime support, build selection, memory behavior and the build itself are covered in the [wasm64 guide](https://github.com/ProvableHQ/sdk/blob/mainnet/docs/guide/12_wasm64.md).
 
 ---
 

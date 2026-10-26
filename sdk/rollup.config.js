@@ -3,6 +3,7 @@ import * as $path from "node:path";
 import typescript from "rollup-plugin-typescript2";
 import replace from "@rollup/plugin-replace";
 import $package from "./package.json" with { type: "json" };
+import { dynamicEntry } from "./build/dynamic-entry.js";
 
 const networks = [
     "testnet",
@@ -127,6 +128,16 @@ function emitCtsDeclarations(network) {
 async function buildRuntimes(variant) {
     await Promise.all(runtimes.map(async (runtime) => {
         await $fs.mkdir(`dist/${variant}dynamic`, { recursive: true });
+
+        // The default entry selects the build (wasm32, wasm64 or "auto") and
+        // exports the runtime probes. See build/dynamic-entry.js.
+        if (variant === "") {
+            const formats = { js: "esm", cjs: "cjs", "d.ts": "dts", "d.cts": "dts" };
+            for (const [extension, format] of Object.entries(formats)) {
+                await $fs.writeFile(`dist/dynamic/${runtime}.${extension}`, dynamicEntry({ runtime, format, networks }));
+            }
+            return;
+        }
 
         // Dynamic `import()` is legal in both ESM and CJS, but we point each
         // format at its format-native leaves so a CJS consumer's

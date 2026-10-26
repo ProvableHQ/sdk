@@ -114,6 +114,7 @@
     "test:attw": "yarn pack --filename /tmp/provablehq-sdk-attw.tgz && attw /tmp/provablehq-sdk-attw.tgz --profile=node16",
     "test:cjs": "node tests/cjs-smoke/smoke.cjs",
     "test:cjs:pack": "node tests/cjs-smoke/pack-install.cjs",
+    "test:dynamic": "node --test \"tests/dynamic-entry/*.test.mjs\"",
     "test:wasm64": "SDK_TEST_VARIANT=wasm64 yarn test",
     "test:cjs:pack:wasm64": "node tests/cjs-smoke/pack-install.cjs --wasm64",
     "bench": "node benchmarks/bench.mjs"

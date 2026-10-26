@@ -131,6 +131,16 @@ assert.ok(account.verify(message, account.sign(message)), "wasm32 signature roun
         expected,
         "wasm64 loadNetwork should fail with the wasm64 error",
     );
+
+    // The default dynamic entry selects a build. Here the probe fails, so
+    // "auto" must settle on wasm32 and an explicit wasm64 must surface the
+    // documented error.
+    const base = require("@provablehq/sdk/dynamic.js");
+    assert.equal(base.supportsWasm64(), false, "supportsWasm64 should be false on this runtime");
+    const auto = await base.loadNetwork("testnet", { variant: "auto" });
+    assert.equal(auto.Account, sdk.Account, "auto should select wasm32 on this runtime");
+    await assert.rejects(base.loadNetwork("testnet", { variant: "wasm64" }), expected, "explicit wasm64 should fail with the wasm64 error");
+
     await sdk.initThreadPool(2);
     console.log("wasm64 entry points rejected as expected on " + process.version);
     process.exit(0);
@@ -160,6 +170,11 @@ const { Account } = await import("@provablehq/sdk/testnet.js");
 const message = new TextEncoder().encode("expect-unsupported ESM smoke");
 const account = new Account();
 assert.ok(account.verify(message, account.sign(message)), "wasm32 ESM signature round-trip failed");
+const base = await import("@provablehq/sdk/dynamic.js");
+assert.equal(base.supportsWasm64(), false, "supportsWasm64 should be false on this runtime");
+const auto = await base.loadNetwork("testnet", { variant: "auto" });
+assert.equal(auto.Account, Account, "auto should select wasm32 on this runtime");
+await assert.rejects(base.loadNetwork("testnet", { variant: "wasm64" }), expected, "explicit wasm64 should fail with the Memory64 error");
 console.log("wasm64 ESM entry points rejected as expected on " + process.version);
 process.exit(0);
 `,
@@ -198,6 +213,11 @@ assert.ok(account.verify(message, signature), "Signature round-trip failed");
 const dyn = require("@provablehq/sdk/${variant}dynamic.js");
 assert.equal(typeof dyn.loadNetwork, "function", "dynamic loadNetwork not exported");
 
+// The default dynamic entry selects a variant at load time.
+const base = require("@provablehq/sdk/dynamic.js");
+assert.equal(typeof base.supportsWasm64(), "boolean", "supportsWasm64 not exported");
+assert.equal(base.supportsThreads(), true, "supportsThreads should be true in Node.js");
+
 // Worker / thread pool through the installed tarball. Exercises the
 // import.meta.url → pathToFileURL(__filename) transform against a real
 // node_modules-resolved path, and confirms all worker-related files
@@ -214,6 +234,20 @@ assert.equal(typeof dyn.loadNetwork, "function", "dynamic loadNetwork not export
     assert.ok(instance.memory.buffer instanceof SharedArrayBuffer, "Expected shared memory");
     ` : ""}
     await sdk.initThreadPool(2);
+
+    // "auto" resolves to the same module instance as the matching static
+    // entry: wasm64 when this Node.js supports it and the package is
+    // installed, otherwise wasm32. The wasm32 cell has no @provablehq/wasm64,
+    // so "auto" falls back and an explicit wasm64 fails to resolve the peer.
+    const auto = await base.loadNetwork("testnet", { variant: "auto" });
+    ${variant ? `
+    assert.equal(auto.Account, sdk.Account, "auto should select wasm64 on this runtime");
+    assert.equal(base.supportsWasm64(), true, "supportsWasm64 should be true on this runtime");
+    ` : `
+    assert.equal(auto.Account, sdk.Account, "auto should settle on wasm32 without @provablehq/wasm64");
+    await assert.rejects(base.loadNetwork("testnet", { variant: "wasm64" }), /Cannot find (module|package)/,
+        "explicit wasm64 should fail to resolve the missing peer");
+    `}
     ${variant ? `
     const response = await wasm.ProgramManager.executeFunctionOffline(
         account.privateKey(),
@@ -247,9 +281,13 @@ if (variant) {
 import assert from "node:assert/strict";
 import { Account, initThreadPool } from "@provablehq/sdk/wasm64/testnet.js";
 import { loadNetwork } from "@provablehq/sdk/wasm64/dynamic.js";
+import { loadNetwork as loadSelected, supportsWasm64 } from "@provablehq/sdk/dynamic.js";
 const message = new TextEncoder().encode("wasm64 ESM smoke");
 const account = new Account();
 assert.ok(account.verify(message, account.sign(message)));
+assert.equal(supportsWasm64(), true, "supportsWasm64 should be true on this runtime");
+const auto = await loadSelected("testnet", { variant: "auto" });
+assert.equal(auto.Account, Account, "auto should select wasm64 on this runtime (ESM)");
 await initThreadPool(2);
 const mainnet = await loadNetwork("mainnet");
 const mainnetAccount = new mainnet.Account();

@@ -229,6 +229,14 @@ jobs:
       - name: "Pure-CJS smoke (local, resolves by file path)"
         run: node sdk/tests/cjs-smoke/smoke.cjs
 
+      # Build selection in the generated dynamic entry, run against stub
+      # leaves so every branch (wasm64 present, missing, failing) is covered
+      # on one runtime. The installed-package matrix below covers the real
+      # packages per Node.js line.
+      - name: "Dynamic entry build selection"
+        working-directory: sdk
+        run: yarn test:dynamic
+
 
   # Runtime compatibility matrix for the Node.js rows of the README's
   # "Runtime support" table. Each cell packs the workspace packages, installs
