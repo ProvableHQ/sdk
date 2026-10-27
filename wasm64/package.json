@@ -1,6 +1,6 @@
 {
   "name": "@provablehq/wasm64",
-  "version": "0.13.0",
+  "version": "0.14.0-rc",
   "type": "module",
   "description": "Threaded wasm64 SnarkVM WASM binaries with javascript bindings",
   "collaborators": [

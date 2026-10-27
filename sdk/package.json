@@ -1,6 +1,6 @@
 {
   "name": "@provablehq/sdk",
-  "version": "0.13.0",
+  "version": "0.14.0-rc",
   "description": "A Software Development Kit (SDK) for Zero-Knowledge Transactions",
   "collaborators": [
     "The Provable Team"
@@ -134,7 +134,7 @@
   },
   "homepage": "https://github.com/ProvableHQ/sdk#readme",
   "dependencies": {
-    "@provablehq/wasm": "^0.13.0",
+    "@provablehq/wasm": "^0.14.0-rc",
     "@scure/base": "^2.0.0",
     "@serenity-kit/noble-sodium": "0.2.3",
     "comlink": "^4.4.2",
@@ -143,7 +143,7 @@
     "xmlhttprequest-ssl": "^4.0.0"
   },
   "peerDependencies": {
-    "@provablehq/wasm64": "^0.13.0"
+    "@provablehq/wasm64": "^0.14.0-rc"
   },
   "peerDependenciesMeta": {
     "@provablehq/wasm64": {
@@ -152,7 +152,7 @@
   },
   "devDependencies": {
     "@arethetypeswrong/cli": "^0.18.2",
-    "@provablehq/wasm64": "^0.13.0",
+    "@provablehq/wasm64": "^0.14.0-rc",
     "@rollup/plugin-replace": "^6.0.2",
     "@types/chai": "^5.0.1",
     "@types/mocha": "^10.0.10",
