@@ -4,6 +4,7 @@ import { InvalidLocatorError } from "./error.js";
 import { KeyLocator, KeyStore, ProvingKeyLocator, VerifyingKeyLocator } from "./interface.js";
 import { MemKeyVerifier } from "../verifier/memory.js";
 import { ProvingKey, VerifyingKey } from "../../wasm.js";
+import { logger } from "../../utils/logger.js";
 
 /** Shape of each record stored in the IndexedDB object store. */
 interface StoredKey {
@@ -45,6 +46,17 @@ interface StoredKey {
  * ```
  */
 export class IndexedDBKeyStore implements KeyStore {
+    /**
+     * Schema version of the database. Version 2 adds {@link IndexedDBKeyStore.SIZE_INDEX}.
+     * Code that opens the same database directly must use this version or later.
+     */
+    static readonly DB_VERSION = 2;
+    /**
+     * Index on each key's byte size. A key cursor over it lists the cached keys and their
+     * sizes without reading the key bytes.
+     */
+    static readonly SIZE_INDEX = "metadata.size";
+
     private readonly dbName: string;
     private readonly storeName = "keys";
     private readonly keyVerifier = new MemKeyVerifier();
@@ -75,25 +87,59 @@ export class IndexedDBKeyStore implements KeyStore {
                 ),
             );
         }
-        this.dbPromise = new Promise<IDBDatabase>((resolve, reject) => {
-            const request = indexedDB.open(this.dbName, 1);
+        const dbPromise = new Promise<IDBDatabase>((resolve, reject) => {
+            const request = indexedDB.open(this.dbName, IndexedDBKeyStore.DB_VERSION);
+            // Rejecting a blocked open does not cancel the request: it can
+            // still succeed once the blocking connection closes, and that
+            // late connection would have no owner.
+            let settled = false;
             request.onupgradeneeded = () => {
                 const db = request.result;
-                if (!db.objectStoreNames.contains(this.storeName)) {
-                    db.createObjectStore(this.storeName, { keyPath: "locator" });
+                const store = db.objectStoreNames.contains(this.storeName)
+                    ? request.transaction!.objectStore(this.storeName)
+                    : db.createObjectStore(this.storeName, { keyPath: "locator" });
+                if (!store.indexNames.contains(IndexedDBKeyStore.SIZE_INDEX)) {
+                    store.createIndex(IndexedDBKeyStore.SIZE_INDEX, IndexedDBKeyStore.SIZE_INDEX);
                 }
             };
-            request.onsuccess = () => resolve(request.result);
+            request.onsuccess = () => {
+                const db = request.result;
+                if (settled) {
+                    db.close();
+                    return;
+                }
+                settled = true;
+                // Let another context (a newer SDK in another tab) upgrade
+                // the database. The next keystore call opens again at this
+                // SDK's version, which succeeds if the upgrade was to the
+                // same version and fails with VersionError if it was newer.
+                db.onversionchange = () => {
+                    db.close();
+                    if (this.dbPromise === dbPromise) this.dbPromise = null;
+                };
+                resolve(db);
+            };
             request.onerror = () => {
+                if (settled) return;
+                settled = true;
                 this.dbPromise = null;
+                if (request.error?.name === "VersionError") {
+                    logger.warn(
+                        `IndexedDBKeyStore: "${this.dbName}" was upgraded by a newer SDK and cannot be ` +
+                            "opened at this version. Keys are not cached until the page reloads with that SDK.",
+                    );
+                }
                 reject(request.error);
             };
             request.onblocked = () => {
+                if (settled) return;
+                settled = true;
                 this.dbPromise = null;
                 reject(new DOMException("Database open blocked", "AbortError"));
             };
         });
-        return this.dbPromise;
+        this.dbPromise = dbPromise;
+        return dbPromise;
     }
 
     /** Runs a single read-write transaction and returns the request result. */
