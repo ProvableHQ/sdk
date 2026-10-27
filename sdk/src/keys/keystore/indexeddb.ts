@@ -4,6 +4,7 @@ import { InvalidLocatorError } from "./error.js";
 import { KeyLocator, KeyStore, ProvingKeyLocator, VerifyingKeyLocator } from "./interface.js";
 import { MemKeyVerifier } from "../verifier/memory.js";
 import { ProvingKey, VerifyingKey } from "../../wasm.js";
+import { logger } from "../../utils/logger.js";
 
 /** Shape of each record stored in the IndexedDB object store. */
 interface StoredKey {
@@ -109,7 +110,9 @@ export class IndexedDBKeyStore implements KeyStore {
                 }
                 settled = true;
                 // Let another context (a newer SDK in another tab) upgrade
-                // the database. The next keystore call reopens.
+                // the database. The next keystore call opens again at this
+                // SDK's version, which succeeds if the upgrade was to the
+                // same version and fails with VersionError if it was newer.
                 db.onversionchange = () => {
                     db.close();
                     if (this.dbPromise === dbPromise) this.dbPromise = null;
@@ -120,6 +123,12 @@ export class IndexedDBKeyStore implements KeyStore {
                 if (settled) return;
                 settled = true;
                 this.dbPromise = null;
+                if (request.error?.name === "VersionError") {
+                    logger.warn(
+                        `IndexedDBKeyStore: "${this.dbName}" was upgraded by a newer SDK and cannot be ` +
+                            "opened at this version. Keys are not cached until the page reloads with that SDK.",
+                    );
+                }
                 reject(request.error);
             };
             request.onblocked = () => {

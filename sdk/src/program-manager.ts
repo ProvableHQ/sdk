@@ -1263,9 +1263,10 @@ class ProgramManager {
                 continue;
             }
 
-            // Loading the keys of every function a dynamic call might reach
-            // can exhaust a 4 GiB WASM memory, so dynamic programs load keys
-            // from the authorization's actual call graph instead.
+            // The static call graph never names a call.dynamic target, so it
+            // cannot tell which functions a dynamic program will run. Those
+            // programs load keys from an authorization's actual call graph
+            // instead, which names the static and dynamic calls alike.
             if (loadKeys && !hasDynamicCalls) {
                 const calledFns = calledFunctions.get(name);
                 await this.loadKeysFromStore(builder, name, calledFns ? [...calledFns] : [], importEdition, importAmendment);
