@@ -1,6 +1,7 @@
 import * as $fs from "node:fs/promises";
 import * as $os from "node:os";
 import * as $path from "node:path";
+import { fileURLToPath } from "node:url";
 import { rollup } from "rollup";
 import virtual from "@rollup/plugin-virtual";
 import rust from "@wasm-tool/rollup-plugin-rust";
@@ -18,6 +19,9 @@ async function buildRollup(input, output) {
 }
 
 const isDebugBuild = process.env.BUILD_DEBUG === "1";
+// `wasm-opt` on PATH can resolve to the wasm64 build's Binaryen 125. Keep
+// wasm32 on its own Binaryen 120.
+process.env.WASM_OPT_BIN ??= fileURLToPath(import.meta.resolve("binaryen/bin/wasm-opt"));
 
 // Panic locations (kept below) embed absolute source paths for dependencies
 // and the rebuilt std, which would publish the builder's home directory and

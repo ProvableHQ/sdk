@@ -1,6 +1,6 @@
 {
   "name": "@provablehq/sdk",
-  "version": "0.13.0",
+  "version": "0.14.0-rc",
   "description": "A Software Development Kit (SDK) for Zero-Knowledge Transactions",
   "collaborators": [
     "The Provable Team"
@@ -62,6 +62,45 @@
       },
       "types": "./dist/dynamic/browser.d.ts",
       "default": "./dist/dynamic/browser.js"
+    },
+    "./wasm64/testnet.js": {
+      "node": {
+        "types": {
+          "import": "./dist/wasm64/testnet/node.d.ts",
+          "require": "./dist/wasm64/testnet/node.d.cts"
+        },
+        "import": "./dist/wasm64/testnet/node.js",
+        "require": "./dist/wasm64/testnet/node.cjs",
+        "default": "./dist/wasm64/testnet/node.js"
+      },
+      "types": "./dist/wasm64/testnet/browser.d.ts",
+      "default": "./dist/wasm64/testnet/browser.js"
+    },
+    "./wasm64/mainnet.js": {
+      "node": {
+        "types": {
+          "import": "./dist/wasm64/mainnet/node.d.ts",
+          "require": "./dist/wasm64/mainnet/node.d.cts"
+        },
+        "import": "./dist/wasm64/mainnet/node.js",
+        "require": "./dist/wasm64/mainnet/node.cjs",
+        "default": "./dist/wasm64/mainnet/node.js"
+      },
+      "types": "./dist/wasm64/mainnet/browser.d.ts",
+      "default": "./dist/wasm64/mainnet/browser.js"
+    },
+    "./wasm64/dynamic.js": {
+      "node": {
+        "types": {
+          "import": "./dist/wasm64/dynamic/node.d.ts",
+          "require": "./dist/wasm64/dynamic/node.d.cts"
+        },
+        "import": "./dist/wasm64/dynamic/node.js",
+        "require": "./dist/wasm64/dynamic/node.cjs",
+        "default": "./dist/wasm64/dynamic/node.js"
+      },
+      "types": "./dist/wasm64/dynamic/browser.d.ts",
+      "default": "./dist/wasm64/dynamic/browser.js"
     }
   },
   "files": [
@@ -75,6 +114,9 @@
     "test:attw": "yarn pack --filename /tmp/provablehq-sdk-attw.tgz && attw /tmp/provablehq-sdk-attw.tgz --profile=node16",
     "test:cjs": "node tests/cjs-smoke/smoke.cjs",
     "test:cjs:pack": "node tests/cjs-smoke/pack-install.cjs",
+    "test:dynamic": "node --test \"tests/dynamic-entry/*.test.mjs\"",
+    "test:wasm64": "SDK_TEST_VARIANT=wasm64 yarn test",
+    "test:cjs:pack:wasm64": "node tests/cjs-smoke/pack-install.cjs --wasm64",
     "bench": "node benchmarks/bench.mjs"
   },
   "repository": {
@@ -92,7 +134,7 @@
   },
   "homepage": "https://github.com/ProvableHQ/sdk#readme",
   "dependencies": {
-    "@provablehq/wasm": "^0.13.0",
+    "@provablehq/wasm": "^0.14.0-rc",
     "@scure/base": "^2.0.0",
     "@serenity-kit/noble-sodium": "0.2.3",
     "comlink": "^4.4.2",
@@ -100,8 +142,17 @@
     "mime": "^4.0.6",
     "xmlhttprequest-ssl": "^4.0.0"
   },
+  "peerDependencies": {
+    "@provablehq/wasm64": "^0.14.0-rc"
+  },
+  "peerDependenciesMeta": {
+    "@provablehq/wasm64": {
+      "optional": true
+    }
+  },
   "devDependencies": {
     "@arethetypeswrong/cli": "^0.18.2",
+    "@provablehq/wasm64": "^0.14.0-rc",
     "@rollup/plugin-replace": "^6.0.2",
     "@types/chai": "^5.0.1",
     "@types/mocha": "^10.0.10",

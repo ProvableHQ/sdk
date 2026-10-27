@@ -10,7 +10,7 @@
     "test": "npm run build && node dist/index.js && node dist/dynamic-dispatch.js"
   },
   "dependencies": {
-    "@provablehq/sdk": "^0.13.0"
+    "@provablehq/sdk": "^0.14.0-rc"
   },
   "devDependencies": {
     "rimraf": "^6.0.1",

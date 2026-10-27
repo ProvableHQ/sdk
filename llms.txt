@@ -50,6 +50,8 @@ SDK adapter; these needs alone do not require direct SDK use.
   Find, decrypt, and check ownership of records.
 - [Chain state](https://raw.githubusercontent.com/ProvableHQ/sdk/mainnet/docs/guide/11_working_with_chain_state.md):
   Query blocks, transactions, and program state.
+- [wasm64 build](https://raw.githubusercontent.com/ProvableHQ/sdk/mainnet/docs/guide/12_wasm64.md):
+  When the 8 GiB wasm64 build applies, how to select it, and which runtimes support it.
 
 ## Low level SDK API reference
 

@@ -24,3 +24,6 @@ package-lock.json
 .yarn
 
 .env
+
+# Generated from wasm/Cargo.toml by the wasm64 build; its lockfile is tracked.
+wasm/wasm64/Cargo.toml
