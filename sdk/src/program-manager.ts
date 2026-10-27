@@ -2176,6 +2176,7 @@ class ProgramManager {
         await this.ensureInclusionKeys(!!offlineQuery);
 
         let result: Transaction;
+        let trapped = false;
         try {
             result = await WasmProgramManager.buildExecutionTransaction(
                 executionPrivateKey,
@@ -2194,14 +2195,21 @@ class ProgramManager {
                 edition,
                 programImportsBuilder?.clone(),
             );
+        } catch (e) {
+            // A trap exits WASM without dropping the builder's RefMut, so any
+            // later borrow of this builder panics. Do not read it back.
+            trapped = e instanceof WebAssembly.RuntimeError;
+            throw e;
         } finally {
             // The clone passed to WASM shares state with the original via
             // Rc<RefCell<>> — synthesized keys are already visible. Keep them
             // when the build fails after synthesis too, so a retry reuses them.
-            try {
-                await this.persistExtractedKeys(programImportsBuilder, importEditions);
-            } catch (e) {
-                logger.debug(`Failed to persist extracted keys: ${e}`);
+            if (!trapped) {
+                try {
+                    await this.persistExtractedKeys(programImportsBuilder, importEditions);
+                } catch (e) {
+                    logger.debug(`Failed to persist extracted keys: ${e}`);
+                }
             }
         }
 
@@ -2359,6 +2367,7 @@ class ProgramManager {
         // ProgramImportsBuilder is consumed by value (ownership transfers to WASM)
         // and returned enriched with any keys synthesized during execution.
         let result: Transaction;
+        let trapped = false;
         try {
             result = await WasmProgramManager.executeAuthorization(
                 authorization,
@@ -2374,12 +2383,19 @@ class ProgramManager {
                 programImportsBuilder?.clone(),
                 edition,
             );
+        } catch (e) {
+            // A trap exits WASM without dropping the builder's RefMut, so any
+            // later borrow of this builder panics. Do not read it back.
+            trapped = e instanceof WebAssembly.RuntimeError;
+            throw e;
         } finally {
             // Keep synthesized keys when the build fails after synthesis too.
-            try {
-                await this.persistExtractedKeys(programImportsBuilder, importEditions);
-            } catch (e) {
-                logger.debug(`Failed to persist extracted keys: ${e}`);
+            if (!trapped) {
+                try {
+                    await this.persistExtractedKeys(programImportsBuilder, importEditions);
+                } catch (e) {
+                    logger.debug(`Failed to persist extracted keys: ${e}`);
+                }
             }
         }
 
@@ -3069,6 +3085,7 @@ class ProgramManager {
         await this.ensureInclusionKeys(!!offlineQuery);
 
         let result: ExecutionResponse;
+        let trapped = false;
         try {
             result = await WasmProgramManager.executeFunctionOffline(
                 executionPrivateKey,
@@ -3085,14 +3102,21 @@ class ProgramManager {
                 edition,
                 builder?.clone(),
             );
+        } catch (e) {
+            // A trap exits WASM without dropping the builder's RefMut, so any
+            // later borrow of this builder panics. Do not read it back.
+            trapped = e instanceof WebAssembly.RuntimeError;
+            throw e;
         } finally {
             // The clone passed to WASM shares state with the original via
             // Rc<RefCell<>> — synthesized keys are already visible. Keep them
             // when the run fails after synthesis too, so a retry reuses them.
-            try {
-                await this.persistExtractedKeys(builder, importEditions);
-            } catch (e) {
-                logger.debug(`Failed to persist extracted keys: ${e}`);
+            if (!trapped) {
+                try {
+                    await this.persistExtractedKeys(builder, importEditions);
+                } catch (e) {
+                    logger.debug(`Failed to persist extracted keys: ${e}`);
+                }
             }
         }
 

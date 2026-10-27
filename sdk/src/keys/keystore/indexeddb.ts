@@ -86,8 +86,12 @@ export class IndexedDBKeyStore implements KeyStore {
                 ),
             );
         }
-        this.dbPromise = new Promise<IDBDatabase>((resolve, reject) => {
+        const dbPromise = new Promise<IDBDatabase>((resolve, reject) => {
             const request = indexedDB.open(this.dbName, IndexedDBKeyStore.DB_VERSION);
+            // Rejecting a blocked open does not cancel the request: it can
+            // still succeed once the blocking connection closes, and that
+            // late connection would have no owner.
+            let settled = false;
             request.onupgradeneeded = () => {
                 const db = request.result;
                 const store = db.objectStoreNames.contains(this.storeName)
@@ -97,17 +101,36 @@ export class IndexedDBKeyStore implements KeyStore {
                     store.createIndex(IndexedDBKeyStore.SIZE_INDEX, IndexedDBKeyStore.SIZE_INDEX);
                 }
             };
-            request.onsuccess = () => resolve(request.result);
+            request.onsuccess = () => {
+                const db = request.result;
+                if (settled) {
+                    db.close();
+                    return;
+                }
+                settled = true;
+                // Let another context (a newer SDK in another tab) upgrade
+                // the database. The next keystore call reopens.
+                db.onversionchange = () => {
+                    db.close();
+                    if (this.dbPromise === dbPromise) this.dbPromise = null;
+                };
+                resolve(db);
+            };
             request.onerror = () => {
+                if (settled) return;
+                settled = true;
                 this.dbPromise = null;
                 reject(request.error);
             };
             request.onblocked = () => {
+                if (settled) return;
+                settled = true;
                 this.dbPromise = null;
                 reject(new DOMException("Database open blocked", "AbortError"));
             };
         });
-        return this.dbPromise;
+        this.dbPromise = dbPromise;
+        return dbPromise;
     }
 
     /** Runs a single read-write transaction and returns the request result. */
