@@ -4,6 +4,7 @@ import { InvalidLocatorError } from "./error.js";
 import { KeyLocator, KeyStore, ProvingKeyLocator, VerifyingKeyLocator } from "./interface.js";
 import { MemKeyVerifier } from "../verifier/memory.js";
 import { ProvingKey, VerifyingKey } from "../../wasm.js";
+import { logger } from "../../utils/logger.js";
 
 /** Shape of each record stored in the IndexedDB object store. */
 interface StoredKey {
@@ -86,8 +87,12 @@ export class IndexedDBKeyStore implements KeyStore {
                 ),
             );
         }
-        this.dbPromise = new Promise<IDBDatabase>((resolve, reject) => {
+        const dbPromise = new Promise<IDBDatabase>((resolve, reject) => {
             const request = indexedDB.open(this.dbName, IndexedDBKeyStore.DB_VERSION);
+            // Rejecting a blocked open does not cancel the request: it can
+            // still succeed once the blocking connection closes, and that
+            // late connection would have no owner.
+            let settled = false;
             request.onupgradeneeded = () => {
                 const db = request.result;
                 const store = db.objectStoreNames.contains(this.storeName)
@@ -97,17 +102,44 @@ export class IndexedDBKeyStore implements KeyStore {
                     store.createIndex(IndexedDBKeyStore.SIZE_INDEX, IndexedDBKeyStore.SIZE_INDEX);
                 }
             };
-            request.onsuccess = () => resolve(request.result);
+            request.onsuccess = () => {
+                const db = request.result;
+                if (settled) {
+                    db.close();
+                    return;
+                }
+                settled = true;
+                // Let another context (a newer SDK in another tab) upgrade
+                // the database. The next keystore call opens again at this
+                // SDK's version, which succeeds if the upgrade was to the
+                // same version and fails with VersionError if it was newer.
+                db.onversionchange = () => {
+                    db.close();
+                    if (this.dbPromise === dbPromise) this.dbPromise = null;
+                };
+                resolve(db);
+            };
             request.onerror = () => {
+                if (settled) return;
+                settled = true;
                 this.dbPromise = null;
+                if (request.error?.name === "VersionError") {
+                    logger.warn(
+                        `IndexedDBKeyStore: "${this.dbName}" was upgraded by a newer SDK and cannot be ` +
+                            "opened at this version. Keys are not cached until the page reloads with that SDK.",
+                    );
+                }
                 reject(request.error);
             };
             request.onblocked = () => {
+                if (settled) return;
+                settled = true;
                 this.dbPromise = null;
                 reject(new DOMException("Database open blocked", "AbortError"));
             };
         });
-        return this.dbPromise;
+        this.dbPromise = dbPromise;
+        return dbPromise;
     }
 
     /** Runs a single read-write transaction and returns the request result. */

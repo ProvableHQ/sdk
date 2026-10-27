@@ -5,6 +5,7 @@ import {
     InvalidLocatorError,
     ProvingKeyLocator,
 } from "../src/node.js";
+import { logger } from "../src/utils/logger.js";
 
 // Helper: build a minimal valid ProvingKeyLocator, allowing field overrides.
 function locator(overrides: Partial<ProvingKeyLocator> = {}): ProvingKeyLocator {
@@ -244,6 +245,90 @@ describe("IndexedDBKeyStore", () => {
                 } catch (e) { err = e; }
                 expect(err).to.exist;
                 expect(err.name).to.equal("AbortError");
+            });
+        });
+
+        it("closes a connection that opens after the blocked open was rejected", async () => {
+            // Rejecting a blocked open does not cancel the request: it can
+            // still succeed once the blocking connection closes. That late
+            // connection has no owner, so it must be closed, not leaked.
+            const close = sinon.spy();
+            let request: any;
+            const stub = {
+                open(_name: string, _version: number) {
+                    request = { onerror: null, onsuccess: null, onupgradeneeded: null, onblocked: null };
+                    setTimeout(() => request.onblocked(), 0);
+                    return request;
+                },
+            };
+
+            await withIndexedDBStub(stub, async () => {
+                const store = new IndexedDBKeyStore("late-open-test");
+                try {
+                    await store.has(locator());
+                } catch {
+                    // expected — blocked
+                }
+                request.result = { close, transaction: () => { throw new Error("not used"); } };
+                request.onsuccess();
+                expect(close.calledOnce, "late connection should be closed").to.equal(true);
+            });
+        });
+
+        it("closes its connection and reopens when another context upgrades the database", async () => {
+            const close = sinon.spy();
+            const dbs: any[] = [];
+            const stub = {
+                open(_name: string, _version: number) {
+                    const req: any = { onerror: null, onsuccess: null, onupgradeneeded: null, onblocked: null };
+                    setTimeout(() => {
+                        const db: any = { close, transaction: () => { throw new Error("not used"); } };
+                        dbs.push(db);
+                        req.result = db;
+                        req.onsuccess();
+                    }, 0);
+                    return req;
+                },
+            };
+
+            await withIndexedDBStub(stub, async () => {
+                const store = new IndexedDBKeyStore("versionchange-test");
+                try { await store.has(locator()); } catch { /* txn stub */ }
+                expect(dbs).to.have.length(1);
+                expect(dbs[0].onversionchange, "connection should listen for versionchange").to.be.a("function");
+
+                dbs[0].onversionchange();
+                expect(close.calledOnce, "connection should close so the upgrade can proceed").to.equal(true);
+
+                // The next call reopens instead of using the closed connection.
+                try { await store.has(locator()); } catch { /* txn stub */ }
+                expect(dbs).to.have.length(2);
+            });
+        });
+
+        it("warns when the database is already at a newer version", async () => {
+            // After a newer SDK in another tab upgrades the database, this
+            // SDK's open at its own version fails. The keystore cannot be
+            // used again until the page reloads, so say so.
+            const versionError = Object.assign(new Error("version mismatch"), { name: "VersionError" });
+            const stub = {
+                open(_name: string, _version: number) {
+                    const req: any = { onerror: null, onsuccess: null, onupgradeneeded: null, onblocked: null };
+                    setTimeout(() => { req.error = versionError; req.onerror(); }, 0);
+                    return req;
+                },
+            };
+            const warn = sinon.stub(logger, "warn");
+
+            await withIndexedDBStub(stub, async () => {
+                const store = new IndexedDBKeyStore("newer-version-test");
+                let err: any;
+                try {
+                    await store.has(locator());
+                } catch (e) { err = e; }
+                expect(err).to.equal(versionError);
+                expect(warn.calledOnce, "should warn once at open").to.equal(true);
+                expect(String(warn.firstCall.args[0])).to.match(/newer/i);
             });
         });
     });

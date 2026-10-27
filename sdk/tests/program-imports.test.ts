@@ -2717,3 +2717,113 @@ describe("keys for dynamic calls", function () {
         expect(persist.calledOnce).to.equal(true);
     });
 });
+
+describe("persisting keys after a WASM trap", function () {
+    this.timeout(60_000);
+
+    afterEach(() => {
+        sinon.restore();
+    });
+
+    const imports = { "multi_fn_test.aleo": MULTI_FN_PROGRAM };
+
+    function setup() {
+        const pm = new ProgramManager("https://api.provable.com/v2", createMockKeyProvider(createMockKeyStore()));
+        sinon.stub(pm.networkClient, "getProgramImports").resolves({});
+        sinon.stub(pm.networkClient, "getProgramAmendmentCount").callsFake(async (name) => ({
+            program_id: name,
+            edition: 1,
+            amendment_count: 0,
+        }));
+        const persist = sinon.spy(pm as any, "persistExtractedKeys");
+        return { pm, persist };
+    }
+
+    const executeOptions = () => ({
+        programName: "calls_alpha_test.aleo",
+        functionName: "run_alpha",
+        program: CALLS_ALPHA_PROGRAM,
+        imports,
+        inputs: ["3u32"],
+        priorityFee: 0,
+        privateFee: false,
+        privateKey: new PrivateKey(),
+        edition: 1,
+    });
+
+    it("should persist keys when the build fails for an ordinary reason", async () => {
+        const { pm, persist } = setup();
+        const failure = new Error("inclusion query failed");
+        sinon.stub(ProgramManagerBase, "buildExecutionTransaction").rejects(failure);
+        let error: unknown;
+        try {
+            await pm.buildExecutionTransaction(executeOptions());
+        } catch (e) {
+            error = e;
+        }
+        expect(error).to.equal(failure);
+        expect(persist.calledOnce).to.equal(true);
+    });
+
+    // A trap exits WASM without dropping the builder's RefMut, so reading
+    // keys back out of the builder would trap again.
+    it("should not read the builder back after the build traps", async () => {
+        const { pm, persist } = setup();
+        const trap = new WebAssembly.RuntimeError("unreachable");
+        sinon.stub(ProgramManagerBase, "buildExecutionTransaction").rejects(trap);
+        let error: unknown;
+        try {
+            await pm.buildExecutionTransaction(executeOptions());
+        } catch (e) {
+            error = e;
+        }
+        expect(error).to.equal(trap);
+        expect(persist.called).to.equal(false);
+    });
+
+    it("should not read the builder back after an offline run traps", async () => {
+        const { pm, persist } = setup();
+        const trap = new WebAssembly.RuntimeError("unreachable");
+        sinon.stub(ProgramManagerBase, "executeFunctionOffline").rejects(trap);
+        let error: unknown;
+        try {
+            await pm.run(CALLS_ALPHA_PROGRAM, "run_alpha", ["3u32"], false, imports,
+                undefined, undefined, undefined, new PrivateKey(), undefined, 1);
+        } catch (e) {
+            error = e;
+        }
+        expect(error).to.equal(trap);
+        expect(persist.called).to.equal(false);
+    });
+
+    it("should not read the builder back after a build from an authorization traps", async () => {
+        const { pm, persist } = setup();
+        const trap = new WebAssembly.RuntimeError("unreachable");
+        sinon.stub(ProgramManagerBase, "executeAuthorization").rejects(trap);
+        const authorization = await pm.buildAuthorizationUnchecked({
+            programName: "calls_alpha_test.aleo",
+            functionName: "run_alpha",
+            programSource: CALLS_ALPHA_PROGRAM,
+            programImports: imports,
+            inputs: ["3u32"],
+            privateKey: new PrivateKey(),
+            edition: 1,
+        });
+        let error: unknown;
+        try {
+            await pm.buildTransactionFromAuthorization({
+                programName: "calls_alpha_test.aleo",
+                authorization,
+                program: CALLS_ALPHA_PROGRAM,
+                imports,
+                edition: 1,
+            });
+        } catch (e) {
+            error = e;
+        } finally {
+            authorization.free();
+        }
+        expect(error).to.equal(trap);
+        expect(persist.called).to.equal(false);
+    });
+});
