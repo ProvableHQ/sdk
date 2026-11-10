@@ -9,6 +9,7 @@ runs:
           ~/.cargo/registry
           ~/.cargo/git
           target
+          wasm/target
         key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}
 
     - name: Initialize Rustup

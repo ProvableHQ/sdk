@@ -23,7 +23,7 @@ browser/mobile dapps or server-side applications, scripts, and AI agents
 
 📦 [**Packages**](#packages) — [Provable SDK](#1-provable-sdk---aleo-protocol-utilities) · [Create-Leo-App](#2-create-leo-app---zero-knowledge-application-examples) · [Aleo Wasm](#3-aleo-wasm---zero-knowledge-algorithms-in-javascript--webassembly)
 
-⚙️ [**Features**](#features) — [Roadmap](#roadmap) · [Core](#core-features) · [Aleo RPC](#aleo-rpc-features) · [AI Agents](#ai-agent-support) · [Networks](#networks-supported) · [Runtimes](#javascript-runtimes--frameworks)
+⚙️ [**Features**](#features) — [Roadmap](#roadmap) · [Core](#core-features) · [Aleo RPC](#aleo-rpc-features) · [AI Agents](#ai-agent-support) · [Networks](#networks-supported) · [Runtimes](#javascript-runtimes--frameworks) · [wasm64](#wasm64-build)
 
 📚 [**Documentation**](#-documentation) — API reference, SDK guide, and tutorials
 
@@ -207,6 +207,20 @@ The Provable SDK is designed to be used by AI coding agents out of the box. The 
 </p>
 
 Full **browser** support with single-threaded and multi-threaded (web worker) modes — multi-threaded uses Rust-native threading via `rayon` for significant performance improvements during proof generation. First-class **Node.js** support for server-side Aleo applications, CLI tools, and backend services. Compatible with **Next.js**, **Bun**, and **Deno**.
+
+## wasm64 build
+
+The default build targets wasm32, so one SDK instance can address at most 4 GiB of WebAssembly memory. The separate wasm64 build raises that to 8 GiB. It applies when a workload does not fit in 4 GiB: local proving of larger functions, many proofs generated concurrently, record scanning over a large set of ciphertexts, or many cryptographic operations in flight at once in one instance. Each operation is slower than on wasm32, so the build is worth the cost only when the memory is needed.
+
+```bash
+npm install @provablehq/sdk @provablehq/wasm64
+```
+
+```js
+import { Account, ProgramManager, initThreadPool } from "@provablehq/sdk/wasm64/mainnet.js";
+```
+
+The wasm64 entry points throw on runtimes without 64-bit shared WebAssembly memory, and the default imports are unchanged. An application that runs on both kinds of runtime loads the SDK through `@provablehq/sdk/dynamic.js` with `loadNetwork("mainnet", { variant: "auto" })`, which takes wasm64 where the runtime supports it and wasm32 elsewhere. Runtime support, build selection, memory behavior and the build itself are covered in the [wasm64 guide](https://github.com/ProvableHQ/sdk/blob/mainnet/docs/guide/12_wasm64.md).
 
 ---
 

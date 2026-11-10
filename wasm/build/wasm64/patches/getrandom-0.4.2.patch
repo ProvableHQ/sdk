@@ -1,0 +1,74 @@
+--- a/Cargo.toml
++++ b/Cargo.toml
+@@ -87,24 +87,24 @@
+ version = "0.2.154"
+ default-features = false
+ 
+-[target.'cfg(all(target_arch = "wasm32", any(target_os = "unknown", target_os = "none")))'.dependencies.wasm-bindgen]
++[target.'cfg(all(any(target_arch = "wasm32", target_arch = "wasm64"), any(target_os = "unknown", target_os = "none")))'.dependencies.wasm-bindgen]
+ version = "0.2.98"
+ optional = true
+ default-features = false
+ 
+-[target.'cfg(all(target_arch = "wasm32", any(target_os = "unknown", target_os = "none")))'.dev-dependencies.wasm-bindgen-test]
++[target.'cfg(all(any(target_arch = "wasm32", target_arch = "wasm64"), any(target_os = "unknown", target_os = "none")))'.dev-dependencies.wasm-bindgen-test]
+ version = "0.3"
+ 
+-[target.'cfg(all(target_arch = "wasm32", any(target_os = "unknown", target_os = "none"), target_feature = "atomics"))'.dependencies.js-sys]
++[target.'cfg(all(any(target_arch = "wasm32", target_arch = "wasm64"), any(target_os = "unknown", target_os = "none"), target_feature = "atomics"))'.dependencies.js-sys]
+ version = "0.3.77"
+ optional = true
+ default-features = false
+ 
+-[target.'cfg(all(target_arch = "wasm32", target_os = "wasi", target_env = "p2"))'.dependencies.wasip2]
++[target.'cfg(all(any(target_arch = "wasm32", target_arch = "wasm64"), target_os = "wasi", target_env = "p2"))'.dependencies.wasip2]
+ version = "1"
+ default-features = false
+ 
+-[target.'cfg(all(target_arch = "wasm32", target_os = "wasi", target_env = "p3"))'.dependencies.wasip3]
++[target.'cfg(all(any(target_arch = "wasm32", target_arch = "wasm64"), target_os = "wasi", target_env = "p3"))'.dependencies.wasip3]
+ version = "0.4"
+ 
+ [target.'cfg(all(target_os = "uefi", getrandom_backend = "efi_rng"))'.dependencies.r-efi]
+--- a/src/backends.rs
++++ b/src/backends.rs
+@@ -136,7 +136,7 @@
+     ))] {
+         mod apple_other;
+         pub use apple_other::*;
+-    } else if #[cfg(all(target_arch = "wasm32", target_os = "wasi"))] {
++    } else if #[cfg(all(any(target_arch = "wasm32", target_arch = "wasm64"), target_os = "wasi"))] {
+         cfg_if! {
+             if #[cfg(target_env = "p1")] {
+                 mod wasi_p1;
+@@ -167,7 +167,7 @@
+     } else if #[cfg(all(target_arch = "x86_64", target_env = "sgx"))] {
+         mod rdrand;
+         pub use rdrand::*;
+-    } else if #[cfg(all(target_arch = "wasm32", any(target_os = "unknown", target_os = "none")))] {
++    } else if #[cfg(all(any(target_arch = "wasm32", target_arch = "wasm64"), any(target_os = "unknown", target_os = "none")))] {
+         cfg_if! {
+             if #[cfg(feature = "wasm_js")] {
+                 mod wasm_js;
+--- a/src/backends/wasm_js.rs
++++ b/src/backends/wasm_js.rs
+@@ -4,7 +4,7 @@
+ 
+ pub use crate::util::{inner_u32, inner_u64};
+ 
+-#[cfg(not(all(target_arch = "wasm32", any(target_os = "unknown", target_os = "none"))))]
++#[cfg(not(all(any(target_arch = "wasm32", target_arch = "wasm64"), any(target_os = "unknown", target_os = "none"))))]
+ compile_error!("`wasm_js` backend can be enabled only for OS-less WASM targets!");
+ 
+ use wasm_bindgen::{prelude::wasm_bindgen, JsValue};
+--- a/src/error.rs
++++ b/src/error.rs
+@@ -179,7 +179,7 @@
+             Error::WINDOWS_RTL_GEN_RANDOM => "RtlGenRandom: Windows system function failure",
+             #[cfg(all(
+                 feature = "wasm_js",
+-                target_arch = "wasm32",
++                any(target_arch = "wasm32", target_arch = "wasm64"),
+                 any(target_os = "unknown", target_os = "none")
+             ))]
+             Error::WEB_CRYPTO => "Web Crypto API is unavailable",
