@@ -1,5 +1,5 @@
 [![Authors](https://img.shields.io/badge/authors-Aleo-orange.svg)](https://provable.com)
-[![License](https://img.shields.io/badge/License-GPLv3-blue.svg)](./LICENSE.md)
+[![License](https://img.shields.io/badge/License-MIT-blue.svg)](./LICENSE.md)
 
 [![github]](https://github.com/ProvableHQ/sdk)
 

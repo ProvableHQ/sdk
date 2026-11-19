@@ -2,7 +2,7 @@
   "name": "create-leo-app",
   "version": "0.13.0",
   "type": "module",
-  "license": "GPL-3.0",
+  "license": "MIT",
   "collaborators": [
     "The Provable Team"
   ],

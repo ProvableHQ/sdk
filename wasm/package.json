@@ -6,7 +6,7 @@
   "collaborators": [
     "The Provable Team"
   ],
-  "license": "GPL-3.0",
+  "license": "MIT",
   "main": "./dist/testnet/index.cjs",
   "browser": "./dist/testnet/index.js",
   "module": "./dist/testnet/index.js",
