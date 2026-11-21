@@ -1,5 +1,6 @@
 import sodium from "libsodium-wrappers";
 import { expect } from "chai";
+import sinon from "sinon";
 import { base64 } from "@scure/base";
 import {
     Account,
@@ -254,6 +255,98 @@ describe("security", () => {
             const result = zeroizeBytes(bytes);
             expect(result).to.equal(undefined);
             expect(bytes).to.deep.equal(new Uint8Array([0, 0, 0, 0, 0]));
+        });
+    });
+
+    describe("encryptRegistrationRequest start validation and zeroization", () => {
+        const b64 = (bytes: Uint8Array) =>
+            sodium.to_base64(bytes, sodium.base64_variants.ORIGINAL);
+
+        // Returns a view key whose toBytesLe() hands out a sentinel buffer we keep a reference to,
+        // so we can assert it was zeroized after the call.
+        function viewKeyWithSentinel() {
+            const viewKey = new Account().viewKey();
+            const sentinel = new Uint8Array(viewKey.toBytesLe().length).fill(
+                0xab,
+            );
+            sinon.stub(viewKey, "toBytesLe").returns(sentinel);
+            return { viewKey, sentinel };
+        }
+
+        afterEach(() => {
+            sinon.restore();
+        });
+
+        for (const start of [0, 0xffffffff]) {
+            it(`accepts boundary start=${start} and embeds it as LE u32`, () => {
+                const keyPair = sodium.crypto_box_keypair();
+                const viewKey = new Account().viewKey();
+                const vkLen = viewKey.toBytesLe().length;
+
+                const ciphertext = encryptRegistrationRequest(
+                    b64(keyPair.publicKey),
+                    viewKey,
+                    start,
+                );
+                const plaintext = sodium.crypto_box_seal_open(
+                    sodium.from_base64(
+                        ciphertext,
+                        sodium.base64_variants.ORIGINAL,
+                    ),
+                    keyPair.publicKey,
+                    keyPair.privateKey,
+                );
+                const view = new DataView(
+                    plaintext.buffer,
+                    plaintext.byteOffset,
+                    plaintext.byteLength,
+                );
+                expect(view.getUint32(vkLen, true)).to.equal(start);
+            });
+        }
+
+        for (const start of [-1, 1.5, 2 ** 32, NaN, Infinity, -Infinity]) {
+            it(`rejects invalid start=${start} with RangeError`, () => {
+                const keyPair = sodium.crypto_box_keypair();
+                const viewKey = new Account().viewKey();
+                expect(() =>
+                    encryptRegistrationRequest(
+                        b64(keyPair.publicKey),
+                        viewKey,
+                        start,
+                    ),
+                ).to.throw(RangeError);
+            });
+        }
+
+        it("validates start before touching the view key bytes", () => {
+            const keyPair = sodium.crypto_box_keypair();
+            const viewKey = new Account().viewKey();
+            const spy = sinon.spy(viewKey, "toBytesLe");
+            expect(() =>
+                encryptRegistrationRequest(b64(keyPair.publicKey), viewKey, -1),
+            ).to.throw(RangeError);
+            expect(spy.called).to.equal(false);
+        });
+
+        it("zeroizes the view key bytes when encryption fails (invalid public key)", () => {
+            const { viewKey, sentinel } = viewKeyWithSentinel();
+            expect(() =>
+                encryptRegistrationRequest("not-valid-base64!!!", viewKey, 0),
+            ).to.throw();
+            expect(sentinel.every((b) => b === 0)).to.equal(true);
+        });
+
+        it("zeroizes the view key bytes when buffer preparation fails (setUint32 throws)", () => {
+            const keyPair = sodium.crypto_box_keypair();
+            const { viewKey, sentinel } = viewKeyWithSentinel();
+            sinon
+                .stub(DataView.prototype, "setUint32")
+                .throws(new Error("boom"));
+            expect(() =>
+                encryptRegistrationRequest(b64(keyPair.publicKey), viewKey, 0),
+            ).to.throw("boom");
+            expect(sentinel.every((b) => b === 0)).to.equal(true);
         });
     });
 });

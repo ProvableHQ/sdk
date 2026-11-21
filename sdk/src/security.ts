@@ -116,30 +116,46 @@ export function encryptViewKey(publicKey: string, viewKey: ViewKey): string {
  *
  * @param {string} publicKey The cryptobox X25519 public key to encrypt with (encoded in RFC 4648 standard Base64).
  * @param {ViewKey} viewKey the view key to encrypt.
- * @param {number} start the start height of the registration request.
+ * @param {number} start the start height of the registration request (integer in [0, 0xFFFFFFFF]).
  *
- * @returns {string} the encrypted view key in RFC 4648 standard Base64.
+ * @returns {string} the encrypted view key and start height in RFC 4648 standard Base64.
+ *
+ * @throws {RangeError} if `start` is not an integer between 0 and 0xFFFFFFFF.
  */
-export function encryptRegistrationRequest(publicKey: string, viewKey: ViewKey, start: number): string {
+export function encryptRegistrationRequest(
+    publicKey: string,
+    viewKey: ViewKey,
+    start: number,
+): string {
+    // Validate before any secret bytes are created, so nothing needs zeroizing
+    // on this path. setUint32 would otherwise silently truncate bad values.
+    if (!Number.isInteger(start) || start < 0 || start > 0xffffffff) {
+        throw new RangeError(
+            "start must be an integer between 0 and 0xFFFFFFFF",
+        );
+    }
+
     // Turn the view key into a Uint8Array.
     const vk_bytes: Uint8Array = viewKey.toBytesLe();
-    // Create a new array to hold the original bytes and the 4-byte start height.
-    const bytes = new Uint8Array(vk_bytes.length + 4);
+    let bytes: Uint8Array | undefined;
 
-    // Copy existing bytes.
-    bytes.set(vk_bytes, 0);
-
-    // Write the 4-byte number in LE format at the end of the array.
-    const view = new DataView(bytes.buffer);
-    view.setUint32(vk_bytes.length, start, true);
-
-    // Encrypt the encoded bytes, ensuring sensitive intermediate
-    // byte arrays are zeroized regardless of success or failure.
+    // Buffer allocation and filling live inside the try so vk_bytes is
+    // zeroized even if any of these steps throws.
     try {
+        // Holds the view key bytes followed by the 4-byte start height.
+        bytes = new Uint8Array(vk_bytes.length + 4);
+        bytes.set(vk_bytes, 0);
+
+        // Write the 4-byte number in LE format at the end of the array.
+        const view = new DataView(bytes.buffer);
+        view.setUint32(vk_bytes.length, start, true);
+
         return encryptMessage(publicKey, bytes);
     } finally {
         zeroizeBytes(vk_bytes);
-        zeroizeBytes(bytes);
+        if (bytes) {
+            zeroizeBytes(bytes);
+        }
     }
 }
 
